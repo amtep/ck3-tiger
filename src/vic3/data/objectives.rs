@@ -33,9 +33,12 @@ impl DbKind for Objective {
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         vd.field_item("icon", Item::File);
-        vd.field_item("background", Item::File);
+        vd.replaced_field("background", "enabled_background and disabled_background");
+        vd.field_item("enabled_background", Item::File);
+        vd.field_item("disabled_background", Item::File);
 
         vd.field_list_items("recommended_tags", Item::Country);
+        vd.field_bool("available_for_all_countries");
         vd.field_list_items("recommended_game_rules", Item::GameRuleSetting); // undocumented
         vd.field_list_items("objective_subgoals", Item::ObjectiveSubgoal);
         // TODO: check if it's in the list above?
@@ -45,6 +48,7 @@ impl DbKind for Objective {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             validate_effect(block, data, &mut sc, Tooltipped::No);
         });
+        vd.field_item("required_dlc_feature", Item::DlcFeature);
     }
 }
 

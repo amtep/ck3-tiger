@@ -2,15 +2,14 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
+use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
@@ -29,7 +28,6 @@ impl ScriptedGui {
 
 impl DbKind for ScriptedGui {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        // TODO: vanilla vic3 does not use scripted guis so it's not clear which fields are allowed there.
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::None, key);
         if let Some(token) = vd.field_value("scope") {
@@ -40,29 +38,20 @@ impl DbKind for ScriptedGui {
             }
         }
 
-        // These two are undocumented in CK3 and Vic3
-        vd.field_validated_sc("confirm_title", &mut sc, validate_desc);
-        vd.field_validated_sc("confirm_text", &mut sc, validate_desc);
+        // TODO: JominiNotification
+        vd.field_value("notification_key");
+        vd.field_validated_sc("confirm_title", &mut sc.clone(), validate_desc);
+        vd.field_validated_sc("confirm_text", &mut sc.clone(), validate_desc);
+        vd.field_trigger_full("ai_is_valid", &mut sc.clone(), Tooltipped::No);
+        vd.field_validated_block_sc("ai_chance", &mut sc.clone(), validate_modifiers_with_base);
+        vd.field_validated("ai_frequency", validate_non_dynamic_script_value);
 
-        vd.field_validated_list("saved_scopes", |token, _data| {
+        vd.field_validated_list("saved_scopes", |token, _| {
             sc.define_name(token.as_str(), Scopes::all_but_none(), token);
         });
-
-        vd.field_validated_block("is_shown", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        // This is from Imperator but is reported to work in CK3 too
-        vd.field_validated_block("ai_is_valid", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("is_valid", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("effect", |b, data| {
-            // TODO: whether this is tooltipped depends on whether the gui calls for it
-            validate_effect(b, data, &mut sc, Tooltipped::No);
-        });
-        // This is from Imperator but is reported to work in CK3 too
-        vd.field_validated_block_sc("ai_chance", &mut sc, validate_modifiers_with_base);
+        vd.field_trigger_full("is_shown", &mut sc.clone(), Tooltipped::No);
+        vd.field_trigger_full("is_valid", &mut sc.clone(), Tooltipped::No);
+        // TODO: whether this is tooltipped depends on whether the gui calls for it
+        vd.field_effect_full("effect", &mut sc.clone(), Tooltipped::No);
     }
 }

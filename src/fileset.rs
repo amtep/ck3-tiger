@@ -608,6 +608,9 @@ impl Fileset {
             } else if Game::is_vic3() && entry.path.starts_with("common/on_action") {
                 let msg = "file should be in common/on_actions/";
                 err(ErrorKey::Filename).msg(msg).loc(entry).push();
+            } else if Game::is_vic3() && entry.path.starts_with("common/modifiers") {
+                let msg = "file should be in common/static_modifiers since 1.7";
+                err(ErrorKey::Filename).msg(msg).loc(entry).push();
             } else {
                 let msg = format!("file in unexpected directory `{}`", dirname.display());
                 err(ErrorKey::Filename).msg(msg).loc(entry).push();

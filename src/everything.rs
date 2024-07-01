@@ -650,6 +650,7 @@ impl Everything {
                 }
             }
             Item::Strata => STRATA.contains(&key),
+            Item::TerrainKey => TERRAIN_KEYS.contains(&key),
             Item::TransferOfPower => TRANSFER_OF_POWER.contains(&key),
             Item::Wargoal => WARGOALS.contains(&key),
             Item::MobilizationOption => true, // TODO
@@ -732,8 +733,8 @@ impl Everything {
     /// matches are needed; this is currently the ones used in `src/vic3/tables/modif.rs`.
     #[cfg(feature = "vic3")]
     fn item_exists_lc_vic3(&self, itype: Item, key: &Lowercase) -> bool {
-        #[allow(clippy::match_single_binding)]
         match itype {
+            Item::TerrainKey => TERRAIN_KEYS.contains(&key.as_str()),
             _ => self.database.exists_lc(itype, key),
         }
     }

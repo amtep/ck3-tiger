@@ -31,8 +31,10 @@ impl DbKind for PopNeed {
             let mut vd = Validator::new(block, data);
             vd.field_item("goods", Item::Goods);
             vd.field_numeric("weight");
-            vd.field_numeric("max_weight");
-            vd.field_numeric("min_weight");
+            vd.replaced_field("max_weight", "max_supply_share");
+            vd.field_numeric("max_supply_share");
+            vd.replaced_field("min_weight", "min_supply_share");
+            vd.field_numeric("min_supply_share");
         });
     }
 }

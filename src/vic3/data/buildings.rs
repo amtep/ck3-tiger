@@ -5,6 +5,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
@@ -44,7 +45,8 @@ impl DbKind for BuildingType {
         vd.field_bool("enable_air_connection");
         vd.field_bool("port");
 
-        vd.field_item("recruits_combat_unit", Item::OldCombatUnit); // undocumented
+        vd.replaced_field("recruits_combat_unit", "recruits_combat_units = yes");
+        vd.field_bool("recruits_combat_units");
 
         vd.field_list_items("unlocking_technologies", Item::Technology);
         vd.field_validated_block("can_build", |block, data| {
@@ -71,8 +73,13 @@ impl DbKind for BuildingType {
         vd.field_bool("naval");
         vd.field_item("canal", Item::CanalType);
 
-        vd.field_numeric("ai_value");
+        vd.field_script_value_rooted("ai_value", Scopes::State);
         vd.field_numeric("ai_subsidies_weight");
+        vd.advice_field(
+            "ai_privatization_desire",
+            "docs say ai_privatization_desire but it's ai_nationalization_desire",
+        );
+        vd.field_script_value("ai_nationalization_desire", &mut sc);
 
         vd.field_item("slaves_role", Item::PopType);
 
@@ -89,6 +96,18 @@ impl DbKind for BuildingType {
         vd.field_integer("levels_per_mesh");
         vd.field_integer("residence_points_per_level");
         vd.field_bool("override_centerpiece_mesh");
+        vd.field_bool("statue");
+        if block.field_value_is("override_centerpiece_mesh", "yes")
+            || block.field_value_is("statue", "yes")
+        {
+            vd.req_field("centerpiece_mesh_weight");
+        }
+        if block.field_value_is("override_centerpiece_mesh", "yes")
+            && block.field_value_is("statue", "yes")
+        {
+            let msg = "override_centerpiece_mesh and statue are mutually exclusive";
+            err(ErrorKey::Validation).msg(msg).loc(block).push();
+        }
         vd.field_integer("centerpiece_mesh_weight");
 
         vd.field_list("meshes"); // TODO
@@ -97,6 +116,9 @@ impl DbKind for BuildingType {
         vd.field_list("entity_constructed"); // TODO
         vd.field_value("locator"); // TODO
         vd.field_value("lens"); // TODO
+
+        vd.field_choice("ownership_type", &["no_ownership", "self", "other"]);
+        vd.field_item("background", Item::File);
 
         // undocumented
 
@@ -110,6 +132,17 @@ impl DbKind for BuildingType {
             vd.field_bool("clear_collision_mesh_area");
             vd.field_bool("clear_size_area");
             vd.field_integer("size");
+        });
+
+        vd.field_bool("cannot_switch_owner");
+
+        vd.field_validated_block("investment_scores", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_block_fields(|_, block| {
+                let mut vd = Validator::new(block, data);
+                vd.field_item("group", Item::BuildingGroup);
+                vd.field_script_value_full("score", Scopes::Country, false);
+            });
         });
     }
 }
@@ -179,9 +212,13 @@ impl DbKind for BuildingGroup {
         // undocumented fields
 
         vd.field_numeric("economy_of_scale_ai_factor");
+        vd.field_numeric("foreign_investment_ai_factor");
         vd.field_numeric("infrastructure_usage_per_level");
+        vd.field_numeric("min_productivity_to_hire");
         vd.field_bool("fired_pops_become_radical");
         vd.field_bool("is_military");
         vd.field_bool("is_government_funded");
+        vd.field_bool("owns_other_buildings");
+        vd.field_bool("is_shown_in_outliner");
     }
 }

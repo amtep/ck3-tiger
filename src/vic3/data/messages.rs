@@ -50,5 +50,6 @@ impl DbKind for Message {
         }
 
         vd.field_item("on_created_soundeffect", Item::Sound);
+        vd.field_choice("color", &["bad", "neutral", "good"]);
     }
 }

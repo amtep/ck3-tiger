@@ -43,5 +43,8 @@ pub fn display_fmt(mk: ModifKinds, f: &mut Formatter) -> Result<(), std::fmt::Er
     if mk.contains(ModifKinds::MilitaryFormation) {
         vec.push("military formation");
     }
+    if mk.contains(ModifKinds::PowerBloc) {
+        vec.push("power bloc");
+    }
     write!(f, "{}", vec.join(", "))
 }

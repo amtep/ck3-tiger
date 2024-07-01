@@ -42,8 +42,11 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // building_group_$BuildingGroup$_$PopType$_fertility_mult
     // building_group_$BuildingGroup$_$PopType$_mortality_mult
     // building_group_$BuildingGroup$_$PopType$_standard_of_living_add
+    // TODO: allowed_collectivization_add is not enabled for all bg
+    // building_group_$BuildingGroup$_allowed_collectivization_add
     // building_group_$BuildingGroup$_employee_mult
     // building_group_$BuildingGroup$_fertility_mult
+    // building_group_$BuildingGroup$_infrastructure_usage_mult
     // building_group_$BuildingGroup$_mortality_mult
     // building_group_$BuildingGroup$_standard_of_living_add
     // building_group_$BuildingGroup$_throughput_mult (obsolete)
@@ -65,9 +68,14 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
                 return Some(ModifKinds::Building);
             }
         }
-        for &sfx in
-            &["_employee_mult", "_tax_mult", "_unincorporated_throughput_add", "_throughput_add"]
-        {
+        for &sfx in &[
+            "_allowed_collectivization_add",
+            "_infrastructure_usage_mult",
+            "_employee_mult",
+            "_tax_mult",
+            "_unincorporated_throughput_add",
+            "_throughput_add",
+        ] {
             if let Some(part) = part.strip_suffix_unchecked(sfx) {
                 maybe_warn(Item::BuildingGroup, &part, name, data, warn);
                 return Some(ModifKinds::Building);
@@ -173,6 +181,33 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
+    // TODO: this is only for 2 institutions
+    // country_institution_cost_$Institution$_add
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_institution_cost_") {
+        if let Some(part) = part.strip_suffix_unchecked("_add") {
+            maybe_warn(Item::Institution, &part, name, data, warn);
+            return Some(ModifKinds::Country);
+        }
+    }
+
+    // TODO: this is only for 1 institution
+    // country_institution_impact_$Institution$_mult
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_institution_impact_") {
+        if let Some(part) = part.strip_suffix_unchecked("_mult") {
+            maybe_warn(Item::Institution, &part, name, data, warn);
+            return Some(ModifKinds::Country);
+        }
+    }
+
+    // TODO: this is only for 2 institutions
+    // country_institution_size_change_speed_$Institution$_mult
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_institution_size_change_speed_") {
+        if let Some(part) = part.strip_suffix_unchecked("_mult") {
+            maybe_warn(Item::Institution, &part, name, data, warn);
+            return Some(ModifKinds::Country);
+        }
+    }
+
     // country_$PopType$_pol_str_mult
     // country_$PopType$_voting_power_add
     if let Some(part) = name_lc.strip_prefix_unchecked("country_") {
@@ -195,7 +230,28 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // country_subsidies_$BuildingGroup$
     if let Some(part) = name_lc.strip_prefix_unchecked("country_subsidies_") {
         maybe_warn(Item::BuildingGroup, &part, name, data, warn);
+        if let Some(sev) = warn {
+            let msg = format!("`{name}` was removed in 1.7");
+            report(ErrorKey::Removed, sev).msg(msg).loc(name).push();
+        }
         return Some(ModifKinds::Country);
+    }
+
+    // country_enactment_success_chance_$Law$_add
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_enactment_success_chance_") {
+        if let Some(part) = part.strip_suffix_unchecked("_add") {
+            maybe_warn(Item::LawType, &part, name, data, warn);
+            return Some(ModifKinds::Country);
+        }
+    }
+
+    // TODO: this is only for a few laws
+    // country_enactment_time_$Law$_mult
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_enactment_time_") {
+        if let Some(part) = part.strip_suffix_unchecked("_mult") {
+            maybe_warn(Item::LawType, &part, name, data, warn);
+            return Some(ModifKinds::Country);
+        }
     }
 
     // interest_group_$InterestGroup$_approval_add
@@ -228,14 +284,18 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
 
     // state_$PopType$_dependent_wage_mult
+    // state_$PopType$_internal_migration_disallowed_bool
     // state_$PopType$_investment_pool_contribution_add
     // state_$PopType$_investment_pool_efficiency_mult
+    // state_$PopType$_mass_migration_disallowed_bool
     // state_$PopType$_mortality_mult
     if let Some(part) = name_lc.strip_prefix_unchecked("state_") {
         for &sfx in &[
             "_dependent_wage_mult",
+            "_internal_migration_disallowed_bool",
             "_investment_pool_contribution_add",
             "_investment_pool_efficiency_mult",
+            "_mass_migration_disallowed_bool",
             "_mortality_mult",
         ] {
             if let Some(part) = part.strip_suffix_unchecked(sfx) {
@@ -256,6 +316,21 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
+    // unit_defense_$TerrainKey$_add
+    // unit_defense_$TerrainKey$_mult
+    // unit_offense_$TerrainKey$_mult
+    // unit_offense_$TerrainKey$_mult
+    for &pfx in &["unit_defense_", "unit_offense_"] {
+        if let Some(part) = name_lc.strip_prefix_unchecked(pfx) {
+            for &sfx in &["_add", "_mult"] {
+                if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                    maybe_warn(Item::TerrainKey, &part, name, data, warn);
+                    return Some(ModifKinds::Unit);
+                }
+            }
+        }
+    }
+
     // TODO: not all of these exist for all unit types
     // unit_$CombatUnit$_offense_mult
     // unit_$CombatUnit$_offense_add
@@ -268,12 +343,31 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
+    // power_bloc_invite_acceptance_$CountryRank$_add
+    if let Some(part) = name_lc.strip_prefix_unchecked("power_bloc_invite_acceptance_") {
+        if let Some(part) = part.strip_suffix_unchecked("_add") {
+            maybe_warn(Item::CountryRank, &part, name, data, warn);
+            return Some(ModifKinds::PowerBloc);
+        }
+    }
+
+    // power_bloc_mandate_progress_per_$CountryRank$_member_add
+    // power_bloc_mandate_progress_per_$CountryRank$_member_mult
+    if let Some(part) = name_lc.strip_prefix_unchecked("power_bloc_mandate_progress_per_") {
+        for &sfx in &["_member_add", "_member_mult"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::CountryRank, &part, name, data, warn);
+                return Some(ModifKinds::PowerBloc);
+            }
+        }
+    }
+
     // TODO: modifiers from terrain labels
 
     // User-defined modifs are accepted in Vic3.
     // They must have a ModifierType entry to be accepted by the game engine,
     // so if that exists then accept the modif.
-    if data.item_exists_lc(Item::ModifierType, &name_lc) {
+    if data.item_exists_lc(Item::ModifierTypeDefinition, &name_lc) {
         return Some(ModifKinds::all());
     }
 
@@ -298,7 +392,7 @@ static MODIF_MAP: Lazy<TigerHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.6.0
+/// LAST UPDATED VIC3 VERSION 1.7.1
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 const MODIF_TABLE: &[(&str, ModifKinds)] = &[
@@ -309,19 +403,19 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("building_cash_reserves_mult", ModifKinds::Building),
     ("building_economy_of_scale_level_cap_add", ModifKinds::Building),
     ("building_goods_input_mult", ModifKinds::Building),
-    ("building_government_shares_add", ModifKinds::Building),
+    ("building_level_bureaucracy_cost_add", ModifKinds::Building),
     ("building_minimum_wage_mult", ModifKinds::Building),
     ("building_mobilization_cost_mult", ModifKinds::Building),
-    ("building_production_mult", ModifKinds::Building),
+    ("building_nationalization_cost_mult", ModifKinds::Building),
+    ("building_nationalization_investment_return_add", ModifKinds::Building),
+    ("building_nationalization_radicals_mult", ModifKinds::Building),
     ("building_subsistence_output_add", ModifKinds::Building),
     ("building_subsistence_output_mult", ModifKinds::Building),
     ("building_throughput_add", ModifKinds::Building),
-    ("building_throughput_oil_mult", ModifKinds::Building),
     ("building_training_rate_add", ModifKinds::Building),
     ("building_training_rate_mult", ModifKinds::Building),
     ("building_unincorporated_subsistence_output_mult", ModifKinds::Building),
     ("building_unincorporated_throughput_add", ModifKinds::Building),
-    ("building_workforce_shares_add", ModifKinds::Building),
     ("building_working_conditions_mult", ModifKinds::Building),
     ("character_advancement_speed_add", ModifKinds::Character),
     ("character_command_limit_add", ModifKinds::Character),
@@ -335,43 +429,81 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("character_popularity_add", ModifKinds::Character),
     ("character_supply_route_cost_mult", ModifKinds::Character),
     ("country_agitator_slots_add", ModifKinds::Country),
-    ("country_all_buildings_protected", ModifKinds::Country),
-    ("country_allow_multiple_alliances", ModifKinds::Country),
+    ("country_ahead_of_time_research_penalty_mult", ModifKinds::Country),
+    ("country_all_buildings_protected_bool", ModifKinds::Country),
+    ("country_allow_enacting_decrees_in_subject_bool", ModifKinds::Country),
+    ("country_allow_multiple_alliances_bool", ModifKinds::Country),
+    ("country_allow_trade_routes_without_interest_bool", ModifKinds::Country),
     ("country_authority_add", ModifKinds::Country),
     ("country_authority_mult", ModifKinds::Country),
+    ("country_authority_per_subject_add", ModifKinds::Country),
+    ("country_bolster_cost_mult", ModifKinds::Country),
+    ("country_bolster_ig_attraction_mult", ModifKinds::Country),
     ("country_bureaucracy_add", ModifKinds::Country),
     ("country_bureaucracy_investment_cost_factor_mult", ModifKinds::Country),
     ("country_bureaucracy_mult", ModifKinds::Country),
-    ("country_cannot_enact_laws", ModifKinds::Country),
+    ("country_can_form_construction_company_bool", ModifKinds::Country),
+    ("country_can_impose_same_lawgroup_church_and_state_in_power_bloc_bool", ModifKinds::Country),
+    (
+        "country_can_impose_same_lawgroup_distribution_of_power_in_power_bloc_bool",
+        ModifKinds::Country,
+    ),
+    (
+        "country_can_impose_same_lawgroup_governance_principles_in_power_bloc_bool",
+        ModifKinds::Country,
+    ),
+    ("country_cannot_be_target_for_law_imposition_bool", ModifKinds::Country),
+    ("country_cannot_cancel_law_enactment_bool", ModifKinds::Country),
+    ("country_cannot_enact_laws_bool", ModifKinds::Country),
+    ("country_cannot_start_law_enactment_bool", ModifKinds::Country),
     ("country_company_construction_efficiency_bonus_add", ModifKinds::Country),
     ("country_company_throughput_bonus_add", ModifKinds::Country),
     ("country_construction_add", ModifKinds::Country),
+    ("country_construction_goods_cost_mult", ModifKinds::Country),
     ("country_consumption_tax_cost_mult", ModifKinds::Country),
+    ("country_convoy_contribution_to_market_owner_add", ModifKinds::Country),
     ("country_convoys_capacity_add", ModifKinds::Country),
     ("country_convoys_capacity_mult", ModifKinds::Country),
     ("country_damage_relations_speed_mult", ModifKinds::Country),
-    ("country_decree_cost_mult", ModifKinds::Country),
     ("country_diplomatic_play_maneuvers_add", ModifKinds::Country),
-    ("country_disable_investment_pool", ModifKinds::Country),
-    ("country_disallow_aggressive_plays", ModifKinds::Country),
-    ("country_disallow_agitator_invites", ModifKinds::Country),
-    ("country_disallow_discriminated_migration", ModifKinds::Country),
-    ("country_disallow_migration", ModifKinds::Country),
+    ("country_disable_investment_pool_bool", ModifKinds::Country),
+    ("country_disable_nationalization_bool", ModifKinds::Country),
+    ("country_disable_nationalization_without_compensation_bool", ModifKinds::Country),
+    ("country_disable_privatization_bool", ModifKinds::Country),
+    ("country_disallow_aggressive_plays_bool", ModifKinds::Country),
+    ("country_disallow_agitator_invites_bool", ModifKinds::Country),
+    ("country_disallow_discriminated_migration_bool", ModifKinds::Country),
+    ("country_disallow_migration_bool", ModifKinds::Country),
     ("country_expedition_events_explorer_mult", ModifKinds::Country),
     ("country_expenses_add", ModifKinds::Country),
+    ("country_force_collectivization_bool", ModifKinds::Country),
+    ("country_force_privatization_bool", ModifKinds::Country),
     ("country_free_trade_routes_add", ModifKinds::Country),
     ("country_gold_reserve_limit_mult", ModifKinds::Country),
-    ("country_government_buildings_protected", ModifKinds::Country),
+    ("country_government_buildings_protected_bool", ModifKinds::Country),
+    ("country_government_dividends_efficiency_add", ModifKinds::Country),
+    ("country_government_dividends_reinvestment_add", ModifKinds::Country),
+    ("country_government_dividends_waste_add", ModifKinds::Country),
     ("country_government_wages_mult", ModifKinds::Country),
-    ("country_ignores_landing_craft_penalty", ModifKinds::Country),
+    ("country_higher_diplomatic_acceptance_same_religion_bool", ModifKinds::Country),
+    ("country_higher_leverage_from_economic_dependence_bool", ModifKinds::Country),
+    ("country_ignores_landing_craft_penalty_bool", ModifKinds::Country),
     ("country_improve_relations_speed_mult", ModifKinds::Country),
     ("country_infamy_decay_mult", ModifKinds::Country),
     ("country_infamy_generation_mult", ModifKinds::Country),
+    ("country_infamy_generation_against_unrecognized_mult", ModifKinds::Country),
     ("country_influence_add", ModifKinds::Country),
     ("country_influence_mult", ModifKinds::Country),
+    ("country_initiator_war_goal_maneuver_cost_mult", ModifKinds::Country),
     ("country_institution_size_change_speed_mult", ModifKinds::Country),
+    ("country_join_power_bloc_member_in_defensive_plays_bool", ModifKinds::Country),
+    ("country_join_power_bloc_member_in_plays_bool", ModifKinds::Country),
+    ("country_law_enactment_imposition_success_add", ModifKinds::Country),
+    ("country_law_enactment_max_setbacks_add", ModifKinds::Country),
+    ("country_law_enactment_stall_mult", ModifKinds::Country),
     ("country_law_enactment_success_add", ModifKinds::Country),
     ("country_law_enactment_time_mult", ModifKinds::Country),
+    ("country_leader_has_law_enactment_success_mult", ModifKinds::Country),
     ("country_legitimacy_base_add", ModifKinds::Country),
     ("country_legitimacy_govt_leader_clout_add", ModifKinds::Country),
     ("country_legitimacy_govt_size_add", ModifKinds::Country),
@@ -379,10 +511,20 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("country_legitimacy_govt_total_votes_add", ModifKinds::Country),
     ("country_legitimacy_headofstate_add", ModifKinds::Country),
     ("country_legitimacy_ideological_incoherence_mult", ModifKinds::Country),
+    ("country_legitimacy_min_add", ModifKinds::Country),
+    ("country_leverage_generation_add", ModifKinds::Country),
+    ("country_leverage_generation_mult", ModifKinds::Country),
+    ("country_leverage_resistance_add", ModifKinds::Country),
+    ("country_leverage_resistance_mult", ModifKinds::Country),
+    ("country_liberty_desire_add", ModifKinds::Country),
+    ("country_liberty_desire_decrease_mult", ModifKinds::Country),
+    ("country_liberty_desire_increase_mult", ModifKinds::Country),
+    ("country_liberty_desire_of_subjects_mult", ModifKinds::Country),
     ("country_loan_interest_rate_add", ModifKinds::Country),
     ("country_loan_interest_rate_mult", ModifKinds::Country),
+    ("country_lobby_leverage_generation_mult", ModifKinds::Country),
     ("country_loyalists_from_legitimacy_mult", ModifKinds::Country),
-    ("country_mandate_subsidies", ModifKinds::Country),
+    ("country_mass_migration_attraction_mult", ModifKinds::Country),
     ("country_max_companies_add", ModifKinds::Country),
     ("country_max_declared_interests_add", ModifKinds::Country),
     ("country_max_declared_interests_mult", ModifKinds::Country),
@@ -393,19 +535,24 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("country_military_wages_mult", ModifKinds::Country),
     ("country_minting_add", ModifKinds::Country),
     ("country_minting_mult", ModifKinds::Country),
-    ("country_must_have_movement_to_enact_laws", ModifKinds::Country),
+    ("country_must_have_movement_to_enact_laws_bool", ModifKinds::Country),
+    ("country_nationalization_cost_non_members_mult", ModifKinds::Country),
     ("country_opposition_ig_approval_add", ModifKinds::Country),
+    ("country_overlord_income_transfer_mult", ModifKinds::Country),
+    ("country_pact_leverage_generation_add", ModifKinds::Country),
+    ("country_pact_leverage_generation_mult", ModifKinds::Country),
+    ("country_party_whip_impact_mult", ModifKinds::Country),
+    ("country_port_connection_cost_mult", ModifKinds::Country),
     ("country_prestige_add", ModifKinds::Country),
     ("country_prestige_from_army_power_projection_mult", ModifKinds::Country),
     ("country_prestige_from_navy_power_projection_mult", ModifKinds::Country),
     ("country_prestige_mult", ModifKinds::Country),
-    ("country_private_buildings_protected", ModifKinds::Country),
     ("country_private_construction_allocation_mult", ModifKinds::Country),
     ("country_production_tech_research_speed_mult", ModifKinds::Country),
     ("country_production_tech_spread_mult", ModifKinds::Country),
-    ("country_promotion_ig_attraction_mult", ModifKinds::Country),
     ("country_radicals_from_conquest_mult", ModifKinds::Country),
     ("country_radicals_from_legitimacy_mult", ModifKinds::Country),
+    ("country_reduced_liberty_desire_same_religion_bool", ModifKinds::Country),
     ("country_resource_depletion_chance_mult", ModifKinds::Country),
     ("country_resource_discovery_chance_mult", ModifKinds::Country),
     ("country_revolution_clock_time_add", ModifKinds::Country),
@@ -416,9 +563,12 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("country_secession_progress_mult", ModifKinds::Country),
     ("country_society_tech_research_speed_mult", ModifKinds::Country),
     ("country_society_tech_spread_mult", ModifKinds::Country),
-    ("country_subsidies_all", ModifKinds::Country),
+    ("country_subject_income_transfer_heathen_mult", ModifKinds::Country),
+    ("country_subject_income_transfer_mult", ModifKinds::Country),
+    ("country_suppression_cost_mult", ModifKinds::Country),
     ("country_suppression_ig_attraction_mult", ModifKinds::Country),
     ("country_tax_income_add", ModifKinds::Country),
+    ("country_tech_group_research_speed_mult", ModifKinds::Country),
     ("country_tech_research_speed_mult", ModifKinds::Country),
     ("country_tech_spread_add", ModifKinds::Country),
     ("country_tech_spread_mult", ModifKinds::Country),
@@ -436,11 +586,12 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("interest_group_approval_add", ModifKinds::InterestGroup),
     ("interest_group_in_government_approval_add", ModifKinds::InterestGroup),
     ("interest_group_in_government_attraction_mult", ModifKinds::InterestGroup),
+    ("interest_group_in_opposition_agitator_popularity_add", ModifKinds::InterestGroup),
     ("interest_group_in_opposition_approval_add", ModifKinds::InterestGroup),
     ("interest_group_pol_str_factor", ModifKinds::InterestGroup),
     ("interest_group_pol_str_mult", ModifKinds::InterestGroup),
     ("interest_group_pop_attraction_mult", ModifKinds::InterestGroup),
-    ("market_disallow_trade_routes", ModifKinds::Market),
+    ("market_disallow_trade_routes_bool", ModifKinds::Market),
     ("market_land_trade_capacity_add", ModifKinds::Market),
     ("market_max_exports_add", ModifKinds::Market),
     ("market_max_imports_add", ModifKinds::Market),
@@ -452,10 +603,32 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("military_formation_movement_speed_mult", ModifKinds::MilitaryFormation),
     ("military_formation_organization_gain_add", ModifKinds::MilitaryFormation),
     ("military_formation_organization_gain_mult", ModifKinds::MilitaryFormation),
+    ("political_movement_enact_support_mult", ModifKinds::PoliticalMovement),
+    ("political_movement_preserve_support_mult", ModifKinds::PoliticalMovement),
     ("political_movement_radicalism_add", ModifKinds::PoliticalMovement),
     ("political_movement_radicalism_mult", ModifKinds::PoliticalMovement),
+    ("political_movement_restore_support_mult", ModifKinds::PoliticalMovement),
     ("political_movement_support_add", ModifKinds::PoliticalMovement),
     ("political_movement_support_mult", ModifKinds::PoliticalMovement),
+    ("power_bloc_allow_foreign_investment_lower_rank_bool", ModifKinds::PowerBloc),
+    ("power_bloc_allow_wider_migration_area_bool", ModifKinds::PowerBloc),
+    ("power_bloc_cohesion_add", ModifKinds::PowerBloc),
+    ("power_bloc_cohesion_mult", ModifKinds::PowerBloc),
+    ("power_bloc_cohesion_per_member_add", ModifKinds::PowerBloc),
+    ("power_bloc_customs_union_bool", ModifKinds::PowerBloc),
+    ("power_bloc_disallow_embargo_bool", ModifKinds::PowerBloc),
+    ("power_bloc_disallow_war_bool", ModifKinds::PowerBloc),
+    ("power_bloc_income_transfer_to_leader_factor", ModifKinds::PowerBloc),
+    ("power_bloc_invite_acceptance_add", ModifKinds::PowerBloc),
+    ("power_bloc_leader_can_add_wargoal_bool", ModifKinds::PowerBloc),
+    ("power_bloc_leader_can_force_state_religion_bool", ModifKinds::PowerBloc),
+    ("power_bloc_leader_can_make_subjects_bool", ModifKinds::PowerBloc),
+    ("power_bloc_leader_can_regime_change_bool", ModifKinds::PowerBloc),
+    ("power_bloc_leverage_generation_mult", ModifKinds::PowerBloc),
+    ("power_bloc_mandate_progress_mult", ModifKinds::PowerBloc),
+    ("power_bloc_religion_trade_route_competitiveness_mult", ModifKinds::PowerBloc),
+    ("power_bloc_target_sway_cost_mult", ModifKinds::PowerBloc),
+    ("power_bloc_trade_route_cost_mult", ModifKinds::PowerBloc),
     ("state_accepted_birth_rate_mult", ModifKinds::State),
     ("state_assimilation_mult", ModifKinds::State),
     ("state_birth_rate_mult", ModifKinds::State),
@@ -471,10 +644,11 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("state_conscription_rate_mult", ModifKinds::State),
     ("state_construction_mult", ModifKinds::State),
     ("state_conversion_mult", ModifKinds::State),
+    ("state_decree_cost_mult", ModifKinds::State),
     ("state_dependent_political_participation_add", ModifKinds::State),
     ("state_dependent_wage_add", ModifKinds::State),
     ("state_dependent_wage_mult", ModifKinds::State),
-    ("state_disallow_incorporation", ModifKinds::State),
+    ("state_disallow_incorporation_bool", ModifKinds::State),
     ("state_education_access_add", ModifKinds::State),
     ("state_education_access_wealth_add", ModifKinds::State),
     ("state_expected_sol_from_literacy", ModifKinds::State),
@@ -495,6 +669,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("state_migration_pull_mult", ModifKinds::State),
     ("state_migration_pull_unincorporated_mult", ModifKinds::State),
     ("state_migration_push_mult", ModifKinds::State),
+    ("state_migration_quota_mult", ModifKinds::State),
     ("state_minimum_wealth_add", ModifKinds::State),
     ("state_market_access_price_impact", ModifKinds::State),
     ("state_mortality_mult", ModifKinds::State),
@@ -513,7 +688,6 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("state_pop_pol_str_add", ModifKinds::State),
     ("state_pop_pol_str_mult", ModifKinds::State),
     ("state_pop_qualifications_mult", ModifKinds::State),
-    ("state_port_range_add", ModifKinds::State),
     ("state_radicals_from_discrimination_mult", ModifKinds::State),
     ("state_radicals_from_sol_change_accepted_culture_mult", ModifKinds::State),
     ("state_radicals_from_sol_change_accepted_religion_mult", ModifKinds::State),
@@ -527,16 +701,15 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("state_tax_collection_mult", ModifKinds::State),
     ("state_tax_waste_add", ModifKinds::State),
     ("state_turmoil_effects_mult", ModifKinds::State),
-    ("state_unincorporated_standard_of_living_add", ModifKinds::State),
     ("state_unincorporated_starting_wages_mult", ModifKinds::State),
-    ("state_urbanization_add", ModifKinds::State),
-    ("state_urbanization_mult", ModifKinds::State),
     ("state_urbanization_per_level_add", ModifKinds::State),
     ("state_urbanization_per_level_mult", ModifKinds::State),
     ("state_welfare_payments_add", ModifKinds::State),
     ("state_working_adult_ratio_add", ModifKinds::State),
     ("tariff_export_add", ModifKinds::Tariff),
+    ("tariff_export_outside_power_bloc_mult", ModifKinds::Tariff),
     ("tariff_import_add", ModifKinds::Tariff),
+    ("tariff_import_outside_power_bloc_mult", ModifKinds::Tariff),
     ("tax_consumption_add", ModifKinds::Tax),
     ("tax_dividends_add", ModifKinds::Tax),
     ("tax_heathen_add", ModifKinds::Tax),
@@ -555,24 +728,11 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("unit_convoy_raiding_mult", ModifKinds::Unit),
     ("unit_convoy_requirements_mult", ModifKinds::Unit),
     ("unit_defense_add", ModifKinds::Unit),
-    ("unit_defense_developed_add", ModifKinds::Unit),
-    ("unit_defense_developed_mult", ModifKinds::Unit),
-    ("unit_defense_elevated_add", ModifKinds::Unit),
-    ("unit_defense_elevated_mult", ModifKinds::Unit),
-    ("unit_defense_flat_add", ModifKinds::Unit),
-    ("unit_defense_flat_mult", ModifKinds::Unit),
-    ("unit_defense_forested_add", ModifKinds::Unit),
-    ("unit_defense_forested_mult", ModifKinds::Unit),
-    ("unit_defense_hazardous_add", ModifKinds::Unit),
-    ("unit_defense_hazardous_mult", ModifKinds::Unit),
     ("unit_defense_mult", ModifKinds::Unit),
-    ("unit_defense_water_add", ModifKinds::Unit),
-    ("unit_defense_water_mult", ModifKinds::Unit),
     ("unit_devastation_mult", ModifKinds::Unit),
     ("unit_experience_gain_add", ModifKinds::Unit),
     ("unit_experience_gain_mult", ModifKinds::Unit),
     ("unit_kill_rate_add", ModifKinds::Unit),
-    ("unit_mobilization_speed_mult", ModifKinds::Unit),
     ("unit_morale_damage_mult", ModifKinds::Unit),
     ("unit_morale_loss_add", ModifKinds::Unit),
     ("unit_morale_loss_mult", ModifKinds::Unit),
@@ -585,19 +745,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("unit_navy_offense_mult", ModifKinds::Unit),
     ("unit_occupation_mult", ModifKinds::Unit),
     ("unit_offense_add", ModifKinds::Unit),
-    ("unit_offense_developed_add", ModifKinds::Unit),
-    ("unit_offense_developed_mult", ModifKinds::Unit),
-    ("unit_offense_elevated_add", ModifKinds::Unit),
-    ("unit_offense_elevated_mult", ModifKinds::Unit),
-    ("unit_offense_flat_add", ModifKinds::Unit),
-    ("unit_offense_flat_mult", ModifKinds::Unit),
-    ("unit_offense_forested_add", ModifKinds::Unit),
-    ("unit_offense_forested_mult", ModifKinds::Unit),
-    ("unit_offense_hazardous_add", ModifKinds::Unit),
-    ("unit_offense_hazardous_mult", ModifKinds::Unit),
     ("unit_offense_mult", ModifKinds::Unit),
-    ("unit_offense_water_add", ModifKinds::Unit),
-    ("unit_offense_water_mult", ModifKinds::Unit),
     ("unit_provinces_captured_mult", ModifKinds::Unit),
     ("unit_provinces_lost_mult", ModifKinds::Unit),
     ("unit_recovery_rate_add", ModifKinds::Unit),
@@ -669,4 +817,50 @@ const MODIF_REMOVED_TABLE: &[(&str, &str)] = &[
     ("character_command_limit_combat_unit_conscript_add", "removed in 1.6"),
     ("character_command_limit_combat_unit_flotilla_add", "removed in 1.6"),
     ("character_command_limit_combat_unit_regular_add", "removed in 1.6"),
+    ("building_government_shares_add", "removed in 1.7"),
+    ("building_production_mult", "removed in 1.7"),
+    ("building_throughput_oil_mult", "removed in 1.7"),
+    ("building_workforce_shares_add", "removed in 1.7"),
+    ("country_all_buildings_protected", "renamed to country_all_buildings_protected_bool in 1.7"),
+    ("country_allow_multiple_alliances", "renamed to country_allow_multiple_alliances_bool in 1.7"),
+    ("country_cannot_enact_laws", "renamed to country_cannot_enact_laws_bool in 1.7"),
+    ("country_decree_cost_mult", "removed in 1.7"),
+    ("country_disable_investment_pool", "renamed to country_disable_investment_pool_bool in 1.7"),
+    (
+        "country_disallow_aggressive_plays",
+        "renamed to country_disallow_aggressive_plays_bool in 1.7",
+    ),
+    (
+        "country_disallow_agitator_invites",
+        "renamed to country_disallow_agitator_invites_bool in 1.7",
+    ),
+    (
+        "country_disallow_discriminated_migration",
+        "renamed to country_disallow_discriminated_migration_bool in 1.7",
+    ),
+    ("country_disallow_migration", "renamed to country_disallow_migration_bool in 1.7"),
+    (
+        "country_government_buildings_protected",
+        "renamed to country_government_buildings_protected_bool in 1.7",
+    ),
+    (
+        "country_ignores_landing_craft_penalty",
+        "renamed to country_ignores_landing_craft_penalty_bool in 1.7",
+    ),
+    ("country_mandate_subsidies", "removed in 1.7"),
+    (
+        "country_must_have_movement_to_enact_laws",
+        "renamed to country_must_have_movement_to_enact_laws_bool in 1.7",
+    ),
+    ("country_private_buildings_protected", "removed in 1.7"),
+    ("country_promotion_ig_attraction_mult", "removed in 1.7"),
+    ("country_subsidies_all", "removed in 1.7"),
+    ("market_disallow_trade_routes", "renamed to market_disallow_trade_routes_bool in 1.7"),
+    ("state_disallow_incorporation", "renamed to state_disallow_incorporation_bool in 1.7"),
+    ("state_port_range_add", "removed in 1.7"),
+    ("state_unincorporated_standard_of_living_add", "removed in 1.7"),
+    ("state_urbanization_add", "removed in 1.7"),
+    ("state_urbanization_mult", "removed in 1.7"),
+    ("unit_mobilization_speed_mult", "removed in 1.7"),
+    ("country_leverage_resistance_per_population_add", "removed in 1.7.1"),
 ];

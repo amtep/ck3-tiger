@@ -1,4 +1,9 @@
 pub const ON_ACTION_SCOPES: &str = "
+        on_monthly_pulse = {
+            root = none
+        }
+        on_yearly_pulse = on_monthly_pulse
+
 	on_monthly_pulse_country = {
 		root = country
 	}
@@ -6,6 +11,10 @@ pub const ON_ACTION_SCOPES: &str = "
 	on_half_yearly_pulse_country = on_monthly_pulse_country
 	on_five_year_pulse_country = on_monthly_pulse_country
 	on_decade_pulse_country = on_monthly_pulse_country
+        on_monthly_pulse_country_elections = on_monthly_pulse_country
+        on_half_yearly_pulse_country_elections = on_monthly_pulse_country
+        on_five_year_pulse_country_elections = on_monthly_pulse_country
+        on_decade_pulse_country_elections = on_monthly_pulse_country
 
 	on_monthly_pulse_character = {
 		root = character
@@ -25,6 +34,7 @@ pub const ON_ACTION_SCOPES: &str = "
 
 	on_battle_started = {
 		root = country
+                enemy_country = country
 		battle = battle
 		attacker = character
 		defender = character
@@ -99,6 +109,10 @@ pub const ON_ACTION_SCOPES: &str = "
 	on_diplomatic_action_third_party_break = on_diplomatic_action
 	on_diplomatic_action_third_party_break_accepted = on_diplomatic_action
 	on_diplomatic_action_third_party_break_declined = on_diplomatic_action
+        on_diplomatic_action_overlord_decrease_autonomy = on_diplomatic_action
+        on_diplomatic_action_overlord_increase_autonomy = on_diplomatic_action
+        on_diplomatic_action_subject_increase_own_autonomy = on_diplomatic_action
+
 
 	on_diplomats_expelled = on_diplomatic_action
 
@@ -190,7 +204,12 @@ pub const ON_ACTION_SCOPES: &str = "
 
 	on_political_movement_supported_law_cancelled = { root = political_movement }
 
-	on_wargoal_enforced = { root = country }
+	on_wargoal_enforced = {
+                root = country
+                target = country
+                diplomatic_play = diplomatic_play
+                wargoal_impact = value
+        }
 
 	on_ig_resigned_government = { root = interest_group }
 
@@ -264,12 +283,28 @@ pub const ON_ACTION_SCOPES: &str = "
 	on_unification_candidate_removed = { root = country }
 	on_stop_supporting_unification = { root = country }
 
-	on_enemy_convoys_raided = { root = character }
-	on_our_convoys_raided = { root = character }
+	on_enemy_convoys_raided = {
+                root = character
+                region = state_region
+        }
+	on_our_convoys_raided = on_enemy_convoys_raided
 
 	on_repudiate_obligation = { root = country }
 
 	on_character_recruitment = { root = character }
+
+        on_impose_law = {
+                root = country
+                initiator = country
+                law = law
+        }
+
+        on_power_bloc_struggle_started = { root = country }
+        on_power_bloc_struggle_ended = {
+                root = power_bloc
+                successful_contender = country
+                failed_contender = country
+        }
 
 	on_naval_invasion = {
 		root = country

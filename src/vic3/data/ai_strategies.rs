@@ -10,7 +10,7 @@ use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validator::Validator;
+use crate::validator::{Builder, Validator};
 
 #[derive(Clone, Debug)]
 pub struct AiStrategy {}
@@ -38,6 +38,10 @@ impl DbKind for AiStrategy {
         vd.field_choice("type", &["administrative", "diplomatic", "political"]);
 
         vd.field_item("icon", Item::File);
+
+        // TODO verify scope type
+        vd.field_trigger_full("will_form_power_bloc", Scopes::Country, Tooltipped::No);
+
         vd.field_item("desired_tax_level", Item::Level);
         vd.field_item("max_tax_level", Item::Level);
         vd.field_item("min_tax_level", Item::Level);
@@ -56,9 +60,24 @@ impl DbKind for AiStrategy {
         vd.field_script_value_rooted("max_progressiveness", Scopes::Country);
         // TODO verify scope type
         vd.field_script_value_rooted("max_regressiveness", Scopes::Country);
-        // TODO verify scope type
-        vd.field_script_value_rooted("diplomatic_play_neutrality", Scopes::Country);
-        vd.field_script_value_rooted("diplomatic_play_boldness", Scopes::Country);
+
+        let sc_builder_support: &Builder = &|key: &Token| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("country", Scopes::Country, key);
+            sc.define_name("enemy_country", Scopes::Country, key);
+            sc.define_name("diplomatic_play_type", Scopes::DiplomaticPlayType, key);
+            sc.define_name("is_initiator", Scopes::Bool, key);
+            sc
+        };
+        vd.field_script_value_full("diplomatic_play_support", sc_builder_support, true);
+        // TODO verify scopes
+        let sc_builder_plays: &Builder = &|key: &Token| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("diplomatic_play", Scopes::DiplomaticPlay, key);
+            sc
+        };
+        vd.field_script_value_full("diplomatic_play_neutrality", sc_builder_plays, false);
+        vd.field_script_value_full("diplomatic_play_boldness", sc_builder_plays, false);
         vd.field_validated_key("wargoal_maneuvers_fraction", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("enemy_country", Scopes::Country, key);
@@ -116,11 +135,16 @@ impl DbKind for AiStrategy {
             "combat_unit_group_weights",
             validate_combat_unit_group_weights,
         );
-        {
+
+        let sc_builder_conscripts: &Builder = &|key: &Token| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("military_formation", Scopes::MilitaryFormation, key);
-            vd.field_script_value("conscript_battalion_ratio", &mut sc);
-        }
+            sc
+        };
+        vd.field_script_value_full("conscript_battalion_ratio", sc_builder_conscripts, false);
+
+        vd.field_script_value_full("nationalization_desire", Scopes::Country, false);
+
         vd.field_validated_key_block("building_group_weights", validate_building_group_weights);
 
         vd.field_validated_key_block("subsidies", validate_subsidies);

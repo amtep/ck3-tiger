@@ -116,6 +116,7 @@ const SCRIPT_CONTEXTS: &[(&str, Scopes)] = &[
     ("player_market_goods", Scopes::MarketGoods),
     ("player_commander", Scopes::Character),
     ("player_military_formation", Scopes::MilitaryFormation),
+    ("player_subject", Scopes::Country),
     ("player_trade_route", Scopes::TradeRoute),
     // undocumented from here
     ("player_front", Scopes::Front),

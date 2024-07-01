@@ -221,7 +221,7 @@ impl LocaParser {
         let start_offset = self.offset;
         let key = self.get_key();
         let end_offset = self.offset;
-        let format = self.parse_format();
+        self.parse_format();
         if self.chars.peek() != Some(&'$') {
             // TODO: check if there is a closing $, adapt warning text
             let msg = "didn't recognize a key between $";
@@ -230,7 +230,7 @@ impl LocaParser {
         }
         self.next_char();
         let s = &self.content[start_offset..end_offset];
-        Some(MacroValue::Keyword(Token::from_static_str(s, loc), format))
+        Some(MacroValue::Keyword(Token::from_static_str(s, loc)))
     }
 
     fn skip_until_key(&mut self) {
@@ -584,20 +584,7 @@ impl<'a> ValueParser<'a> {
             // Separate out the tooltip.
             let value = Token::new(value, loc);
             let values: Vec<_> = value.split(',');
-            // len can't be <2 because we checked for a comma above
-            if values.len() == 2 {
-                self.value.push(LocaValue::ComplexTooltip(
-                    values[0].clone(),
-                    values[1].clone(),
-                    None,
-                ));
-            } else if values.len() == 3 {
-                self.value.push(LocaValue::ComplexTooltip(
-                    values[0].clone(),
-                    values[1].clone(),
-                    Some(values[2].clone()),
-                ));
-            }
+            self.value.push(LocaValue::ComplexTooltip(values[0].clone(), values[1].clone()));
             return;
         }
 
@@ -617,7 +604,7 @@ impl<'a> ValueParser<'a> {
         } else if self.peek() == Some('!') {
             text.push('!');
             self.next_char();
-            self.value.push(LocaValue::MarkupEnd(Token::new(&text, loc)));
+            self.value.push(LocaValue::MarkupEnd);
         } else {
             // examples:
             // #indent_newline:2
@@ -696,7 +683,7 @@ impl<'a> ValueParser<'a> {
             // Clean up leftover state at end
             match state {
                 State::InKey(_) => {
-                    self.value.push(LocaValue::Markup(Token::new(&text, loc)));
+                    self.value.push(LocaValue::Markup);
                 }
                 State::InValue(key, value, loc, bracecount) => {
                     if key.to_ascii_lowercase() == "tooltip" {
@@ -707,7 +694,7 @@ impl<'a> ValueParser<'a> {
                         warn(ErrorKey::Markup).msg(msg).loc(self.loc).push();
                         self.value.push(LocaValue::Error);
                     } else {
-                        self.value.push(LocaValue::Markup(Token::new(&text, loc)));
+                        self.value.push(LocaValue::Markup);
                     }
                 }
             }

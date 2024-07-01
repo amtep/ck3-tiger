@@ -11,19 +11,19 @@ use crate::validator::Validator;
 /// Equivalent to CK3's `Item::ModifierFormat` in the `ck3::data::modif` module.
 
 #[derive(Clone, Debug)]
-pub struct ModifierType {}
+pub struct ModifierTypeDefinition {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Vic3, Item::ModifierType, ModifierType::add)
+    ItemLoader::Normal(GameFlags::Vic3, Item::ModifierTypeDefinition, ModifierTypeDefinition::add)
 }
 
-impl ModifierType {
+impl ModifierTypeDefinition {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::ModifierType, key, block, Box::new(Self {}));
+        db.add(Item::ModifierTypeDefinition, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for ModifierType {
+impl DbKind for ModifierTypeDefinition {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
@@ -34,16 +34,18 @@ impl DbKind for ModifierType {
 
         verify_modif_exists(key, data, ModifKinds::all(), Severity::Untidy);
 
-        vd.field_bool("neutral");
-        vd.field_bool("good");
+        vd.field_integer("decimals");
+        vd.field_choice("color", &["neutral", "good", "bad"]);
         vd.field_bool("percent");
         vd.field_bool("boolean");
-        vd.field_integer("num_decimals");
-        vd.field_numeric("ai_value");
+        vd.field_validated_block("game_data", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_integer("ai_value");
+            vd.field_item("translate", Item::ModifierTypeDefinition);
+        });
 
         vd.field_item("prefix", Item::Localization);
-        vd.field_item("postfix", Item::Localization);
-
-        vd.field_item("translate", Item::ModifierType);
+        vd.replaced_field("postfix", "suffix");
+        vd.field_item("suffix", Item::Localization);
     }
 }

@@ -292,7 +292,7 @@ fn validate_else(
 /// As a value, it may be an integer or boolean literal, or a target scope sequence, or a named script value.
 /// As a block, it may be a { min max } range, or a calculation block which is validated with `validate_inner`.
 /// (Boolean script values are rare but valid. They can't have calculation blocks.)
-fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
+pub(crate) fn validate_bv(bv: &BV, data: &Everything, sc: &mut ScopeContext, check_desc: bool) {
     // Using validate_target_ok_this here because when chaining script values to each other, you often do `value = this`
     match bv {
         BV::Value(t) => {
@@ -321,7 +321,7 @@ pub fn validate_script_value(bv: &BV, data: &Everything, sc: &mut ScopeContext) 
     validate_bv(bv, data, sc, true);
 }
 
-#[cfg(any(feature = "ck3", feature = "vic3"))]
+#[allow(dead_code)]
 pub fn validate_script_value_no_breakdown(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     validate_bv(bv, data, sc, false);
 }
