@@ -53,7 +53,7 @@ inventory::submit! {
     ItemLoader::Normal(GameFlags::Vic3, Item::MapMode, MapMode::add)
 }
 
-// LAST UPDATED VIC3 VERSION 1.6.0
+// LAST UPDATED VIC3 VERSION 1.7.1
 // Taken from gfx/map/map_modes/map_modes.txt
 const MAP_PAINTING_MODES: &[&str] = &[
     "clout_nationally",
@@ -66,6 +66,7 @@ const MAP_PAINTING_MODES: &[&str] = &[
     "culture_population",
     "gdp",
     "gdp_nationally",
+    "gdp_ownership_ratio",
     "goods_consumption",
     "goods_local_prices",
     "goods_production",
@@ -86,6 +87,7 @@ const MAP_PAINTING_MODES: &[&str] = &[
     "player_theaters",
     "pollution",
     "population",
+    "power_blocs",
     "province_terrain",
     "radicals",
     "religion_overview",
@@ -98,10 +100,18 @@ const MAP_PAINTING_MODES: &[&str] = &[
     "technology_progress",
 ];
 
-// LAST UPDATED VIC3 VERSION 1.5.13
+// LAST UPDATED VIC3 VERSION 1.7.1
 // Taken from gfx/map/map_modes/map_modes.txt
-const MAP_NAMES: &[&str] =
-    &["countries", "cultures", "markets", "religions", "states", "strategic_regions", "theaters"];
+const MAP_NAMES: &[&str] = &[
+    "countries",
+    "cultures",
+    "markets",
+    "power_blocs",
+    "religions",
+    "states",
+    "strategic_regions",
+    "theaters",
+];
 
 impl MapMode {
     pub fn add(db: &mut Db, key: Token, block: Block) {
