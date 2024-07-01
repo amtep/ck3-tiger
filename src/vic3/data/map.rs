@@ -132,6 +132,7 @@ impl DbKind for MapMode {
         vd.field_choice("map_names", MAP_NAMES);
         vd.field_list("map_markers"); // TODO widget names from gui/map_markers.gui
         vd.field_choice("map_tooltip_offset", &["state", "strategic_region", "theater"]);
+        vd.field_choice("map_texture_mode", &["occupation", "power_blocs", "power_blocs_leverage"]);
 
         vd.field_bool("has_fog_of_war");
         vd.field_bool("show_occupation");
@@ -139,6 +140,7 @@ impl DbKind for MapMode {
         vd.field_bool("is_visible");
         vd.field_bool("is_visible_to_countryless_observer");
         vd.field_item("gradient_border_settings", Item::GradientBorderSettings);
+        vd.field_bool("use_alternate_country_borders");
 
         vd.field_item("soundeffect", Item::Sound);
 

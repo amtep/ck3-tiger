@@ -34,6 +34,7 @@ impl DbKind for ScriptedProgressBar {
         vd.field_validated_sc("name", &mut sc, validate_desc);
         vd.req_field("desc");
         vd.field_validated_sc("desc", &mut sc, validate_desc);
+        vd.field_validated_sc("second_desc", &mut sc, validate_desc);
 
         vd.field_numeric("start_value");
         vd.field_numeric("min_value");

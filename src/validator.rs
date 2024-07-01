@@ -399,6 +399,22 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be set to the key of an `itype` item the game database,
+    /// or be the empty string.
+    /// The item is looked up and must exist.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    pub fn field_item_or_empty(&mut self, name: &str, itype: Item) -> bool {
+        let sev = self.max_severity;
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                if !token.is("") {
+                    self.data.verify_exists_max_sev(itype, token, sev);
+                }
+            }
+        })
+    }
+
     /// Expect field `name`, if present, to be a localization key.
     /// The key is looked up and must exist.
     /// The key's localization entry is validated using the given `ScopeContext`.

@@ -9,6 +9,7 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
 use crate::validate::{validate_color, validate_optional_duration};
 use crate::validator::{Validator, ValueValidator};
+use crate::vic3::tables::misc::LOBBY_FORMATION_REASON;
 
 pub fn validate_activate_production_method(
     _key: &Token,
@@ -362,6 +363,8 @@ pub fn validate_create_lobby(
     vd.field_item("type", Item::PoliticalLobby);
     vd.field_target("target", sc, Scopes::Country);
     vd.multi_field_target("add_interest_group", sc, Scopes::InterestGroup);
+    // undocumented
+    vd.field_choice("lobby_formation_reason", LOBBY_FORMATION_REASON);
 }
 
 pub fn validate_create_catalyst(
