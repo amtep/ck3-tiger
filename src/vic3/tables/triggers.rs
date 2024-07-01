@@ -1106,7 +1106,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "save_temporary_scope_value_as", Special),
     (Scopes::Country, "scaled_debt", CompareValue),
     (Scopes::Country, "scaled_gold_reserves", CompareValue),
-    (Scopes::JournalEntry, "scripted_bar_progress", CompareValue),
+    (
+        Scopes::JournalEntry,
+        "scripted_bar_progress",
+        Block(&[("name", Item(Item::ScriptedProgressBar)), ("value", CompareValue)]),
+    ),
     (Scopes::Building, "self_ownership_fraction", CompareValue),
     (
         Scopes::Culture,
@@ -1271,6 +1275,8 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue)] = {
         (Scopes::PowerBloc, "leverage_advantage", Scope(Scopes::Country)),
         (Scopes::None, "list_size", UncheckedValue),
         // loyalist_fraction
+        (Scopes::Market, "market_number_goods_shortages_with", Scope(Scopes::Country)),
+        (Scopes::Market, "market_number_goods_shortages_without", Scope(Scopes::Country)),
         (Scopes::Country, "nationalization_cost", Scope(Scopes::Country)),
         (Scopes::War, "num_country_casualties", Scope(Scopes::Country)),
         (Scopes::War, "num_country_dead", Scope(Scopes::Country)),

@@ -76,7 +76,7 @@ impl DbKind for Principle {
 
         vd.field_validated_block("power_bloc_modifier", |block, data| {
             let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::PowerBloc, vd);
+            validate_modifs(block, data, ModifKinds::all(), vd);
         });
 
         vd.advice_field(
@@ -86,7 +86,7 @@ impl DbKind for Principle {
         for field in &["member_modifier", "leader_modifier", "non_leader_modifier"] {
             vd.field_validated_block(field, |block, data| {
                 let vd = Validator::new(block, data);
-                validate_modifs(block, data, ModifKinds::Country, vd);
+                validate_modifs(block, data, ModifKinds::all(), vd);
             });
         }
 

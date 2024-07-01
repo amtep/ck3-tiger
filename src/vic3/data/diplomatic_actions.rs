@@ -42,7 +42,14 @@ impl DbKind for DiplomaticAction {
 
         vd.field_validated_list("groups", |token, data| {
             let mut vd = ValueValidator::new(token, data);
-            vd.choice(&["general", "subject", "overlord", "power_bloc", "power_bloc_leader"]);
+            vd.choice(&[
+                "general",
+                "subject",
+                "overlord",
+                "power_bloc",
+                "power_bloc_leader",
+                "power_bloc_member",
+            ]);
         });
 
         vd.field_bool("requires_approval");
@@ -68,8 +75,18 @@ impl DbKind for DiplomaticAction {
                 "any_required",
             ],
         );
-        vd.field_choice("first_state_list", &["first_country", "second_country", "all"]);
-        vd.field_choice("second_state_list", &["first_country", "second_country", "all"]);
+        for field in &["first_state_list", "second_state_list"] {
+            vd.field_choice(
+                field,
+                &[
+                    "first_country",
+                    "second_country",
+                    "all",
+                    "first_country_and_subjects",
+                    "second_country_and_subjects",
+                ],
+            );
+        }
 
         vd.field_list_items("unlocking_technologies", Item::Technology); // undocumented
 
@@ -103,10 +120,10 @@ impl DbKind for DiplomaticAction {
         vd.field_item("reverse_pact", Item::DiplomaticAction); // undocumented
         vd.field_item("transfer_pact", Item::DiplomaticAction); // undocumented
 
-        vd.field_item("confirmation_sound", Item::File);
-        vd.field_item("request_sound", Item::File);
-        vd.field_item("hostile_sound", Item::File);
-        vd.field_item("benign_sound", Item::File);
+        vd.field_item("confirmation_sound", Item::Sound);
+        vd.field_item("request_sound", Item::Sound);
+        vd.field_item("hostile_sound", Item::Sound);
+        vd.field_item("benign_sound", Item::Sound);
     }
 }
 

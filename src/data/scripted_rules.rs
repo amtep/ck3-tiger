@@ -78,7 +78,11 @@ fn build_scripted_rule_hashmap(
     let mut block = parse_pdx_internal(description, "scripted rule builtin scopes");
     for (key, block) in block.drain_definitions_warn() {
         let root = block.get_field_value("root").expect("internal error");
-        let root = Scopes::from_snake_case(root.as_str()).expect("internal error");
+        let root = if root.lowercase_is("all") {
+            Scopes::all()
+        } else {
+            Scopes::from_snake_case(root.as_str()).expect("internal error")
+        };
         let tooltipped = if block.field_value_is("tooltipped", "yes") {
             Tooltipped::Yes
         } else {

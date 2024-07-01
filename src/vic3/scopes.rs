@@ -627,7 +627,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "popularity", Scopes::Value),
     (Scopes::State, "population_below_expected_sol", Scopes::Value),
     (Scopes::Country, "power_bloc", Scopes::PowerBloc),
-    (Scopes::Country, "power_bloc_leader", Scopes::PowerBloc),
+    (Scopes::PowerBloc, "power_bloc_leader", Scopes::Country),
     (Scopes::PowerBloc, "power_struggle_contender", Scopes::Country),
     (Scopes::Company, "prosperity", Scopes::Value),
     (Scopes::BattleSide, "province", Scopes::Province),

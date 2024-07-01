@@ -49,7 +49,7 @@ impl DbKind for ProductionMethod {
         vd.field_list_items("unlocking_production_methods", Item::ProductionMethod);
         vd.field_list_items("unlocking_global_technologies", Item::Technology);
         vd.field_list_items("unlocking_principles", Item::Principle);
-        vd.field_list_items("unlocking_identity", Item::PowerBlocIdentity);
+        vd.multi_field_item("unlocking_identity", Item::PowerBlocIdentity);
 
         // TODO: verify ai_weight and ai_value; do both work?
         // Only ai_value is used in vanilla (once). ai_weight is not used.
