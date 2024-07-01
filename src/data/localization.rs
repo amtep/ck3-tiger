@@ -168,6 +168,7 @@ pub enum LocaValue {
     // at those.
     Macro(Vec<MacroValue>),
     Concat(Vec<LocaValue>),
+    #[allow(dead_code)] // the Token is only used for ck3
     Text(Token),
     Markup,
     MarkupEnd,
