@@ -182,6 +182,7 @@ impl DbKind for BuildingGroup {
         vd.field_bool("pays_taxes"); // undocumented
         vd.field_bool("created_by_trade_routes"); // undocumented
         vd.field_bool("subsidized"); // undocumented
+        vd.field_bool("always_self_owning"); // undocumented
 
         // TODO: are category and land_usage really both valid?
         vd.field_choice("category", &["urban", "rural", "development"]);

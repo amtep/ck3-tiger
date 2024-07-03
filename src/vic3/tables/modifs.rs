@@ -181,12 +181,15 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
-    // TODO: this is only for 2 institutions
+    // TODO: this is only for a few institutions
     // country_institution_cost_$Institution$_add
+    // country_institution_cost_$Institution$_mult
     if let Some(part) = name_lc.strip_prefix_unchecked("country_institution_cost_") {
-        if let Some(part) = part.strip_suffix_unchecked("_add") {
-            maybe_warn(Item::Institution, &part, name, data, warn);
-            return Some(ModifKinds::Country);
+        for &sfx in &["_add", "_mult"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::Institution, &part, name, data, warn);
+                return Some(ModifKinds::Country);
+            }
         }
     }
 
@@ -204,6 +207,22 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     if let Some(part) = name_lc.strip_prefix_unchecked("country_institution_size_change_speed_") {
         if let Some(part) = part.strip_suffix_unchecked("_mult") {
             maybe_warn(Item::Institution, &part, name, data, warn);
+            return Some(ModifKinds::Country);
+        }
+    }
+
+    // country_can_impose_same_$LawGroup$_in_power_bloc_bool
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_can_impose_same_") {
+        if let Some(part) = part.strip_suffix_unchecked("_in_power_bloc_bool") {
+            maybe_warn(Item::LawGroup, &part, name, data, warn);
+            return Some(ModifKinds::Country);
+        }
+    }
+
+    // country_disallow_$Law$_bool
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_disallow_") {
+        if let Some(part) = part.strip_suffix_unchecked("_bool") {
+            maybe_warn(Item::LawType, &part, name, data, warn);
             return Some(ModifKinds::Country);
         }
     }
@@ -443,15 +462,6 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("country_bureaucracy_investment_cost_factor_mult", ModifKinds::Country),
     ("country_bureaucracy_mult", ModifKinds::Country),
     ("country_can_form_construction_company_bool", ModifKinds::Country),
-    ("country_can_impose_same_lawgroup_church_and_state_in_power_bloc_bool", ModifKinds::Country),
-    (
-        "country_can_impose_same_lawgroup_distribution_of_power_in_power_bloc_bool",
-        ModifKinds::Country,
-    ),
-    (
-        "country_can_impose_same_lawgroup_governance_principles_in_power_bloc_bool",
-        ModifKinds::Country,
-    ),
     ("country_cannot_be_target_for_law_imposition_bool", ModifKinds::Country),
     ("country_cannot_cancel_law_enactment_bool", ModifKinds::Country),
     ("country_cannot_enact_laws_bool", ModifKinds::Country),
@@ -705,6 +715,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("state_urbanization_per_level_add", ModifKinds::State),
     ("state_urbanization_per_level_mult", ModifKinds::State),
     ("state_welfare_payments_add", ModifKinds::State),
+    ("state_welfare_payments_mult", ModifKinds::State),
     ("state_working_adult_ratio_add", ModifKinds::State),
     ("tariff_export_add", ModifKinds::Tariff),
     ("tariff_export_outside_power_bloc_mult", ModifKinds::Tariff),
