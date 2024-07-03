@@ -1,13 +1,15 @@
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
+use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
-use crate::validate::validate_optional_duration;
+use crate::validate::{validate_color, validate_optional_duration};
 use crate::validator::{Validator, ValueValidator};
+use crate::vic3::tables::misc::LOBBY_FORMATION_REASON;
 
 pub fn validate_activate_production_method(
     _key: &Token,
@@ -226,20 +228,6 @@ pub fn validate_diplomatic_pact(
     vd.field_item("type", Item::DiplomaticAction);
 }
 
-pub fn validate_end_truce(
-    _key: &Token,
-    _block: &Block,
-    _data: &Everything,
-    sc: &mut ScopeContext,
-    mut vd: Validator,
-    _tooltipped: Tooltipped,
-) {
-    vd.req_field("country");
-    vd.advice_field("tcountry", "documentation says tcountry but it's just country");
-    vd.field_item_or_target("country", sc, Item::Country, Scopes::Country);
-    vd.field_script_value("months", sc);
-}
-
 pub fn validate_country_value(
     _key: &Token,
     _block: &Block,
@@ -292,4 +280,117 @@ pub fn validate_post_notification(
     vd.implied_localization_sc("notification_", "_name", sc);
     vd.implied_localization_sc("notification_", "_desc", sc);
     vd.implied_localization_sc("notification_", "_tooltip", sc);
+}
+
+pub fn validate_progress(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("value");
+    vd.req_field("name");
+    vd.field_script_value("value", sc);
+    vd.field_item("name", Item::ScriptedProgressBar);
+}
+
+pub fn validate_join_war(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("target");
+    vd.req_field("side");
+    vd.field_target("target", sc, Scopes::Country);
+    vd.field_target("side", sc, Scopes::Country);
+}
+
+pub fn validate_create_truce(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("country");
+    vd.req_field("months");
+    vd.advice_field("tcountry", "documentation says tcountry but it's just country");
+    vd.field_target("country", sc, Scopes::Country);
+    // TODO: docs say integer, but check if script value is allowed
+    vd.field_integer("months");
+}
+
+pub fn validate_create_power_bloc(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("name");
+    vd.req_field("map_color");
+    vd.req_field("identity");
+    // TODO: see if a full desc is allowed here. Docs just say loc key.
+    vd.field_validated_sc("name", sc, validate_desc);
+    // TODO: check if named colors are allowed
+    vd.field_validated_block("map_color", validate_color);
+    vd.field_item("identity", Item::PowerBlocIdentity);
+    vd.multi_field_item("principle", Item::Principle);
+    vd.multi_field_target("member", sc, Scopes::Country);
+
+    // undocumented
+
+    vd.field_date("founding_date");
+}
+
+pub fn validate_create_lobby(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("type");
+    vd.req_field("target");
+    vd.field_item("type", Item::PoliticalLobby);
+    vd.field_target("target", sc, Scopes::Country);
+    vd.multi_field_target("add_interest_group", sc, Scopes::InterestGroup);
+    // undocumented
+    vd.field_choice("lobby_formation_reason", LOBBY_FORMATION_REASON);
+}
+
+pub fn validate_create_catalyst(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("type");
+    vd.req_field("target");
+    vd.field_item("type", Item::DiplomaticCatalyst);
+    vd.field_target("target", sc, Scopes::Country);
+}
+
+pub fn validate_change_appeasement(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("amount");
+    vd.req_field("factor");
+    vd.field_item("factor", Item::PoliticalLobbyAppeasement);
+    vd.field_script_value("amount", sc);
 }

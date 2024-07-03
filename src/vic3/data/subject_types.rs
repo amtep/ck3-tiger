@@ -45,8 +45,14 @@ impl DbKind for SubjectType {
         vd.field_bool("can_offer_to_become_in_sway_offers");
 
         vd.field_numeric("convoy_contribution");
-
         vd.field_item("diplomatic_action", Item::DiplomaticAction);
+
+        vd.field_integer("autonomy_level");
+        // not sure what this is supposed to mean
+        vd.field_choice(
+            "category",
+            &["same_as_puppet", "same_as_vassal", "same_as_personal_union"],
+        );
 
         vd.field_list_items("country_type_change_alternatives", Item::SubjectType);
         vd.field_list_items("can_change_subject_type_from", Item::SubjectType);

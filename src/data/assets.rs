@@ -420,9 +420,9 @@ fn validate_meshsettings(block: &Block, data: &Everything) {
     vd.field_value("name");
     vd.field_integer("index"); // TODO: do these need to be consecutive?
     vd.field_bool("shadow_only");
-    vd.field_item("texture_diffuse", Item::TextureFile);
-    vd.field_item("texture_normal", Item::TextureFile);
-    vd.field_item("texture_specular", Item::TextureFile);
+    vd.field_item_or_empty("texture_diffuse", Item::TextureFile);
+    vd.field_item_or_empty("texture_normal", Item::TextureFile);
+    vd.field_item_or_empty("texture_specular", Item::TextureFile);
     vd.field_validated_block("texture", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.req_field("file");

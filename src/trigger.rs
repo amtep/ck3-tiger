@@ -631,7 +631,7 @@ fn match_trigger_bv(
             // TODO: check side_effects
             validate_script_value(bv, data, sc);
         }
-        #[cfg(feature = "ck3")]
+        #[cfg(any(feature = "ck3", feature = "vic3"))]
         Trigger::SetValue => {
             // TODO: check side_effects
             validate_script_value(bv, data, sc);
@@ -1431,7 +1431,7 @@ pub enum Trigger {
     #[cfg(feature = "ck3")]
     CompareValueWarnEq,
     /// can be a script value; no < or >
-    #[cfg(feature = "ck3")]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     SetValue,
     /// value must be a valid date
     CompareDate,

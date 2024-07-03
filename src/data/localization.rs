@@ -46,7 +46,7 @@ pub struct Localization {
 
 /// List of languages that are supported by the game engine.
 // LAST UPDATED CK3 VERSION 1.12.1
-// LAST UPDATED VIC3 VERSION 1.6.0
+// LAST UPDATED VIC3 VERSION 1.7.0
 pub const KNOWN_LANGUAGES: &[&str] = &[
     "english",
     "spanish",
@@ -119,7 +119,7 @@ impl LocaEntry {
             for macrovalue in v {
                 match macrovalue {
                     MacroValue::Text(ref token) => vec.push(token.clone().linked(link)),
-                    MacroValue::Keyword(keyword, _) => {
+                    MacroValue::Keyword(keyword) => {
                         if let Some(entry) = from.get(keyword.as_str()) {
                             entry.used.store(true, Relaxed);
                             entry.validated.store(true, Relaxed);
@@ -168,16 +168,18 @@ pub enum LocaValue {
     // at those.
     Macro(Vec<MacroValue>),
     Concat(Vec<LocaValue>),
+    #[allow(dead_code)] // the Token is only used for ck3
     Text(Token),
-    Markup(Token),
-    MarkupEnd(Token),
+    Markup,
+    MarkupEnd,
     Tooltip(Token),
     // Tag, key, value. Tag can influence how tooltip is looked up. If tag is `GAME_TRAIT`,
     // tooltip is a trait name and value is a character id. Any of the tokens may be a datatype
     // expression, which is passed through unparsed here.
+    // The value is not stored in the enum because we don't validate it.
     // TODO: instead of Token here, maybe need Box<LocaValue> or a Vec<LocaValue>, or maybe a type
     // that's specifically "Token or CodeChain"
-    ComplexTooltip(Token, Token, Option<Token>),
+    ComplexTooltip(Token, Token),
     // The optional token is the formatting
     Code(CodeChain, Option<Token>),
     Icon(Token),
@@ -188,8 +190,8 @@ pub enum LocaValue {
 #[derive(Clone, Debug)]
 pub enum MacroValue {
     Text(Token),
-    // The optional token is the formatting
-    Keyword(Token, Option<Token>),
+    // The formatting is not stored in the enum because it's not validated.
+    Keyword(Token),
 }
 
 fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
@@ -373,7 +375,7 @@ impl Localization {
                 data.localization.verify_exists_lang(token, lang);
             }
             #[allow(unused_variables)] // tag only used by ck3
-            LocaValue::ComplexTooltip(tag, token, _) => {
+            LocaValue::ComplexTooltip(tag, token) => {
                 // TODO: if any of the three are datatype expressions, validate them.
                 #[cfg(feature = "ck3")]
                 if Game::is_ck3() && !token.starts_with("[") && !is_builtin_macro(token) {

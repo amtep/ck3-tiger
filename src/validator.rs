@@ -6,22 +6,74 @@ use std::str::FromStr;
 use crate::block::{Block, BlockItem, Comparator, Eq::*, Field, BV};
 use crate::context::ScopeContext;
 use crate::date::Date;
+use crate::effect::validate_effect_internal;
 use crate::everything::Everything;
 use crate::helpers::dup_assign_error;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 #[cfg(feature = "ck3")]
 use crate::report::fatal;
 use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
-use crate::script_value::validate_script_value;
-#[cfg(not(feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::script_value::validate_script_value_no_breakdown;
+use crate::script_value::{validate_bv, validate_script_value};
 use crate::token::Token;
-use crate::trigger::{validate_target, validate_target_ok_this};
+use crate::tooltipped::Tooltipped;
+use crate::trigger::{validate_target, validate_target_ok_this, validate_trigger_internal};
+use crate::validate::ListType;
 
 pub use self::value_validator::ValueValidator;
 
 mod value_validator;
+
+pub type Builder = dyn Fn(&Token) -> ScopeContext;
+
+/// A helper enum for providing scope contexts to field validation functions.
+pub enum FieldScopeContext<'a> {
+    Full(&'a mut ScopeContext),
+    Rooted(Scopes),
+    Builder(&'a Builder),
+}
+
+impl<'a> From<&'a mut ScopeContext> for FieldScopeContext<'a> {
+    fn from(sc: &'a mut ScopeContext) -> Self {
+        Self::Full(sc)
+    }
+}
+
+impl<'a> From<Scopes> for FieldScopeContext<'a> {
+    fn from(scopes: Scopes) -> Self {
+        Self::Rooted(scopes)
+    }
+}
+
+impl<'a> From<&'a Builder> for FieldScopeContext<'a> {
+    fn from(builder: &'a Builder) -> Self {
+        Self::Builder(builder)
+    }
+}
+
+impl<'a> FieldScopeContext<'a> {
+    fn validate<R, F>(&mut self, key: &Token, validate_fn: F) -> R
+    where
+        F: FnOnce(&mut ScopeContext) -> R,
+    {
+        let mut temp;
+        let sc = match self {
+            FieldScopeContext::Full(sc) => sc,
+            FieldScopeContext::Rooted(scopes) => {
+                temp = ScopeContext::new(*scopes, key);
+                &mut temp
+            }
+            FieldScopeContext::Builder(builder) => {
+                temp = builder(key);
+                &mut temp
+            }
+        };
+        validate_fn(sc)
+    }
+}
 
 /// A validator for one `Block`.
 /// The intended usage is that you wrap the `Block` in a validator, then call validation functions on it
@@ -347,6 +399,22 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be set to the key of an `itype` item the game database,
+    /// or be the empty string.
+    /// The item is looked up and must exist.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    pub fn field_item_or_empty(&mut self, name: &str, itype: Item) -> bool {
+        let sev = self.max_severity;
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                if !token.is("") {
+                    self.data.verify_exists_max_sev(itype, token, sev);
+                }
+            }
+        })
+    }
+
     /// Expect field `name`, if present, to be a localization key.
     /// The key is looked up and must exist.
     /// The key's localization entry is validated using the given `ScopeContext`.
@@ -438,7 +506,6 @@ impl<'a> Validator<'a> {
     /// Expect no more than one `name` field.
     /// No other validation is done.
     /// Returns true iff the field is present.
-    #[cfg(any(feature = "ck3", feature = "imperator"))] // vic3 happens not to use; silence dead code warning
     pub fn field_block(&mut self, name: &str) -> bool {
         self.field_check(name, |_, bv| _ = bv.expect_block())
     }
@@ -604,6 +671,79 @@ impl<'a> Validator<'a> {
                     report(ErrorKey::Validation, sev).msg(msg).loc(token).push();
                 }
             }
+        })
+    }
+
+    /// Expect field `name`, if present, to be set to a trigger block.
+    ///
+    /// The scope context may be a full `ScopeContext`, a rooted `Scopes` or a closure that builds
+    /// one from the field key token.
+    #[allow(dead_code)]
+    pub fn field_trigger_full<'b, T>(&mut self, name: &str, fsc: T, tooltipped: Tooltipped) -> bool
+    where
+        T: Into<FieldScopeContext<'b>>,
+    {
+        let mut fsc = fsc.into();
+        self.field_validated_key_block(name, |key, block, data| {
+            fsc.validate(key, |sc| {
+                validate_trigger_internal(
+                    Lowercase::empty(),
+                    false,
+                    block,
+                    data,
+                    sc,
+                    tooltipped,
+                    false,
+                    Severity::Error,
+                )
+            });
+        })
+    }
+
+    /// Expect field `name`, if present, to be set to an effect block.
+    ///
+    /// The scope context may be a full `ScopeContext`, a rooted `Scopes` or a closure that builds
+    /// one from the field key token.
+    #[allow(dead_code)]
+    pub fn field_effect_full<'b, T>(&mut self, name: &str, fsc: T, tooltipped: Tooltipped) -> bool
+    where
+        T: Into<FieldScopeContext<'b>>,
+    {
+        let mut fsc = fsc.into();
+        self.field_validated_key_block(name, |key, block, data| {
+            fsc.validate(key, |sc| {
+                let mut vd = Validator::new(block, data);
+                validate_effect_internal(
+                    Lowercase::empty(),
+                    ListType::None,
+                    block,
+                    data,
+                    sc,
+                    &mut vd,
+                    tooltipped,
+                );
+            });
+        })
+    }
+
+    /// Epexect field `name`, if present, to be set to a script value.
+    ///
+    /// The scope context may be a full `ScopeContext`, a rooted `Scopes` or a closure that builds
+    /// one from the field key token.
+    ///
+    /// If `breakdown` is true, it does not warn if it is an inline script value and the `desc`
+    /// fields in it do not contain valid localizations. This is generally used for script values
+    /// that will never be shown to the user except in debugging contexts, such as `ai_will_do`.
+    #[allow(dead_code)]
+    pub fn field_script_value_full<'b, T>(&mut self, name: &str, fsc: T, breakdown: bool) -> bool
+    where
+        T: Into<FieldScopeContext<'b>>,
+    {
+        let mut fsc = fsc.into();
+        self.field_check(name, |key, bv| {
+            fsc.validate(key, |sc| {
+                validate_bv(bv, self.data, sc, breakdown);
+            });
         })
     }
 

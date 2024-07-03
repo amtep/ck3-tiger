@@ -3,7 +3,7 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-use crate::game::GameFlags;
+use crate::game::{Game, GameFlags};
 use crate::item::{Item, ItemLoader};
 use crate::token::Token;
 use crate::validator::Validator;
@@ -33,6 +33,9 @@ impl DbKind for Dna {
 fn validate_portrait_info(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.field_validated_block("genes", validate_genes);
+    if Game::is_vic3() {
+        vd.field_block("entity");
+    }
 }
 
 pub fn validate_genes(block: &Block, data: &Everything) {

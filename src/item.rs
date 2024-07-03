@@ -335,6 +335,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] CommanderOrder,
     #[cfg(feature = "vic3")] CommanderRank,
     #[cfg(feature = "vic3")] CompanyType,
+    #[cfg(feature = "vic3")] CohesionLevel,
     #[cfg(feature = "vic3")] CountryCreation,
     #[cfg(feature = "vic3")] CountryFormation,
     #[cfg(feature = "vic3")] CountryRank,
@@ -343,6 +344,8 @@ pub enum Item {
     #[cfg(feature = "vic3")] CultureGraphics,
     #[cfg(feature = "vic3")] Decree,
     #[cfg(feature = "vic3")] DiplomaticAction,
+    #[cfg(feature = "vic3")] DiplomaticCatalyst,
+    #[cfg(feature = "vic3")] DiplomaticCatalystCategory,
     #[cfg(feature = "vic3")] DiplomaticPlay,
     #[cfg(feature = "vic3")] DiscriminationTrait,
     #[cfg(feature = "vic3")] DynamicCompanyName,
@@ -362,23 +365,33 @@ pub enum Item {
     #[cfg(feature = "vic3")] LawType,
     #[cfg(feature = "vic3")] LegitimacyLevel,
     #[cfg(feature = "vic3")] Level,
+    #[cfg(feature = "vic3")] LibertyDesireLevel,
     #[cfg(feature = "vic3")] MapLayer,
     #[cfg(feature = "vic3")] MapInteractionType,
+    #[cfg(feature = "vic3")] MapNotificationType,
     #[cfg(feature = "vic3")] MediaAlias,
     #[cfg(feature = "vic3")] MilitaryFormationFlag,
     #[cfg(feature = "vic3")] MobilizationOption,
-    #[cfg(feature = "vic3")] ModifierType,
+    #[cfg(feature = "vic3")] ModifierTypeDefinition,
     #[cfg(feature = "vic3")] Objective,
     #[cfg(feature = "vic3")] ObjectiveSubgoal,
     #[cfg(feature = "vic3")] ObjectiveSubgoalCategory,
-    #[cfg(feature = "vic3")] OldCombatUnit,
     #[cfg(feature = "vic3")] Party,
+    #[cfg(feature = "vic3")] PoliticalLobby,
+    #[cfg(feature = "vic3")] PoliticalLobbyAppeasement,
     #[cfg(feature = "vic3")] PoliticalMovement,
     #[cfg(feature = "vic3")] PopNeed,
+    #[cfg(feature = "vic3")] PowerBlocCoaPiece,
+    #[cfg(feature = "vic3")] PowerBlocIdentity,
+    #[cfg(feature = "vic3")] PowerBlocMapTexture,
+    #[cfg(feature = "vic3")] PowerBlocName,
+    #[cfg(feature = "vic3")] Principle,
+    #[cfg(feature = "vic3")] PrincipleGroup,
     #[cfg(feature = "vic3")] ProductionMethod,
     #[cfg(feature = "vic3")] ProductionMethodGroup,
     #[cfg(feature = "vic3")] RelationsThreshold,
     #[cfg(feature = "vic3")] ScriptedButton,
+    #[cfg(feature = "vic3")] ScriptedProgressBar,
     #[cfg(feature = "vic3")] SecretGoal,
     #[cfg(feature = "vic3")] StateRegion,
     #[cfg(feature = "vic3")] StateTrait,
@@ -386,6 +399,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] StrategicRegion,
     #[cfg(feature = "vic3")] Technology,
     #[cfg(feature = "vic3")] TechnologyEra,
+    #[cfg(feature = "vic3")] TerrainKey,
     #[cfg(feature = "vic3")] TerrainLabel,
     #[cfg(feature = "vic3")] TerrainManipulator,
     #[cfg(feature = "vic3")] TerrainMask,
@@ -529,7 +543,14 @@ impl Item {
             Item::Localization => "localization/",
             Item::MapEnvironment => "gfx/map/environment/",
             Item::MapMode => "gfx/map/map_modes/",
-            Item::Modifier => "common/modifiers/",
+            Item::Modifier => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => "common/modifiers/",
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => "common/static_modifiers/",
+                #[cfg(feature = "imperator")]
+                Game::Imperator => "common/modifiers/",
+            },
             Item::NamedColor => "common/named_colors/",
             Item::OnAction => match Game::game() {
                 #[cfg(feature = "ck3")]
@@ -1022,6 +1043,8 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::CompanyType => "common/company_types/",
             #[cfg(feature = "vic3")]
+            Item::CohesionLevel => "common/cohesion_levels/",
+            #[cfg(feature = "vic3")]
             Item::CountryCreation => "common/country_creation/",
             #[cfg(feature = "vic3")]
             Item::CountryFormation => "common/country_formation/",
@@ -1037,6 +1060,10 @@ impl Item {
             Item::Decree => "common/decrees/",
             #[cfg(feature = "vic3")]
             Item::DiplomaticAction => "common/diplomatic_actions/",
+            #[cfg(feature = "vic3")]
+            Item::DiplomaticCatalyst => "common/diplomatic_catalysts/",
+            #[cfg(feature = "vic3")]
+            Item::DiplomaticCatalystCategory => "common/diplomatic_catalyst_categories/",
             #[cfg(feature = "vic3")]
             Item::DiplomaticPlay => "common/diplomatic_plays/",
             #[cfg(feature = "vic3")]
@@ -1077,9 +1104,13 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::Level => "",
             #[cfg(feature = "vic3")]
+            Item::LibertyDesireLevel => "common/liberty_desire_levels/",
+            #[cfg(feature = "vic3")]
             Item::MapLayer => "gfx/map/map_object_data/layers.txt",
             #[cfg(feature = "vic3")]
             Item::MapInteractionType => "common/map_interaction_types/",
+            #[cfg(feature = "vic3")]
+            Item::MapNotificationType => "common/map_notification_types/",
             #[cfg(feature = "vic3")]
             Item::MediaAlias => "gfx/media_aliases/",
             #[cfg(feature = "vic3")]
@@ -1087,7 +1118,7 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::MobilizationOption => "common/mobilization_options/",
             #[cfg(feature = "vic3")]
-            Item::ModifierType => "common/modifier_types/",
+            Item::ModifierTypeDefinition => "common/modifier_type_definitions/",
             #[cfg(feature = "vic3")]
             Item::Objective => "common/objectives/",
             #[cfg(feature = "vic3")]
@@ -1095,13 +1126,27 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::ObjectiveSubgoalCategory => "common/objective_subgoal_categories/",
             #[cfg(feature = "vic3")]
-            Item::OldCombatUnit => "common/old_combat_unit_types/",
-            #[cfg(feature = "vic3")]
             Item::Party => "common/parties/",
+            #[cfg(feature = "vic3")]
+            Item::PoliticalLobby => "common/political_lobbies/",
+            #[cfg(feature = "vic3")]
+            Item::PoliticalLobbyAppeasement => "common/political_lobby_appeasement/",
             #[cfg(feature = "vic3")]
             Item::PoliticalMovement => "",
             #[cfg(feature = "vic3")]
-            Item::PopNeed => "common/pop_needs",
+            Item::PopNeed => "common/pop_needs/",
+            #[cfg(feature = "vic3")]
+            Item::PowerBlocCoaPiece => "common/power_bloc_coa_pieces/",
+            #[cfg(feature = "vic3")]
+            Item::PowerBlocIdentity => "common/power_bloc_identities/",
+            #[cfg(feature = "vic3")]
+            Item::PowerBlocMapTexture => "common/power_bloc_map_textures/",
+            #[cfg(feature = "vic3")]
+            Item::PowerBlocName => "common/power_bloc_names/",
+            #[cfg(feature = "vic3")]
+            Item::Principle => "common/power_bloc_principles/",
+            #[cfg(feature = "vic3")]
+            Item::PrincipleGroup => "common/power_bloc_principle_groups/",
             #[cfg(feature = "vic3")]
             Item::ProductionMethod => "common/production_methods/",
             #[cfg(feature = "vic3")]
@@ -1111,7 +1156,9 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::ScriptedButton => "common/scripted_buttons/",
             #[cfg(feature = "vic3")]
-            Item::SecretGoal => "common/secret_goals/",
+            Item::ScriptedProgressBar => "common/scripted_progress_bars/",
+            #[cfg(feature = "vic3")]
+            Item::SecretGoal => "",
             #[cfg(feature = "vic3")]
             Item::StateRegion => "map_data/state_regions/",
             #[cfg(feature = "vic3")]
@@ -1125,7 +1172,9 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::TechnologyEra => "common/technology/eras/",
             #[cfg(feature = "vic3")]
-            Item::TerrainLabel => "common/labels",
+            Item::TerrainKey => "common/labels/",
+            #[cfg(feature = "vic3")]
+            Item::TerrainLabel => "common/labels/",
             #[cfg(feature = "vic3")]
             Item::TerrainManipulator => "common/terrain_manipulators/",
             #[cfg(feature = "vic3")]
@@ -1316,7 +1365,7 @@ impl Item {
 
             #[cfg(feature = "vic3")]
             Item::MapLayer
-            | Item::ModifierType
+            | Item::ModifierTypeDefinition
             | Item::TerrainManipulator
             | Item::TerrainMask
             | Item::TerrainMaterial => Severity::Warning,

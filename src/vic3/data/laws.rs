@@ -11,7 +11,7 @@ use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validator::Validator;
+use crate::validator::{Builder, Validator};
 
 #[derive(Clone, Debug)]
 pub struct LawType {}
@@ -120,6 +120,24 @@ impl DbKind for LawType {
             sc.define_name("law", Scopes::Law, key);
             validate_script_value(bv, data, &mut sc);
         });
+
+        let sc_impose: &Builder = &|key: &Token| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("initiator", Scopes::Country, key);
+            sc.define_name("target_country", Scopes::Country, key);
+            sc.define_name("law", Scopes::Law, key);
+            sc
+        };
+        vd.field_trigger_full("can_impose", sc_impose, Tooltipped::Yes);
+        vd.field_effect_full("on_impose", sc_impose, Tooltipped::Yes);
+
+        let sc_impose_chance: &Builder = &|key: &Token| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("target_country", Scopes::Country, key);
+            sc.define_name("law", Scopes::Law, key);
+            sc
+        };
+        vd.field_script_value_full("ai_impose_chance", sc_impose_chance, false);
     }
 }
 
@@ -158,5 +176,9 @@ impl DbKind for LawGroup {
                 validate_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
+
+        // undocumented
+
+        vd.field_bool("affected_by_regime_change");
     }
 }

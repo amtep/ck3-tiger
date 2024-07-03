@@ -53,7 +53,7 @@ inventory::submit! {
     ItemLoader::Normal(GameFlags::Vic3, Item::MapMode, MapMode::add)
 }
 
-// LAST UPDATED VIC3 VERSION 1.6.0
+// LAST UPDATED VIC3 VERSION 1.7.1
 // Taken from gfx/map/map_modes/map_modes.txt
 const MAP_PAINTING_MODES: &[&str] = &[
     "clout_nationally",
@@ -66,6 +66,7 @@ const MAP_PAINTING_MODES: &[&str] = &[
     "culture_population",
     "gdp",
     "gdp_nationally",
+    "gdp_ownership_ratio",
     "goods_consumption",
     "goods_local_prices",
     "goods_production",
@@ -86,8 +87,10 @@ const MAP_PAINTING_MODES: &[&str] = &[
     "player_theaters",
     "pollution",
     "population",
+    "power_blocs",
     "province_terrain",
     "radicals",
+    "religion_overview",
     "religion_population",
     "standard_of_living",
     "state_gradient",
@@ -97,10 +100,18 @@ const MAP_PAINTING_MODES: &[&str] = &[
     "technology_progress",
 ];
 
-// LAST UPDATED VIC3 VERSION 1.5.13
+// LAST UPDATED VIC3 VERSION 1.7.1
 // Taken from gfx/map/map_modes/map_modes.txt
-const MAP_NAMES: &[&str] =
-    &["countries", "cultures", "markets", "states", "strategic_regions", "theaters"];
+const MAP_NAMES: &[&str] = &[
+    "countries",
+    "cultures",
+    "markets",
+    "power_blocs",
+    "religions",
+    "states",
+    "strategic_regions",
+    "theaters",
+];
 
 impl MapMode {
     pub fn add(db: &mut Db, key: Token, block: Block) {
@@ -121,6 +132,7 @@ impl DbKind for MapMode {
         vd.field_choice("map_names", MAP_NAMES);
         vd.field_list("map_markers"); // TODO widget names from gui/map_markers.gui
         vd.field_choice("map_tooltip_offset", &["state", "strategic_region", "theater"]);
+        vd.field_choice("map_texture_mode", &["occupation", "power_blocs", "power_blocs_leverage"]);
 
         vd.field_bool("has_fog_of_war");
         vd.field_bool("show_occupation");
@@ -128,6 +140,7 @@ impl DbKind for MapMode {
         vd.field_bool("is_visible");
         vd.field_bool("is_visible_to_countryless_observer");
         vd.field_item("gradient_border_settings", Item::GradientBorderSettings);
+        vd.field_bool("use_alternate_country_borders");
 
         vd.field_item("soundeffect", Item::Sound);
 
@@ -213,5 +226,29 @@ impl DbKind for GradientBorderSettings {
             vd.field_numeric("before_lighting_blend");
             vd.field_numeric("after_lighting_blend");
         });
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct MapNotificationType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::MapNotificationType, MapNotificationType::add)
+}
+
+impl MapNotificationType {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::MapNotificationType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for MapNotificationType {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        vd.field_item("message", Item::Localization);
+        vd.field_item("widget", Item::WidgetName);
+        vd.field_integer("max_height");
+        vd.field_item("sound", Item::Sound);
     }
 }

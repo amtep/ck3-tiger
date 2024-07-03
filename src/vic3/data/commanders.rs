@@ -48,10 +48,10 @@ impl DbKind for CommanderOrder {
         vd.field_bool("is_basic_order_type");
 
         vd.field_validated_key_block("possible", |key, block, data| {
-            if !block.has_key_recursive("error_check") {
-                let msg = "should use `error_check` to control visibility";
-                let info = "see the _orders.info documentation";
-                warn(ErrorKey::FieldMissing).msg(msg).info(info).loc(key).push();
+            if block.has_key_recursive("error_check") {
+                let msg = "error_check is no longer used to control visibility";
+                let info = "there is now a separate `visible` trigger";
+                warn(ErrorKey::Removed).msg(msg).info(info).loc(key).push();
             }
             // TODO: `NOT = { has_trait = foo }` in this trigger will be misrepresented in the UI
             let mut sc = ScopeContext::new(Scopes::Character, key);
@@ -72,6 +72,11 @@ impl DbKind for CommanderOrder {
         } else {
             vd.ban_field("naval_entity", || "navy");
         }
+
+        vd.field_validated_key_block("visible", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
 
         vd.field_numeric_range("indicator_position_angle", 0.0..360.0);
         vd.field_numeric_range("indicator_position_angle_for_enemy", 0.0..360.0);

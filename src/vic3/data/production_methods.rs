@@ -48,6 +48,8 @@ impl DbKind for ProductionMethod {
         vd.field_list_items("unlocking_technologies", Item::Technology);
         vd.field_list_items("unlocking_production_methods", Item::ProductionMethod);
         vd.field_list_items("unlocking_global_technologies", Item::Technology);
+        vd.field_list_items("unlocking_principles", Item::Principle);
+        vd.multi_field_item("unlocking_identity", Item::PowerBlocIdentity);
 
         // TODO: verify ai_weight and ai_value; do both work?
         // Only ai_value is used in vanilla (once). ai_weight is not used.
@@ -57,6 +59,12 @@ impl DbKind for ProductionMethod {
 
         // TODO: comment says "needs to match city_graphics_data.settings color array"
         vd.field_integer("city_lights_color_index");
+
+        // undocumented
+
+        vd.field_item("replacement_if_valid", Item::ProductionMethod);
+        vd.field_bool("is_hidden_when_unavailable");
+        vd.multi_field_item("required_input_goods", Item::Goods);
     }
 }
 
