@@ -1031,7 +1031,6 @@ pub const SOUNDS_VIC3: &[&str] = &[
     "event:/SFX/VFX/war/zone_snapshot_mute_2Damb",
     "event:/SFX/VFX/waterfall",
     "event:/SFX/VFX/whale_exhale",
-    "Path",
     "snapshot:/Dynamic/duck_mx_map_height",
     "snapshot:/Dynamic/low_pass_world",
     "snapshot:/Dynamic/mute_2Damb_war",
