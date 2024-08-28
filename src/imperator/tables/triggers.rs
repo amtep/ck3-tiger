@@ -57,7 +57,7 @@ static TRIGGER_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Trigger)>> = Lazy::
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.3.6
+/// LAST UPDATED IMPERATOR VERSION 2.0.4
 /// See `triggers.log` from the game data dumps
 /// A key ends with '(' if it is the version that takes a parenthesized argument in script.
 const TRIGGER: &[(Scopes, &str, Trigger)] = &[

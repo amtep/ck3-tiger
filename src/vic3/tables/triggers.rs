@@ -23,7 +23,7 @@ static TRIGGER_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Trigger)>> = Lazy::
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.7.0
+/// LAST UPDATED VIC3 VERSION 1.7.6
 /// See `triggers.log` from the game data dumps
 /// A key ends with '(' if it is the version that takes a parenthesized argument in script.
 const TRIGGER: &[(Scopes, &str, Trigger)] = &[
@@ -413,6 +413,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         ScopeOrItem(Scopes::Ideology, Item::Ideology),
     ),
     (Scopes::Country, "has_import_priority_tariffs", ScopeOrItem(Scopes::Goods, Item::Goods)),
+    (Scopes::Country, "has_inactive_journal_entry", Item(Item::JournalEntry)),
     (Scopes::Country, "has_institution", ScopeOrItem(Scopes::InstitutionType, Item::Institution)),
     (Scopes::Country, "has_insurrectionary_interest_groups", Boolean),
     (
@@ -1237,7 +1238,7 @@ static TRIGGER_COMPLEX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, ArgumentVal
         hash
     });
 
-/// LAST UPDATED VIC3 VERSION 1.7.0
+/// LAST UPDATED VIC3 VERSION 1.7.6
 /// See `triggers.log` from the game data dumps
 /// `(inscopes, trigger name, argtype)`
 /// Currently only works with single argument triggers
