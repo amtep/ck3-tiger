@@ -538,6 +538,7 @@ pub fn validate_trigger_key_bv(
 /// * `?` means the field is optional
 /// * `*` means the field is optional and may occur multiple times
 /// * `+` means the field is required and may occur multiple times
+///
 /// The default is that the field is required and may occur only once.
 ///
 /// Returns true iff the trigger had side effects (such as saving scopes).
@@ -989,7 +990,7 @@ fn match_trigger_bv(
 ///
 /// `outscopes` is the set of scope types that this target is allowed to produce.
 /// * Example: in `has_claim_on = title:e_byzantium`, the target is `title:e_byzantium` and it
-/// should produce a [`Scopes::LandedTitle`] scope in order to be valid for `has_claim_on`.
+///   should produce a [`Scopes::LandedTitle`] scope in order to be valid for `has_claim_on`.
 ///
 /// Returns the best guess about the scope type that this target resolves to.
 pub fn validate_target_ok_this(

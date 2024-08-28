@@ -1304,6 +1304,7 @@ impl Item {
     /// * `Warning` - things that only impact visuals or presentation
     /// * `Untidy` - things that don't matter much at all
     /// * `Fatal` - things that cause crashes if they're missing
+    ///
     /// This is only one piece of the severity puzzle. It can also depend on the caller who's expecting the item to exist.
     /// That part isn't handled yet.
     pub fn severity(self) -> Severity {
@@ -1392,6 +1393,7 @@ pub(crate) enum ItemLoader {
     ///
     /// * [`GameFlags`] is which games this item loader is for.
     /// * [`Item`] is the item type being loaded.
+    ///
     /// The [`ItemAdder`] function does not have to load exclusively this type of item.
     /// Related items are ok. The main use of the [`Item`] field is to get the path for this item
     /// type, so that files are loaded from that folder.
@@ -1400,7 +1402,7 @@ pub(crate) enum ItemLoader {
     /// * [`PdxEncoding`] indicates whether to expect utf-8 and/or a BOM in the files.
     /// * The `&'static str` is the file extension to look for (including the dot).
     /// * The `bool` is whether to load the whole file as one item, or treat it as normal with a
-    /// series of items in one file.
+    ///   series of items in one file.
     Full(GameFlags, Item, PdxEncoding, &'static str, bool, ItemAdder),
 }
 

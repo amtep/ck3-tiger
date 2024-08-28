@@ -23,11 +23,12 @@ use crate::validator::Validator;
 
 /// Validate a block that's part of a script value.
 /// * `have_value`: indicates whether this script value has had some sort of value set already.
-/// It's used to emit warnings when overwriting this value, or when assuming there is a value
-/// when there isn't one. Has values `True`, `False`, or `Maybe`.
+///   It's used to emit warnings when overwriting this value, or when assuming there is a value
+///   when there isn't one. Has values `True`, `False`, or `Maybe`.
 /// * `check_desc`: indicates whether localization errors are worth warning about. Some script values
-/// only have their breakdowns displayed while debugging, and those can have raw (non-localized)
-/// text in their descs.
+///   only have their breakdowns displayed while debugging, and those can have raw (non-localized)
+///   text in their descs.
+///
 /// Returns true iff this block did something useful. (Used for warnings)
 fn validate_inner(
     mut vd: Validator,
