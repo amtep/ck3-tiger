@@ -101,7 +101,7 @@ todo = "warn"
 
 [workspace.lints.rust]
 missing_debug_implementations = "warn"
-future_incompatible = "warn"
+future_incompatible = { level = "warn", priority = -1 }
 missing_copy_implementations = "warn"
 noop_method_call = "warn"
 trivial_casts = "warn"
