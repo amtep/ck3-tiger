@@ -27,9 +27,8 @@ impl DbKind for ModifierTypeDefinition {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        let loca = format!("modifier_{key}");
-        data.verify_exists_implied(Item::Localization, &loca, key);
-        let loca = format!("modifier_{key}_desc");
+        data.verify_exists(Item::Localization, key);
+        let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         verify_modif_exists(key, data, ModifKinds::all(), Severity::Untidy);
