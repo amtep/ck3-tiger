@@ -1225,120 +1225,232 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
 ];
 
 #[inline]
-pub fn scope_trigger_complex(name: &str) -> Option<(Scopes, ArgumentValue)> {
+pub fn scope_trigger_complex(name: &str) -> Option<(Scopes, ArgumentValue, Scopes)> {
     TRIGGER_COMPLEX_MAP.get(name).copied()
 }
 
-static TRIGGER_COMPLEX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, ArgumentValue)>> =
+static TRIGGER_COMPLEX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, ArgumentValue, Scopes)>> =
     Lazy::new(|| {
         let mut hash = TigerHashMap::default();
-        for (from, s, trigger) in TRIGGER_COMPLEX.iter().copied() {
-            hash.insert(s, (from, trigger));
+        for (from, s, trigger, outscopes) in TRIGGER_COMPLEX.iter().copied() {
+            hash.insert(s, (from, trigger, outscopes));
         }
         hash
     });
 
 /// LAST UPDATED VIC3 VERSION 1.7.6
 /// See `triggers.log` from the game data dumps
-/// `(inscopes, trigger name, argtype)`
+/// `(inscopes, trigger name, argtype, outscopes)`
 /// Currently only works with single argument triggers
 // TODO Update argtype when vic3 updated to 1.5+
-const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue)] = {
+const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
     use crate::item::Item;
     use ArgumentValue::*;
     &[
-        (Scopes::Country, "additional_war_exhaustion", Scope(Scopes::DiplomaticPlay)),
-        (Scopes::Country, "army_mobilization_option_fraction", UncheckedValue), // TODO Item(Item::MobilizationOption)
-        (Scopes::Country, "country_army_unit_type_fraction", UncheckedValue), // TODO Item(Item::UnitType))
-        (Scopes::Country, "country_has_building_group_levels", Item(Item::BuildingGroup)),
-        (Scopes::Country, "country_has_building_type_levels", Item(Item::BuildingType)),
-        (Scopes::Country, "country_navy_unity_type_fraction", UncheckedValue), // TODO Item(Item::UnitType)
-        (Scopes::Country, "culture_percent_country", Item(Item::Culture)),
-        (Scopes::State, "culture_percent_state", Item(Item::Culture)),
-        (Scopes::Culture, "culture_secession_progress", Scope(Scopes::Country)),
-        (Scopes::DiplomaticPact, "diplomatic_pact_other_country", Scope(Scopes::Country)),
-        (Scopes::Country, "economic_dependence", Scope(Scopes::Country)),
-        (Scopes::Country, "enactment_chance_for_law", Scope(Scopes::LawType)),
+        (
+            Scopes::Country,
+            "additional_war_exhaustion",
+            Scope(Scopes::DiplomaticPlay),
+            Scopes::Value,
+        ),
+        (Scopes::Country, "army_mobilization_option_fraction", UncheckedValue, Scopes::Value), // TODO Item(Item::MobilizationOption)
+        (Scopes::Country, "country_army_unit_type_fraction", UncheckedValue, Scopes::Value), // TODO Item(Item::UnitType))
+        (
+            Scopes::Country,
+            "country_has_building_group_levels",
+            Item(Item::BuildingGroup),
+            Scopes::Value,
+        ),
+        (
+            Scopes::Country,
+            "country_has_building_type_levels",
+            Item(Item::BuildingType),
+            Scopes::Value,
+        ),
+        (Scopes::Country, "country_navy_unity_type_fraction", UncheckedValue, Scopes::Value), // TODO Item(Item::UnitType)
+        (Scopes::Country, "culture_percent_country", Item(Item::Culture), Scopes::Value),
+        (Scopes::State, "culture_percent_state", Item(Item::Culture), Scopes::Value),
+        (Scopes::Culture, "culture_secession_progress", Scope(Scopes::Country), Scopes::Value),
+        (
+            Scopes::DiplomaticPact,
+            "diplomatic_pact_other_country",
+            Scope(Scopes::Country),
+            Scopes::Country,
+        ),
+        (Scopes::Country, "economic_dependence", Scope(Scopes::Country), Scopes::Value),
+        (Scopes::Country, "enactment_chance_for_law", Scope(Scopes::LawType), Scopes::Value),
         (
             Scopes::Country,
             "enactment_chance_for_law_without_enactment_modifier",
             Scope(Scopes::LawType),
+            Scopes::Value,
         ),
-        (Scopes::Country, "enemy_contested_wargoals", Scope(Scopes::War)),
-        // TODO (Scopes::MilitaryFormation, "formation_army_unit_type_fraction", Item(Item::UnitType)),
-        // TODO (Scopes::MilitaryFormation, "formation_navy_unit_type_fraction", Item(Item::UnitType)),
-        (Scopes::Building, "fraction_of_levels_owned_by_country", Scope(Scopes::Country)),
-        (Scopes::Country, "gdp_ownership_ratio", Scope(Scopes::Country)),
-        (Scopes::Country, "goods_production_rank", Scope(Scopes::Goods)),
-        (Scopes::Country, "has_technology_progress", Item(Item::Technology)),
-        (Scopes::War, "has_war_exhaustion", Item(Item::Country)),
-        (Scopes::War, "has_war_support", Item(Item::Country)),
-        (Scopes::State, "ig_state_pol_strength_share", Scope(Scopes::InterestGroup)),
-        (Scopes::Country, "institution_investment_level", Item(Item::Institution)),
-        (Scopes::PowerBloc, "leverage_advantage", Scope(Scopes::Country)),
-        (Scopes::None, "list_size", UncheckedValue),
+        (Scopes::Country, "enemy_contested_wargoals", Scope(Scopes::War), Scopes::Value),
+        // TODO (Scopes::MilitaryFormation, "formation_army_unit_type_fraction", Item(Item::UnitType), Scopes::Value),
+        // TODO (Scopes::MilitaryFormation, "formation_navy_unit_type_fraction", Item(Item::UnitType), Scopes::Value),
+        (
+            Scopes::Building,
+            "fraction_of_levels_owned_by_country",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
+        (Scopes::Country, "gdp_ownership_ratio", Scope(Scopes::Country), Scopes::Value),
+        (Scopes::Country, "goods_production_rank", Scope(Scopes::Goods), Scopes::Value),
+        (Scopes::Country, "has_technology_progress", Item(Item::Technology), Scopes::Value),
+        (Scopes::War, "has_war_exhaustion", Item(Item::Country), Scopes::Value),
+        (Scopes::War, "has_war_support", Item(Item::Country), Scopes::Value),
+        (Scopes::State, "ig_state_pol_strength_share", Scope(Scopes::InterestGroup), Scopes::Value),
+        (Scopes::Country, "institution_investment_level", Item(Item::Institution), Scopes::Value),
+        (Scopes::PowerBloc, "leverage_advantage", Scope(Scopes::Country), Scopes::Value),
+        (Scopes::None, "list_size", UncheckedValue, Scopes::Value),
         // loyalist_fraction
-        (Scopes::Market, "market_number_goods_shortages_with", Scope(Scopes::Country)),
-        (Scopes::Market, "market_number_goods_shortages_without", Scope(Scopes::Country)),
-        (Scopes::Country, "nationalization_cost", Scope(Scopes::Country)),
-        (Scopes::War, "num_country_casualties", Scope(Scopes::Country)),
-        (Scopes::War, "num_country_dead", Scope(Scopes::Country)),
-        (Scopes::War, "num_country_wounded", Scope(Scopes::Country)),
-        (Scopes::Country, "pop_type_percent_country", Item(Item::PopType)),
-        (Scopes::State, "pop_type_percent_state", Item(Item::PopType)),
-        (Scopes::Country, "potential_diplomatic_play_power_ratio", Scope(Scopes::Country)),
+        (
+            Scopes::Market,
+            "market_number_goods_shortages_with",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
+        (
+            Scopes::Market,
+            "market_number_goods_shortages_without",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
+        (Scopes::Country, "nationalization_cost", Scope(Scopes::Country), Scopes::Value),
+        (Scopes::War, "num_country_casualties", Scope(Scopes::Country), Scopes::Value),
+        (Scopes::War, "num_country_dead", Scope(Scopes::Country), Scopes::Value),
+        (Scopes::War, "num_country_wounded", Scope(Scopes::Country), Scopes::Value),
+        (Scopes::Country, "pop_type_percent_country", Item(Item::PopType), Scopes::Value),
+        (Scopes::State, "pop_type_percent_state", Item(Item::PopType), Scopes::Value),
+        (
+            Scopes::Country,
+            "potential_diplomatic_play_power_ratio",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
         // radical_fraction
-        (Scopes::Country, "religion_percent_country", Item(Item::Religion)),
-        (Scopes::State, "religion_percent_state", Item(Item::Religion)),
-        (Scopes::StateRegion, "remaining_undepleted", Item(Item::BuildingGroup)),
-        (Scopes::Country, "size_weighted_lost_battles_fraction", Scope(Scopes::War)),
-        (Scopes::State, "state_has_building_group_levels", Item(Item::BuildingGroup)),
-        (Scopes::State, "state_has_building_type_levels", Item(Item::BuildingType)),
-        (Scopes::Country, "power_bloc_share_gdp_with", Scope(Scopes::Country)),
-        (Scopes::Country, "power_bloc_share_gdp_without", Scope(Scopes::Country)),
-        (Scopes::Country, "power_bloc_share_power_projection_with", Scope(Scopes::Country)),
-        (Scopes::Country, "power_bloc_share_power_projection_without", Scope(Scopes::Country)),
-        (Scopes::Country, "power_bloc_share_prestige_with", Scope(Scopes::Country)),
-        (Scopes::Country, "power_bloc_share_prestige_without", Scope(Scopes::Country)),
+        (Scopes::Country, "religion_percent_country", Item(Item::Religion), Scopes::Value),
+        (Scopes::State, "religion_percent_state", Item(Item::Religion), Scopes::Value),
+        (Scopes::StateRegion, "remaining_undepleted", Item(Item::BuildingGroup), Scopes::Value),
+        (Scopes::Country, "size_weighted_lost_battles_fraction", Scope(Scopes::War), Scopes::Value),
+        (
+            Scopes::State,
+            "state_has_building_group_levels",
+            Item(Item::BuildingGroup),
+            Scopes::Value,
+        ),
+        (Scopes::State, "state_has_building_type_levels", Item(Item::BuildingType), Scopes::Value),
+        (Scopes::Country, "power_bloc_share_gdp_with", Scope(Scopes::Country), Scopes::Value),
+        (Scopes::Country, "power_bloc_share_gdp_without", Scope(Scopes::Country), Scopes::Value),
+        (
+            Scopes::Country,
+            "power_bloc_share_power_projection_with",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
+        (
+            Scopes::Country,
+            "power_bloc_share_power_projection_without",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
+        (Scopes::Country, "power_bloc_share_prestige_with", Scope(Scopes::Country), Scopes::Value),
+        (
+            Scopes::Country,
+            "power_bloc_share_prestige_without",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
         (
             Scopes::PowerBloc,
             "power_bloc_total_leading_goods_producers_with",
             Scope(Scopes::Country),
+            Scopes::Value,
         ),
         (
             Scopes::PowerBloc,
             "power_bloc_total_leading_goods_producers_without",
             Scope(Scopes::Country),
+            Scopes::Value,
         ),
-        (Scopes::PowerBloc, "power_bloc_worst_economic_dependence_with", Scope(Scopes::Country)),
-        (Scopes::PowerBloc, "power_bloc_worst_economic_dependence_without", Scope(Scopes::Country)),
-        (Scopes::PowerBloc, "power_bloc_worst_infamy_with", Scope(Scopes::Country)),
-        (Scopes::PowerBloc, "power_bloc_worst_infamy_without", Scope(Scopes::Country)),
-        (Scopes::PowerBloc, "power_bloc_worst_leader_relations_with", Scope(Scopes::Country)),
-        (Scopes::PowerBloc, "power_bloc_worst_leader_relations_without", Scope(Scopes::Country)),
+        (
+            Scopes::PowerBloc,
+            "power_bloc_worst_economic_dependence_with",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
+        (
+            Scopes::PowerBloc,
+            "power_bloc_worst_economic_dependence_without",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
+        (Scopes::PowerBloc, "power_bloc_worst_infamy_with", Scope(Scopes::Country), Scopes::Value),
+        (
+            Scopes::PowerBloc,
+            "power_bloc_worst_infamy_without",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
+        (
+            Scopes::PowerBloc,
+            "power_bloc_worst_leader_relations_with",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
+        (
+            Scopes::PowerBloc,
+            "power_bloc_worst_leader_relations_without",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
         (
             Scopes::PowerBloc,
             "power_bloc_worst_leader_religion_population_fraction_with",
             Scope(Scopes::Country),
+            Scopes::Value,
         ),
         (
             Scopes::PowerBloc,
             "power_bloc_worst_leader_religion_population_fraction_without",
             Scope(Scopes::Country),
+            Scopes::Value,
         ),
-        (Scopes::PowerBloc, "power_bloc_worst_liberty_desire_with", Scope(Scopes::Country)),
-        (Scopes::PowerBloc, "power_bloc_worst_liberty_desire_without", Scope(Scopes::Country)),
+        (
+            Scopes::PowerBloc,
+            "power_bloc_worst_liberty_desire_with",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
+        (
+            Scopes::PowerBloc,
+            "power_bloc_worst_liberty_desire_without",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
         (
             Scopes::PowerBloc,
             "power_bloc_worst_progressiveness_difference_government_type_with",
             Scope(Scopes::Country),
+            Scopes::Value,
         ),
         (
             Scopes::PowerBloc,
             "power_bloc_worst_progressiveness_difference_government_type_without",
             Scope(Scopes::Country),
+            Scopes::Value,
         ),
-        (Scopes::PowerBloc, "predicted_cohesion_percentage_with", Scope(Scopes::Country)),
-        (Scopes::JournalEntry, "scripted_bar_progress", Item(Item::ScriptedProgressBar)),
+        (
+            Scopes::PowerBloc,
+            "predicted_cohesion_percentage_with",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
+        (
+            Scopes::JournalEntry,
+            "scripted_bar_progress",
+            Item(Item::ScriptedProgressBar),
+            Scopes::Value,
+        ),
     ]
 };

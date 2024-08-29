@@ -1395,20 +1395,21 @@ pub fn validate_argument(
         return;
     }
 
-    let scope_trigger_complex: fn(&str) -> Option<(Scopes, ArgumentValue)> = match Game::game() {
-        #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::tables::triggers::scope_trigger_complex,
-        #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::tables::triggers::scope_trigger_complex,
-        #[cfg(feature = "imperator")]
-        Game::Imperator => unreachable!(),
-    };
+    let scope_trigger_complex: fn(&str) -> Option<(Scopes, ArgumentValue, Scopes)> =
+        match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => crate::ck3::tables::triggers::scope_trigger_complex,
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => crate::vic3::tables::triggers::scope_trigger_complex,
+            #[cfg(feature = "imperator")]
+            Game::Imperator => unreachable!(),
+        };
 
     let func_lc = func.as_str().to_ascii_lowercase();
-    if let Some((inscopes, validation)) = scope_trigger_complex(&func_lc) {
+    if let Some((inscopes, validation, outscopes)) = scope_trigger_complex(&func_lc) {
         sc.expect(inscopes, &Reason::Token(func.clone()));
         validate_argument_internal(arg, validation, data, sc);
-        sc.replace(Scopes::Value, func.clone());
+        sc.replace(outscopes, func.clone());
     } else if let Some(entry) = scope_prefix(func) {
         validate_argument_scope(part_flags, entry, func, arg, data, sc);
     } else {

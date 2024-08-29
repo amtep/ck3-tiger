@@ -1699,81 +1699,127 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
 ];
 
 #[inline]
-pub fn scope_trigger_complex(name: &str) -> Option<(Scopes, ArgumentValue)> {
+pub fn scope_trigger_complex(name: &str) -> Option<(Scopes, ArgumentValue, Scopes)> {
     TRIGGER_COMPLEX_MAP.get(name).copied()
 }
 
-static TRIGGER_COMPLEX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, ArgumentValue)>> =
+static TRIGGER_COMPLEX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, ArgumentValue, Scopes)>> =
     Lazy::new(|| {
         let mut hash = TigerHashMap::default();
-        for (from, s, trigger) in TRIGGER_COMPLEX.iter().copied() {
-            hash.insert(s, (from, trigger));
+        for (from, s, trigger, outscopes) in TRIGGER_COMPLEX.iter().copied() {
+            hash.insert(s, (from, trigger, outscopes));
         }
         hash
     });
 
 /// LAST UPDATED CK3 VERSION 1.12.1
 /// See `triggers.log` from the game data dumps
-/// `(inscopes, trigger name, argtype)`
+/// `(inscopes, trigger name, argtype, outscopes)`
 /// Currently only works with single argument triggers
 // TODO Verify triggers
-const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue)] = {
+const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
     use crate::item::Item;
     use ArgumentValue::*;
     &[
-        (Scopes::Character, "ai_values_divergence", Scope(Scopes::Character)),
-        (Scopes::LandedTitle, "county_opinion_target", Scope(Scopes::Character)),
-        (Scopes::Culture, "cultural_acceptance", Scope(Scopes::Culture)),
-        (Scopes::Province, "days_since_province_infection", Scope(Scopes::Epidemic)),
-        (Scopes::Faith, "faith_hostility_level", Scope(Scopes::Faith)),
-        (Scopes::None, "list_size", UncheckedValue),
-        (Scopes::Character, "morph_gene_value", Item(Item::GeneCategory)),
-        (Scopes::Character, "opinion", Scope(Scopes::Character)),
-        (Scopes::Character, "reverse_opinion", Scope(Scopes::Character)),
-        (Scopes::Character, "trait_compatibility", Scope(Scopes::Character)),
-        (Scopes::Province, "travel_danger_value", Scope(Scopes::TravelPlan)),
-        (Scopes::Character, "amenity_level", Item(Item::Amenity)),
-        // (Scopes::Character, "create_faction_type_chance", Item(Item::Faction), Scope(Scopes::Character)),
+        (Scopes::Character, "ai_values_divergence", Scope(Scopes::Character), Scopes::Value),
+        (Scopes::LandedTitle, "county_opinion_target", Scope(Scopes::Character), Scopes::Value),
+        (Scopes::Culture, "cultural_acceptance", Scope(Scopes::Culture), Scopes::Value),
+        (Scopes::Province, "days_since_province_infection", Scope(Scopes::Epidemic), Scopes::Value),
+        (Scopes::Faith, "faith_hostility_level", Scope(Scopes::Faith), Scopes::Value),
+        (Scopes::None, "list_size", UncheckedValue, Scopes::Value),
+        (Scopes::Character, "morph_gene_value", Item(Item::GeneCategory), Scopes::Value),
+        (Scopes::Character, "opinion", Scope(Scopes::Character), Scopes::Value),
+        (Scopes::Character, "reverse_opinion", Scope(Scopes::Character), Scopes::Value),
+        (Scopes::Character, "trait_compatibility", Scope(Scopes::Character), Scopes::Value),
+        (Scopes::Province, "travel_danger_value", Scope(Scopes::TravelPlan), Scopes::Value),
+        (Scopes::Character, "amenity_level", Item(Item::Amenity), Scopes::Value),
+        // (Scopes::Character, "create_faction_type_chance", Item(Item::Faction), Scope(Scopes::Character), Scopes::Value),
         // All `<lifestyle>_diff` without `abs` field
-        (Scopes::Character, "diplomacy_diff", Scope(Scopes::Character)),
+        (Scopes::Character, "diplomacy_diff", Scope(Scopes::Character), Scopes::Value),
         // Use `|` for multi-track traits, e.g. `has_trait_xp(lifestyle_traveler|danger)`
-        // (Scopes::Character, "has_trait_xp", Item(Item::Trait)),
-        (Scopes::Character, "intrigue_diff", Scope(Scopes::Character)),
-        (Scopes::Character, "join_faction_chance", Scope(Scopes::Faction)),
-        (Scopes::Character, "learning_diff", Scope(Scopes::Character)),
-        (Scopes::Character, "martial_diff", Scope(Scopes::Character)),
-        (Scopes::Character, "max_number_maa_soldiers_of_base_type", Item(Item::MenAtArmsBase)),
-        (Scopes::Character, "max_number_maa_soldiers_of_type", Item(Item::MenAtArms)),
-        // (Scopes::Character, "morph_gene_attribute", Item(Item::GeneCategory), Item(Item::GeneAttribute)),
-        (Scopes::Character, "morph_gene_value", Item(Item::GeneCategory)),
-        (Scopes::Character, "num_sinful_traits", Scope(Scopes::Faith)),
-        (Scopes::Character, "num_virtuous_traits", Scope(Scopes::Faith)),
-        (Scopes::Character, "number_maa_regiments_of_base_type", Item(Item::MenAtArmsBase)),
-        (Scopes::Character, "number_maa_regiments_of_type", Item(Item::MenAtArms)),
-        (Scopes::Character, "number_maa_soldiers_of_base_type", Item(Item::MenAtArmsBase)),
-        (Scopes::Character, "number_maa_soldiers_of_type", Item(Item::MenAtArms)),
-        (Scopes::Character, "number_of_election_votes", Scope(Scopes::LandedTitle)),
-        (Scopes::Character, "number_of_sinful_traits_in_common", Scope(Scopes::Character)),
-        (Scopes::Character, "number_of_traits_in_common", Scope(Scopes::Character)),
-        (Scopes::Character, "number_of_virtue_traits_in_common", Scope(Scopes::Character)),
-        (Scopes::Character, "perks_in_tree", Item(Item::PerkTree)),
-        (Scopes::Character, "player_heir_position", Scope(Scopes::Character)),
-        (Scopes::Province, "province_infection_date", Scope(Scopes::Epidemic)),
-        (Scopes::Province, "province_infection_rate", Scope(Scopes::Epidemic)),
-        (Scopes::Character, "prowess_diff", Scope(Scopes::Character)),
-        (Scopes::Character, "realm_to_title_distance_squared", Scope(Scopes::LandedTitle)),
-        (Scopes::Character, "stewardship_diff", Scope(Scopes::Character)),
-        (Scopes::Character, "tax_collector_aptitude", Item(Item::TaxSlotType)),
-        (Scopes::Character, "time_to_hook_expiry", Scope(Scopes::Character)),
-        (Scopes::Character, "vassal_contract_obligation_level", Item(Item::VassalContract)),
+        // (Scopes::Character, "has_trait_xp", Item(Item::Trait), Scopes::Value),
+        (Scopes::Character, "intrigue_diff", Scope(Scopes::Character), Scopes::Value),
+        (Scopes::Character, "join_faction_chance", Scope(Scopes::Faction), Scopes::Value),
+        (Scopes::Character, "learning_diff", Scope(Scopes::Character), Scopes::Value),
+        (Scopes::Character, "martial_diff", Scope(Scopes::Character), Scopes::Value),
+        (
+            Scopes::Character,
+            "max_number_maa_soldiers_of_base_type",
+            Item(Item::MenAtArmsBase),
+            Scopes::Value,
+        ),
+        (
+            Scopes::Character,
+            "max_number_maa_soldiers_of_type",
+            Item(Item::MenAtArms),
+            Scopes::Value,
+        ),
+        // (Scopes::Character, "morph_gene_attribute", Item(Item::GeneCategory), Item(Item::GeneAttribute), Scopes::Value),
+        (Scopes::Character, "morph_gene_value", Item(Item::GeneCategory), Scopes::Value),
+        (Scopes::Character, "num_sinful_traits", Scope(Scopes::Faith), Scopes::Value),
+        (Scopes::Character, "num_virtuous_traits", Scope(Scopes::Faith), Scopes::Value),
+        (
+            Scopes::Character,
+            "number_maa_regiments_of_base_type",
+            Item(Item::MenAtArmsBase),
+            Scopes::Value,
+        ),
+        (Scopes::Character, "number_maa_regiments_of_type", Item(Item::MenAtArms), Scopes::Value),
+        (
+            Scopes::Character,
+            "number_maa_soldiers_of_base_type",
+            Item(Item::MenAtArmsBase),
+            Scopes::Value,
+        ),
+        (Scopes::Character, "number_maa_soldiers_of_type", Item(Item::MenAtArms), Scopes::Value),
+        (Scopes::Character, "number_of_election_votes", Scope(Scopes::LandedTitle), Scopes::Value),
+        (
+            Scopes::Character,
+            "number_of_sinful_traits_in_common",
+            Scope(Scopes::Character),
+            Scopes::Value,
+        ),
+        (Scopes::Character, "number_of_traits_in_common", Scope(Scopes::Character), Scopes::Value),
+        (
+            Scopes::Character,
+            "number_of_virtue_traits_in_common",
+            Scope(Scopes::Character),
+            Scopes::Value,
+        ),
+        (Scopes::Character, "perks_in_tree", Item(Item::PerkTree), Scopes::Value),
+        (Scopes::Character, "player_heir_position", Scope(Scopes::Character), Scopes::Value),
+        (Scopes::Province, "province_infection_date", Scope(Scopes::Epidemic), Scopes::Value),
+        (Scopes::Province, "province_infection_rate", Scope(Scopes::Epidemic), Scopes::Value),
+        (Scopes::Character, "prowess_diff", Scope(Scopes::Character), Scopes::Value),
+        (
+            Scopes::Character,
+            "realm_to_title_distance_squared",
+            Scope(Scopes::LandedTitle),
+            Scopes::Value,
+        ),
+        (Scopes::Character, "stewardship_diff", Scope(Scopes::Character), Scopes::Value),
+        (Scopes::Character, "tax_collector_aptitude", Item(Item::TaxSlotType), Scopes::Value),
+        (Scopes::Character, "time_to_hook_expiry", Scope(Scopes::Character), Scopes::Value),
+        (
+            Scopes::Character,
+            "vassal_contract_obligation_level",
+            Item(Item::VassalContract),
+            Scopes::Value,
+        ),
         (
             Scopes::Character,
             "vassal_contract_obligation_level_score",
             ScopeOrItem(Scopes::VassalObligationLevel, Item::VassalContract),
+            Scopes::Value,
         ),
-        // (Scopes::LandedTitle, "title_create_faction_type_chance", Item(Item::Faction), Scope(Scopes::Character)),
-        (Scopes::LandedTitle, "title_join_faction_chance", Scope(Scopes::Faction)),
-        (Scopes::LandedTitle.union(Scopes::Province), "squared_distance", Scope(Scopes::Province)),
-        (Scopes::War, "war_contribution", Scope(Scopes::Character)),
+        // (Scopes::LandedTitle, "title_create_faction_type_chance", Item(Item::Faction), Scope(Scopes::Character), Scopes::Value),
+        (Scopes::LandedTitle, "title_join_faction_chance", Scope(Scopes::Faction), Scopes::Value),
+        (
+            Scopes::LandedTitle.union(Scopes::Province),
+            "squared_distance",
+            Scope(Scopes::Province),
+            Scopes::Value,
+        ),
+        (Scopes::War, "war_contribution", Scope(Scopes::Character), Scopes::Value),
     ]
 };
