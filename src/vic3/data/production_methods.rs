@@ -99,6 +99,19 @@ impl ProductionMethodGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::ProductionMethodGroup, key, block, Box::new(Self {}));
     }
+
+    #[allow(clippy::unused_self)]
+    pub fn contains_production_method(
+        &self,
+        contains_pm: &Token,
+        block: &Block,
+        _data: &Everything,
+    ) -> bool {
+        if let Some(pms) = block.get_field_list("production_methods") {
+            return pms.iter().any(|pm| pm == contains_pm);
+        }
+        false
+    }
 }
 
 impl DbKind for ProductionMethodGroup {

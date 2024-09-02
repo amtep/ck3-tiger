@@ -9,6 +9,7 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
 use crate::validate::{validate_color, validate_optional_duration};
 use crate::validator::{Validator, ValueValidator};
+use crate::vic3::data::buildings::BuildingType;
 use crate::vic3::tables::misc::LOBBY_FORMATION_REASON;
 
 pub fn validate_activate_production_method(
@@ -241,6 +242,57 @@ pub fn validate_country_value(
     vd.req_field("value");
     vd.field_item_or_target("country", sc, Item::Country, Scopes::Country);
     vd.field_script_value("value", sc);
+}
+
+pub fn validate_create_building(
+    _key: &Token,
+    block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("building");
+    vd.field_item("building", Item::BuildingType);
+    let building = block.get_field_value("building");
+    vd.field_validated_list("activate_production_methods", |token, data| {
+        data.verify_exists(Item::ProductionMethod, token);
+        if let Some(building) = building {
+            if let Some((_, block, building_item)) =
+                data.get_item::<BuildingType>(Item::BuildingType, building.as_str())
+            {
+                building_item.validate_production_method(token, building, block, data);
+            }
+        }
+    });
+    vd.field_bool("subsidized");
+    vd.field_numeric_range("reserves", 0.0..=1.0);
+    vd.field_validated_value("level", |_, mut vd| {
+        vd.maybe_is("arable_land");
+        vd.integer();
+    });
+    vd.field_validated_block("add_ownership", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.multi_field_validated_block("country", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("country");
+            vd.field_target("country", sc, Scopes::Country);
+            vd.req_field("levels");
+            vd.field_script_value("levels", sc);
+        });
+        // Docs say "country" for both, but vanilla uses "building".
+        vd.multi_field_validated_block("building", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("country");
+            vd.field_target("country", sc, Scopes::Country);
+            vd.req_field("levels");
+            vd.field_script_value("levels", sc);
+            vd.req_field("type");
+            vd.field_item("type", Item::BuildingType);
+            vd.req_field("region");
+            vd.field_item("region", Item::StateRegion);
+        });
+    });
 }
 
 pub fn validate_form_government(
