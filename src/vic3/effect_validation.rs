@@ -278,7 +278,7 @@ pub fn validate_create_building(
             vd.req_field("country");
             vd.field_target("country", sc, Scopes::Country);
             vd.req_field("levels");
-            vd.field_script_value("levels", sc);
+            vd.field_integer("levels");
         });
         // Docs say "country" for both, but vanilla uses "building".
         vd.multi_field_validated_block("building", |block, data| {
@@ -286,7 +286,7 @@ pub fn validate_create_building(
             vd.req_field("country");
             vd.field_target("country", sc, Scopes::Country);
             vd.req_field("levels");
-            vd.field_script_value("levels", sc);
+            vd.field_integer("levels");
             vd.req_field("type");
             vd.field_item("type", Item::BuildingType);
             vd.req_field("region");
