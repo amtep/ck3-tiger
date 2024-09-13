@@ -12,6 +12,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validator::Validator;
+use crate::vic3::data::production_methods::ProductionMethodGroup;
 
 #[derive(Clone, Debug)]
 pub struct BuildingType {}
@@ -23,6 +24,29 @@ inventory::submit! {
 impl BuildingType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::BuildingType, key, block, Box::new(Self {}));
+    }
+
+    #[allow(clippy::unused_self)]
+    pub fn validate_production_method(
+        &self,
+        pm: &Token,
+        building: &Token,
+        block: &Block,
+        data: &Everything,
+    ) {
+        if let Some(groups) = block.get_field_list("production_method_groups") {
+            for group in groups {
+                if let Some((_, block, group_item)) = data
+                    .get_item::<ProductionMethodGroup>(Item::ProductionMethodGroup, group.as_str())
+                {
+                    if group_item.contains_production_method(pm, block, data) {
+                        return;
+                    }
+                }
+            }
+        }
+        let msg = format!("production method `{pm}` not valid for `{building}`");
+        err(ErrorKey::Validation).msg(msg).loc(pm).push();
     }
 }
 
