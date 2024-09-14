@@ -1,5 +1,6 @@
 use crate::block::{Block, BV};
 use crate::ck3::scopes::scope_from_snake_case;
+use crate::ck3::tables::misc::LEGEND_QUALITY;
 use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
@@ -99,7 +100,7 @@ impl DbKind for LegendType {
         );
         vd.field_validated_block("quality", |block, data| {
             let mut vd = Validator::new(block, data);
-            for &quality in &["famed", "illustrious", "mythical"] {
+            for &quality in LEGEND_QUALITY {
                 vd.req_field(quality);
                 vd.field_validated_block(quality, validate_legend_quality);
             }
@@ -241,7 +242,7 @@ impl DbKind for LegendSeed {
         vd.req_field("type");
         vd.req_field("chronicle");
 
-        vd.field_choice("quality", &["famed", "illustrious", "mythical"]);
+        vd.field_choice("quality", LEGEND_QUALITY);
         vd.field_item("type", Item::LegendType);
         vd.field_validated_block_rooted("is_shown", Scopes::Character, |block, data, sc| {
             validate_trigger(block, data, sc, Tooltipped::No);
@@ -324,7 +325,7 @@ impl DbKind for LegendSeed {
 
 #[derive(Clone, Debug)]
 pub struct LegendChronicle {
-    properties: TigerHashMap<Token, Scopes>,
+    pub properties: TigerHashMap<Token, Scopes>,
     chapters: TigerHashSet<Token>,
 }
 

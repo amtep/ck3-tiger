@@ -1,4 +1,6 @@
 use crate::block::{Block, BV};
+use crate::ck3::data::legends::LegendChronicle;
+use crate::ck3::tables::misc::LEGEND_QUALITY;
 use crate::ck3::validate::{
     validate_random_culture, validate_random_faith, validate_random_traits_list,
 };
@@ -7,6 +9,7 @@ use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_effect_internal};
 use crate::effect_validation::validate_random_list;
 use crate::everything::Everything;
+use crate::helpers::TigerHashSet;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{err, warn, ErrorKey};
@@ -1736,5 +1739,61 @@ pub fn validate_end_struggle(
     _tooltipped: Tooltipped,
 ) {
     vd.maybe_is("yes");
-    vd.item(Item::Localization);
+    vd.item(Item::Localization); // undocumented
+}
+
+pub fn validate_create_legend(
+    key: &Token,
+    _block: &Block,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("type");
+    vd.field_item("type", Item::LegendType);
+    vd.req_field("quality");
+    vd.field_choice("quality", LEGEND_QUALITY);
+    vd.req_field("chronicle");
+    vd.req_field("properties");
+    vd.field_item("chronicle", Item::LegendChronicle);
+    if let Some(chronicle_token) = vd.field_value("chronicle").cloned() {
+        data.verify_exists(Item::LegendChronicle, &chronicle_token);
+
+        if let Some((_, _, chronicle)) =
+            data.get_item::<LegendChronicle>(Item::LegendChronicle, chronicle_token.as_str())
+        {
+            vd.field_validated_key_block("properties", |key, block, data| {
+                let mut found_properties = TigerHashSet::default();
+                let mut vd = Validator::new(block, data);
+                vd.unknown_value_fields(|key, value| {
+                    if let Some(scopes) = chronicle.properties.get(key).copied() {
+                        found_properties.insert(key.clone());
+                        validate_target(value, data, sc, scopes);
+                    } else {
+                        let msg =
+                            format!("property {key} not found in {chronicle_token} chronicle");
+                        err(ErrorKey::Validation).msg(msg).loc(key).push();
+                    }
+                });
+                for property in chronicle.properties.keys() {
+                    if !found_properties.contains(property) {
+                        let msg = format!("chronicle property {property} missing from properties");
+                        err(ErrorKey::Validation)
+                            .msg(msg)
+                            .loc(key)
+                            .loc_msg(property, "defined here")
+                            .push();
+                    }
+                }
+            });
+        }
+    }
+    // This validation function is used for both create_legend and create_legend_seed
+    if key.is("create_legend") {
+        vd.field_target("protagonist", sc, Scopes::Character);
+        if let Some(name) = vd.field_value("save_scope_as") {
+            sc.define_name_token(name.as_str(), Scopes::Legend, name);
+        }
+    }
 }

@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
 
 use crate::ck3::effect_validation::*;
-use crate::ck3::tables::misc::OUTBREAK_INTENSITIES;
+use crate::ck3::tables::misc::{LEGEND_QUALITY, OUTBREAK_INTENSITIES};
 use crate::effect::Effect;
 use crate::effect_validation::*;
 use crate::everything::Everything;
@@ -309,8 +309,8 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "create_hybrid_culture", Scope(Scopes::Culture)),
     (Scopes::Character, "create_hybrid_culture_with_side_effects", Scope(Scopes::Culture)),
     (Scopes::Character, "create_inspiration", Vbv(validate_create_inspiration)),
-    (Scopes::Character, "create_legend", UncheckedTodo),
-    (Scopes::Character, "create_legend_seed", UncheckedTodo),
+    (Scopes::Character, "create_legend", Vb(validate_create_legend)),
+    (Scopes::Character, "create_legend_seed", Vb(validate_create_legend)),
     (Scopes::Character, "create_story", Vbv(validate_create_story)),
     (Scopes::None, "create_title_and_vassal_change", Vb(validate_create_title_and_vassal_change)),
     (Scopes::None, "custom_description", Control),
@@ -676,7 +676,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Culture, "set_language_from", Scope(Scopes::Culture)),
     (Scopes::Legend, "set_legend_chapter", Vb(validate_set_legend_chapter)),
     (Scopes::Legend, "set_legend_property", Vb(validate_set_legend_property)),
-    (Scopes::Legend, "set_legend_quality", Choice(&["famed", "illustrious", "mythical"])),
+    (Scopes::Legend, "set_legend_quality", Choice(LEGEND_QUALITY)),
     (Scopes::None, "set_local_variable", Vbv(validate_set_variable)),
     (Scopes::Character, "set_location", Vbv(validate_set_location)),
     (Scopes::Character, "set_location_to_default", Boolean),
