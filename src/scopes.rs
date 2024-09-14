@@ -101,6 +101,13 @@ bitflags! {
         #[cfg(feature = "ck3")] const LegendType = 0x0040_0000_0000_0000;
         #[cfg(feature = "ck3")] const Legend = 0x0080_0000_0000_0000;
         #[cfg(feature = "ck3")] const GeographicalRegion = 0x0100_0000_0000_0000;
+        // CK3 1.13
+        #[cfg(feature = "ck3")] const Domicile = 0x0200_0000_0000_0000;
+        #[cfg(feature = "ck3")] const AgentSlot = 0x0400_0000_0000_0000;
+        #[cfg(feature = "ck3")] const TaskContract = 0x0800_0000_0000_0000;
+        #[cfg(feature = "ck3")] const TaskContractType = 0x1000_0000_0000_0000;
+        #[cfg(feature = "ck3")] const Regiment = 0x2000_0000_0000_0000;
+        #[cfg(feature = "ck3")] const CasusBelliType = 0x4000_0000_0000_0000;
 
         #[cfg(feature = "vic3")] const Battle = 0x0001_0000;
         #[cfg(feature = "vic3")] const BattleSide = 0x0002_0000;

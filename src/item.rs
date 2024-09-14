@@ -300,6 +300,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] StrugglePhaseParameter,
     #[cfg(feature = "ck3")] SuccessionElection,
     #[cfg(feature = "ck3")] Suggestion,
+    #[cfg(feature = "ck3")] TaskContractType,
     #[cfg(feature = "ck3")] TaxSlotFlag,
     #[cfg(feature = "ck3")] TaxSlotObligation,
     #[cfg(feature = "ck3")] TaxSlotType,
@@ -977,6 +978,8 @@ impl Item {
             Item::SuccessionElection => "common/succession_election/",
             #[cfg(feature = "ck3")]
             Item::Suggestion => "common/suggestions/",
+            #[cfg(feature = "ck3")]
+            Item::TaskContractType => "", // TODO
             #[cfg(feature = "ck3")]
             Item::TaxSlotFlag => "common/tax_slots/obligations",
             #[cfg(feature = "ck3")]

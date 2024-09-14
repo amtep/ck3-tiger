@@ -61,6 +61,12 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "legend_type" => Scopes::LegendType,
         "legend" => Scopes::Legend,
         "geographical_region" => Scopes::GeographicalRegion,
+        "domicile" => Scopes::Domicile,
+        "agent_slot" => Scopes::AgentSlot,
+        "task_contract" => Scopes::TaskContract,
+        "task_contract_type" => Scopes::TaskContractType,
+        "regiment" => Scopes::Regiment,
+        "casus_belli_type" => Scopes::CasusBelliType,
         _ => return std::option::Option::None,
     })
 }
@@ -218,6 +224,24 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::GeographicalRegion) {
         vec.push("geographical region");
     }
+    if s.contains(Scopes::Domicile) {
+        vec.push("domicile");
+    }
+    if s.contains(Scopes::AgentSlot) {
+        vec.push("agent slot");
+    }
+    if s.contains(Scopes::TaskContract) {
+        vec.push("task contract");
+    }
+    if s.contains(Scopes::TaskContractType) {
+        vec.push("task contract type");
+    }
+    if s.contains(Scopes::Regiment) {
+        vec.push("regiment");
+    }
+    if s.contains(Scopes::CasusBelliType) {
+        vec.push("casus belli type");
+    }
     display_choices(f, &vec, "or")
 }
 
@@ -365,6 +389,8 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "designated_heir", Scopes::Character),
     (Scopes::Character, "diarch", Scopes::Character),
     (Scopes::Character, "diarchy_successor", Scopes::Character),
+    (Scopes::Character, "domicile", Scopes::Domicile),
+    (Scopes::Domicile, "domicile_location", Scopes::Province),
     (Scopes::LandedTitle.union(Scopes::Province), "duchy", Scopes::LandedTitle),
     (Scopes::Dynasty, "dynasty_founder", Scopes::Character),
     (Scopes::None, "dummy_female", Scopes::Character),
@@ -415,6 +441,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Inspiration, "inspiration_sponsor", Scopes::Character),
     (Scopes::Character, "intent_target", Scopes::Character),
     (Scopes::Character, "involved_activity", Scopes::Activity),
+    (Scopes::Army, "involved_combat_side", Scopes::CombatSide),
     (Scopes::Character, "joined_faction", Scopes::Faction),
     (Scopes::Character, "killer", Scopes::Character),
     (Scopes::LandedTitle.union(Scopes::Province), "kingdom", Scopes::LandedTitle),
@@ -439,6 +466,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::TravelPlan, "next_location", Scopes::Province),
     (Scopes::None, "no", Scopes::Bool),
     (Scopes::Epidemic, "outbreak_province", Scopes::Province),
+    (Scopes::Domicile, "owner", Scopes::Character),
     (Scopes::Character, "player_heir", Scopes::Character),
     (Scopes::Character, "pregnancy_assumed_father", Scopes::Character),
     (Scopes::Character, "pregnancy_real_father", Scopes::Character),
@@ -470,20 +498,37 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     ),
     (Scopes::Faith, "religious_head", Scopes::Character),
     (Scopes::Faith, "religious_head_title", Scopes::LandedTitle),
+    (Scopes::Regiment, "regiment_controller", Scopes::Character),
+    (Scopes::Regiment, "regiment_controlling_title", Scopes::LandedTitle),
+    (Scopes::Regiment, "regiment_owner", Scopes::Character),
+    (Scopes::Regiment, "regiment_owning_title", Scopes::LandedTitle),
+    (Scopes::Regiment, "regiment_station", Scopes::Province),
     // "root" special
+    (Scopes::TaskContract, "scheme", Scopes::Scheme),
     (Scopes::Scheme, "scheme_artifact", Scopes::Artifact),
     (Scopes::Scheme, "scheme_defender", Scopes::Character),
     (Scopes::Scheme, "scheme_owner", Scopes::Character),
-    (Scopes::Scheme, "scheme_target", Scopes::Character),
+    (Scopes::Scheme, "scheme_target_character", Scopes::Character),
+    (Scopes::Scheme, "scheme_target_culture", Scopes::Culture),
+    (Scopes::Scheme, "scheme_target_faith", Scopes::Faith),
+    (Scopes::Scheme, "scheme_target_title", Scopes::LandedTitle),
     (Scopes::Accolade, "secondary_type", Scopes::AccoladeType),
     (Scopes::Character, "secret_faith", Scopes::Faith),
     (Scopes::Secret, "secret_owner", Scopes::Character),
     (Scopes::Secret, "secret_target", Scopes::Character),
     (Scopes::CombatSide, "side_commander", Scopes::Character),
     (Scopes::CombatSide, "side_primary_participant", Scopes::Character),
+    (Scopes::AgentSlot, "slot_character", Scopes::Character),
     (Scopes::Faction, "special_character", Scopes::Character),
     (Scopes::Faction, "special_title", Scopes::LandedTitle),
+    (Scopes::LandedTitle, "state_faith", Scopes::Faith),
     (Scopes::StoryCycle, "story_owner", Scopes::Character),
+    (Scopes::Scheme, "task_contract", Scopes::TaskContract),
+    (Scopes::TaskContract, "task_contract_destination", Scopes::Province),
+    (Scopes::TaskContract, "task_contract_employer", Scopes::Character),
+    (Scopes::TaskContract, "task_contract_location", Scopes::Province),
+    (Scopes::TaskContract, "task_contract_taker", Scopes::Character),
+    (Scopes::TaskContract, "task_contract_target", Scopes::Character),
     // "this" special
     (Scopes::TaxSlot, "tax_collector", Scopes::Character),
     (Scopes::Character, "tax_slot", Scopes::TaxSlot),
@@ -528,7 +573,9 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "accolade_type", Scopes::AccoladeType, Item(Item::AccoladeType)),
         (Scopes::None, "activity_type", Scopes::ActivityType, Item(Item::ActivityType)),
         (Scopes::Character, "aptitude", Scopes::Value, Item(Item::CourtPosition)),
+        (Scopes::Character, "aptitude_score", Scopes::Value, Item(Item::CourtPosition)),
         (Scopes::None, "array_define", Scopes::Value, UncheckedValue),
+        (Scopes::None, "casus_belli_type", Scopes::CasusBelliType, Item(Item::CasusBelli)),
         (Scopes::None, "character", Scopes::Character, Item(Item::Character)),
         (Scopes::Character, "council_task", Scopes::CouncilTask, Item(Item::CouncilPosition)),
         (Scopes::Character, "court_position", Scopes::Character, Item(Item::CourtPosition)),
@@ -571,6 +618,12 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "scope", Scopes::all(), UncheckedValue),
         (Scopes::Activity, "special_guest", Scopes::Character, Item(Item::SpecialGuest)),
         (Scopes::None, "struggle", Scopes::Struggle, Item(Item::Struggle)),
+        (
+            Scopes::None,
+            "task_contract_type",
+            Scopes::TaskContractType,
+            Item(Item::TaskContractType),
+        ),
         (Scopes::None, "title", Scopes::LandedTitle, Item(Item::Title)),
         (Scopes::None, "trait", Scopes::Trait, Item(Item::Trait)),
         (Scopes::all(), "var", Scopes::all(), UncheckedValue),
@@ -917,4 +970,5 @@ const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
     ("activity", "1.9", ""),
     ("activity_owner", "1.9", "replaced by `activity_host`"),
     ("activity_province", "1.9", "replaced by `activity_location`"),
+    ("scheme_target", "1.13", "replaced by `scheme_target_character`"),
 ];
