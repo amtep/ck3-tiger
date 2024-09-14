@@ -353,7 +353,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "end_pregnancy", Yes),
     (Scopes::Scheme, "end_scheme", Yes),
     (Scopes::StoryCycle, "end_story", Yes),
-    (Scopes::Struggle, "end_struggle", UncheckedTodo), // not clear how this parameter is used
+    (Scopes::Struggle, "end_struggle", Vv(validate_end_struggle)),
     // "invalidated" is undocumented
     (Scopes::War, "end_war", Choice(&["attacker", "defender", "white_peace", "invalidated"])),
     (Scopes::Artifact, "equip_artifact_to_owner", Yes),
