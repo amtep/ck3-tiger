@@ -1728,3 +1728,13 @@ fn validate_artifact_history(block: &Block, data: &Everything, sc: &mut ScopeCon
     vd.field_target("recipient", sc, Scopes::Character);
     vd.field_target("location", sc, Scopes::Province);
 }
+
+pub fn validate_end_struggle(
+    _value: &Token,
+    mut vd: ValueValidator,
+    _sc: &mut ScopeContext,
+    _tooltipped: Tooltipped,
+) {
+    vd.maybe_is("yes");
+    vd.item(Item::Localization);
+}
