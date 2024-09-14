@@ -69,6 +69,9 @@ pub const DLC_FEATURES_CK3: &[&str] = &[
 ];
 
 // LAST UPDATED CK3 VERSION 1.12.1
+pub const LEGEND_QUALITY: &[&str] = &["famed", "illustrious", "mythical"];
+
+// LAST UPDATED CK3 VERSION 1.12.1
 // Gathered from vanilla game files
 pub const REWARD_ITEMS: &[&str] = &["newsletter_crown"];
 

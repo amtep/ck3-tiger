@@ -1,6 +1,6 @@
 use once_cell::sync::Lazy;
 
-use crate::ck3::tables::misc::OUTBREAK_INTENSITIES;
+use crate::ck3::tables::misc::{LEGEND_QUALITY, OUTBREAK_INTENSITIES};
 use crate::everything::Everything;
 use crate::helpers::TigerHashMap;
 use crate::item::Item;
@@ -1177,7 +1177,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "levies_to_liege", CompareValueWarnEq),
     (Scopes::None, "list_size", Block(&[("name", UncheckedValue), ("+value", CompareValue)])),
     (Scopes::Legend, "legend_completion_date", CompareDate),
-    (Scopes::Legend, "legend_quality", Choice(&["famed", "illustrious", "mythical"])),
+    (Scopes::Legend, "legend_quality", Choice(LEGEND_QUALITY)),
     (Scopes::Legend, "legend_start_date", CompareDate),
     (Scopes::Character, "legitimacy", CompareValueWarnEq),
     (Scopes::Character, "legitimacy_level", CompareValue),
