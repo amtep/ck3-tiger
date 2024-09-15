@@ -222,6 +222,17 @@ impl<'a> ValueValidator<'a> {
         }
     }
 
+    /// Allow the value to be just `yes` or `no`, but don't mandate it.
+    #[allow(dead_code)]
+    pub fn maybe_bool(&mut self) {
+        if self.validated {
+            return;
+        }
+        if self.value.lowercase_is("yes") || self.value.lowercase_is("no") {
+            self.validated = true;
+        }
+    }
+
     /// Expect the value to be an integer.
     #[cfg(not(feature = "imperator"))]
     pub fn integer(&mut self) {
@@ -231,6 +242,17 @@ impl<'a> ValueValidator<'a> {
         self.validated = true;
         // TODO: pass max_severity here
         self.value.expect_integer();
+    }
+
+    /// Allow the value to be an integer, but don't mandate it.
+    #[allow(dead_code)]
+    pub fn maybe_integer(&mut self) {
+        if self.validated {
+            return;
+        }
+        if self.value.is_integer() {
+            self.validated = true;
+        }
     }
 
     /// Expect the value to be an integer between `low` and `high` (inclusive).

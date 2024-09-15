@@ -1,8 +1,10 @@
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
+use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -293,6 +295,89 @@ pub fn validate_create_building(
             vd.field_item("region", Item::StateRegion);
         });
     });
+}
+
+pub fn validate_create_character(
+    key: &Token,
+    block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_localization("name", sc);
+    vd.field_localization("first_name", sc);
+    vd.field_localization("last_name", sc);
+    if block.has_key("name") {
+        vd.ban_field("first_name", || "characters without `name`");
+        vd.ban_field("last_name", || "characters without `name`");
+    } else if block.has_key("first_name") {
+        if !block.has_key("last_name") {
+            let msg = "character has `first_name` but no `last_name`";
+            warn(ErrorKey::Validation).msg(msg).loc(key).push();
+        }
+    } else if block.has_key("last_name") {
+        let msg = "character has `last_name` but no `first_name`";
+        warn(ErrorKey::Validation).msg(msg).loc(key).push();
+    }
+    // NOTE: docs say this is an Item, but vanilla files consistently pass a scope.
+    vd.field_target("culture", sc, Scopes::Culture);
+    // TODO: vanilla files pass religion as an item in several places. Figure out if that's a bug.
+    vd.field_target("religion", sc, Scopes::Religion);
+    vd.field_validated_value("female", |_, mut vd| {
+        vd.maybe_bool();
+        vd.target(sc, Scopes::Character);
+    });
+    vd.field_validated_value("noble", |_, mut vd| {
+        vd.maybe_bool();
+        vd.target(sc, Scopes::Character);
+    });
+    vd.field_bool("ruler");
+    vd.field_bool("heir");
+    vd.field_bool("historical");
+    vd.field_validated("age", |bv, data| {
+        match bv {
+            BV::Value(value) => {
+                // age = integer or character scope
+                let mut vd = ValueValidator::new(value, data);
+                vd.maybe_integer();
+                vd.target(sc, Scopes::Character);
+            }
+            BV::Block(block) => {
+                // age = { min max }
+                let mut vd = Validator::new(block, data);
+                vd.req_tokens_integers_exactly(2);
+            }
+        }
+    });
+    vd.field_item_or_target("ideology", sc, Item::Ideology, Scopes::Ideology);
+    vd.field_item_or_target("interest_group", sc, Item::InterestGroup, Scopes::InterestGroup);
+    vd.field_item("template", Item::CharacterTemplate);
+    vd.field_validated_block("on_created", |block, data| {
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        validate_effect(block, data, &mut sc, Tooltipped::No);
+    });
+    if let Some(name) = vd.field_value("save_scope_as") {
+        sc.define_name_token(name.as_str(), Scopes::Character, name);
+    }
+    vd.field_validated_key_block("trait_generation", |key, block, data| {
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        validate_effect(block, data, &mut sc, Tooltipped::No);
+    });
+    // The item option is undocumented
+    vd.field_item_or_target("hq", sc, Item::StrategicRegion, Scopes::Hq | Scopes::StrategicRegion);
+
+    // undocumented fields
+
+    // TODO: not known how age and birth_date interact
+    vd.field_date("birth_date");
+    vd.field_list_items("traits", Item::CharacterTrait);
+    vd.field_item("dna", Item::Dna);
+    vd.field_bool("is_general");
+    vd.field_bool("is_admiral");
+    vd.field_bool("is_agitator");
+    vd.field_bool("ig_leader");
+    vd.field_item("commander_rank", Item::CommanderRank);
 }
 
 pub fn validate_form_government(

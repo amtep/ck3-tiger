@@ -167,7 +167,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "copy_laws", Scope(Scopes::Country)),
     (Scopes::Country, "create_bidirectional_truce", Vb(validate_create_truce)),
     (Scopes::State, "create_building", Vb(validate_create_building)),
-    (Scopes::Country, "create_character", UncheckedTodo),
+    (Scopes::Country, "create_character", Vb(validate_create_character)),
     (Scopes::None, "create_country", UncheckedTodo),
     (Scopes::Country, "create_diplomatic_catalyst", Vb(validate_create_catalyst)),
     (Scopes::Country, "create_diplomatic_pact", Vb(validate_diplomatic_pact)),
