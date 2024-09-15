@@ -83,7 +83,7 @@ impl<'a> ValueValidator<'a> {
         self.validated = true;
     }
 
-    /// Expect the value to be the key of an `itype` item the game database.
+    /// Expect the value to be the key of an `itype` item in the game database.
     /// The item is looked up and must exist.
     pub fn item(&mut self, itype: Item) {
         if self.validated {
@@ -111,7 +111,7 @@ impl<'a> ValueValidator<'a> {
     /// Check if the value is the key of an `itype` item the game database.
     /// The item is looked up, and if it exists then this validator is considered validated.
     /// Return whether the item exists.
-    #[cfg(feature = "ck3")] // silence dead code warning
+    #[allow(dead_code)]
     pub fn maybe_item(&mut self, itype: Item) -> bool {
         if self.data.item_exists(itype, self.value.as_str()) {
             self.validated = true;

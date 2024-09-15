@@ -438,6 +438,53 @@ pub fn validate_create_dynamic_country(
     });
 }
 
+pub fn validate_create_diplomatic_play(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_localization("name", sc);
+    vd.field_integer_range("escalation", 0..=100);
+    vd.field_bool("war");
+    vd.field_item_or_target_ok_this("initiator", sc, Item::Country, Scopes::Country);
+    vd.field_item("type", Item::DiplomaticPlay);
+    vd.advice_field(
+        "handle_annexation_as_civil_war",
+        "docs say `handle_annexation_as_civil_war` but it's `annex_as_civil_war`",
+    );
+    vd.field_bool("annex_as_civil_war");
+    for field in &["add_initiator_backers", "add_target_backers"] {
+        vd.field_validated_list(field, |token, data| {
+            let mut vd = ValueValidator::new(token, data);
+            vd.maybe_item(Item::Country);
+            vd.target(sc, Scopes::Country);
+        });
+    }
+    vd.multi_field_validated_block_sc("add_war_goal", sc, validate_war_goal);
+
+    // undocumented
+
+    vd.field_target("target_state", sc, Scopes::State);
+    vd.field_target("target_country", sc, Scopes::Country);
+    vd.field_target("target_region", sc, Scopes::StrategicRegion);
+}
+
+fn validate_war_goal(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    vd.set_case_sensitive(false);
+    vd.field_item_or_target_ok_this("holder", sc, Item::Country, Scopes::Country);
+    vd.field_item("type", Item::Wargoal);
+    vd.advice_field("state", "docs say `state` but it's `target_state`");
+    vd.field_target("target_state", sc, Scopes::State);
+    vd.advice_field("country", "docs say `country` but it's `target_country`");
+    vd.field_target("target_country", sc, Scopes::Country);
+    vd.advice_field("region", "docs say `region` but it's `target_region`");
+    vd.field_target("target_region", sc, Scopes::StrategicRegion);
+}
+
 pub fn validate_form_government(
     _key: &Token,
     _block: &Block,

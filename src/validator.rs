@@ -502,6 +502,27 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// This is a combination of [`Validator::field_item`] and [`Validator::field_target_ok_this`].
+    /// If the field is present and is not a known `itype` item, then it is evaluated as a target.
+    /// Returns true iff the field is present.
+    #[allow(dead_code)]
+    pub fn field_item_or_target_ok_this(
+        &mut self,
+        name: &str,
+        sc: &mut ScopeContext,
+        itype: Item,
+        outscopes: Scopes,
+    ) -> bool {
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                if !self.data.item_exists(itype, token.as_str()) {
+                    // TODO: pass max_severity here
+                    validate_target_ok_this(token, self.data, sc, outscopes);
+                }
+            }
+        })
+    }
+
     /// Expect field `name`, if present, to be a definition `name = { block }`.
     /// Expect no more than one `name` field.
     /// No other validation is done.
