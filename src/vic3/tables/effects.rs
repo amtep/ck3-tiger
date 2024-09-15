@@ -96,7 +96,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::NewCombatUnit, "add_morale", ScriptValue),
     (Scopes::MilitaryFormation, "add_organization", ScriptValue), // not used in vanilla
     (Scopes::StateRegion, "add_pollution", ScriptValue),
-    (Scopes::Pop, "add_pop_wealth", UncheckedTodo), // no examples in vanilla
+    (Scopes::Pop, "add_pop_wealth", Vb(validate_pop_wealth)),
     (Scopes::Country, "add_primary_culture", Scope(Scopes::Culture)),
     (Scopes::PowerBloc, "add_principle", Item(Item::Principle)),
     (Scopes::JournalEntry, "add_progress", Vb(validate_progress)),
@@ -325,7 +325,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::StateRegion, "set_owner_of_provinces", UncheckedTodo),
     (Scopes::Pop, "set_pop_literacy", UncheckedTodo),
     (Scopes::Pop, "set_pop_qualifications", UncheckedTodo),
-    (Scopes::Pop, "set_pop_wealth", UncheckedTodo),
+    (Scopes::Pop, "set_pop_wealth", Vb(validate_pop_wealth)),
     (Scopes::Country, "set_relations", Vb(validate_country_value)),
     (Scopes::Country, "set_ruling_interest_groups", UncheckedTodo),
     (Scopes::Party, "set_ruling_party", Yes),

@@ -446,3 +446,17 @@ pub fn validate_change_appeasement(
     vd.field_item("factor", Item::PoliticalLobbyAppeasement);
     vd.field_script_value("amount", sc);
 }
+
+/// Validate `set_pop_wealth` and `add_pop_wealth`
+pub fn validate_pop_wealth(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("wealth_distribution");
+    vd.field_script_value("wealth_distribution", sc);
+    vd.field_bool("update_loyalties");
+}
