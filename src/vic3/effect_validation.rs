@@ -460,3 +460,26 @@ pub fn validate_pop_wealth(
     vd.field_script_value("wealth_distribution", sc);
     vd.field_bool("update_loyalties");
 }
+
+pub fn validate_kill_character(
+    _key: &Token,
+    bv: &BV,
+    data: &Everything,
+    _sc: &mut ScopeContext,
+    _tooltipped: Tooltipped,
+) {
+    match bv {
+        BV::Value(value) => {
+            // kill_character = yes
+            let mut vd = ValueValidator::new(value, data);
+            vd.bool();
+        }
+        BV::Block(block) => {
+            // kill_character = { hidden = yes value = yes }
+            let mut vd = Validator::new(block, data);
+            vd.set_case_sensitive(false);
+            vd.field_bool("value");
+            vd.field_bool("hidden");
+        }
+    }
+}

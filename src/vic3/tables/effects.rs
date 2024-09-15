@@ -217,7 +217,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "join_power_bloc", Scope(Scopes::Country)),
     (Scopes::InterestGroup, "join_revolution", Boolean),
     (Scopes::War, "join_war", Vb(validate_join_war)),
-    (Scopes::Character, "kill_character", UncheckedTodo),
+    (Scopes::Character, "kill_character", Vbv(validate_kill_character)),
     (Scopes::Country, "kill_population", UncheckedTodo),
     (Scopes::Country, "kill_population_in_state", UncheckedTodo),
     (Scopes::Country, "kill_population_percent", UncheckedTodo),

@@ -210,7 +210,7 @@ impl<'a> ValueValidator<'a> {
     }
 
     /// Expect the value to be just `yes` or `no`.
-    #[cfg(feature = "ck3")] // silence dead code warning
+    #[allow(dead_code)]
     pub fn bool(&mut self) {
         if self.validated {
             return;
