@@ -9,7 +9,8 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
-use crate::validate::{validate_color, validate_optional_duration};
+use crate::trigger::validate_trigger;
+use crate::validate::{validate_color, validate_optional_duration, validate_possibly_named_color};
 use crate::validator::{Validator, ValueValidator};
 use crate::vic3::data::buildings::BuildingType;
 use crate::vic3::tables::misc::LOBBY_FORMATION_REASON;
@@ -353,7 +354,7 @@ pub fn validate_create_character(
     vd.field_item_or_target("ideology", sc, Item::Ideology, Scopes::Ideology);
     vd.field_item_or_target("interest_group", sc, Item::InterestGroup, Scopes::InterestGroup);
     vd.field_item("template", Item::CharacterTemplate);
-    vd.field_validated_block("on_created", |block, data| {
+    vd.field_validated_key_block("on_created", |key, block, data| {
         let mut sc = ScopeContext::new(Scopes::Character, key);
         validate_effect(block, data, &mut sc, Tooltipped::No);
     });
@@ -378,6 +379,63 @@ pub fn validate_create_character(
     vd.field_bool("is_agitator");
     vd.field_bool("ig_leader");
     vd.field_item("commander_rank", Item::CommanderRank);
+}
+
+pub fn validate_create_country(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_item("tag", Item::Country);
+    vd.field_target_ok_this("origin", sc, Scopes::Country);
+    vd.multi_field_target("state", sc, Scopes::State);
+    vd.multi_field_target("province", sc, Scopes::Province);
+    vd.field_validated_key_block("on_created", |key, block, data| {
+        let mut sc = ScopeContext::new(Scopes::Country, key);
+        validate_effect(block, data, &mut sc, Tooltipped::No);
+    });
+}
+
+pub fn validate_create_dynamic_country(
+    _key: &Token,
+    block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_target_ok_this("origin", sc, Scopes::Country);
+    if !block.has_key("origin") {
+        vd.req_field("country_type");
+        vd.req_field("tier");
+        vd.req_field("culture");
+        vd.req_field("religion");
+        vd.req_field("capital");
+        vd.req_field("color");
+        vd.req_field("primary_unit_color");
+        vd.req_field("secondary_unit_color");
+        vd.req_field("tertiary_unit_color");
+    }
+    vd.field_item("country_type", Item::CountryType);
+    vd.field_item("tier", Item::CountryTier);
+    vd.multi_field_target("culture", sc, Scopes::Culture);
+    vd.field_target("religion", sc, Scopes::Religion);
+    vd.field_target("capital", sc, Scopes::State);
+    vd.field_validated_key_block("cede_state_trigger", |key, block, data| {
+        let mut sc = ScopeContext::new(Scopes::State, key);
+        validate_trigger(block, data, &mut sc, Tooltipped::No);
+    });
+    vd.field_validated("color", validate_possibly_named_color);
+    vd.field_validated("primary_unit_color", validate_possibly_named_color);
+    vd.field_validated("secondary_unit_color", validate_possibly_named_color);
+    vd.field_validated("tertiary_unit_color", validate_possibly_named_color);
+    vd.field_validated_key_block("on_created", |key, block, data| {
+        let mut sc = ScopeContext::new(Scopes::Country, key);
+        validate_effect(block, data, &mut sc, Tooltipped::No);
+    });
 }
 
 pub fn validate_form_government(
