@@ -472,6 +472,20 @@ pub fn validate_create_diplomatic_play(
     vd.field_target("target_region", sc, Scopes::StrategicRegion);
 }
 
+pub fn validate_create_mass_migration(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("origin");
+    vd.field_target("origin", sc, Scopes::Country);
+    vd.req_field("culture");
+    vd.field_target("culture", sc, Scopes::Culture);
+}
+
 fn validate_war_goal(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.set_case_sensitive(false);

@@ -174,7 +174,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "create_diplomatic_play", Vb(validate_create_diplomatic_play)),
     (Scopes::None, "create_dynamic_country", Vb(validate_create_dynamic_country)),
     (Scopes::Country, "create_incident", Vb(validate_country_value)),
-    (Scopes::State, "create_mass_migration", UncheckedTodo),
+    (Scopes::State, "create_mass_migration", Vb(validate_create_mass_migration)),
     (Scopes::Country, "create_military_formation", UncheckedTodo),
     (Scopes::Country, "create_political_lobby", Vb(validate_create_lobby)),
     (Scopes::State, "create_pop", UncheckedTodo),
