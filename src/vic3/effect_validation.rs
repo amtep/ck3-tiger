@@ -4,7 +4,7 @@ use crate::desc::validate_desc;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{warn, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -472,6 +472,19 @@ pub fn validate_create_diplomatic_play(
     vd.field_target("target_region", sc, Scopes::StrategicRegion);
 }
 
+fn validate_war_goal(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    vd.set_case_sensitive(false);
+    vd.field_item_or_target_ok_this("holder", sc, Item::Country, Scopes::Country);
+    vd.field_item("type", Item::Wargoal);
+    vd.advice_field("state", "docs say `state` but it's `target_state`");
+    vd.field_target("target_state", sc, Scopes::State);
+    vd.advice_field("country", "docs say `country` but it's `target_country`");
+    vd.field_target("target_country", sc, Scopes::Country);
+    vd.advice_field("region", "docs say `region` but it's `target_region`");
+    vd.field_target("target_region", sc, Scopes::StrategicRegion);
+}
+
 pub fn validate_create_mass_migration(
     _key: &Token,
     _block: &Block,
@@ -486,17 +499,44 @@ pub fn validate_create_mass_migration(
     vd.field_target("culture", sc, Scopes::Culture);
 }
 
-fn validate_war_goal(block: &Block, data: &Everything, sc: &mut ScopeContext) {
-    let mut vd = Validator::new(block, data);
-    vd.set_case_sensitive(false);
-    vd.field_item_or_target_ok_this("holder", sc, Item::Country, Scopes::Country);
-    vd.field_item("type", Item::Wargoal);
-    vd.advice_field("state", "docs say `state` but it's `target_state`");
-    vd.field_target("target_state", sc, Scopes::State);
-    vd.advice_field("country", "docs say `country` but it's `target_country`");
-    vd.field_target("target_country", sc, Scopes::Country);
-    vd.advice_field("region", "docs say `region` but it's `target_region`");
-    vd.field_target("target_region", sc, Scopes::StrategicRegion);
+pub fn validate_create_military_formation(
+    _key: &Token,
+    block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_localization("name", sc);
+    vd.field_choice("type", &["army", "fleet"]);
+    let is_fleet = block.field_value_is("type", "fleet");
+    vd.field_target("hq_region", sc, Scopes::StrategicRegion);
+    vd.multi_field_validated_block("combat_unit", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.field_target("type", sc, Scopes::CombatUnitType);
+        vd.field_choice("service_type", &["regular", "conscript"]);
+        if let Some(token) = vd.field_value("service_type") {
+            if is_fleet && token.is("conscript") {
+                let msg = "conscript is not applicable to fleets";
+                err(ErrorKey::Choice).msg(msg).loc(token).push();
+            }
+        }
+        vd.field_target("state_region", sc, Scopes::StateRegion);
+        vd.field_integer("count");
+    });
+    if is_fleet {
+        vd.ban_field("mobilization_options", || "armies");
+    }
+    vd.field_validated_list("mobilization_options", |token, data| {
+        let mut vd = ValueValidator::new(token, data);
+        vd.target(sc, Scopes::MobilizationOption);
+    });
+
+    // undocumented
+
+    if let Some(name) = vd.field_value("save_scope_as") {
+        sc.define_name_token(name.as_str(), Scopes::MilitaryFormation, name);
+    }
 }
 
 pub fn validate_form_government(
