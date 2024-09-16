@@ -155,6 +155,7 @@ impl Event {
         let mut vd = Validator::new(&self.block, data);
 
         let mut tooltipped_immediate = Tooltipped::Past;
+        let mut tooltipped_after = Tooltipped::Past
         let mut tooltipped = Tooltipped::Yes;
         if let Some((namespace, _)) = self.key.as_str().split_once('.') {
             if !data.item_exists(Item::EventNamespace, namespace) {
@@ -179,6 +180,7 @@ impl Event {
         let hidden = self.block.field_value_is("hidden", "yes");
         if hidden {
             tooltipped_immediate = Tooltipped::No;
+            tooltipped_after = Tooltipped::No;
             tooltipped = Tooltipped::No;
         }
 
@@ -189,6 +191,9 @@ impl Event {
         });
         vd.field_validated_block("immediate", |block, data| {
             validate_effect(block, data, &mut sc, tooltipped_immediate);
+        });
+        vd.field_validated_block("after", |block, data| {
+            validate_effect(block, data, &mut sc, tooltipped_after);
         });
 
         vd.multi_field_validated_block("event_image", |block, data| {
