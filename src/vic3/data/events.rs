@@ -155,7 +155,7 @@ impl Event {
         let mut vd = Validator::new(&self.block, data);
 
         let mut tooltipped_immediate = Tooltipped::Past;
-        let mut tooltipped_after = Tooltipped::Past
+        let mut tooltipped_after = Tooltipped::Past;
         let mut tooltipped = Tooltipped::Yes;
         if let Some((namespace, _)) = self.key.as_str().split_once('.') {
             if !data.item_exists(Item::EventNamespace, namespace) {
