@@ -13,7 +13,7 @@ use crate::trigger::validate_trigger;
 use crate::validate::{validate_color, validate_optional_duration, validate_possibly_named_color};
 use crate::validator::{Validator, ValueValidator};
 use crate::vic3::data::buildings::BuildingType;
-use crate::vic3::tables::misc::{LOBBY_FORMATION_REASON, STATE_TYPES};
+use crate::vic3::tables::misc::{LOBBY_FORMATION_REASON, STATE_TYPES, STRATA};
 
 pub fn validate_activate_production_method(
     _key: &Token,
@@ -775,4 +775,27 @@ pub fn validate_kill_character(
             vd.field_bool("hidden");
         }
     }
+}
+
+// Validated `kill_population`, `kill_population_in_state`, `kill_population_percent`, and
+// `kill_population_percent_in_state`.
+pub fn validate_kill_population(
+    key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    let percent = key.is("kill_population_percent") || key.is("kill_population_percent_in_state");
+    if percent {
+        vd.field_numeric_range("percent", 0.0..=1.0);
+    } else {
+        vd.field_integer("value");
+    }
+    vd.field_target("culture", sc, Scopes::Culture);
+    vd.field_target("religion", sc, Scopes::Religion);
+    vd.field_target("interest_group", sc, Scopes::InterestGroup);
+    vd.field_item("pop_type", Item::PopType);
+    vd.field_choice("strata", STRATA);
 }
