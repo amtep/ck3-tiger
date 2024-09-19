@@ -555,6 +555,21 @@ pub fn validate_create_pop(
     vd.field_integer("size");
 }
 
+pub fn validate_create_state(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    // This effect is undocumented
+
+    vd.field_target("country", sc, Scopes::Country);
+    vd.field_list_items("owned_provinces", Item::Province);
+    vd.field_choice("state_type", &["incorporated", "unincorporated", "treaty_port"]);
+}
+
 pub fn validate_form_government(
     _key: &Token,
     _block: &Block,
