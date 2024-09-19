@@ -13,7 +13,7 @@ use crate::trigger::validate_trigger;
 use crate::validate::{validate_color, validate_optional_duration, validate_possibly_named_color};
 use crate::validator::{Validator, ValueValidator};
 use crate::vic3::data::buildings::BuildingType;
-use crate::vic3::tables::misc::LOBBY_FORMATION_REASON;
+use crate::vic3::tables::misc::{LOBBY_FORMATION_REASON, STATE_TYPES};
 
 pub fn validate_activate_production_method(
     _key: &Token,
@@ -567,7 +567,7 @@ pub fn validate_create_state(
 
     vd.field_target("country", sc, Scopes::Country);
     vd.field_list_items("owned_provinces", Item::Province);
-    vd.field_choice("state_type", &["incorporated", "unincorporated", "treaty_port"]);
+    vd.field_choice("state_type", STATE_TYPES);
 }
 
 pub fn validate_create_trade_route(

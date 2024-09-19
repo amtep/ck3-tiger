@@ -89,6 +89,9 @@ pub const SECRET_GOALS: &[&str] = &[
 pub const STANCES: &[&str] =
     &["strongly_disapprove", "disapprove", "neutral", "approve", "strongly_approve"];
 
+// LAST UPDATED VIC3 VERSION 1.7.6
+pub const STATE_TYPES: &[&str] = &["incorporated", "unincorporated", "treaty_port"];
+
 // LAST UPDATED VIC3 VERSION 1.3.6
 // Deduced from `common/government_types/`
 pub const TRANSFER_OF_POWER: &[&str] =

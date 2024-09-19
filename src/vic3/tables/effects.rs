@@ -8,6 +8,7 @@ use crate::item::Item;
 use crate::scopes::*;
 use crate::token::Token;
 use crate::vic3::effect_validation::*;
+use crate::vic3::tables::misc::STATE_TYPES;
 
 use Effect::*;
 
@@ -332,7 +333,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "set_secret_goal", Vb(validate_set_secret_goal)),
     (Scopes::State, "set_state_owner", Scope(Scopes::Country)),
     (Scopes::Country, "set_state_religion", Scope(Scopes::Religion)),
-    (Scopes::State, "set_state_type", UncheckedTodo),
+    (Scopes::State, "set_state_type", Choice(STATE_TYPES)),
     (Scopes::Country, "set_strategy", Item(Item::AiStrategy)),
     (Scopes::Building, "set_subsidized", Boolean),
     (Scopes::JournalEntry, "set_target_technology", Scope(Scopes::Technology)),
