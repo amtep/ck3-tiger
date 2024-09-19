@@ -78,13 +78,13 @@ impl DbKind for InterestGroup {
         vd.field_script_value_rooted("monarch_weight", Scopes::InterestGroup);
         vd.field_script_value_rooted("agitator_weight", Scopes::InterestGroup);
         vd.field_script_value_rooted("commander_weight", Scopes::InterestGroup);
+        vd.field_script_value_rooted("female_commander_chance", Scopes::InterestGroup);
+        vd.field_script_value_rooted("female_politician_chance", Scopes::InterestGroup);
+        vd.field_script_value_rooted("female_agitator_chance", Scopes::InterestGroup);
 
         // TODO: figure out these scopes
 
         vd.field_script_value_rooted("noble_chance", Scopes::None);
-        vd.field_script_value_rooted("female_commander_chance", Scopes::None);
-        vd.field_script_value_rooted("female_politician_chance", Scopes::None);
-        vd.field_script_value_rooted("female_agitator_chance", Scopes::None);
         vd.field_validated_key("commander_leader_chance", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::None, key);
             sc.define_name("character", Scopes::Character, key);
