@@ -365,10 +365,17 @@ where
             }
             #[cfg(feature = "vic3")]
             Game::Vic3 => {
-                // TODO: should this be Country or CountryDefinition? Both give errors. Verify.
-                sc = ScopeContext::new(Scopes::Country | Scopes::CountryDefinition, key);
-                sc.define_name("target", Scopes::Country | Scopes::CountryDefinition, key);
-                // ?
+                // TODO: Exact scope depends on the context of use of this coa list.
+                // Should check again with exact scope at point of use.
+                sc = ScopeContext::new(
+                    Scopes::Country | Scopes::CountryDefinition | Scopes::PowerBloc,
+                    key,
+                );
+                sc.define_name(
+                    "target",
+                    Scopes::Country | Scopes::CountryDefinition | Scopes::PowerBloc,
+                    key,
+                );
             }
             #[cfg(feature = "imperator")]
             Game::Imperator => {
