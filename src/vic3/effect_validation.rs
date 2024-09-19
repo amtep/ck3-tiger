@@ -539,6 +539,22 @@ pub fn validate_create_military_formation(
     }
 }
 
+pub fn validate_create_pop(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    _sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    // This effect is undocumented
+
+    vd.field_item("culture", Item::Culture);
+    vd.field_item("religion", Item::Religion);
+    vd.field_item("pop_type", Item::PopType);
+    vd.field_integer("size");
+}
+
 pub fn validate_form_government(
     _key: &Token,
     _block: &Block,
