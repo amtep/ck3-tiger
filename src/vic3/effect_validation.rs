@@ -570,6 +570,24 @@ pub fn validate_create_state(
     vd.field_choice("state_type", &["incorporated", "unincorporated", "treaty_port"]);
 }
 
+pub fn validate_create_trade_route(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_item("goods", Item::Goods);
+    vd.field_integer("level");
+
+    vd.advice_field("import", "docs say `import = yes` but it's `direction = import`");
+    vd.field_choice("direction", &["export", "import"]);
+    vd.field_target("origin", sc, Scopes::StateRegion);
+    // docs say state_region but it's market
+    vd.field_target("target", sc, Scopes::Market);
+}
+
 pub fn validate_form_government(
     _key: &Token,
     _block: &Block,
