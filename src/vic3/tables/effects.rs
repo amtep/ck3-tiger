@@ -230,7 +230,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "place_character_in_void", ScriptValue),
     (Scopes::Country, "play_as", Scope(Scopes::Country)),
     (Scopes::None, "post_notification", Vv(validate_post_notification)),
-    (Scopes::None, "post_proposal", UncheckedTodo),
+    (Scopes::None, "post_proposal", Item(Item::ProposalType)),
     (Scopes::None, "random", Control),
     (Scopes::None, "random_list", Vb(validate_random_list)),
     (Scopes::None, "random_log_scopes", Boolean),

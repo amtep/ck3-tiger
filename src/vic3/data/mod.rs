@@ -45,6 +45,7 @@ pub mod pops;
 pub mod power_blocs;
 pub mod principles;
 pub mod production_methods;
+pub mod proposals;
 pub mod provinces;
 pub mod religions;
 pub mod scripted_buttons;
