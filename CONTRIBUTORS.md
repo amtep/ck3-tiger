@@ -14,6 +14,7 @@ These are the people that made `ck3-tiger` what it is.
 
 ## Bugfixes
 * Jazarro
+* HiddeLekanne
 
 ## External contributors
 * unLomTrois (VS Code plugin for ck3-tiger)
