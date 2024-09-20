@@ -190,6 +190,9 @@ impl Event {
         vd.field_validated_block("immediate", |block, data| {
             validate_effect(block, data, &mut sc, tooltipped_immediate);
         });
+        vd.field_validated_block("after", |block, data| {
+            validate_effect(block, data, &mut sc, tooltipped);
+        });
 
         vd.multi_field_validated_block("event_image", |block, data| {
             let mut vd = Validator::new(block, data);
