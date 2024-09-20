@@ -1,6 +1,7 @@
 //! Validate `.yml` localization files
 
 use std::borrow::Borrow;
+use std::cmp::Ordering;
 use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
@@ -93,6 +94,26 @@ pub struct LocaEntry {
     used: AtomicBool,
     /// Whether this entry has been validated with a `ScopeContext`
     validated: AtomicBool,
+}
+
+impl PartialEq for LocaEntry {
+    fn eq(&self, other: &LocaEntry) -> bool {
+        self.key.loc == other.key.loc
+    }
+}
+
+impl Eq for LocaEntry {}
+
+impl PartialOrd for LocaEntry {
+    fn partial_cmp(&self, other: &LocaEntry) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for LocaEntry {
+    fn cmp(&self, other: &LocaEntry) -> Ordering {
+        self.key.loc.cmp(&other.key.loc)
+    }
 }
 
 impl LocaEntry {
@@ -479,16 +500,18 @@ impl Localization {
     pub fn validate_pass2(&self, data: &Everything) {
         scope(|s| {
             for (lang, hash) in &self.locas {
-                for entry in hash.values() {
-                    if !entry.validated.load(Relaxed) {
-                        // Technically we can now store true in entry.validated,
-                        // but the value is not needed anymore after this.
-                        s.spawn(|_| {
-                            let mut sc = ScopeContext::new_unrooted(Scopes::all(), &entry.key);
-                            sc.set_strict_scopes(false);
-                            Self::validate_loca(entry, hash, data, &mut sc, lang);
-                        });
-                    }
+                // Collect and sort the entries before looping, to create more stable output
+                let mut unvalidated_entries: Vec<&LocaEntry> =
+                    hash.values().filter(|e| !e.validated.load(Relaxed)).collect();
+                unvalidated_entries.sort_unstable();
+                for entry in unvalidated_entries {
+                    // Technically we can now store true in entry.validated,
+                    // but the value is not needed anymore after this.
+                    s.spawn(|_| {
+                        let mut sc = ScopeContext::new_unrooted(Scopes::all(), &entry.key);
+                        sc.set_strict_scopes(false);
+                        Self::validate_loca(entry, hash, data, &mut sc, lang);
+                    });
                 }
             }
         });
