@@ -488,16 +488,21 @@ pub fn validate_trigger_key_bv(
     }
 
     if !matches!(cmp, Comparator::Equals(Single | Question)) {
-        if sc.can_be(Scopes::Value) {
-            sc.close();
-            // TODO: check side_effects
-            validate_script_value(bv, data, sc);
-        } else if matches!(cmp, Comparator::NotEquals | Comparator::Equals(Double)) {
+        // At this point we don't know whether to expect a script value or a target at the
+        // right-hand side. Check for target first; a target can be a script value so that
+        // encompasses both if the `bv` is not a block.
+        if matches!(cmp, Comparator::NotEquals | Comparator::Equals(Double))
+            && bv.get_value().is_some()
+        {
             let scopes = sc.scopes();
             sc.close();
             if let Some(token) = bv.expect_value() {
                 validate_target_ok_this(token, data, sc, scopes);
             }
+        } else if sc.can_be(Scopes::Value) {
+            sc.close();
+            // TODO: check side_effects
+            validate_script_value(bv, data, sc);
         } else {
             let msg = format!("unexpected comparator {cmp}");
             warn(ErrorKey::Validation).msg(msg).loc(key).push();
