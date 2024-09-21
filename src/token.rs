@@ -24,7 +24,7 @@ pub struct Loc {
     pub kind: FileKind,
     /// line 0 means the loc applies to the file as a whole.
     pub line: u32,
-    pub column: u16,
+    pub column: u32,
     /// Used in macro expansions to point to the macro invocation
     /// in the macro table
     pub link_idx: Option<MacroMapIndex>,
