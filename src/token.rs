@@ -212,7 +212,7 @@ impl Token {
         let mut loc = self.loc;
         let mut lines: u32 = 0;
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
-            let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
+            let cols = u32::try_from(cols).expect("internal error: 2^32 columns");
             if c == ch {
                 vec.push(self.subtoken(pos..i, loc));
                 pos = i + 1;
@@ -237,7 +237,7 @@ impl Token {
         #[allow(clippy::cast_possible_truncation)]
         self.s.strip_prefix(pfx).map(|sfx| {
             let mut loc = self.loc;
-            loc.column += pfx.chars().count() as u16;
+            loc.column += pfx.chars().count() as u32;
             Token::from_static_str(sfx, loc)
         })
     }
@@ -251,7 +251,7 @@ impl Token {
     /// May panic if the token's column location exceeds 65535.
     pub fn split_once(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
-            let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
+            let cols = u32::try_from(cols).expect("internal error: 2^32 columns");
             if c == ch {
                 let token1 = self.subtoken(..i, self.loc);
                 let mut loc = self.loc;
@@ -272,13 +272,13 @@ impl Token {
     #[must_use]
     pub fn split_after(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
-            let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
+            let cols = u32::try_from(cols).expect("internal error: 2^32 columns");
             #[allow(clippy::cast_possible_truncation)] // chlen can't be more than 6
             if c == ch {
                 let chlen = ch.len_utf8();
                 let token1 = self.subtoken(..i + chlen, self.loc);
                 let mut loc = self.loc;
-                loc.column += cols + chlen as u16;
+                loc.column += cols + chlen as u32;
                 let token2 = self.subtoken(i + chlen.., loc);
                 return Some((token1, token2));
             }
@@ -304,7 +304,7 @@ impl Token {
         let mut real_start = None;
         let mut real_end = self.s.len();
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
-            let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
+            let cols = u32::try_from(cols).expect("internal error: 2^32 columns");
             if c != ' ' {
                 real_start = Some((cols, i));
                 break;
