@@ -649,8 +649,13 @@ impl DbKind for ActivityLocale {
 }
 
 fn validate_visuals(key: &Token, bv: &BV, data: &Everything) {
+    fn validate_visual(visual: &Token, data: &Everything) {
+        let pathname = format!("/gui/activity_locale_widgets/{visual}.gui");
+        data.verify_exists_implied(Item::File, &pathname, visual);
+    }
+
     match bv {
-        BV::Value(_) => (), // TODO
+        BV::Value(token) => validate_visual(token, data),
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             let mut sc = ScopeContext::new(Scopes::Activity, key);
@@ -659,7 +664,10 @@ fn validate_visuals(key: &Token, bv: &BV, data: &Everything) {
             vd.field_validated_block("trigger", |block, data| {
                 validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
-            vd.field_value("reference"); // TODO
+            vd.req_field("reference");
+            if let Some(token) = vd.field_value("reference") {
+                validate_visual(token, data);
+            }
         }
     }
 }
