@@ -1,4 +1,5 @@
 use crate::block::{Block, BV};
+use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -124,6 +125,7 @@ impl DbKind for Building {
         vd.field_script_value_rooted("cost_gold", Scopes::Character);
         vd.field_script_value_rooted("cost_piety", Scopes::Character);
         vd.field_script_value_rooted("cost_prestige", Scopes::Character);
+        vd.field_validated_block_rooted("cost", Scopes::Character, validate_cost);
 
         vd.field_item("next_building", Item::Building);
         vd.field_validated_rooted("effect_desc", Scopes::None, validate_desc);
