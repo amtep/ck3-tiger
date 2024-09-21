@@ -205,7 +205,7 @@ impl Token {
     /// Updates the locs for the created subtokens.
     /// This is not meant for multiline tokens.
     /// # Panics
-    /// May panic if the token's column location exceeds 65535.
+    /// May panic if the token's column location exceeds 4,294,967,296.
     pub fn split(&self, ch: char) -> Vec<Token> {
         let mut pos = 0;
         let mut vec = Vec::new();
@@ -248,7 +248,7 @@ impl Token {
     /// This is not meant for multiline tokens.
     /// Returns `None` if `ch` was not found in the token.
     /// # Panics
-    /// May panic if the token's column location exceeds 65535.
+    /// May panic if the token's column location exceeds 4,294,967,296.
     pub fn split_once(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
             let cols = u32::try_from(cols).expect("internal error: 2^32 columns");
@@ -268,7 +268,7 @@ impl Token {
     /// This is not meant for multiline tokens.
     /// Returns `None` if `ch` was not found in the token.
     /// # Panics
-    /// May panic if the token's column location exceeds 65535.
+    /// May panic if the token's column location exceeds 4,294,967,296.
     #[must_use]
     pub fn split_after(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
@@ -299,7 +299,7 @@ impl Token {
     /// Will update the loc of the subtoken.
     /// This is not meant for multiline tokens.
     /// # Panics
-    /// May panic if the token's column location exceeds 65535.
+    /// May panic if the token's column location exceeds 4,294,967,296.
     pub fn trim(&self) -> Token {
         let mut real_start = None;
         let mut real_end = self.s.len();
