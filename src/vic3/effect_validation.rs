@@ -215,6 +215,20 @@ pub fn validate_change_institution_investment_level(
     vd.field_integer("investment");
 }
 
+pub fn validate_set_institution_investment_level(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    _sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("institution");
+    vd.field_item("institution", Item::Institution);
+    vd.req_field("level");
+    vd.field_integer("level");
+}
+
 pub fn validate_diplomatic_pact(
     _key: &Token,
     _block: &Block,
@@ -798,4 +812,15 @@ pub fn validate_kill_population(
     vd.field_target("interest_group", sc, Scopes::InterestGroup);
     vd.field_item("pop_type", Item::PopType);
     vd.field_choice("strata", STRATA);
+}
+
+pub fn validate_pop_literacy(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_script_value("literacy_rate", sc);
 }

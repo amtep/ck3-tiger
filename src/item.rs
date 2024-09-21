@@ -372,6 +372,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] MediaAlias,
     #[cfg(feature = "vic3")] MilitaryFormationFlag,
     #[cfg(feature = "vic3")] MobilizationOption,
+    #[cfg(feature = "vic3")] MobilizationOptionGroup,
     #[cfg(feature = "vic3")] ModifierTypeDefinition,
     #[cfg(feature = "vic3")] Objective,
     #[cfg(feature = "vic3")] ObjectiveSubgoal,
@@ -1118,6 +1119,8 @@ impl Item {
             Item::MilitaryFormationFlag => "common/military_formation_flags/",
             #[cfg(feature = "vic3")]
             Item::MobilizationOption => "common/mobilization_options/",
+            #[cfg(feature = "vic3")]
+            Item::MobilizationOptionGroup => "common/mobilization_option_groups/",
             #[cfg(feature = "vic3")]
             Item::ModifierTypeDefinition => "common/modifier_type_definitions/",
             #[cfg(feature = "vic3")]

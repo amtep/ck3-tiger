@@ -314,7 +314,11 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::InterestGroup, "set_ig_suppression", Boolean),
     (Scopes::InterestGroup, "set_ig_trait", Scope(Scopes::InterestGroupTrait)),
     (Scopes::Country, "set_immune_to_revolutions", Boolean),
-    (Scopes::Country, "set_institution_investment_level", UncheckedTodo),
+    (
+        Scopes::Country,
+        "set_institution_investment_level",
+        Vb(validate_set_institution_investment_level),
+    ),
     (Scopes::InterestGroup, "set_interest_group_name", Item(Item::Localization)),
     (Scopes::DiplomaticPlay, "set_key", Item(Item::Localization)),
     (Scopes::None, "set_local_variable", Vbv(validate_set_variable)),
@@ -324,8 +328,8 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "set_next_election_date", Date),
     (Scopes::Country, "set_owes_obligation_to", UncheckedTodo),
     (Scopes::StateRegion, "set_owner_of_provinces", UncheckedTodo),
-    (Scopes::Pop, "set_pop_literacy", UncheckedTodo),
-    (Scopes::Pop, "set_pop_qualifications", UncheckedTodo),
+    (Scopes::Pop, "set_pop_literacy", Vb(validate_pop_literacy)),
+    (Scopes::Pop, "set_pop_qualifications", UncheckedTodo), // No examples in vanilla
     (Scopes::Pop, "set_pop_wealth", Vb(validate_pop_wealth)),
     (Scopes::Country, "set_relations", Vb(validate_country_value)),
     (Scopes::Country, "set_ruling_interest_groups", UncheckedTodo),
