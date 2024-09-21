@@ -645,6 +645,7 @@ fn validate_gene_decal(block: &Block, data: &Everything) {
     vd.field_value("body_part"); // TODO
     vd.multi_field_validated_block("textures", validate_decal_textures);
     vd.multi_field_validated_block("alpha_curve", validate_curve);
+    vd.multi_field_validated_block("uv_tiling", validate_uv_tiling);
     vd.multi_field_validated_block("blend_modes", validate_blend_modes);
     vd.field_integer("priority");
     vd.field_validated("age", validate_age_field);
@@ -689,6 +690,12 @@ fn validate_blend_modes(block: &Block, data: &Everything) {
     vd.field_choice("diffuse", choices);
     vd.field_choice("normal", choices);
     vd.field_choice("properties", choices);
+}
+
+#[cfg(any(feature = "ck3", feature = "vic3"))]
+fn validate_uv_tiling(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.req_tokens_integers_exactly(2);
 }
 
 fn validate_shift_curve(block: &Block, data: &Everything) {
