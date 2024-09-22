@@ -31,6 +31,10 @@ impl DbKind for DiplomaticPlay {
         sc.define_name("target_country", Scopes::Country, key);
         sc.define_name("initiator", Scopes::Country, key); // undocumented
 
+        let mut diplo_sc = ScopeContext::new(Scopes::DiplomaticPlay, key);
+        diplo_sc.define_name("target_country", Scopes::Country, key);
+        diplo_sc.define_name("initiator", Scopes::Country, key); // undocumented
+
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
@@ -63,13 +67,13 @@ impl DbKind for DiplomaticPlay {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("on_weekly_pulse", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut diplo_sc, Tooltipped::No);
         });
         vd.field_validated_block("on_war_begins", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut diplo_sc, Tooltipped::No);
         });
         vd.field_validated_block("on_war_end", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+            validate_effect(block, data, &mut diplo_sc, Tooltipped::No);
         });
 
         // undocumented
