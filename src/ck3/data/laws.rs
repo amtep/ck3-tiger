@@ -203,11 +203,22 @@ impl DbKind for Law {
 
         vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
 
-        vd.field_bool("shown_in_encyclopedia"); // undocumented
-        vd.field_integer("title_allegiance_opinion"); // undocumented
+        // undocumented
+
+        vd.field_bool("shown_in_encyclopedia");
+        vd.field_integer("title_allegiance_opinion");
         vd.field_validated_block_rooted("potential", Scopes::Character, |block, data, sc| {
-            // undocumented
             validate_trigger(block, data, sc, Tooltipped::No);
         });
+        vd.field_validated_block_rooted(
+            "requires_approve",
+            Scopes::Character,
+            |block, data, sc| {
+                validate_trigger(block, data, sc, Tooltipped::No);
+            },
+        );
+        // TODO: should be Item::WidgetName, but the name used in vanilla (widget_clan_law) is not
+        // recognized by the gui parser because it's hidden in a type declaration.
+        vd.field_value("widget_name");
     }
 }

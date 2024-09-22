@@ -35,6 +35,8 @@ impl DbKind for CasusBelli {
         let mut sc = ScopeContext::new(Scopes::CasusBelli, key);
         sc.define_name("attacker", Scopes::Character, key);
         sc.define_name("defender", Scopes::Character, key);
+        // TODO: figure out when claimant is defined
+        sc.define_name("claimant", Scopes::Character, key);
         // TODO: be more specific about when this list is defined
         sc.define_list("target_titles", Scopes::LandedTitle, key);
 
