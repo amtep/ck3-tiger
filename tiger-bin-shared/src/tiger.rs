@@ -18,6 +18,7 @@ use crate::GameConsts;
 #[derive(Parser)]
 #[command(version)]
 #[command(propagate_version = true)]
+#[command(disable_version_flag = true)] 
 #[clap(args_conflicts_with_subcommands = true)]
 struct Cli {
     #[command(subcommand)]
