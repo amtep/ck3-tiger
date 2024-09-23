@@ -24,7 +24,7 @@ pub struct Loc {
     pub kind: FileKind,
     /// line 0 means the loc applies to the file as a whole.
     pub line: u32,
-    pub column: u16,
+    pub column: u32,
     /// Used in macro expansions to point to the macro invocation
     /// in the macro table
     pub link_idx: Option<MacroMapIndex>,
@@ -205,14 +205,14 @@ impl Token {
     /// Updates the locs for the created subtokens.
     /// This is not meant for multiline tokens.
     /// # Panics
-    /// May panic if the token's column location exceeds 65535.
+    /// May panic if the token's column location exceeds 4,294,967,296.
     pub fn split(&self, ch: char) -> Vec<Token> {
         let mut pos = 0;
         let mut vec = Vec::new();
         let mut loc = self.loc;
         let mut lines: u32 = 0;
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
-            let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
+            let cols = u32::try_from(cols).expect("internal error: 2^32 columns");
             if c == ch {
                 vec.push(self.subtoken(pos..i, loc));
                 pos = i + 1;
@@ -237,7 +237,7 @@ impl Token {
         #[allow(clippy::cast_possible_truncation)]
         self.s.strip_prefix(pfx).map(|sfx| {
             let mut loc = self.loc;
-            loc.column += pfx.chars().count() as u16;
+            loc.column += pfx.chars().count() as u32;
             Token::from_static_str(sfx, loc)
         })
     }
@@ -248,10 +248,10 @@ impl Token {
     /// This is not meant for multiline tokens.
     /// Returns `None` if `ch` was not found in the token.
     /// # Panics
-    /// May panic if the token's column location exceeds 65535.
+    /// May panic if the token's column location exceeds 4,294,967,296.
     pub fn split_once(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
-            let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
+            let cols = u32::try_from(cols).expect("internal error: 2^32 columns");
             if c == ch {
                 let token1 = self.subtoken(..i, self.loc);
                 let mut loc = self.loc;
@@ -268,17 +268,17 @@ impl Token {
     /// This is not meant for multiline tokens.
     /// Returns `None` if `ch` was not found in the token.
     /// # Panics
-    /// May panic if the token's column location exceeds 65535.
+    /// May panic if the token's column location exceeds 4,294,967,296.
     #[must_use]
     pub fn split_after(&self, ch: char) -> Option<(Token, Token)> {
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
-            let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
+            let cols = u32::try_from(cols).expect("internal error: 2^32 columns");
             #[allow(clippy::cast_possible_truncation)] // chlen can't be more than 6
             if c == ch {
                 let chlen = ch.len_utf8();
                 let token1 = self.subtoken(..i + chlen, self.loc);
                 let mut loc = self.loc;
-                loc.column += cols + chlen as u16;
+                loc.column += cols + chlen as u32;
                 let token2 = self.subtoken(i + chlen.., loc);
                 return Some((token1, token2));
             }
@@ -299,12 +299,12 @@ impl Token {
     /// Will update the loc of the subtoken.
     /// This is not meant for multiline tokens.
     /// # Panics
-    /// May panic if the token's column location exceeds 65535.
+    /// May panic if the token's column location exceeds 4,294,967,296.
     pub fn trim(&self) -> Token {
         let mut real_start = None;
         let mut real_end = self.s.len();
         for (cols, (i, c)) in self.s.char_indices().enumerate() {
-            let cols = u16::try_from(cols).expect("internal error: 2^16 columns");
+            let cols = u32::try_from(cols).expect("internal error: 2^32 columns");
             if c != ' ' {
                 real_start = Some((cols, i));
                 break;
