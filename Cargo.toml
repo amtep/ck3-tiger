@@ -51,7 +51,7 @@ serde_json = "1.0.104"
 strum = { version = "0.26", features = ["phf"] }
 strum_macros = "0.26"
 thiserror = "1"
-unicode-width = "0.1.9"
+unicode-width = "0.2"
 walkdir = "2"
 ahash = { version = "0.8", features = [
     "std",
