@@ -1060,7 +1060,6 @@ pub const SOUNDS_VIC3: &[&str] = &[
 
 // LAST UPDATED VIC3 VERSION 1.7.0
 pub const COMMON_DIRS: &[&str] = &[
-    "common/achievement_groups.txt",
     "common/achievements",
     "common/ai_strategies",
     "common/alert_groups",
@@ -1174,4 +1173,12 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/trigger_localization",
     "common/tutorial_lesson_chains",
     "common/tutorial_lessons",
+];
+
+// LAST UPDATED VIC3 VERSION 1.7.6
+pub const COMMON_SUBDIRS_OK: &[&str] = &[
+    "common/decisions", // TODO: verify
+    "common/defines",
+    "common/history",
+    "common/on_actions", // TODO: verify
 ];

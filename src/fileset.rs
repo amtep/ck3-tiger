@@ -566,10 +566,21 @@ impl Fileset {
             #[cfg(feature = "imperator")]
             Game::Imperator => crate::imperator::tables::misc::COMMON_DIRS,
         };
+        let common_subdirs_ok = match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => crate::ck3::tables::misc::COMMON_SUBDIRS_OK,
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => crate::vic3::tables::misc::COMMON_SUBDIRS_OK,
+            #[cfg(feature = "imperator")]
+            Game::Imperator => crate::imperator::tables::misc::COMMON_SUBDIRS_OK,
+        };
         // Check the files in directories in common/ to make sure they are in known directories
         let mut warned: Vec<&Path> = Vec::new();
         'outer: for entry in &self.ordered_files {
             if !entry.path.to_string_lossy().ends_with(".txt") {
+                continue;
+            }
+            if entry.path == PathBuf::from("common/achievement_groups.txt") {
                 continue;
             }
             let dirname = entry.path.parent().unwrap();
@@ -591,12 +602,18 @@ impl Fileset {
                 continue;
             }
 
-            // TODO: check if subdirectories are ok in the different common/ directories
-            for valid in common_dirs {
+            for valid in common_subdirs_ok {
                 if entry.path.starts_with(valid) {
                     continue 'outer;
                 }
             }
+
+            for valid in common_dirs {
+                if <&str as AsRef<Path>>::as_ref(valid) == dirname {
+                    continue 'outer;
+                }
+            }
+
             if entry.path.starts_with("common/scripted_values") {
                 let msg = "file should be in common/script_values/";
                 err(ErrorKey::Filename).msg(msg).loc(entry).push();

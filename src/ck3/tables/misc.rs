@@ -793,7 +793,6 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/accolade_icons",
     "common/accolade_names",
     "common/accolade_types",
-    "common/achievement_groups.txt", // exception for this file
     "common/achievements",
     "common/activities/activity_locales",
     "common/activities/activity_types",
@@ -932,3 +931,6 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/vassal_contracts",
     "common/vassal_stances",
 ];
+
+// LAST UPDATED CK3 VERSION 1.12.1
+pub const COMMON_SUBDIRS_OK: &[&str] = &["common/decisions", "common/defines", "common/on_action"];

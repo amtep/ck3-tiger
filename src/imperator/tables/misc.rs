@@ -321,7 +321,6 @@ pub const SOUNDS_IMPERATOR: &[&str] = &[
 
 // LAST UPDATED IMPERATOR VERSION 2.0.4
 pub const COMMON_DIRS: &[&str] = &[
-    "common/achievement_groups.txt",
     "common/achievements",
     "common/advice",
     "common/ai_budget",
@@ -403,3 +402,6 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/units",
     "common/wargoals",
 ];
+
+// LAST UPDATED IMPERATOR VERSION 2.0.4
+pub const COMMON_SUBDIRS_OK: &[&str] = &["common/defines", "common/on_action"];
