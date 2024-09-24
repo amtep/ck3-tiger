@@ -73,6 +73,7 @@ module_name_repetitions = "allow"
 similar_names = "allow"
 enum_glob_use = "allow"
 wildcard_imports = "allow"
+large_stack_arrays = "allow"  # it's buggy and reports on const arrays
 
 # opinion differences with clippy
 too_many_lines = "allow"
