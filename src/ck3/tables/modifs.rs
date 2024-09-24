@@ -135,13 +135,24 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
-    // scheme types
+    // old scheme types
     for &sfx in &[
         "_scheme_power_add",
         "_scheme_power_mult",
         "_scheme_resistance_add",
         "_scheme_resistance_mult",
     ] {
+        if name_lc.strip_suffix_unchecked(sfx).is_some() {
+            if let Some(sev) = warn {
+                let msg = format!("{name} has been removed in 1.13");
+                report(ErrorKey::Removed, sev).msg(msg).loc(name).push();
+            }
+            return Some(ModifKinds::all());
+        }
+    }
+
+    // new scheme modifs
+    for &sfx in &["_enemy_scheme_phase_duration_add", "_scheme_phase_duration_add"] {
         if let Some(s) = name_lc.strip_suffix_unchecked(sfx) {
             return modif_check(name, &s, Item::Scheme, ModifKinds::Character, data, warn);
         }
@@ -159,11 +170,24 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
             return modif_check(name, &s, Item::Terrain, ModifKinds::Character, data, warn);
         }
     }
+    if let Some(s) = name_lc.strip_suffix_unchecked("_provisions_use_mult") {
+        return modif_check(
+            name,
+            &s,
+            Item::Terrain,
+            ModifKinds::Character | ModifKinds::Province | ModifKinds::County,
+            data,
+            warn,
+        );
+    }
 
+    // monthly_$LIFESTYLE$_xp_gain_add
     // monthly_$LIFESTYLE$_xp_gain_mult
     if let Some(s) = name_lc.strip_prefix_unchecked("monthly_") {
-        if let Some(s) = s.strip_suffix_unchecked("_xp_gain_mult") {
-            return modif_check(name, &s, Item::Lifestyle, ModifKinds::Character, data, warn);
+        for &sfx in &["_xp_gain_add", "_xp_gain_mult"] {
+            if let Some(s) = s.strip_suffix_unchecked(sfx) {
+                return modif_check(name, &s, Item::Lifestyle, ModifKinds::Character, data, warn);
+            }
         }
     }
 
@@ -194,6 +218,11 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
+    // $LIFESTYLE_xp_gain_add
+    if let Some(s) = name_lc.strip_suffix_unchecked("_xp_gain_add") {
+        return modif_check(name, &s, Item::Lifestyle, ModifKinds::Character, data, warn);
+    }
+
     // max_$SCHEME_TYPE$_schemes_add
     if let Some(s) = name_lc.strip_prefix_unchecked("max_") {
         if let Some(s) = s.strip_suffix_unchecked("_schemes_add") {
@@ -204,9 +233,19 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // scheme power against scripted relation
     if let Some(s) = name_lc.strip_prefix_unchecked("scheme_power_against_") {
         for &sfx in &["_add", "_mult"] {
-            if let Some(s) = s.strip_suffix_unchecked(sfx) {
-                return modif_check(name, &s, Item::Relation, ModifKinds::Character, data, warn);
+            if s.strip_suffix_unchecked(sfx).is_some() {
+                if let Some(sev) = warn {
+                    let msg = format!("{name} has been removed in 1.13");
+                    report(ErrorKey::Removed, sev).msg(msg).loc(name).push();
+                }
+                return Some(ModifKinds::all());
             }
+        }
+    }
+    // scheme phase duration against scripted relation
+    if let Some(s) = name_lc.strip_prefix_unchecked("scheme_phase_duration_against_") {
+        if let Some(s) = s.strip_suffix_unchecked("_add") {
+            return modif_check(name, &s, Item::Relation, ModifKinds::Character, data, warn);
         }
     }
 
@@ -399,6 +438,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("clergy_opinion", ModifKinds::Character),
     ("close_relative_opinion", ModifKinds::Character),
     ("coastal_advantage", ModifKinds::Character),
+    ("contract_scheme_phase_duration_add", ModifKinds::Character),
     ("controlled_province_advantage", ModifKinds::Character),
     ("councillor_opinion", ModifKinds::Character),
     ("counter_efficiency", ModifKinds::Character.union(ModifKinds::Terrain)),
@@ -448,10 +488,11 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("different_faith_liege_opinion", ModifKinds::Character),
     ("different_faith_opinion", ModifKinds::Character),
     ("diplomacy", ModifKinds::Character),
+    ("diplomacy_per_influence_level", ModifKinds::Character),
     ("diplomacy_per_piety_level", ModifKinds::Character),
     ("diplomacy_per_prestige_level", ModifKinds::Character),
     ("diplomacy_per_stress_level", ModifKinds::Character),
-    ("diplomacy_scheme_power", ModifKinds::Character),
+    ("diplomacy_scheme_phase_duration", ModifKinds::Character),
     ("diplomacy_scheme_resistance", ModifKinds::Character),
     ("diplomatic_range_mult", ModifKinds::Character),
     ("direct_vassal_opinion", ModifKinds::Character),
@@ -462,6 +503,18 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("domain_tax_mult_even_if_baron", ModifKinds::Character),
     ("domain_tax_same_faith_mult", ModifKinds::Character),
     ("domain_tax_same_faith_mult_even_if_baron", ModifKinds::Character),
+    ("domicile_build_gold_cost", ModifKinds::Character),
+    ("domicile_build_speed", ModifKinds::Character),
+    ("domicile_external_slots_capacity_add", ModifKinds::Character),
+    ("domicile_monthly_gold_add", ModifKinds::Character),
+    ("domicile_monthly_gold_mult", ModifKinds::Character),
+    ("domicile_monthly_influence_add", ModifKinds::Character),
+    ("domicile_monthly_influence_mult", ModifKinds::Character),
+    ("domicile_monthly_piety_add", ModifKinds::Character),
+    ("domicile_monthly_piety_mult", ModifKinds::Character),
+    ("domicile_monthly_prestige_add", ModifKinds::Character),
+    ("domicile_monthly_prestige_mult", ModifKinds::Character),
+    ("domicile_travel_speed", ModifKinds::Character),
     ("dread_baseline_add", ModifKinds::Character),
     ("dread_decay_add", ModifKinds::Character),
     ("dread_decay_mult", ModifKinds::Character),
@@ -475,9 +528,24 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("eligible_child_except_player_heir_opinion", ModifKinds::Character),
     ("eligible_child_opinion", ModifKinds::Character),
     ("embarkation_cost_mult", ModifKinds::Character),
+    ("enemy_contract_scheme_phase_duration_add", ModifKinds::Character),
+    ("enemy_contract_scheme_success_chance_add", ModifKinds::Character),
+    ("enemy_contract_scheme_success_chance_growth_add", ModifKinds::Character),
+    ("enemy_contract_scheme_success_chance_max_add", ModifKinds::Character),
     ("enemy_hard_casualty_modifier", ModifKinds::Character.union(ModifKinds::Terrain)),
+    ("enemy_hostile_scheme_phase_duration_add", ModifKinds::Character),
     ("enemy_hostile_scheme_success_chance_add", ModifKinds::Character),
+    ("enemy_hostile_scheme_success_chance_growth_add", ModifKinds::Character),
+    ("enemy_hostile_scheme_success_chance_max_add", ModifKinds::Character),
+    ("enemy_personal_scheme_phase_duration_add", ModifKinds::Character),
     ("enemy_personal_scheme_success_chance_add", ModifKinds::Character),
+    ("enemy_personal_scheme_success_chance_growth_add", ModifKinds::Character),
+    ("enemy_personal_scheme_success_chance_max_add", ModifKinds::Character),
+    ("enemy_political_scheme_phase_duration_add", ModifKinds::Character),
+    ("enemy_political_scheme_success_chance_add", ModifKinds::Character),
+    ("enemy_political_scheme_success_chance_growth_add", ModifKinds::Character),
+    ("enemy_political_scheme_success_chance_max_add", ModifKinds::Character),
+    ("enemy_scheme_secrecy_add", ModifKinds::Character),
     ("enemy_terrain_advantage", ModifKinds::Character),
     (
         "epidemic_resistance",
@@ -533,39 +601,45 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
         "hostile_raid_time",
         ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
     ),
-    ("hostile_scheme_power_add", ModifKinds::Character),
-    ("hostile_scheme_power_mult", ModifKinds::Character),
-    ("hostile_scheme_resistance_add", ModifKinds::Character),
-    ("hostile_scheme_resistance_mult", ModifKinds::Character),
+    ("hostile_scheme_phase_duration_add", ModifKinds::Character),
     ("ignore_different_faith_opinion", ModifKinds::Character),
     ("ignore_negative_culture_opinion", ModifKinds::Character),
     ("ignore_negative_opinion_of_culture", ModifKinds::Character),
     ("ignore_opinion_of_different_faith", ModifKinds::Character),
     ("inbreeding_chance", ModifKinds::Character),
+    ("independent_primary_attacker_advantage_add", ModifKinds::Character),
     ("independent_primary_defender_advantage_add", ModifKinds::Character),
     ("independent_ruler_opinion", ModifKinds::Character),
+    ("influence_level_impact_mult", ModifKinds::Character),
     ("intimidated_vassal_levy_contribution_add", ModifKinds::Character),
     ("intimidated_vassal_levy_contribution_mult", ModifKinds::Character),
     ("intimidated_vassal_tax_contribution_add", ModifKinds::Character),
     ("intimidated_vassal_tax_contribution_mult", ModifKinds::Character),
     ("intrigue", ModifKinds::Character),
+    ("intrigue_per_influence_level", ModifKinds::Character),
     ("intrigue_per_piety_level", ModifKinds::Character),
     ("intrigue_per_prestige_level", ModifKinds::Character),
     ("intrigue_per_stress_level", ModifKinds::Character),
-    ("intrigue_scheme_power", ModifKinds::Character),
+    ("intrigue_scheme_phase_duration", ModifKinds::Character),
     ("intrigue_scheme_resistance", ModifKinds::Character),
     ("knight_effectiveness_mult", ModifKinds::Character),
+    ("knight_effectiveness_per_diplomacy", ModifKinds::Character),
     ("knight_effectiveness_per_dread", ModifKinds::Character),
+    ("knight_effectiveness_per_intrigue", ModifKinds::Character),
+    ("knight_effectiveness_per_learning", ModifKinds::Character),
+    ("knight_effectiveness_per_martial", ModifKinds::Character),
+    ("knight_effectiveness_per_prowess", ModifKinds::Character),
+    ("knight_effectiveness_per_stewardship", ModifKinds::Character),
     ("knight_effectiveness_per_tyranny", ModifKinds::Character),
     ("knight_limit", ModifKinds::Character),
     ("learning", ModifKinds::Character),
+    ("learning_per_influence_level", ModifKinds::Character),
     ("learning_per_piety_level", ModifKinds::Character),
     ("learning_per_prestige_level", ModifKinds::Character),
     ("learning_per_stress_level", ModifKinds::Character),
-    ("learning_scheme_power", ModifKinds::Character),
+    ("learning_scheme_phase_duration", ModifKinds::Character),
     ("learning_scheme_resistance", ModifKinds::Character),
     ("led_by_owner_extra_advantage_add", ModifKinds::Character),
-    ("legitimacy_baseline_add", ModifKinds::Character),
     ("legitimacy_gain_mult", ModifKinds::Character),
     ("legitimacy_loss_mult", ModifKinds::Character),
     ("levy_attack", ModifKinds::Character),
@@ -602,13 +676,16 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("maa_toughness_add", ModifKinds::Character),
     ("maa_toughness_mult", ModifKinds::Character),
     ("martial", ModifKinds::Character),
+    ("martial_per_influence_level", ModifKinds::Character),
     ("martial_per_piety_level", ModifKinds::Character),
     ("martial_per_prestige_level", ModifKinds::Character),
     ("martial_per_stress_level", ModifKinds::Character),
-    ("martial_scheme_power", ModifKinds::Character),
+    ("martial_scheme_phase_duration", ModifKinds::Character),
     ("martial_scheme_resistance", ModifKinds::Character),
     ("max_combat_roll", ModifKinds::Character),
+    ("max_contract_schemes_add", ModifKinds::Character),
     ("max_hostile_schemes_add", ModifKinds::Character),
+    ("max_political_schemes_add", ModifKinds::Character),
     ("max_loot_mult", ModifKinds::Character),
     ("max_personal_schemes_add", ModifKinds::Character),
     ("men_at_arms_cap", ModifKinds::Character),
@@ -616,6 +693,8 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("men_at_arms_maintenance", ModifKinds::Character),
     ("men_at_arms_maintenance_per_dread_mult", ModifKinds::Character),
     ("men_at_arms_recruitment_cost", ModifKinds::Character),
+    ("men_at_arms_title_cap", ModifKinds::Character),
+    ("men_at_arms_title_limit", ModifKinds::Character),
     ("mercenary_count_mult", ModifKinds::Culture),
     ("mercenary_hire_cost_add", ModifKinds::Character),
     ("mercenary_hire_cost_mult", ModifKinds::Character),
@@ -665,11 +744,16 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("monthly_income_mult", ModifKinds::Character),
     ("monthly_income_per_stress_level_add", ModifKinds::Character),
     ("monthly_income_per_stress_level_mult", ModifKinds::Character),
+    ("monthly_influence", ModifKinds::Character),
+    ("monthly_influence_mult", ModifKinds::Character),
     ("monthly_legitimacy_add", ModifKinds::Character),
+    ("monthly_lifestyle_xp_gain_add", ModifKinds::Character),
     ("monthly_lifestyle_xp_gain_mult", ModifKinds::Character),
     ("monthly_piety", ModifKinds::Character),
     ("monthly_piety_from_buildings_mult", ModifKinds::Character),
     ("monthly_piety_gain_mult", ModifKinds::Character),
+    ("monthly_piety_gain_per_court_position_add", ModifKinds::Character),
+    ("monthly_piety_gain_per_court_position_mult", ModifKinds::Character),
     ("monthly_piety_gain_per_dread_add", ModifKinds::Character),
     ("monthly_piety_gain_per_dread_mult", ModifKinds::Character),
     ("monthly_piety_gain_per_happy_powerful_vassal_add", ModifKinds::Character),
@@ -681,6 +765,8 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("monthly_prestige", ModifKinds::Character),
     ("monthly_prestige_from_buildings_mult", ModifKinds::Character),
     ("monthly_prestige_gain_mult", ModifKinds::Character),
+    ("monthly_prestige_gain_per_court_position_add", ModifKinds::Character),
+    ("monthly_prestige_gain_per_court_position_mult", ModifKinds::Character),
     ("monthly_prestige_gain_per_dread_add", ModifKinds::Character),
     ("monthly_prestige_gain_per_dread_mult", ModifKinds::Character),
     ("monthly_prestige_gain_per_happy_powerful_vassal_add", ModifKinds::Character),
@@ -718,32 +804,48 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("opinion_of_same_culture", ModifKinds::Character),
     ("opinion_of_same_faith", ModifKinds::Character),
     ("opinion_of_vassal", ModifKinds::Character),
+    ("owned_contract_scheme_success_chance_add", ModifKinds::Character),
+    ("owned_contract_scheme_success_chance_growth_add", ModifKinds::Character),
+    ("owned_contract_scheme_success_chance_max_add", ModifKinds::Character),
     ("owned_hostile_scheme_success_chance_add", ModifKinds::Character),
+    ("owned_hostile_scheme_success_chance_growth_add", ModifKinds::Character),
+    ("owned_hostile_scheme_success_chance_max_add", ModifKinds::Character),
     ("owned_legend_spread_add", ModifKinds::Character),
     ("owned_legend_spread_mult", ModifKinds::Character),
     ("owned_personal_scheme_success_chance_add", ModifKinds::Character),
+    ("owned_personal_scheme_success_chance_growth_add", ModifKinds::Character),
+    ("owned_personal_scheme_success_chance_max_add", ModifKinds::Character),
+    ("owned_political_scheme_success_chance_add", ModifKinds::Character),
+    ("owned_political_scheme_success_chance_growth_add", ModifKinds::Character),
+    ("owned_political_scheme_success_chance_max_add", ModifKinds::Character),
     ("owned_scheme_secrecy_add", ModifKinds::Character),
-    ("personal_scheme_power_add", ModifKinds::Character),
-    ("personal_scheme_power_mult", ModifKinds::Character),
-    ("personal_scheme_resistance_add", ModifKinds::Character),
-    ("personal_scheme_resistance_mult", ModifKinds::Character),
+    ("personal_scheme_phase_duration_add", ModifKinds::Character),
     ("piety_level_impact_mult", ModifKinds::Character),
     ("player_heir_opinion", ModifKinds::Character),
+    ("political_scheme_phase_duration_add", ModifKinds::Character),
     ("positive_inactive_inheritance_chance", ModifKinds::Character),
     ("positive_random_genetic_chance", ModifKinds::Character),
     ("powerful_vassal_opinion", ModifKinds::Character),
     ("prestige_level_impact_mult", ModifKinds::Character),
     ("prisoner_opinion", ModifKinds::Character),
+    ("provisions_capacity_add", ModifKinds::Character.union(ModifKinds::Terrain)),
+    ("provisions_capacity_mult", ModifKinds::Character.union(ModifKinds::Terrain)),
+    ("provisions_gain_mult", ModifKinds::Character.union(ModifKinds::Terrain)),
+    ("provisions_loss_mult", ModifKinds::Character.union(ModifKinds::Terrain)),
+    (
+        "provisions_use_mult",
+        ModifKinds::Character.union(ModifKinds::Province).union(ModifKinds::County),
+    ),
     ("prowess", ModifKinds::Character),
     ("prowess_no_portrait", ModifKinds::Character),
+    ("prowess_per_influence_level", ModifKinds::Character),
     ("prowess_per_piety_level", ModifKinds::Character),
     ("prowess_per_prestige_level", ModifKinds::Character),
     ("prowess_per_stress_level", ModifKinds::Character),
-    ("prowess_scheme_power", ModifKinds::Character),
+    ("prowess_scheme_phase_duration", ModifKinds::Character),
     ("prowess_scheme_resistance", ModifKinds::Character),
     ("pursue_efficiency", ModifKinds::Character.union(ModifKinds::Terrain)),
     ("raid_speed", ModifKinds::Character),
-    ("random_advantage", ModifKinds::Character),
     ("realm_priest_opinion", ModifKinds::Character),
     ("religious_head_opinion", ModifKinds::Character),
     ("religious_vassal_opinion", ModifKinds::Character),
@@ -758,10 +860,12 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("same_faith_opinion", ModifKinds::Character),
     ("same_heritage_county_advantage_add", ModifKinds::Character),
     ("scheme_discovery_chance_mult", ModifKinds::Character),
-    ("scheme_power", ModifKinds::Scheme),
+    ("scheme_phase_duration", ModifKinds::Scheme),
     ("scheme_resistance", ModifKinds::Scheme),
     ("scheme_secrecy", ModifKinds::Scheme),
     ("scheme_success_chance", ModifKinds::Scheme),
+    ("scheme_success_chance_growth", ModifKinds::Scheme),
+    ("scheme_success_chance_max", ModifKinds::Scheme),
     ("short_reign_duration_mult", ModifKinds::Character),
     ("siege_morale_loss", ModifKinds::Character),
     ("siege_phase_time", ModifKinds::Character),
@@ -777,10 +881,11 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("stationed_maa_toughness_add", ModifKinds::Province),
     ("stationed_maa_toughness_mult", ModifKinds::Province),
     ("stewardship", ModifKinds::Character),
+    ("stewardship_per_influence_level", ModifKinds::Character),
     ("stewardship_per_piety_level", ModifKinds::Character),
     ("stewardship_per_prestige_level", ModifKinds::Character),
     ("stewardship_per_stress_level", ModifKinds::Character),
-    ("stewardship_scheme_power", ModifKinds::Character),
+    ("stewardship_scheme_phase_duration", ModifKinds::Character),
     ("stewardship_scheme_resistance", ModifKinds::Character),
     ("stress_gain_mult", ModifKinds::Character),
     ("stress_loss_mult", ModifKinds::Character),
@@ -934,4 +1039,21 @@ const MODIF_REMOVED_TABLE: &[(&str, &str)] = &[
     ("monthly_county_control_change_factor", "replaced with monthly_county_control_decline_factor and monthly_county_control_growth_factor"),
     ("monthly_county_control_change_at_war_add", "replaced with monthly_county_control_decline_at_war_add and monthly_county_control_growth_at_war_add"),
     ("monthly_county_control_change_at_war_mult", "replaced with monthly_county_control_decline_at_war_factor and monthly_county_control_growth_at_war_factor"),
+    ("diplomacy_scheme_power", "replaced with diplomacy_scheme_phase_duration"),
+    ("intrigue_scheme_power", "replaced with intrigue_scheme_phase_duration"),
+    ("learning_scheme_power", "replaced with learning_scheme_phase_duration"),
+    ("martial_scheme_power", "replaced with martial_scheme_phase_duration"),
+    ("prowess_scheme_power", "replaced with prowess_scheme_phase_duration"),
+    ("stewardship_scheme_power", "replaced with stewardship_scheme_phase_duration"),
+    ("scheme_power", "replaced with scheme_phase_duration"),
+    ("hostile_scheme_power_add", "replaced with hostile_scheme_phase_duration_add"),
+    ("hostile_scheme_power_mult", "removed in 1.13"),
+    ("hostile_scheme_resistance_add", "removed in 1.13"),
+    ("hostile_scheme_resistance_mult", "removed in 1.13"),
+    ("legitimacy_baseline_add", "removed in 1.13"),
+    ("personal_scheme_power_add", "replaced with personal_scheme_phase_duration_add"),
+    ("personal_scheme_power_mult", "removed in 1.13"),
+    ("personal_scheme_resistance_add", "removed in 1.13"),
+    ("personal_scheme_resistance_mult", "removed in 1.13"),
+    ("random_advantage", "removed in 1.13"),
 ];
