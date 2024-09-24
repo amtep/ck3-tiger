@@ -494,7 +494,7 @@ impl Parser {
     ///
     /// The parser will look up whether it's a valid comparator and log an error if not.
     fn comparator(&mut self, s: &'static str, loc: Loc) {
-        let cmp = Comparator::from_str(s).unwrap_or_else(|| {
+        let cmp = s.parse::<Comparator>().unwrap_or_else(|_| {
             let msg = format!("Unrecognized comparator '{s}'");
             err(ErrorKey::ParseError).msg(msg).loc(loc).push();
             Comparator::Equals(Single)

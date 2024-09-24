@@ -1,4 +1,5 @@
 use std::fmt::{Display, Error, Formatter};
+use std::str::FromStr;
 
 use crate::block::comparator::Eq::*;
 
@@ -31,27 +32,22 @@ pub enum Eq {
     Question,
 }
 
-impl Comparator {
-    // TODO: implement FromStr or TryFrom<str> instead
-    pub fn from_str(s: &str) -> Option<Self> {
-        if s == "=" {
-            Some(Comparator::Equals(Single))
-        } else if s == "==" {
-            Some(Comparator::Equals(Double))
-        } else if s == "?=" {
-            Some(Comparator::Equals(Question))
-        } else if s == "<" {
-            Some(Comparator::LessThan)
-        } else if s == ">" {
-            Some(Comparator::GreaterThan)
-        } else if s == "<=" {
-            Some(Comparator::AtMost)
-        } else if s == ">=" {
-            Some(Comparator::AtLeast)
-        } else if s == "!=" {
-            Some(Comparator::NotEquals)
-        } else {
-            None
+pub struct UnknownComparatorError;
+
+impl FromStr for Comparator {
+    type Err = UnknownComparatorError;
+
+    fn from_str(s: &str) -> Result<Self, UnknownComparatorError> {
+        match s {
+            "=" => Ok(Comparator::Equals(Single)),
+            "==" => Ok(Comparator::Equals(Double)),
+            "?=" => Ok(Comparator::Equals(Question)),
+            "<" => Ok(Comparator::LessThan),
+            ">" => Ok(Comparator::GreaterThan),
+            "<=" => Ok(Comparator::AtMost),
+            ">=" => Ok(Comparator::AtLeast),
+            "!=" => Ok(Comparator::NotEquals),
+            _ => Err(UnknownComparatorError),
         }
     }
 }
