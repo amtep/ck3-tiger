@@ -544,4 +544,61 @@ pub const ON_ACTION_SCOPES: &str = "
 		imprisoner = character
 		reason = flag
 	}
+
+	on_scheme_agent_discovered = {
+		root = scheme
+		agent = character
+	}
+	on_scheme_discovered = {
+		root = scheme
+	}
+
+	on_influence_level_gain = {
+		root = character
+	}
+	on_influence_level_loss = on_influence_level_gain
+	on_piety_level_gain = on_influence_level_gain
+	on_piety_level_loss = on_influence_level_gain
+	on_prestige_level_gain = on_influence_level_gain
+	on_prestige_level_loss = on_influence_level_gain
+
+	on_player_select_destiny_setup = {
+		root = character
+		predecessor = character
+		heir = character
+	}
+	on_player_select_destiny_confirmed = {
+		root = character
+		destiny_type_flag = flag
+		previous_player_character = character
+		previous_player_heir = character
+	}
+
+	on_domicile_moved = {
+		root = domicile
+		owner = character
+	}
+	on_domicile_building_started = {
+		root = domicile
+		owner = character
+	}
+	on_domicile_building_completed = on_domicile_building_started
+	on_domicile_building_cancelled = on_domicile_building_started
+
+	on_noble_family_title_created = {
+		root = character
+	}
+
+	on_house_in_admin_realm_became_powerful = {
+		root = dynasty_house
+	}
+	on_house_in_admin_realm_became_dominant = on_house_in_admin_realm_became_powerful
+
+	on_liege_government_change = {
+		root = character
+	}
+	on_vassal_change = {
+		root = character
+		old_liege = character
+	}
 ";
