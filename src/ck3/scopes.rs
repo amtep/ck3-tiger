@@ -330,7 +330,7 @@ static SCOPE_TO_SCOPE_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes)>> = 
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.12.1
+/// LAST UPDATED CK3 VERSION 1.13.0.1
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
@@ -562,7 +562,7 @@ static SCOPE_PREFIX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes, Argume
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.12.1
+/// LAST UPDATED CK3 VERSION 1.13.0.1
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
@@ -650,7 +650,7 @@ static SCOPE_ITERATOR_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes)>> = 
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.12.1
+/// LAST UPDATED CK3 VERSION 1.13.0.1
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
@@ -670,15 +670,20 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "ancestor", Scopes::Character),
     (Scopes::Character, "army", Scopes::Army),
     (Scopes::Province, "army_in_location", Scopes::Army),
+    (Scopes::Army, "army_maa_regiment", Scopes::Regiment),
     (Scopes::None, "artifact", Scopes::Artifact),
     (Scopes::Artifact, "artifact_claimant", Scopes::Character),
     (Scopes::Artifact, "artifact_house_claimant", Scopes::DynastyHouse),
     (Scopes::Activity, "attending_character", Scopes::Character),
+    (Scopes::Character, "available_task_contract", Scopes::TaskContract),
     (Scopes::None, "barony", Scopes::LandedTitle),
+    (Scopes::None, "casus_belli_type", Scopes::CasusBelliType),
+    (Scopes::Character, "character_active_contract", Scopes::TaskContract),
     (Scopes::Character, "character_artifact", Scopes::Artifact),
     (Scopes::Character, "character_epidemic", Scopes::Epidemic),
     (Scopes::Province, "character_in_location", Scopes::Character),
     (Scopes::Character, "character_struggle", Scopes::Struggle),
+    (Scopes::Character, "character_task_contract", Scopes::TaskContract),
     (
         Scopes::Character,
         "character_to_title_neighboring_and_across_water_county",
@@ -717,7 +722,9 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "concubine", Scopes::Character),
     (Scopes::LandedTitle, "connected_county", Scopes::LandedTitle),
     (Scopes::Character, "consort", Scopes::Character),
+    (Scopes::Character, "contact", Scopes::Character),
     (Scopes::LandedTitle, "controlled_faith", Scopes::Faith),
+    (Scopes::LandedTitle, "controlled_title_maa_regiment", Scopes::Regiment),
     (Scopes::Character, "councillor", Scopes::Character),
     (Scopes::None, "county", Scopes::LandedTitle),
     (Scopes::None, "county_in_region", Scopes::LandedTitle),
@@ -748,6 +755,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::LandedTitle, "direct_de_jure_vassal_title", Scopes::LandedTitle),
     (Scopes::Character, "directly_owned_province", Scopes::Province),
     (Scopes::None, "doctrine", Scopes::Doctrine),
+    (Scopes::None, "domicile", Scopes::Domicile),
     (Scopes::None, "duchy", Scopes::LandedTitle),
     (Scopes::Dynasty, "dynasty_member", Scopes::Character),
     (Scopes::LandedTitle, "election_candidate", Scopes::Character),
@@ -777,9 +785,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Activity, "guest_subset", Scopes::Character),
     (Scopes::Activity, "guest_subset_current_phase", Scopes::Character),
     (Scopes::Character, "heir", Scopes::Character),
-    // TODO one of these might be reversed
     (Scopes::Character, "heir_title", Scopes::LandedTitle),
-    (Scopes::Character, "heir_to_title", Scopes::LandedTitle),
     (Scopes::Character, "held_title", Scopes::LandedTitle),
     (Scopes::Character, "hired_mercenary", Scopes::MercenaryCompany),
     (Scopes::None, "holding_type", Scopes::HoldingType),
@@ -790,6 +796,8 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::DynastyHouse, "house_claimed_artifact", Scopes::Artifact),
     (Scopes::DynastyHouse, "house_member", Scopes::Character),
     (Scopes::DynastyHouse, "house_unity_member", Scopes::Character),
+    (Scopes::None, "important_location", Scopes::LandedTitle),
+    (Scopes::LandedTitle, "important_location_for_title", Scopes::LandedTitle),
     (Scopes::LandedTitle, "in_de_facto_hierarchy", Scopes::LandedTitle),
     (Scopes::LandedTitle, "in_de_jure_hierarchy", Scopes::LandedTitle),
     (Scopes::None, "in_global_list", Scopes::all()),
@@ -799,6 +807,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Epidemic, "infected_province", Scopes::Province),
     (Scopes::None, "inspiration", Scopes::Inspiration),
     (Scopes::None, "inspired_character", Scopes::Character),
+    (Scopes::None, "interested_title", Scopes::LandedTitle),
     (Scopes::Struggle, "interloper_ruler", Scopes::Character),
     (Scopes::Character, "intrigue_councillor", Scopes::Character),
     (Scopes::Character, "invited_activity", Scopes::Activity),
@@ -816,6 +825,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "legend_type", Scopes::LegendType),
     (Scopes::Character, "liege_or_above", Scopes::Character),
     (Scopes::None, "living_character", Scopes::Character),
+    (Scopes::Character, "maa_regiment", Scopes::Regiment),
     (Scopes::Character, "martial_councillor", Scopes::Character),
     (Scopes::None, "mercenary_company", Scopes::MercenaryCompany),
     (Scopes::Character, "memory", Scopes::CharacterMemory),
@@ -828,10 +838,12 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "neighboring_realm_same_rank_owner", Scopes::Character),
     (Scopes::Character, "neighboring_top_liege_realm", Scopes::LandedTitle),
     (Scopes::Character, "neighboring_top_liege_realm_owner", Scopes::Character),
+    (Scopes::Character, "noble_family", Scopes::LandedTitle),
     (Scopes::None, "open_invite_activity", Scopes::Activity),
     (Scopes::Character, "opposite_sex_spouse_candidate", Scopes::Character),
     (Scopes::Trait, "opposite_trait", Scopes::Trait),
     (Scopes::Character, "owned_story", Scopes::StoryCycle),
+    (Scopes::LandedTitle, "owned_title_maa_regiment", Scopes::Regiment),
     (Scopes::Character, "parent", Scopes::Character),
     (Scopes::Culture, "parent_culture", Scopes::Culture),
     (Scopes::Culture, "parent_culture_or_above", Scopes::Culture),
@@ -844,16 +856,19 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "played_character", Scopes::Character),
     (Scopes::None, "player", Scopes::Character),
     (Scopes::Character, "player_heir", Scopes::Character),
+    (Scopes::Character, "player_legend_library", Scopes::Legend),
     (Scopes::GreatHolyWar, "pledged_attacker", Scopes::Character),
     (Scopes::GreatHolyWar, "pledged_defender", Scopes::Character),
     (Scopes::None, "pool_character", Scopes::Character),
     (Scopes::Character, "pool_guest", Scopes::Character),
     (Scopes::Character, "potential_marriage_option", Scopes::Character),
+    (Scopes::Character, "powerful_family", Scopes::DynastyHouse),
     (Scopes::Character, "powerful_vassal", Scopes::Character),
     (Scopes::Character, "pretender_title", Scopes::LandedTitle),
     (Scopes::Character, "primary_war_enemy", Scopes::Character),
     (Scopes::Character, "prisoner", Scopes::Character),
     (Scopes::None, "province", Scopes::Province),
+    (Scopes::Province, "province_domicile", Scopes::Domicile),
     (Scopes::Province, "province_epidemic", Scopes::Epidemic),
     (Scopes::Province, "province_legend", Scopes::Legend),
     (Scopes::Character, "prowess_councillor", Scopes::Character),
@@ -869,7 +884,8 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "ruler", Scopes::Character),
     (Scopes::Character, "same_sex_spouse_candidate", Scopes::Character),
     (Scopes::Character, "scheme", Scopes::Scheme),
-    (Scopes::Scheme, "scheme_agent", Scopes::Character),
+    (Scopes::Scheme, "scheme_agent_character", Scopes::Character),
+    (Scopes::Scheme, "scheme_agent_slot", Scopes::AgentSlot),
     (Scopes::Character, "secret", Scopes::Secret),
     (Scopes::Secret, "secret_knower", Scopes::Character),
     (Scopes::Secret, "secret_participant", Scopes::Character),
@@ -889,17 +905,24 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "sub_realm_empire", Scopes::LandedTitle),
     (Scopes::Character, "sub_realm_kingdom", Scopes::LandedTitle),
     (Scopes::Character, "sub_realm_title", Scopes::LandedTitle),
+    (Scopes::Character, "succession_appointment_invested_candidate", Scopes::Character),
+    (Scopes::Character, "succession_appointment_invested_title", Scopes::LandedTitle),
+    (Scopes::LandedTitle, "succession_appointment_investors", Scopes::Character),
     (Scopes::CasusBelli, "target_title", Scopes::LandedTitle),
     (Scopes::Character, "targeting_faction", Scopes::Faction),
     (Scopes::Character, "targeting_scheme", Scopes::Scheme),
     (Scopes::Character, "targeting_secret", Scopes::Secret),
+    (Scopes::None, "task_contract", Scopes::TaskContract),
+    (Scopes::None, "task_contract_type", Scopes::TaskContractType),
     (Scopes::Character, "tax_collector", Scopes::Character),
     (Scopes::Character, "tax_collector_vassal", Scopes::Character),
     (Scopes::Character, "tax_slot", Scopes::TaxSlot),
     (Scopes::TaxSlot, "tax_slot_vassal", Scopes::Character),
     (Scopes::LandedTitle, "this_title_or_de_jure_above", Scopes::LandedTitle),
     (Scopes::LandedTitle, "title_heir", Scopes::Character),
+    (Scopes::LandedTitle, "title_interested_in_location", Scopes::LandedTitle),
     (Scopes::LandedTitle, "title_joined_faction", Scopes::Faction),
+    (Scopes::LandedTitle, "title_maa_regiment", Scopes::Regiment),
     (
         Scopes::LandedTitle,
         "title_to_title_neighboring_and_across_water_county",
@@ -955,6 +978,8 @@ const SCOPE_ITERATOR_REMOVED: &[(&str, &str, &str)] = &[
     ("activity_declined", "1.9", ""),
     ("activity_invited", "1.9", ""),
     ("participant", "1.9", ""),
+    ("scheme_agent", "1.13", "replaced with scheme_agent_character"),
+    ("heir_to_title", "1.13", "was duplicate of heir_title"),
 ];
 
 pub fn scope_to_scope_removed(name: &str) -> Option<(&'static str, &'static str)> {

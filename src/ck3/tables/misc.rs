@@ -3,6 +3,11 @@
 // LAST UPDATED CK3 VERSION 1.11.3
 pub const ACTIVITY_STATES: &[&str] = &["passive", "travel", "active"];
 
+// LAST UPDATED CK3 VERSION 1.13.0.1
+// Taken from the agent_slot_has_contribution_type trigger doc
+pub const AGENT_SLOT_CONTRIBUTION_TYPE: &[&str] =
+    &["secrecy", "success_chance", "success_chance_growth", "success_chance_max", "speed"];
+
 // LAST UPDATED CK3 VERSION 1.12.1
 // Taken from the create_artifact description in effects.log
 pub const ARTIFACT_HISTORY: &[&str] = &[
@@ -43,7 +48,7 @@ pub const DLC_CK3: &[&str] = &[
     "Couture of the Capets",
 ];
 
-/// LAST UPDATED CK3 VERSION 1.12.1
+/// LAST UPDATED CK3 VERSION 1.13.0.1
 /// Taken from `has_dlc_feature` in triggers.log
 pub const DLC_FEATURES_CK3: &[&str] = &[
     "garments_of_the_hre",
@@ -66,6 +71,10 @@ pub const DLC_FEATURES_CK3: &[&str] = &[
     "legends",
     "north_african_attire",
     "couture_of_the_capets",
+    "landless_playable",
+    "admin_gov",
+    "roads_to_power",
+    "court_room_view",
 ];
 
 // LAST UPDATED CK3 VERSION 1.12.1
@@ -86,7 +95,7 @@ pub const SKILLS: &[&str] =
 // LAST UPDATED CK3 VERSION 1.12.1
 pub const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual", "none"];
 
-// LAST UPDATED CK3 VERSION 1.12.1
+// LAST UPDATED CK3 VERSION 1.13.0.1
 // Taken from recent_history description in triggers.log
 pub const TITLE_HISTORY_TYPES: &[&str] = &[
     "conquest",
@@ -107,6 +116,9 @@ pub const TITLE_HISTORY_TYPES: &[&str] = &[
     "returned",
     "faction_demand",
     "swear_fealty",
+    "stepped_down",
+    "appointment",
+    "appointment_succession",
 ];
 
 // LAST UPDATED CK3 VERSION 1.12.1

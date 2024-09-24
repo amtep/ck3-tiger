@@ -161,6 +161,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] ActivityState,
     #[cfg(feature = "ck3")] ActivityType,
     #[cfg(feature = "ck3")] AiWarStance,
+    #[cfg(feature = "ck3")] AgentType,
     #[cfg(feature = "ck3")] Amenity,
     #[cfg(feature = "ck3")] AmenitySetting,
     #[cfg(feature = "ck3")] ArtifactBlueprint,
@@ -192,6 +193,8 @@ pub enum Item {
     #[cfg(feature = "ck3")] CombatPhaseEvent,
     #[cfg(feature = "ck3")] CouncilPosition,
     #[cfg(feature = "ck3")] CouncilTask,
+    #[cfg(feature = "ck3")] Countermeasure,
+    #[cfg(feature = "ck3")] CountermeasureParameter,
     #[cfg(feature = "ck3")] CourtPosition,
     #[cfg(feature = "ck3")] CourtPositionCategory,
     #[cfg(feature = "ck3")] CourtSceneCulture,
@@ -217,6 +220,9 @@ pub enum Item {
     #[cfg(feature = "ck3")] Doctrine,
     #[cfg(feature = "ck3")] DoctrineCategory,
     #[cfg(feature = "ck3")] DoctrineParameter,
+    #[cfg(feature = "ck3")] DomicileBuilding,
+    #[cfg(feature = "ck3")] DomicileParameter,
+    #[cfg(feature = "ck3")] DomicileType,
     #[cfg(feature = "ck3")] Dynasty,
     #[cfg(feature = "ck3")] DynastyLegacy,
     #[cfg(feature = "ck3")] DynastyPerk,
@@ -300,6 +306,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] StrugglePhaseParameter,
     #[cfg(feature = "ck3")] SuccessionElection,
     #[cfg(feature = "ck3")] Suggestion,
+    #[cfg(feature = "ck3")] TaskContractGroup,
     #[cfg(feature = "ck3")] TaskContractType,
     #[cfg(feature = "ck3")] TaxSlotFlag,
     #[cfg(feature = "ck3")] TaxSlotObligation,
@@ -701,6 +708,8 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::AiWarStance => "common/ai_war_stances/",
             #[cfg(feature = "ck3")]
+            Item::AgentType => "common/schemes/agent_types/",
+            #[cfg(feature = "ck3")]
             Item::Amenity => "common/court_amenities/",
             #[cfg(feature = "ck3")]
             Item::AmenitySetting => "common/court_amenities/",
@@ -763,6 +772,10 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::CouncilTask => "common/council_tasks/",
             #[cfg(feature = "ck3")]
+            Item::Countermeasure => "common/schemes/scheme_countermeasures/",
+            #[cfg(feature = "ck3")]
+            Item::CountermeasureParameter => "common/schemes/scheme_countermeasures/",
+            #[cfg(feature = "ck3")]
             Item::CourtPosition => "common/court_positions/types/",
             #[cfg(feature = "ck3")]
             Item::CourtPositionCategory => "common/court_positions/categories/",
@@ -812,6 +825,12 @@ impl Item {
             Item::DoctrineCategory => "common/religion/doctrines/",
             #[cfg(feature = "ck3")]
             Item::DoctrineParameter => "common/religion/doctrines/",
+            #[cfg(feature = "ck3")]
+            Item::DomicileBuilding => "common/domiciles/buildings/",
+            #[cfg(feature = "ck3")]
+            Item::DomicileParameter => "common/domiciles/types/",
+            #[cfg(feature = "ck3")]
+            Item::DomicileType => "common/domiciles/types/",
             #[cfg(feature = "ck3")]
             Item::Dynasty => "common/dynasties/",
             #[cfg(feature = "ck3")]
@@ -979,7 +998,9 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::Suggestion => "common/suggestions/",
             #[cfg(feature = "ck3")]
-            Item::TaskContractType => "", // TODO
+            Item::TaskContractGroup => "common/task_contracts/",
+            #[cfg(feature = "ck3")]
+            Item::TaskContractType => "common/task_contracts/",
             #[cfg(feature = "ck3")]
             Item::TaxSlotFlag => "common/tax_slots/obligations",
             #[cfg(feature = "ck3")]
