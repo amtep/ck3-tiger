@@ -9,7 +9,6 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validate::validate_optional_duration;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -49,18 +48,20 @@ impl DbKind for Story {
             let mut sc = ScopeContext::new(Scopes::StoryCycle, key);
             sc.define_name("story", Scopes::StoryCycle, key);
             let mut vd = Validator::new(block, data);
-            validate_optional_duration(&mut vd, &mut sc);
 
-            vd.field_validated("days", |bv, data| match bv {
-                BV::Value(token) => {
-                    token.expect_integer();
-                }
-                BV::Block(block) => {
-                    let mut vd = Validator::new(block, data);
-                    vd.req_tokens_integers_exactly(2);
-                }
-            });
-            vd.field_integer("chance");
+            // TODO: handle case of multiple of these fields being specified
+            for field in &["days", "weeks", "months", "years"] {
+                vd.field_validated(field, |bv, data| match bv {
+                    BV::Value(token) => {
+                        token.expect_integer();
+                    }
+                    BV::Block(block) => {
+                        let mut vd = Validator::new(block, data);
+                        vd.req_tokens_integers_exactly(2);
+                    }
+                });
+            }
+            vd.field_numeric_range("chance", 0.0..=100.0);
 
             vd.field_validated_block("trigger", |block, data| {
                 validate_trigger(block, data, &mut sc, Tooltipped::No);
@@ -88,5 +89,8 @@ fn validate_complex_effect(vd: &mut Validator, sc: &mut ScopeContext) {
         vd.field_validated_block("effect", |block, data| {
             validate_effect(block, data, sc, Tooltipped::No);
         });
+    });
+    vd.field_validated_block("fallback", |block, data| {
+        validate_effect(block, data, sc, Tooltipped::No);
     });
 }
