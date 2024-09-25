@@ -158,6 +158,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] ActivityOption,
     #[cfg(feature = "ck3")] ActivityOptionCategory,
     #[cfg(feature = "ck3")] ActivityPhase,
+    #[cfg(feature = "ck3")] ActivityPulseAction,
     #[cfg(feature = "ck3")] ActivityState,
     #[cfg(feature = "ck3")] ActivityType,
     #[cfg(feature = "ck3")] AiWarStance,
@@ -288,12 +289,12 @@ pub enum Item {
     #[cfg(feature = "ck3")] PointOfInterest,
     #[cfg(feature = "ck3")] PoolSelector,
     #[cfg(feature = "ck3")] PrisonType,
-    #[cfg(feature = "ck3")] PulseAction,
     #[cfg(feature = "ck3")] Relation,
     #[cfg(feature = "ck3")] RelationFlag,
     #[cfg(feature = "ck3")] ReligionFamily,
     #[cfg(feature = "ck3")] RewardItem,
     #[cfg(feature = "ck3")] Scheme,
+    #[cfg(feature = "ck3")] SchemePulseAction,
     #[cfg(feature = "ck3")] ScriptedAnimation,
     #[cfg(feature = "ck3")] ScriptedCost,
     #[cfg(feature = "ck3")] ScriptedIllustration,
@@ -706,6 +707,8 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::ActivityPhase => "common/activities/activity_types/",
             #[cfg(feature = "ck3")]
+            Item::ActivityPulseAction => "common/activities/pulse_actions/",
+            #[cfg(feature = "ck3")]
             Item::ActivityState => "",
             #[cfg(feature = "ck3")]
             Item::ActivityType => "common/activities/activity_types/",
@@ -966,8 +969,6 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::PrisonType => "",
             #[cfg(feature = "ck3")]
-            Item::PulseAction => "common/activities/pulse_actions/",
-            #[cfg(feature = "ck3")]
             Item::Relation => "common/scripted_relations/",
             #[cfg(feature = "ck3")]
             Item::RelationFlag => "common/scripted_relations/",
@@ -976,7 +977,9 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::RewardItem => "",
             #[cfg(feature = "ck3")]
-            Item::Scheme => "common/schemes/",
+            Item::Scheme => "common/schemes/scheme_types",
+            #[cfg(feature = "ck3")]
+            Item::SchemePulseAction => "common/schemes/pulse_actions",
             #[cfg(feature = "ck3")]
             Item::ScriptedAnimation => "common/scripted_animations/",
             #[cfg(feature = "ck3")]

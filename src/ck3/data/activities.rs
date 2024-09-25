@@ -442,7 +442,7 @@ impl DbKind for ActivityType {
         // undocumented
         vd.field_validated_block("pulse_actions", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_list_items("entries", Item::PulseAction);
+            vd.field_list_items("entries", Item::ActivityPulseAction);
             vd.field_numeric_range("chance_of_no_event", 0.0..=100.0);
         });
     }
@@ -709,19 +709,19 @@ impl DbKind for GuestInviteRule {
 }
 
 #[derive(Clone, Debug)]
-pub struct PulseAction {}
+pub struct ActivityPulseAction {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Ck3, Item::PulseAction, PulseAction::add)
+    ItemLoader::Normal(GameFlags::Ck3, Item::ActivityPulseAction, ActivityPulseAction::add)
 }
 
-impl PulseAction {
+impl ActivityPulseAction {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::PulseAction, key, block, Box::new(Self {}));
+        db.add(Item::ActivityPulseAction, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for PulseAction {
+impl DbKind for ActivityPulseAction {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
