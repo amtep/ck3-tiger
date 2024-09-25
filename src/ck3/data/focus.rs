@@ -41,53 +41,61 @@ impl DbKind for Focus {
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
 
-        vd.field_bool("education");
-        // TODO: figure out the constraints on focus_id. Do they have to be consecutive?
-        vd.req_field("focus_id");
-        vd.field_integer("focus_id");
+        vd.advice_field("education", "replaced with `type`");
+        vd.field_choice("type", &["education", "lifestyle"]);
 
-        let education = block.get_field_bool("education").unwrap_or(false);
+        let education = block.get_field_value("type").map_or(false, |token| token.is("education"));
         if education {
-            vd.field_item("skill", Item::Skill);
-            vd.field_validated_block("is_default", |block, data| {
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.ban_field("lifestyle", || "type = lifestyle");
             vd.field_validated_block("is_good_for", |block, data| {
                 validate_trigger(block, data, &mut sc, Tooltipped::Yes);
             });
             vd.field_validated_block("is_bad_for", |block, data| {
                 validate_trigger(block, data, &mut sc, Tooltipped::Yes);
             });
-            vd.field_validated_block("on_change_to", |block, data| {
-                validate_effect(block, data, &mut sc, Tooltipped::No);
+            vd.field_validated_block("is_default", |block, data| {
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
-            vd.field_validated_block("on_change_from", |block, data| {
-                validate_effect(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_item("skill", Item::Skill);
         } else {
+            vd.ban_field("is_good_for", || "type = education");
+            vd.ban_field("is_bad_for", || "type = education");
+            vd.ban_field("is_default", || "type = education");
+            vd.ban_field("skill", || "type = education");
             vd.req_field("lifestyle");
             vd.field_item("lifestyle", Item::Lifestyle);
         }
 
-        // Undocumented
+        vd.field_validated_block("is_shown", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
         vd.field_validated_block("is_valid", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
-        // Undocumented, but can confirm that both 'is_valid' and 'is_valid_showing_failures_only' do work for education focus.
         vd.field_validated_block("is_valid_showing_failures_only", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
         });
-
-        vd.field_script_value("auto_selection_weight", &mut sc);
+        vd.field_validated_block("on_change_from", |block, data| {
+            validate_effect(block, data, &mut sc, Tooltipped::Yes);
+        });
+        vd.field_validated_block("on_birthday", |block, data| {
+            validate_effect(block, data, &mut sc, Tooltipped::No);
+        });
         vd.field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
-
         let icon = vd.field_value("icon").unwrap_or(key);
         if let Some(icon_path) = data.get_defined_string_warn(icon, "NGameIcons|FOCUS_ICON_PATH") {
             let pathname = format!("{icon_path}/{icon}.dds");
             data.verify_exists_implied(Item::File, &pathname, icon);
         }
+        vd.field_script_value("auto_selection_weight", &mut sc);
+
+        // undocumented
+
+        vd.field_validated_block("on_change_to", |block, data| {
+            validate_effect(block, data, &mut sc, Tooltipped::No);
+        });
     }
 }
