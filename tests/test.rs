@@ -99,7 +99,7 @@ fn test_mod1() {
 
     let report = take_report(&mut reports, decisions, "file  does not exist");
     let report = report.expect("decision empty picture field test");
-    assert!(report.pointers[0].loc.line == 7);
+    assert!(report.pointers[0].loc.line == 10);
 
     let events = "events/non-dup.txt";
     let report = take_report(&mut reports, events, "required field `option` missing");

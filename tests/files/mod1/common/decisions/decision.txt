@@ -1,10 +1,14 @@
 ﻿
 my_decision = {
-    picture = "gfx/dummy.jpg"
+    picture = {
+        reference = "gfx/dummy.jpg"
+    }
 }
 
 my_decision2 = {
-    picture = ""
+    picture = {
+        reference = ""
+    }
     title = "my_decision_also"
     desc = "my_decision2_description"
     selection_tooltip = "totally_different"
