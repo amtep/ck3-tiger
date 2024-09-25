@@ -115,7 +115,7 @@ bitflags! {
         #[cfg(feature = "vic3")] const BuildingType = 0x0008_0000;
         #[cfg(feature = "vic3")] const CanalType = 0x0010_0000;
         #[cfg(feature = "vic3")] const CivilWar = 0x0020_0000;
-        #[cfg(feature = "vic3")] const CulturalCommunity = 0x0020_0000;
+        #[cfg(feature = "vic3")] const CulturalCommunity = 0x0040_0000;
         #[cfg(feature = "vic3")] const NewCombatUnit = 0x0080_0000;
         #[cfg(feature = "vic3")] const CommanderOrderType = 0x0100_0000;
         #[cfg(feature = "vic3")] const CountryCreation = 0x0200_0000;
