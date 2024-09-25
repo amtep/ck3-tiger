@@ -460,7 +460,11 @@ pub fn validate_effect_control(
     }
 
     #[cfg(feature = "ck3")]
-    if Game::is_ck3() && (caller == "send_interface_message" || caller == "send_interface_toast") {
+    if Game::is_ck3()
+        && (caller == "send_interface_message"
+            || caller == "send_interface_toast"
+            || caller == "send_interface_popup")
+    {
         vd.field_item("type", Item::Message);
         if let Some(token) = vd.field_value("goto") {
             let msg = "`goto` was removed from interface messages in 1.9";

@@ -1,6 +1,6 @@
 use crate::block::{Block, BV};
 use crate::ck3::data::legends::LegendChronicle;
-use crate::ck3::tables::misc::LEGEND_QUALITY;
+use crate::ck3::tables::misc::{LEGEND_QUALITY, OUTBREAK_INTENSITIES};
 use crate::ck3::validate::{
     validate_random_culture, validate_random_faith, validate_random_traits_list,
 };
@@ -17,14 +17,12 @@ use crate::scopes::Scopes;
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_target, validate_target_ok_this};
+use crate::trigger::{validate_target, validate_target_ok_this, validate_trigger};
 use crate::validate::{
     validate_duration, validate_mandatory_duration, validate_optional_duration,
     validate_optional_duration_int, ListType,
 };
-use crate::validator::{Validator, ValueValidator};
-
-use crate::ck3::tables::misc::OUTBREAK_INTENSITIES;
+use crate::validator::{Builder, Validator, ValueValidator};
 
 pub fn validate_add_activity_log_entry(
     key: &Token,
@@ -606,6 +604,15 @@ pub fn validate_create_character(
             validate_target(token, data, sc, Scopes::Dynasty);
         }
     }
+    vd.field_validated_value("ethnicity", |_, mut vd| {
+        vd.maybe_is("culture");
+        vd.maybe_is("mother");
+        vd.maybe_is("father");
+        vd.maybe_is("parents");
+        vd.item(Item::Ethnicity);
+    });
+    // TODO: Find out the syntax of this. Docs are unclear, no examples in vanilla.
+    vd.field_block("ethnicities");
     vd.field_script_value("diplomacy", sc);
     vd.field_script_value("intrigue", sc);
     vd.field_script_value("martial", sc);
@@ -660,7 +667,8 @@ pub fn validate_create_dynamic_title(
     vd.req_field("name");
     vd.field_choice("tier", &["duchy", "kingdom", "empire"]);
     vd.field_validated_sc("name", sc, validate_desc);
-    vd.field_validated_sc("adjective", sc, validate_desc);
+    vd.advice_field("adjective", "changed to adj in 1.13");
+    vd.field_validated_sc("adj", sc, validate_desc);
     sc.define_name("new_title", Scopes::LandedTitle, key);
 }
 
@@ -772,7 +780,7 @@ pub fn validate_faction_start_war(
     vd.field_target("title", sc, Scopes::LandedTitle);
 }
 
-pub fn validate_force_add_to_scheme(
+pub fn validate_force_add_to_agent_slot(
     _key: &Token,
     _block: &Block,
     _data: &Everything,
@@ -780,7 +788,7 @@ pub fn validate_force_add_to_scheme(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    vd.field_target("scheme", sc, Scopes::Scheme);
+    vd.field_target("agent_slot", sc, Scopes::AgentSlot);
     validate_optional_duration(&mut vd, sc);
 }
 
@@ -957,6 +965,7 @@ pub fn validate_revoke_court_position(
     _tooltipped: Tooltipped,
 ) {
     vd.req_field("court_position");
+    // TODO: reverify for 1.13
     if let Some(token) = vd.field_value("recipient") {
         let msg = "as of 1.9.2 neither `recipient` nor `target` work here";
         let info = "For court positions with multiple holders (such as bodyguard), an arbitrary one will be revoked";
@@ -1106,7 +1115,6 @@ pub fn validate_setup_cb(
         vd.field_bool("take_occupied");
         vd.field_bool("civil_war");
         vd.field_choice("titles", &["target_titles", "faction_titles"]);
-    // Undocumented
     } else if caller == "setup_de_jure_cb" {
         vd.field_target("title", sc, Scopes::LandedTitle);
     } else if caller == "setup_invasion_cb" {
@@ -1160,9 +1168,25 @@ pub fn validate_start_scheme(
     _tooltipped: Tooltipped,
 ) {
     vd.req_field("type");
-    vd.req_field("target");
+    vd.req_field_one_of(&[
+        "target_character",
+        "target_title",
+        "target_culture",
+        "target_faith",
+        "targets_nothing",
+    ]);
     vd.field_item("type", Item::Scheme);
-    vd.field_target("target", sc, Scopes::Character);
+    vd.field_target("contract", sc, Scopes::TaskContract);
+    vd.advice_field("target", "replaced with target_character in 1.13");
+    vd.field_target("target_character", sc, Scopes::Character);
+    vd.field_target("target_title", sc, Scopes::LandedTitle);
+    vd.field_target("target_culture", sc, Scopes::Culture);
+    vd.field_target("target_faith", sc, Scopes::Faith);
+    vd.field_bool("targets_nothing");
+
+    // undocumented
+
+    // TODO: verify if still valid in 1.13
     vd.field_target("artifact", sc, Scopes::Artifact);
 }
 
@@ -1196,6 +1220,7 @@ pub fn validate_start_travel_plan(
     for token in vd.multi_field_value("companion") {
         validate_target(token, data, sc, Scopes::Character);
     }
+    vd.field_bool("travel_with_domicile");
     vd.field_bool("players_use_planner");
     vd.field_bool("return_trip");
     vd.field_item("on_arrival_event", Item::Event);
@@ -1796,4 +1821,207 @@ pub fn validate_create_legend(
             sc.define_name_token(name.as_str(), Scopes::Legend, name);
         }
     }
+}
+
+pub fn validate_change_maa_regiment_size(
+    _key: &Token,
+    bv: &BV,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    _tooltipped: Tooltipped,
+) {
+    match bv {
+        BV::Value(_) => validate_script_value(bv, data, sc),
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.set_case_sensitive(false);
+            vd.req_field("size");
+            vd.field_script_value("size", sc);
+            vd.field_bool("reinforce");
+        }
+    }
+}
+
+pub fn validate_add_to_list_ck3(
+    _key: &Token,
+    bv: &BV,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    _tooltipped: Tooltipped,
+) {
+    match bv {
+        BV::Value(name) => sc.define_or_expect_list(name),
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("name");
+            vd.req_field("value");
+            if let Some(target) = vd.field_value("value").cloned() {
+                if let Some(name) = vd.field_value("name") {
+                    let outscopes =
+                        validate_target_ok_this(&target, data, sc, Scopes::all_but_none());
+                    sc.open_scope(outscopes, target);
+                    sc.define_or_expect_list(name);
+                    sc.close();
+                }
+            }
+        }
+    }
+}
+
+pub fn validate_create_adventurer_title(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("name");
+    vd.req_field("holder");
+    vd.field_validated_sc("name", sc, validate_desc);
+    vd.field_target("holder", sc, Scopes::Character);
+    vd.field_validated_sc("prefix", sc, validate_desc);
+    vd.field_validated_sc("adjective", sc, validate_desc);
+    if let Some(name) = vd.field_value("save_scope_as") {
+        sc.define_name_token(name.as_str(), Scopes::LandedTitle, name);
+    }
+}
+
+pub fn validate_start_best_war(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    _sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_list_items("cb", Item::CasusBelli);
+    vd.field_bool("recalculate_cb_targets");
+    let sc_builder: &Builder = &|key| {
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("target_character", Scopes::Character, key);
+        sc.define_name("target_title", Scopes::LandedTitle, key);
+        sc.define_list("target_titles", Scopes::LandedTitle, key);
+        sc.define_name("claimant", Scopes::Character, key);
+        sc.define_name("casus_belli_type", Scopes::CasusBelliType, key);
+        sc.define_name("has_hostage", Scopes::Bool, key);
+        sc.define_name("score", Scopes::Value, key);
+        sc
+    };
+    vd.field_validated_key_block("is_valid", |key, block, data| {
+        validate_trigger(block, data, &mut sc_builder(key), Tooltipped::No);
+    });
+    vd.field_validated_key_block("on_success", |key, block, data| {
+        validate_effect(block, data, &mut sc_builder(key), Tooltipped::No);
+    });
+}
+
+pub fn validate_create_maa_regiment(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field_one_of(&["type", "type_of"]);
+    vd.field_item("type", Item::MenAtArms);
+    vd.field_target("type_of", sc, Scopes::Regiment);
+    vd.field_bool("check_can_recruit");
+    vd.field_target("title", sc, Scopes::LandedTitle);
+    vd.field_script_value("size", sc);
+}
+
+pub fn validate_create_task_contract(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("task_contract_type");
+    vd.req_field("task_contract_tier");
+    vd.req_field("location");
+
+    vd.field_item("task_contract_type", Item::TaskContractType);
+    vd.advice_field(
+        "task_task_contract_tier",
+        "docs say `task_task_contract_tier` but it's `task_contract_tier`",
+    );
+    vd.field_script_value("task_contract_tier", sc);
+    vd.field_target("location", sc, Scopes::Province);
+
+    vd.field_target("task_contract_employer", sc, Scopes::Character);
+    vd.field_target("destination", sc, Scopes::Province);
+    vd.field_target("target", sc, Scopes::Character);
+    if let Some(name) = vd.field_value("save_scope_as") {
+        sc.define_name_token(name.as_str(), Scopes::TaskContract, name);
+    }
+}
+
+pub fn validate_give_noble_family_title(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_validated_sc("name", sc, validate_desc);
+    if let Some(name) = vd.field_value("save_scope_as") {
+        sc.define_name_token(name.as_str(), Scopes::LandedTitle, name);
+    }
+}
+
+pub fn validate_contracts_for_area(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_target("location", sc, Scopes::Province);
+    vd.field_script_value("amount", sc);
+    vd.field_list_items("group", Item::TaskContractGroup);
+}
+
+pub fn validate_change_appointment_investment(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("target");
+    vd.req_field("value");
+    vd.field_target("target", sc, Scopes::Character);
+    vd.field_target("investor", sc, Scopes::Character);
+    vd.field_script_value("value", sc);
+}
+
+pub fn validate_set_important_location(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_target("title", sc, Scopes::LandedTitle);
+    // TODO: set scopes for fired events and actions
+    // "Events and onactions are fired with this scope:
+    // root - title top liege
+    // scope:county - important location
+    // scope:title - higher tier title that is interested in the county
+    // In enter realm:
+    // scope:changed_top_liege - former top liege of the important location
+    // In leave realm:
+    // scope:changed_top_liege - new top liege of the important location"
+    vd.field_item("enter_realm_event", Item::Event);
+    vd.field_item("enter_realm_on_action", Item::OnAction);
+    vd.field_item("leave_realm_event", Item::Event);
+    vd.field_item("leave_realm_on_action", Item::OnAction);
 }

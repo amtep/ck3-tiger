@@ -18,6 +18,7 @@ use crate::trigger::{validate_target_ok_this, validate_trigger_key_bv};
 use crate::validate::validate_optional_duration;
 use crate::validator::{Validator, ValueValidator};
 
+#[allow(dead_code)] // No longer used by CK3
 pub fn validate_add_to_list(
     _key: &Token,
     mut vd: ValueValidator,
