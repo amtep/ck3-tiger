@@ -51,7 +51,8 @@ impl DbKind for Flavorization {
             vd.ban_field("tier", || "type = character or title");
         }
         vd.field_integer("priority");
-        vd.field_validated_block("flavorization_rules", |block, data| {
+        vd.advice_field("flavorization_rules", "Should be `flavourization_rules`");
+        vd.field_validated_block("flavourization_rules", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_bool("faction");
             vd.field_bool("only_independent");
@@ -61,7 +62,7 @@ impl DbKind for Flavorization {
         });
         vd.field_value("flag");
         vd.field_list_items("governments", Item::GovernmentType);
-        vd.field_list_items("domicile_type", Item::DomicileType);
+        vd.field_item("domicile_type", Item::DomicileType);
         vd.field_list_items("name_lists", Item::NameList);
         vd.field_list_items("heritages", Item::CultureHeritage);
         vd.field_list_items("faiths", Item::Faith);
