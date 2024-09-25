@@ -881,7 +881,7 @@ pub const SOUNDS_CK3: &[&str] = &[
     "snapshot:/States/mute_frontend_shimmer",
 ];
 
-// LAST UPDATED CK3 VERSION 1.12.1
+// LAST UPDATED CK3 VERSION 1.13
 pub const COMMON_DIRS: &[&str] = &[
     "common/accolade_icons",
     "common/accolade_names",
@@ -903,6 +903,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/artifacts/visuals",
     "common/bookmark_portraits",
     "common/bookmarks/bookmarks",
+    "common/bookmarks/challenge_characters",
     "common/bookmarks/groups",
     "common/buildings",
     "common/casus_belli_groups",
@@ -937,11 +938,14 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/culture/traditions",
     "common/customizable_localization",
     "common/deathreasons",
+    "common/decision_group_types",
     "common/decisions",
     "common/defines",
     "common/diarchies/diarchy_mandates",
     "common/diarchies/diarchy_types",
     "common/dna_data",
+    "common/domiciles/buildings",
+    "common/domiciles/types",
     "common/dynasties",
     "common/dynasty_house_motto_inserts",
     "common/dynasty_house_mottos",
@@ -965,6 +969,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/guest_system",
     "common/holdings",
     "common/hook_types",
+    "common/house_power_bonus",
     "common/house_unities",
     "common/important_actions",
     "common/inspirations",
@@ -978,6 +983,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/lifestyle_perks",
     "common/lifestyles",
     "common/men_at_arms_types",
+    "common/message_filter_types",
     "common/messages",
     "common/modifier_definition_formats",
     "common/modifier_icons",
@@ -988,13 +994,17 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/opinion_modifiers",
     "common/playable_difficulty_infos",
     "common/pool_character_selectors",
+    "common/portrait_types",
     "common/province_terrain",
     "common/religion/doctrines",
     "common/religion/fervor_modifiers",
     "common/religion/holy_sites",
     "common/religion/religion_families",
     "common/religion/religions",
-    "common/schemes",
+    "common/schemes/agent_types",
+    "common/schemes/pulse_actions",
+    "common/schemes/scheme_countermeasures",
+    "common/schemes/scheme_types",
     "common/script_values",
     "common/scripted_animations",
     "common/scripted_character_templates",
@@ -1010,8 +1020,10 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/story_cycles",
     "common/struggle/catalysts",
     "common/struggle/struggles",
+    "common/succession_appointment",
     "common/succession_election",
     "common/suggestions",
+    "common/task_contracts",
     "common/tax_slots/obligations",
     "common/tax_slots/types",
     "common/terrain_types",
@@ -1025,5 +1037,6 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/vassal_stances",
 ];
 
-// LAST UPDATED CK3 VERSION 1.12.1
-pub const COMMON_SUBDIRS_OK: &[&str] = &["common/decisions", "common/defines", "common/on_action"];
+// LAST UPDATED CK3 VERSION 1.13
+// As of 1.13, all common dirs can have subdirectories.
+pub const COMMON_SUBDIRS_OK: &[&str] = COMMON_DIRS;
