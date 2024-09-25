@@ -41,3 +41,29 @@ impl DbKind for Message {
         vd.field_bool("combine_into_one");
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct MessageFilterType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::MessageFilterType, MessageFilterType::add)
+}
+
+impl MessageFilterType {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::MessageFilterType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for MessageFilterType {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        let loca = format!("message_filter_{key}");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        vd.field_choice("display", &["feed", "toast", "hidden"]);
+        vd.field_bool("always_show");
+        vd.field_bool("auto_pause");
+    }
+}
