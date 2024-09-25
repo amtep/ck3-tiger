@@ -315,6 +315,7 @@ fn validate_asset(block: &Block, data: &Everything) {
     vd.field_list_items("graphical_cultures", Item::BuildingGfx);
     vd.field_list_items("graphical_faiths", Item::GraphicalFaith);
     vd.field_list_items("graphical_regions", Item::Region); // TODO check that it's a graphical region
+    vd.field_list_items("provinces", Item::Province);
     vd.field_list_items("governments", Item::GovernmentType);
 
     vd.field_item("requires_dlc_flag", Item::DlcFeature);

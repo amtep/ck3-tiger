@@ -56,6 +56,7 @@ impl DbKind for Bookmark {
         vd.field_bool("recommended");
         vd.field_bool("test_default");
         vd.field_item("group", Item::BookmarkGroup);
+        vd.field_item("requires_dlc_flag", Item::DlcFeature);
         vd.field_script_value("weight", &mut sc);
 
         data.verify_exists(Item::Localization, key);

@@ -159,7 +159,16 @@ impl DbKind for Law {
             // "generate" and "player_heir" are undocumented
             vd.field_choice(
                 "order_of_succession",
-                &["inheritance", "election", "theocratic", "company", "generate", "player_heir"],
+                &[
+                    "inheritance",
+                    "election",
+                    "appointment",
+                    "theocratic",
+                    "company",
+                    "generate",
+                    "player_heir",
+                    "noble_family",
+                ],
             );
             vd.field_choice("title_division", &["partition", "single_heir"]);
             vd.field_choice("traversal_order", &["children", "dynasty_house", "dynasty"]);
@@ -192,6 +201,12 @@ impl DbKind for Law {
                 vd.ban_field("election_type", || "order_of_succession = election");
             }
 
+            if order_of_succession == "appointment" {
+                vd.field_item("appointment_type", Item::SuccessionAppointment);
+            } else {
+                vd.ban_field("appointment_type", || "order_of_succession = appointment");
+            }
+
             vd.field_choice(
                 "gender_law",
                 &["male_only", "male_preference", "equal", "female_preference", "female_only"],
@@ -199,6 +214,8 @@ impl DbKind for Law {
             vd.field_choice("faith", &["same_faith", "same_religion", "same_family"]);
             vd.field_bool("create_primary_tier_titles");
             vd.field_numeric("primary_heir_minimum_share");
+            vd.field_bool("exclude_rulers");
+            vd.field_bool("limit_to_courtiers");
         });
 
         vd.field_script_value_no_breakdown("ai_will_do", &mut sc);

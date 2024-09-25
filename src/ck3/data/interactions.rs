@@ -92,6 +92,7 @@ impl DbKind for CharacterInteraction {
             validate_effect(b, data, &mut sc, Tooltipped::No);
         });
 
+        vd.field_bool("ai_instant_response");
         // Let ai_set_target set scope:target if it wants
         vd.field_validated_block("ai_set_target", |b, data| {
             validate_effect(b, data, &mut sc, Tooltipped::No);
@@ -354,7 +355,7 @@ impl DbKind for CharacterInteraction {
         vd.field_bool("diarch_interaction");
         vd.field_validated_sc("auto_accept", &mut sc.clone(), validate_bool_or_trigger);
 
-        vd.field_choice("target_type", &["artifact", "title", "none"]);
+        vd.field_choice("target_type", &["artifact", "title", "men_at_arms", "count"]);
         vd.field_value("target_filter"); // TODO
 
         // root is the character being picked
@@ -370,6 +371,9 @@ impl DbKind for CharacterInteraction {
             validate_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
         vd.field_validated_block("can_be_picked_artifact", |b, data| {
+            validate_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
+        });
+        vd.field_validated_block("can_be_picked_regiment", |b, data| {
             validate_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
         });
 

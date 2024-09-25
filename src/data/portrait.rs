@@ -3,9 +3,7 @@ use crate::context::ScopeContext;
 use crate::data::genes::{AccessoryGene, Gene};
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
-#[cfg(feature = "ck3")]
-use crate::game::Game;
-use crate::game::GameFlags;
+use crate::game::{Game, GameFlags};
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::PdxEncoding;
 use crate::report::{err, warn, Confidence, ErrorKey, Severity};
@@ -260,6 +258,10 @@ fn validate_animation(block: &Block, data: &Everything) {
         vd.field_value("head"); // TODO
         vd.field_value("torso"); // TODO
     });
+
+    if Game::is_ck3() {
+        vd.field_bool("force");
+    }
 
     vd.multi_field_validated_block("portrait_modifier", |block, data| {
         let mut vd = Validator::new(block, data);

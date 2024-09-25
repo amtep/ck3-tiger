@@ -51,9 +51,18 @@ impl DbKind for Decision {
         }
 
         vd.req_field_warn("picture");
-        vd.field_item("picture", Item::File);
+        vd.multi_field_validated_block("picture", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_key_block("trigger", |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::Character, key);
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
+            });
+            vd.field_item("reference", Item::File);
+            vd.field_item("soundeffect", Item::Sound);
+        });
         vd.field_item("extra_picture", Item::File);
-        vd.field_bool("major");
+        vd.advice_field("major", "Replaced with decision_group_type");
+        vd.field_item("decision_group_type", Item::DecisionGroup);
         vd.field_integer("sort_order");
         vd.field_bool("is_invisible");
         vd.field_bool("ai_goal");
@@ -140,11 +149,10 @@ impl DbKind for Decision {
                             "revoke_holy_order_lease", // undocumented
                         ],
                     );
+                    vd.field_bool("show_from_start");
 
                     // Undocumented
                     vd.field_item("decision_to_second_step_button", Item::Localization);
-                    // Undocumented
-                    vd.field_bool("show_from_start");
 
                     match block.get_field_value("controller").map(Token::as_str) {
                         Some("decision_option_list_controller") => {

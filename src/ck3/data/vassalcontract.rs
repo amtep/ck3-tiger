@@ -77,6 +77,7 @@ impl DbKind for VassalContract {
                 vd.field_bool("default");
                 vd.field_item("parent", Item::VassalObligationLevel);
                 vd.field_list_numeric_exactly("position", 2);
+                vd.field_item("icon", Item::File);
                 vd.field_script_value("levies", &mut sc);
                 vd.field_script_value("tax", &mut sc);
                 vd.field_script_value("min_levies", &mut sc);

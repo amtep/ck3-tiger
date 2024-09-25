@@ -75,6 +75,7 @@ impl DbKind for Perk {
                 validate_trigger(block, data, sc, Tooltipped::No);
             },
         );
+        vd.multi_field_item("trait", Item::Trait);
         vd.field_validated_block_rooted("effect", Scopes::Character, |block, data, sc| {
             validate_effect(block, data, sc, Tooltipped::Yes);
         });
@@ -91,6 +92,12 @@ impl DbKind for Perk {
         vd.multi_field_validated_block("culture_character_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("parameter", Item::CultureParameter);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+        vd.multi_field_validated_block("government_character_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("flag", Item::GovernmentFlag);
+            vd.field_bool("invert_check");
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
 

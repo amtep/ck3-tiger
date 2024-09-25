@@ -40,6 +40,7 @@ impl DbKind for ModifierFormat {
 
         vd.field_item("prefix", Item::Localization);
         vd.field_item("suffix", Item::Localization);
+        vd.field_item("negative_suffix", Item::Localization);
 
         vd.field_item("dlc_feature", Item::DlcFeature);
 

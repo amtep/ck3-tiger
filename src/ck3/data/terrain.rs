@@ -98,5 +98,6 @@ impl DbKind for Terrain {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Province, vd);
         });
+        vd.field_numeric("provision_cost");
     }
 }

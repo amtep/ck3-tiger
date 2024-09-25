@@ -206,7 +206,17 @@ impl DbKind for ActivityType {
             validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
-        let filters = &["capital", "domain", "realm", "top_realm", "holy_sites", "all"];
+        let filters = &[
+            "capital",
+            "domain",
+            "realm",
+            "top_realm",
+            "holy_sites",
+            "domicile",
+            "domcile_domain",
+            "domicile_realm",
+            "all",
+        ];
         vd.field_choice("province_filter", filters);
         vd.field_choice("ai_province_filter", filters);
 

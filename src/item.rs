@@ -214,6 +214,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] CultureTradition,
     #[cfg(feature = "ck3")] CultureTraditionCategory,
     #[cfg(feature = "ck3")] DangerType,
+    #[cfg(feature = "ck3")] DecisionGroup,
     #[cfg(feature = "ck3")] DiarchyMandate,
     #[cfg(feature = "ck3")] DiarchyParameter,
     #[cfg(feature = "ck3")] DiarchyType,
@@ -272,6 +273,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] MemoryType,
     #[cfg(feature = "ck3")] MenAtArms,
     #[cfg(feature = "ck3")] MenAtArmsBase,
+    #[cfg(feature = "ck3")] MessageFilterType,
     #[cfg(feature = "ck3")] ModifierFormat,
     #[cfg(feature = "ck3")] MottoInsert,
     #[cfg(feature = "ck3")] Motto,
@@ -304,6 +306,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] Struggle,
     #[cfg(feature = "ck3")] StrugglePhase,
     #[cfg(feature = "ck3")] StrugglePhaseParameter,
+    #[cfg(feature = "ck3")] SuccessionAppointment,
     #[cfg(feature = "ck3")] SuccessionElection,
     #[cfg(feature = "ck3")] Suggestion,
     #[cfg(feature = "ck3")] TaskContractGroup,
@@ -815,6 +818,8 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::DangerType => "",
             #[cfg(feature = "ck3")]
+            Item::DecisionGroup => "common/decision_group_types/",
+            #[cfg(feature = "ck3")]
             Item::DiarchyMandate => "common/diarchies/diarchy_mandates/",
             #[cfg(feature = "ck3")]
             Item::DiarchyParameter => "common/diarchies/diarchy_types/",
@@ -931,6 +936,8 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::MenAtArmsBase => "common/men_at_arms_types/",
             #[cfg(feature = "ck3")]
+            Item::MessageFilterType => "common/message_filter_types/",
+            #[cfg(feature = "ck3")]
             Item::ModifierFormat => "common/modifier_definition_formats/",
             #[cfg(feature = "ck3")]
             Item::MottoInsert => "common/dynasty_house_motto_inserts/",
@@ -994,6 +1001,8 @@ impl Item {
             Item::StrugglePhase => "common/struggle/struggles/",
             #[cfg(feature = "ck3")]
             Item::StrugglePhaseParameter => "common/struggle/struggles/",
+            #[cfg(feature = "ck3")]
+            Item::SuccessionAppointment => "common/succession_appointment/",
             #[cfg(feature = "ck3")]
             Item::SuccessionElection => "common/succession_election/",
             #[cfg(feature = "ck3")]

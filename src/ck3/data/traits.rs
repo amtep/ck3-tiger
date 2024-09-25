@@ -300,7 +300,7 @@ impl Trait {
 
         vd.field_numeric("portrait_extremity_shift");
         vd.field_numeric("ugliness_portrait_extremity_shift");
-        vd.field_block("portrait_pose"); // TODO
+        vd.advice_field("portrait_pose", "Removed in 1.13");
 
         vd.field_list_items("trait_exclusive_if_realm_contains", Item::Terrain);
         vd.replaced_field("trait_winter_exclusive", "`category = winter_commander`");

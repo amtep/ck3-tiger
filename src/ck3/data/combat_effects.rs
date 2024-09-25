@@ -37,7 +37,7 @@ impl DbKind for CombatEffect {
 
         vd.field_numeric("advantage");
         vd.field_bool("adjacency");
-        vd.field_bool("fortification");
+        vd.advice_field("fortification", "removed in 1.13");
         vd.field_bool("visible");
     }
 }

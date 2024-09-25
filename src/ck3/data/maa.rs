@@ -215,6 +215,7 @@ impl MenAtArmsType {
         // TODO: "Mutually exclusive with being unlocked by innovation"
         vd.field_validated_key_block("can_recruit", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.define_name("title", Scopes::LandedTitle, key);
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
@@ -238,6 +239,7 @@ impl MenAtArmsType {
         vd.field_numeric("stack");
         vd.field_numeric("hired_stack_size");
         vd.field_integer("max_sub_regiments");
+        vd.field_numeric("provision_cost");
 
         vd.field_script_value_rooted("ai_quality", Scopes::Character);
         vd.field_bool("allowed_in_hired_troops");

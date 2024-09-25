@@ -24,6 +24,7 @@ impl DbKind for Message {
         let mut vd = Validator::new(block, data);
 
         vd.field_choice("display", &["feed", "toast"]);
+        vd.field_item("message_filter_type", Item::MessageFilterType);
         vd.field_item("title", Item::Localization); // docs say text
         vd.field_item("desc", Item::Localization);
         vd.field_item("tooltip", Item::Localization);

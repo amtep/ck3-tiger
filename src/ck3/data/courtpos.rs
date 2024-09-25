@@ -102,6 +102,12 @@ impl DbKind for CourtPosition {
         vd.field_validated_block("scaling_employer_modifiers", |block, data| {
             validate_scaling_employer_modifiers(block, data);
         });
+        vd.field_validated_block("custom_scaling_employer_modifier_description", |block, data| {
+            let mut vd = Validator::new(block, data);
+            for field in ["terrible", "poor", "average", "good", "excellent", "range"] {
+                vd.field_localization(field, &mut sc);
+            }
+        });
 
         vd.field_validated_block("base_employer_court_modifier", |block, data| {
             let vd = Validator::new(block, data);
@@ -162,6 +168,8 @@ impl DbKind for CourtPosition {
             sc.define_name("employee_aptitude", Scopes::Value, key); // undocumented
             validate_script_value(bv, data, &mut sc);
         });
+
+        vd.field_script_value("sort_order", &mut sc);
 
         vd.field_bool("is_powerful_agent"); // undocumented
     }
