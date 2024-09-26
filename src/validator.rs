@@ -925,6 +925,21 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be of the form `name = { value value value ... }` with any number of values.
+    /// Expect every value to be an entry from the choices array.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    #[allow(dead_code)]
+    pub fn field_list_choice(&mut self, name: &str, choices: &[&str]) -> bool {
+        let sev = self.max_severity;
+        self.field_validated_list(name, |token, _| {
+            if !choices.contains(&token.as_str()) {
+                let msg = format!("expected one of {}", choices.join(", "));
+                report(ErrorKey::Choice, sev).msg(msg).loc(token).push();
+            }
+        })
+    }
+
     /// Just like [`Validator::field_validated_list`], but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn multi_field_validated_list<F>(&mut self, name: &str, mut f: F) -> bool

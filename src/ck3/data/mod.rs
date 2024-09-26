@@ -81,6 +81,7 @@ pub mod scripted_illustrations;
 pub mod secrets;
 pub mod stories;
 pub mod struggle;
+pub mod succession;
 pub mod suggestions;
 pub mod task_contracts;
 pub mod tax_slots;
