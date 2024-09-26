@@ -1,4 +1,4 @@
-use crate::block::{Block, BV};
+use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::data::genes::{AccessoryGene, Gene};
 use crate::db::{Db, DbKind};
@@ -181,79 +181,57 @@ impl PortraitAnimation {
     }
 }
 
-const TYPES: &[&str] = &["male", "female", "boy", "girl"];
-
 impl DbKind for PortraitAnimation {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         data.verify_exists(Item::Localization, key);
 
-        for field in TYPES {
-            vd.req_field(field);
-            vd.field_validated(field, |bv, data| {
-                match bv {
-                    BV::Value(token) => {
-                        // TODO: check that the chain eventually resolves to a block
-                        if !TYPES.contains(&token.as_str()) {
-                            warn(ErrorKey::Validation).msg("unknown body type").loc(token).push();
-                        }
-                    }
-                    BV::Block(block) => {
-                        validate_animation(block, data);
-                    }
-                }
-            });
-        }
-    }
-}
-
-fn validate_animation(block: &Block, data: &Everything) {
-    let mut vd = Validator::new(block, data);
-    vd.field_validated_block("default", |block, data| {
-        let mut vd = Validator::new(block, data);
-        vd.field_value("head"); // TODO
-        vd.field_value("torso"); // TODO
-    });
-
-    if Game::is_ck3() {
-        vd.field_bool("force");
-    }
-
-    vd.multi_field_validated_block("portrait_modifier", |block, data| {
-        let mut vd = Validator::new(block, data);
-        vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
-        validate_portrait_modifiers(block, data, vd);
-    });
-
-    vd.unknown_block_fields(|_, block| {
-        let mut vd = Validator::new(block, data);
-        vd.field_validated_block("animation", |block, data| {
+        vd.field_validated_block("default", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_value("head"); // TODO
             vd.field_value("torso"); // TODO
         });
-        vd.field_validated_key_block("weight", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            sc.define_name("age", Scopes::Value, key);
-            sc.define_name("culture", Scopes::Culture, key);
-            sc.define_name("current_weight", Scopes::Value, key);
-            sc.define_name("ai_boldness", Scopes::Value, key);
-            sc.define_name("ai_compassion", Scopes::Value, key);
-            sc.define_name("ai_greed", Scopes::Value, key);
-            sc.define_name("ai_honor", Scopes::Value, key);
-            sc.define_name("ai_rationality", Scopes::Value, key);
-            sc.define_name("ai_vengefulness", Scopes::Value, key);
-            sc.define_name("ai_zeal", Scopes::Value, key);
-            validate_modifiers_with_base(block, data, &mut sc);
-        });
-        vd.field_validated_block("portrait_modifier", |block, data| {
-            let vd = Validator::new(block, data);
+
+        if Game::is_ck3() {
+            vd.field_bool("force");
+        }
+
+        vd.multi_field_validated_block("portrait_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
+                validate_trigger(block, data, sc, Tooltipped::No);
+            });
             validate_portrait_modifiers(block, data, vd);
         });
-        vd.field_item("portrait_modifier_pack", Item::PortraitModifierPack);
-    });
+
+        vd.unknown_block_fields(|_, block| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_block("animation", |block, data| {
+                let mut vd = Validator::new(block, data);
+                vd.field_value("head"); // TODO
+                vd.field_value("torso"); // TODO
+            });
+            vd.field_validated_key_block("weight", |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::Character, key);
+                sc.define_name("age", Scopes::Value, key);
+                sc.define_name("culture", Scopes::Culture, key);
+                sc.define_name("current_weight", Scopes::Value, key);
+                sc.define_name("ai_boldness", Scopes::Value, key);
+                sc.define_name("ai_compassion", Scopes::Value, key);
+                sc.define_name("ai_greed", Scopes::Value, key);
+                sc.define_name("ai_honor", Scopes::Value, key);
+                sc.define_name("ai_rationality", Scopes::Value, key);
+                sc.define_name("ai_vengefulness", Scopes::Value, key);
+                sc.define_name("ai_zeal", Scopes::Value, key);
+                validate_modifiers_with_base(block, data, &mut sc);
+            });
+            vd.field_validated_block("portrait_modifier", |block, data| {
+                let vd = Validator::new(block, data);
+                validate_portrait_modifiers(block, data, vd);
+            });
+            vd.field_item("portrait_modifier_pack", Item::PortraitModifierPack);
+        });
+    }
 }
 
 #[derive(Clone, Debug)]
