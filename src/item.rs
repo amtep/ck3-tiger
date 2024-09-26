@@ -252,6 +252,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] HolySiteFlag,
     #[cfg(feature = "ck3")] Hook,
     #[cfg(feature = "ck3")] House,
+    #[cfg(feature = "ck3")] HousePowerBonus,
     #[cfg(feature = "ck3")] HouseUnity,
     #[cfg(feature = "ck3")] HouseUnityParameter,
     #[cfg(feature = "ck3")] HouseUnityStage,
@@ -895,6 +896,8 @@ impl Item {
             Item::Hook => "common/hook_types/",
             #[cfg(feature = "ck3")]
             Item::House => "common/dynasty_houses/",
+            #[cfg(feature = "ck3")]
+            Item::HousePowerBonus => "common/house_power_bonus/",
             #[cfg(feature = "ck3")]
             Item::HouseUnity => "common/house_unities/",
             #[cfg(feature = "ck3")]
