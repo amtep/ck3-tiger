@@ -558,6 +558,9 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
         vd.multi_field_validated_block_sc("scheme_modifier", sc, validate_scheme_modifier);
         vd.multi_field_validated_block_sc("activity_modifier", sc, validate_activity_modifier);
     }
+
+    vd.fields_script_value("min", sc);
+    vd.fields_script_value("max", sc);
 }
 
 #[cfg(feature = "vic3")]
