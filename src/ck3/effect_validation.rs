@@ -1885,6 +1885,10 @@ pub fn validate_create_adventurer_title(
     if let Some(name) = vd.field_value("save_scope_as") {
         sc.define_name_token(name.as_str(), Scopes::LandedTitle, name);
     }
+
+    // undocumented
+
+    vd.field_validated_sc("article", sc, validate_desc);
 }
 
 pub fn validate_start_best_war(

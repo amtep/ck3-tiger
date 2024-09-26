@@ -243,7 +243,14 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::Character,
         "can_start_scheme",
-        Block(&[("type", Item(Item::Scheme)), ("target", Scope(Scopes::Character))]),
+        // Docs still just say "target"
+        Block(&[
+            ("type", Item(Item::Scheme)),
+            ("?target_character", Scope(Scopes::Character)),
+            ("?target_title", Scope(Scopes::LandedTitle)),
+            ("?target_culture", Scope(Scopes::Culture)),
+            ("?target_faith", Scope(Scopes::Faith))
+        ]),
     ),
     (Scopes::None, "can_start_tutorial_lesson", UncheckedValue), // TODO
     (
