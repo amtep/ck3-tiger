@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
 
 use crate::ck3::tables::misc::{
-    AGENT_SLOT_CONTRIBUTION_TYPE, LEGEND_QUALITY, OUTBREAK_INTENSITIES,
+    AGENT_SLOT_CONTRIBUTION_TYPE, GOVERNMENT_RULES, LEGEND_QUALITY, OUTBREAK_INTENSITIES,
 };
 use crate::everything::Everything;
 use crate::helpers::TigerHashMap;
@@ -418,8 +418,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[("name", UncheckedValue), ("+value", CompareValue)]),
     ),
     (Scopes::Character, "gold", CompareValueWarnEq),
-    (Scopes::Character, "government_allows", Choice(&["create_cadet_branches"])),
-    (Scopes::Character, "government_disallows", Choice(&["create_cadet_branches"])),
+    (Scopes::Character, "government_allows", Choice(GOVERNMENT_RULES)),
+    (Scopes::Character, "government_disallows", Choice(GOVERNMENT_RULES)),
     (Scopes::Character, "government_has_flag", Item(Item::GovernmentFlag)),
     (Scopes::Accolade, "has_accolade_category", Item(Item::AccoladeCategory)),
     (Scopes::Accolade, "has_accolade_parameter", Item(Item::AccoladeParameter)),

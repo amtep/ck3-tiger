@@ -1,4 +1,5 @@
 use crate::block::Block;
+use crate::ck3::tables::misc::GOVERNMENT_RULES;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -12,26 +13,6 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::validate_color;
 use crate::validator::Validator;
-
-const GOVERNMENT_RULES: &[&str] = &[
-    "create_cadet_branches",
-    "religious",
-    "court_generate_spouses",
-    "council",
-    "rulers_should_have_dynasty",
-    "regiments_prestige_as_gold",
-    "dynasty_named_realms",
-    "royal_court",
-    "legitimacy",
-    "administrative",
-    "landless_playable",
-    "use_as_base_on_landed",
-    "use_as_base_on_rank_up",
-    "conditional_maa_refill",
-    "mercenary",
-    "use_title_tier_modifiers",
-    "inherit_from_dynastic_government",
-];
 
 #[derive(Clone, Debug)]
 pub struct Government {}

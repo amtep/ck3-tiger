@@ -77,6 +77,28 @@ pub const DLC_FEATURES_CK3: &[&str] = &[
     "court_room_view",
 ];
 
+// LAST UPDATED CK3 VERSION 1.13.0.1
+// taken from the governments .info file
+pub const GOVERNMENT_RULES: &[&str] = &[
+    "create_cadet_branches",
+    "religious",
+    "court_generate_spouses",
+    "council",
+    "rulers_should_have_dynasty",
+    "regiments_prestige_as_gold",
+    "dynasty_named_realms",
+    "royal_court",
+    "legitimacy",
+    "administrative",
+    "landless_playable",
+    "use_as_base_on_landed",
+    "use_as_base_on_rank_up",
+    "conditional_maa_refill",
+    "mercenary",
+    "use_title_tier_modifiers",
+    "inherit_from_dynastic_government",
+];
+
 // LAST UPDATED CK3 VERSION 1.12.1
 pub const LEGEND_QUALITY: &[&str] = &["famed", "illustrious", "mythical"];
 
