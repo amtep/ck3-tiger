@@ -113,7 +113,7 @@ impl DbKind for Scheme {
 
         vd.field_validated_key_block("base_success_chance", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Scheme, key);
-            sc.define_name("target", Scopes::Character | Scopes::LandedTitle, key);
+            sc.define_name("target", target_scopes, key);
             sc.define_name("target_title", Scopes::LandedTitle, key);
             validate_modifiers_with_base(block, data, &mut sc);
         });
