@@ -68,27 +68,27 @@ impl DbKind for TaskContractType {
         vd.field_bool("use_diplomatic_range");
 
         vd.field_validated_key_block("valid_to_create", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::TaskContractType, key);
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("employer", Scopes::Character, key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("valid_to_accept", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::TaskContractType, key);
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("employer", Scopes::Character, key);
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_key_block("valid_to_continue", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::TaskContractType, key);
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("valid_to_keep", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::TaskContractType, key);
+            let mut sc = ScopeContext::new(Scopes::TaskContract, key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
         for field in &["on_create", "on_accepted", "on_completed", "on_invalidated"] {
             vd.field_validated_key_block(field, |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::TaskContractType, key);
+                let mut sc = ScopeContext::new(Scopes::TaskContract, key);
                 validate_effect(block, data, &mut sc, Tooltipped::No);
             });
         }
@@ -100,7 +100,7 @@ impl DbKind for TaskContractType {
             vd.unknown_block_fields(|_, block| {
                 let mut vd = Validator::new(block, data);
                 vd.field_validated_key_block("effect", |key, block, data| {
-                    let mut sc = ScopeContext::new(Scopes::TaskContractType, key);
+                    let mut sc = ScopeContext::new(Scopes::TaskContract, key);
                     validate_effect(block, data, &mut sc, Tooltipped::Yes);
                 });
                 vd.field_bool("should_print_on_complete");
