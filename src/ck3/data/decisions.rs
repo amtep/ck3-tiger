@@ -243,3 +243,28 @@ fn check_cost(blocks: &[&Block]) {
         }
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct DecisionGroup {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::DecisionGroup, DecisionGroup::add)
+}
+
+impl DecisionGroup {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::DecisionGroup, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for DecisionGroup {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        let loca = format!("decision_group_type_{key}");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        vd.field_integer("sort_order");
+        vd.field_list("gui_tags");
+    }
+}
