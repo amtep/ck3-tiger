@@ -110,15 +110,13 @@ impl DbKind for Scheme {
             validate_modifiers_with_base(block, data, &mut sc);
         });
         vd.field_validated_block_sc("agent_success_chance", &mut sc, validate_modifiers_with_base);
-
-        vd.field_validated_key_block("base_success_chance", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Scheme, key);
-            sc.define_name("target", target_scopes, key);
-            sc.define_name("target_title", Scopes::LandedTitle, key);
-            validate_modifiers_with_base(block, data, &mut sc);
-        });
-        vd.field_integer_range("base_maximum_success_chance", 0..=100);
-        vd.advice_field("maximum_success", "Replaced with `base_maximum_success_chance`");
+        vd.field_validated_block_sc("base_success_chance", &mut sc, validate_modifiers_with_base);
+        vd.advice_field(
+            "base_maximum_success_chance",
+            "docs say `base_maximum_success_chance` but it's `base_maximum_success`",
+        );
+        vd.field_script_value("base_maximum_success", &mut sc);
+        vd.advice_field("maximum_success", "Replaced with `base_maximum_success`");
         vd.field_integer_range("minimum_success", 0..=100);
         vd.field_integer_range("maximum_secrecy", 0..=100);
         vd.field_integer_range("minimum_secrecy", 0..=100);
@@ -182,6 +180,10 @@ impl DbKind for Scheme {
         vd.field_script_value("spymaster_speed_per_skill_point", &mut sc);
         vd.field_script_value("target_spymaster_speed_per_skill_point", &mut sc);
         vd.field_integer("tier_speed");
+
+        // undocumented
+
+        vd.field_script_value("phases_per_agent_charge", &mut sc);
     }
 }
 
