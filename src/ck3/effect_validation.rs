@@ -960,22 +960,14 @@ pub fn validate_revoke_court_position(
     _key: &Token,
     _block: &Block,
     _data: &Everything,
-    _sc: &mut ScopeContext,
+    sc: &mut ScopeContext,
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
     vd.req_field("court_position");
-    // TODO: reverify for 1.13
-    if let Some(token) = vd.field_value("recipient") {
-        let msg = "as of 1.9.2 neither `recipient` nor `target` work here";
-        let info = "For court positions with multiple holders (such as bodyguard), an arbitrary one will be revoked";
-        warn(ErrorKey::Bugs).msg(msg).info(info).loc(token).push();
-    }
-    if let Some(token) = vd.field_value("target") {
-        let msg = "as of 1.9.2 neither `recipient` nor `target` work here";
-        let info = "For court positions with multiple holders (such as bodyguard), an arbitrary one will be revoked";
-        warn(ErrorKey::Bugs).msg(msg).info(info).loc(token).push();
-    }
+    vd.field_item("court_position", Item::CourtPosition);
+    vd.field_target("recipient", sc, Scopes::Character);
+    vd.field_target("holder", sc, Scopes::Character);
 }
 
 pub fn validate_save_opinion_value(
