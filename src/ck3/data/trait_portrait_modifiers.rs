@@ -38,6 +38,12 @@ impl DbKind for TraitPortraitModifier {
         });
         vd.field_item("base", Item::TraitPortraitModifier);
         vd.advice_field("dna_modifier", "docs say `dna_modifier` but it's `dna_modifiers`");
-        vd.field_validated_block("dna_modifiers", validate_dna_modifiers);
+        vd.field_validated_block("dna_modifiers", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_block_fields(|key, block| {
+                data.verify_exists(Item::PortraitType, key);
+                validate_dna_modifiers(block, data);
+            });
+        });
     }
 }
