@@ -68,6 +68,7 @@ pub mod opinions;
 pub mod perks;
 pub mod points_of_interest;
 pub mod pool;
+pub mod portrait_types;
 pub mod prov_history;
 pub mod prov_terrain;
 pub mod provinces;
