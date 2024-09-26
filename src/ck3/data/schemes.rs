@@ -318,7 +318,7 @@ impl DbKind for Countermeasure {
         });
         vd.field_validated_key_block("is_valid_showing_failures_only", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
         });
         vd.field_validated_key_block("on_activate", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
