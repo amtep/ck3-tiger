@@ -183,6 +183,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] CasusBelli,
     #[cfg(feature = "ck3")] CasusBelliGroup,
     #[cfg(feature = "ck3")] Catalyst,
+    #[cfg(feature = "ck3")] ChallengeCharacter,
     #[cfg(feature = "ck3")] Character,
     #[cfg(feature = "ck3")] CharacterBackground,
     #[cfg(feature = "ck3")] CharacterInteractionCategory,
@@ -756,6 +757,8 @@ impl Item {
             Item::CasusBelliGroup => "common/casus_belli_groups/",
             #[cfg(feature = "ck3")]
             Item::Catalyst => "common/struggle/catalysts/",
+            #[cfg(feature = "ck3")]
+            Item::ChallengeCharacter => "common/bookmarks/challenge_characters/",
             #[cfg(feature = "ck3")]
             Item::Character => "history/characters/",
             #[cfg(feature = "ck3")]

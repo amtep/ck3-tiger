@@ -243,3 +243,31 @@ fn validate_bookmark_against_history(
         }
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct ChallengeCharacter {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ChallengeCharacter, ChallengeCharacter::add)
+}
+
+impl ChallengeCharacter {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::ChallengeCharacter, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for ChallengeCharacter {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        vd.field_date("start_date");
+        let start_date = block.get_field_date("start_date");
+        vd.field_validated_block("character", |block, data| {
+            validate_bookmark_character(block, data, true, start_date);
+        });
+
+        // undocumented
+
+        vd.field_list("achievements"); // TODO: validate achievements?
+    }
+}
