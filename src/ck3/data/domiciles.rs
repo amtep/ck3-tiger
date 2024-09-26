@@ -47,11 +47,13 @@ impl DbKind for DomicileType {
         vd.field_validated_block_sc("move_cost", &mut sc, validate_cost);
         vd.multi_field_validated_block("domicile_temperament_low_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
+            vd.field_item("name", Item::Localization);
             vd.field_script_value("scale", &mut sc);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
         vd.multi_field_validated_block("domicile_temperament_high_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
+            vd.field_item("name", Item::Localization);
             vd.field_script_value("scale", &mut sc);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });

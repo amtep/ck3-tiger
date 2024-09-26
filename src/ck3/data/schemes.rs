@@ -122,7 +122,7 @@ impl DbKind for Scheme {
         vd.field_integer_range("minimum_secrecy", 0..=100);
         vd.advice_field("maximum_progress_chance", "Removed in 1.13");
         vd.advice_field("minimum_progress_chance", "Removed in 1.13");
-        vd.field_integer("base_progress_goal");
+        vd.field_script_value("base_progress_goal", &mut sc);
         vd.field_integer("maximum_breaches");
 
         vd.advice_field("power_per_skill_point", "Replaced with `speed_per_skill_point`");

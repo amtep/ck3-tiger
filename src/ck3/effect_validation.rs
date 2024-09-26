@@ -183,7 +183,7 @@ pub fn validate_scheme_modifier(
         data.database.validate_call(Item::Modifier, token, block, data, sc);
         data.database.validate_property_use(Item::Modifier, token, data, key, key.as_str());
     }
-    vd.field_integer("days");
+    validate_optional_duration(&mut vd, sc);
 }
 
 pub fn validate_add_secret(

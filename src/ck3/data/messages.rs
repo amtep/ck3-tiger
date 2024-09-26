@@ -23,7 +23,7 @@ impl DbKind for Message {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_choice("display", &["feed", "toast"]);
+        vd.field_choice("display", &["feed", "toast", "popup"]);
         vd.field_item("message_filter_type", Item::MessageFilterType);
         vd.field_item("title", Item::Localization); // docs say text
         vd.field_item("desc", Item::Localization);
@@ -62,8 +62,32 @@ impl DbKind for MessageFilterType {
         let loca = format!("message_filter_{key}");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        vd.field_choice("display", &["feed", "toast", "hidden"]);
+        vd.field_choice("display", &["feed", "toast", "hidden", "popup"]);
         vd.field_bool("always_show");
         vd.field_bool("auto_pause");
+        vd.field_integer("sort_order");
+        vd.field_item("group", Item::MessageFilterGroupType);
+    }
+}
+
+
+#[derive(Clone, Debug)]
+pub struct MessageFilterGroupType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::MessageFilterGroupType, MessageFilterGroupType::add)
+}
+
+impl MessageFilterGroupType {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::MessageFilterGroupType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for MessageFilterGroupType {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        vd.field_integer("sort_order");
     }
 }

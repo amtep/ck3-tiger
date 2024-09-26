@@ -507,7 +507,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "refund_perks", Item(Item::Lifestyle)),
     (Scopes::Character, "release_from_prison", Yes),
     (Scopes::Accolade, "remove_acclaimed_knight", Yes),
-    (Scopes::Scheme, "remove_agent_slot", Item(Item::AgentType)),
+    (Scopes::Scheme, "remove_agent_slot", Scope(Item::AgentType)),
     (Scopes::Character, "remove_all_character_modifier_instances", Item(Item::Modifier)),
     (Scopes::LandedTitle, "remove_all_county_modifier_instances", Item(Item::Modifier)),
     (Scopes::Dynasty, "remove_all_dynasty_modifier_instances", Item(Item::Modifier)),
