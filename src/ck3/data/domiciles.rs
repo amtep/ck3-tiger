@@ -130,7 +130,7 @@ impl DomicileBuilding {
 
 impl DbKind for DomicileBuilding {
     fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
-        if let Some(parameters) = block.get_field_block("parameters") {
+        for parameters in block.get_field_blocks("parameters") {
             for (key, _) in parameters.iter_assignments() {
                 db.add_flag(Item::DomicileParameter, key.clone());
             }
@@ -158,9 +158,11 @@ impl DbKind for DomicileBuilding {
 
         vd.field_integer("construction_time");
 
-        vd.field_validated_block("parameters", |block, data| {
+        vd.multi_field_validated_block("parameters", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.unknown_value_fields(|_, value| {
+            vd.unknown_value_fields(|key, value| {
+                let loca = format!("domicile_building_parameter_{key}");
+                data.verify_exists_implied(Item::Localization, &loca, key);
                 if !value.is("yes") {
                     let msg = "only `yes` currently makes sense here";
                     warn(ErrorKey::Validation).msg(msg).loc(value).push();
