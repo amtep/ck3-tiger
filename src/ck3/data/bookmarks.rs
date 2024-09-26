@@ -121,6 +121,7 @@ fn validate_bookmark_character(
     vd.field_item("title", Item::Title);
     vd.field_item("title_text_override", Item::Localization);
     vd.field_item("government", Item::GovernmentType);
+    vd.field_item("fallback_government", Item::GovernmentType);
     vd.field_item("culture", Item::Culture);
     vd.field_item("religion", Item::Faith);
     vd.field_item("difficulty", Item::Localization);
