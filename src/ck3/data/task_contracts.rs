@@ -21,6 +21,12 @@ inventory::submit! {
 
 impl TaskContractType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::TaskContractType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for TaskContractType {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         if let Some(group) = block.get_field_value("group") {
             db.add_flag(Item::TaskContractGroup, group.clone());
         }
@@ -29,11 +35,8 @@ impl TaskContractType {
                 db.add_flag(Item::TaskContractReward, key.clone());
             }
         }
-        db.add(Item::TaskContractType, key, block, Box::new(Self {}));
     }
-}
 
-impl DbKind for TaskContractType {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::TaskContractType, key);

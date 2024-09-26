@@ -124,17 +124,19 @@ inventory::submit! {
 
 impl DomicileBuilding {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        if let Some(parameters) = block.get_field_block("parameters") {
-            for (key, _) in parameters.iter_assignments() {
-                db.add_flag(Item::DomicileParameter, key.clone());
-            }
-        }
-
         db.add(Item::DomicileBuilding, key, block, Box::new(Self {}));
     }
 }
 
 impl DbKind for DomicileBuilding {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        if let Some(parameters) = block.get_field_block("parameters") {
+            for (key, _) in parameters.iter_assignments() {
+                db.add_flag(Item::DomicileParameter, key.clone());
+            }
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
