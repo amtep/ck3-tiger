@@ -1,6 +1,6 @@
 use crate::block::{Block, BV};
 use crate::ck3::data::legends::LegendChronicle;
-use crate::ck3::tables::misc::{LEGEND_QUALITY, OUTBREAK_INTENSITIES};
+use crate::ck3::tables::misc::{LEGEND_QUALITY, OUTBREAK_INTENSITIES, TITLE_HISTORY_TYPES};
 use crate::ck3::validate::{
     validate_random_culture, validate_random_faith, validate_random_traits_list,
 };
@@ -701,24 +701,7 @@ pub fn validate_create_title_and_vassal_change(
     _tooltipped: Tooltipped,
 ) {
     vd.req_field("type");
-    vd.field_choice(
-        "type",
-        &[
-            "conquest",
-            "independency",
-            "conquest_claim",
-            "granted",
-            "revoked",
-            "conquest_holy_war",
-            "swear_fealty",
-            "created",
-            "usurped",
-            "returned",
-            "leased_out",
-            "conquest_populist",
-            "faction_demand",
-        ],
-    );
+    vd.field_choice("type", TITLE_HISTORY_TYPES);
     if let Some(name) = vd.field_value("save_scope_as") {
         sc.define_name_token(name.as_str(), Scopes::TitleAndVassalChange, name);
     }
