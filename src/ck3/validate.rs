@@ -119,6 +119,7 @@ pub fn validate_camera_color(block: &Block, data: &Everything) {
 pub fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_script_value("gold", sc);
+    vd.field_script_value("influence", sc);
     vd.field_script_value("prestige", sc);
     vd.field_script_value("piety", sc);
     vd.field_bool("round");
@@ -127,6 +128,7 @@ pub fn validate_cost(block: &Block, data: &Everything, sc: &mut ScopeContext) {
 pub fn validate_cost_with_renown(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     vd.field_script_value("gold", sc);
+    vd.field_script_value("influence", sc);
     vd.field_script_value("prestige", sc);
     vd.field_script_value("piety", sc);
     vd.field_script_value("renown", sc);
