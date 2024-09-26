@@ -173,7 +173,7 @@ impl DbKind for DomicileBuilding {
         vd.field_choice("slot_type", &["main", "external", "internal"]);
         vd.field_integer("internal_slots");
         vd.field_list_items("domicile_types", Item::DomicileType);
-        vd.field_list_items("previous_building", Item::DomicileBuilding);
+        vd.field_item("previous_building", Item::DomicileBuilding);
 
         // TODO: verify scope type
         let mut sc = ScopeContext::new(Scopes::Character, key);
