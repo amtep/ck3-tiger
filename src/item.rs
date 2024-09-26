@@ -324,6 +324,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] Trait,
     #[cfg(feature = "ck3")] TraitCategory,
     #[cfg(feature = "ck3")] TraitFlag,
+    #[cfg(feature = "ck3")] TraitPortraitModifier,
     #[cfg(feature = "ck3")] TraitTrack,
     #[cfg(feature = "ck3")] TravelOption,
     #[cfg(feature = "ck3")] UnitGfx,
@@ -1040,6 +1041,8 @@ impl Item {
             Item::TraitCategory => "",
             #[cfg(feature = "ck3")]
             Item::TraitFlag => "common/traits/",
+            #[cfg(feature = "ck3")]
+            Item::TraitPortraitModifier => "gfx/portraits/trait_portrait_modifiers",
             #[cfg(feature = "ck3")]
             Item::TraitTrack => "common/traits/",
             #[cfg(feature = "ck3")]

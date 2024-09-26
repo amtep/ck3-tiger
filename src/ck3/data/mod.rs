@@ -88,6 +88,7 @@ pub mod tax_slots;
 pub mod terrain;
 pub mod title_history;
 pub mod titles;
+pub mod trait_portrait_modifiers;
 pub mod traits;
 pub mod travel;
 pub mod vassalcontract;

@@ -136,51 +136,7 @@ fn validate_portrait_modifier(
         validate_trigger(block, data, sc, Tooltipped::No);
     });
 
-    #[cfg(feature = "imperator")]
-    let modes = &["add", "replace", "modify", "replace_template"];
-    #[cfg(not(feature = "imperator"))]
-    let modes = &["add", "replace", "modify", "modify_multiply"];
-
-    vd.multi_field_validated_block("dna_modifiers", |block, data| {
-        let mut vd = Validator::new(block, data);
-        vd.multi_field_validated_block("morph", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_choice("mode", modes);
-            vd.field_item("gene", Item::GeneCategory);
-            if let Some(category) = block.get_field_value("gene") {
-                if let Some(template) = vd.field_value("template") {
-                    Gene::verify_has_template(category.as_str(), template, data);
-                }
-            }
-            vd.field_script_value("value", sc);
-            vd.field_validated_block("range", |block, data| {
-                validate_numeric_range(block, data, 0.0, 1.0, Severity::Warning, Confidence::Weak);
-            });
-        });
-        vd.multi_field_validated_block("color", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_choice("mode", modes);
-            vd.field_item("gene", Item::GeneCategory);
-            vd.field_numeric("x");
-            vd.field_numeric("y");
-        });
-        vd.multi_field_validated_block("accessory", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_choice("mode", modes);
-            vd.field_item("gene", Item::GeneCategory);
-            if let Some(category) = block.get_field_value("gene") {
-                if let Some(template) = vd.field_value("template") {
-                    Gene::verify_has_template(category.as_str(), template, data);
-                }
-            }
-            vd.field_script_value("value", sc);
-            vd.field_validated_block("range", |block, data| {
-                validate_numeric_range(block, data, 0.0, 1.0, Severity::Warning, Confidence::Weak);
-            });
-            vd.field_item("accessory", Item::Accessory);
-            vd.field_choice("type", &["male", "female", "boy", "girl"]);
-        });
-    });
+    vd.multi_field_validated_block("dna_modifiers", validate_dna_modifiers);
     vd.multi_field_validated_block_sc("weight", sc, validate_modifiers_with_base);
 }
 
@@ -374,4 +330,51 @@ impl DbKind for PortraitCamera {
             }
         }
     }
+}
+
+pub fn validate_dna_modifiers(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+
+    #[cfg(feature = "imperator")]
+    let modes = &["add", "replace", "modify", "replace_template"];
+    #[cfg(not(feature = "imperator"))]
+    let modes = &["add", "replace", "modify", "modify_multiply"];
+
+    vd.multi_field_validated_block("morph", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.field_choice("mode", modes);
+        vd.field_item("gene", Item::GeneCategory);
+        if let Some(category) = block.get_field_value("gene") {
+            if let Some(template) = vd.field_value("template") {
+                Gene::verify_has_template(category.as_str(), template, data);
+            }
+        }
+        vd.field_script_value_full("value", Scopes::Character, false);
+        vd.field_validated_block("range", |block, data| {
+            validate_numeric_range(block, data, 0.0, 1.0, Severity::Warning, Confidence::Weak);
+        });
+    });
+    vd.multi_field_validated_block("color", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.field_choice("mode", modes);
+        vd.field_item("gene", Item::GeneCategory);
+        vd.field_numeric("x");
+        vd.field_numeric("y");
+    });
+    vd.multi_field_validated_block("accessory", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.field_choice("mode", modes);
+        vd.field_item("gene", Item::GeneCategory);
+        if let Some(category) = block.get_field_value("gene") {
+            if let Some(template) = vd.field_value("template") {
+                Gene::verify_has_template(category.as_str(), template, data);
+            }
+        }
+        vd.field_script_value_full("value", Scopes::Character, false);
+        vd.field_validated_block("range", |block, data| {
+            validate_numeric_range(block, data, 0.0, 1.0, Severity::Warning, Confidence::Weak);
+        });
+        vd.field_item("accessory", Item::Accessory);
+        vd.field_choice("type", &["male", "female", "boy", "girl"]);
+    });
 }
