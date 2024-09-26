@@ -214,10 +214,6 @@ const EVENT_TYPES: &[&str] = &[
     "activity_event",
 ];
 
-// TODO: check if mods can add more window types to gui/event_windows/
-const WINDOW_TYPES: &[&str] =
-    &["character_event", "duel_event", "fullscreen_event", "letter_event"];
-
 impl Event {
     pub fn new(key: Token, block: Block) -> Self {
         let expects_scope = if let Some(token) = block.get_field_value("scope") {
@@ -256,22 +252,9 @@ impl Event {
             vd.field_choice("type", EVENT_TYPES);
         }
 
-        if evtype == "character_event" {
-            vd.field_choice("window", WINDOW_TYPES);
-        } else if evtype == "activity_event" {
-            // TODO: get the choices here from the gui code
-            vd.field_choice(
-                "window",
-                &[
-                    "activity_event",
-                    "tour_arrival_event",
-                    "widget_activity_locale_fullscreen_event",
-                    "tournament_fullscreen_pivotal_event_widget",
-                ],
-            );
-        } else {
-            vd.ban_field("window", || "character_event or activity_event");
-        }
+        // TODO: Should be an `Item::WidgetName` but widget name processing currently doesn't catch
+        // subwidgets with names.
+        vd.field_value("window");
 
         let mut sc = ScopeContext::new(Scopes::Character, &self.key);
         if let Some(token) = vd.field_value("scope") {
