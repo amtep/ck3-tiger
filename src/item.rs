@@ -840,7 +840,7 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::DomicileBuilding => "common/domiciles/buildings/",
             #[cfg(feature = "ck3")]
-            Item::DomicileParameter => "common/domiciles/types/",
+            Item::DomicileParameter => "common/domiciles/buildings/",
             #[cfg(feature = "ck3")]
             Item::DomicileType => "common/domiciles/types/",
             #[cfg(feature = "ck3")]

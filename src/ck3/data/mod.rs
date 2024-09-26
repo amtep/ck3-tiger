@@ -23,6 +23,7 @@ pub mod decisions;
 pub mod diarchies;
 pub mod difficulty;
 pub mod doctrines;
+pub mod domiciles;
 pub mod dynasties;
 pub mod dynasty_legacies;
 pub mod election;
