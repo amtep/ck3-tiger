@@ -8,7 +8,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::PdxEncoding;
-use crate::report::{warn, ErrorKey};
+use crate::report::{fatal, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::validator::Validator;
@@ -95,6 +95,14 @@ fn validate_bookmark_character(
         vd.field_value("name");
     } else {
         vd.field_item("name", Item::Localization);
+        if let Some(name) = block.get_field_value("name") {
+            if !data.item_exists(Item::BookmarkPortrait, name.as_str()) {
+                let msg =
+                    format!("bookmark portrait for {name} not found in common/bookmark_portraits");
+                let info = "This causes a crash in CK3 1.13";
+                fatal(ErrorKey::Crash).msg(msg).info(info).loc(name).push();
+            }
+        }
     }
     if toplevel {
         if let Some(token) = block.get_field_value("name") {
