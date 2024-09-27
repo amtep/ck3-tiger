@@ -8,7 +8,7 @@
 /// `root` is the root of the scope context. Other fields are added named scopes.
 ///
 /// For ease of updating, the rules are in the order they are found in the game files.
-// LAST UPDATED CK3 VERSION 1.12.1
+// LAST UPDATED CK3 VERSION 1.13.0.3
 // Taken from information in common/scripted_rules/00_rules.txt
 pub const SCRIPTED_RULES: &str = "
 	can_command_troops = {
@@ -271,18 +271,36 @@ pub const SCRIPTED_RULES: &str = "
 		root = character
 	}
 
-    can_create_legend = {
-        root = character
-    }
+	can_create_legend = {
+		root = character
+	}
 
-    can_promote_legend = {
-        root = character
-        legend = legend
-    }
+	can_promote_legend = {
+		root = character
+		legend = legend
+	}
 
-    ai_wants_to_create_own_legend = {
-        tooltipped = no
-        root = character
-        num_legends = value
-    }
+	ai_wants_to_create_own_legend = {
+		tooltipped = no
+		root = character
+		num_legends = value
+	}
+
+	is_dominant_family = {
+		root = dynasty_house
+	}
+
+	is_hireable_ruler_trigger = {
+		root = character
+	}
+
+	can_hire_hireable_ruler_trigger = {
+		root = character
+		candidate = character
+	}
+
+	can_move_domicile = {
+		root = province
+		owner = character
+	}
 ";
