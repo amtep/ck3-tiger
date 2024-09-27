@@ -393,6 +393,7 @@ pub enum WidgetProperty {
     tooltip_type,
     tooltip_verticalbehavior,
     tooltip_visible,
+    tooltip_when_disabled,
     tooltip_widgetanchor,
     tooltipwidget,
     track,
@@ -745,6 +746,7 @@ impl GuiValidation {
             tooltip_type => Choice(&["mouse", "widget"]),
             tooltip_verticalbehavior => Choice(&["mirror", "slide", "flip"]),
             tooltip_visible => Boolean,
+            tooltip_when_disabled => Text,
             tooltip_widgetanchor => Align,
             tooltipwidget => Widget,
             track => Widget,
@@ -837,7 +839,7 @@ impl WidgetProperty {
             | timeline_time_points => GameFlags::Ck3 | GameFlags::Vic3,
 
             tooltip_enabled => GameFlags::Vic3 | GameFlags::Imperator,
-            tooltip_visible => GameFlags::Ck3,
+            tooltip_visible | tooltip_when_disabled => GameFlags::Ck3,
             video => GameFlags::Ck3 | GameFlags::Vic3,
 
             frame_tier | ondatacontextchanged | dragdropid | dragdropargs | forcedown | url

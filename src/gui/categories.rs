@@ -336,6 +336,7 @@ impl GuiCategories {
             WidgetProperty::tooltip_type => GuiCategories::Widget,
             WidgetProperty::tooltip_verticalbehavior => GuiCategories::Widget,
             WidgetProperty::tooltip_visible => GuiCategories::Widget,
+            WidgetProperty::tooltip_when_disabled => GuiCategories::Widget,
             WidgetProperty::tooltip_widgetanchor => GuiCategories::Widget,
             WidgetProperty::tooltipwidget => GuiCategories::Widget,
             WidgetProperty::track => GuiCategories::Unknown,
