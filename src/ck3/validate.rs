@@ -42,6 +42,23 @@ pub fn validate_theme_background(bv: &BV, data: &Everything, sc: &mut ScopeConte
     }
 }
 
+pub fn validate_theme_header_background(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
+    match bv {
+        BV::Value(token) => data.verify_exists(Item::File, token),
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+
+            vd.field_validated_block("trigger", |b, data| {
+                validate_trigger(b, data, sc, Tooltipped::No);
+            });
+            vd.req_field("reference");
+            if let Some(token) = vd.field_value("reference") {
+                data.verify_exists(Item::File, token);
+            }
+        }
+    }
+}
+
 pub fn validate_theme_icon(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 

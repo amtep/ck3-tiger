@@ -3,8 +3,8 @@ use std::str::FromStr;
 
 use crate::block::{Block, BlockItem, Field, BV};
 use crate::ck3::validate::{
-    validate_theme_background, validate_theme_effect_2d, validate_theme_icon, validate_theme_sound,
-    validate_theme_transition,
+    validate_theme_background, validate_theme_effect_2d, validate_theme_header_background,
+    validate_theme_icon, validate_theme_sound, validate_theme_transition,
 };
 use crate::context::{Reason, ScopeContext};
 use crate::data::scripted_effects::Effect;
@@ -335,6 +335,11 @@ impl Event {
             vd.multi_field_validated_sc("override_background", &mut sc, validate_theme_background);
         }
         vd.multi_field_validated_block_sc("override_icon", &mut sc, validate_theme_icon);
+        vd.multi_field_validated_sc(
+            "override_header_background",
+            &mut sc,
+            validate_theme_header_background,
+        );
         vd.multi_field_validated_block_sc("override_sound", &mut sc, validate_theme_sound);
         vd.multi_field_validated_block_sc(
             "override_transition",

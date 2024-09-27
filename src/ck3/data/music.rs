@@ -97,6 +97,7 @@ impl Music {
         let mut vd = Validator::new(&self.block, data);
         let mut sc = ScopeContext::new(Scopes::Character, &self.key);
 
+        vd.field_localization("name", &mut sc);
         vd.field_item("music", Item::Sound);
         vd.field_item("group", Item::Music); // Take settings from this item
         vd.field_integer("pause_factor");

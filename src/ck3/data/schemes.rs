@@ -148,7 +148,16 @@ impl DbKind for Scheme {
         vd.field_validated_block("use_secrecy", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
-        vd.field_integer("base_secrecy");
+        let sc_secrecy: &Builder = &|key| {
+            let mut sc = ScopeContext::new(Scopes::Scheme, key);
+            let target_scopes =
+                Scopes::Character | Scopes::LandedTitle | Scopes::Culture | Scopes::Faith;
+            sc.define_name("target", target_scopes, key);
+            sc.define_name("owner", Scopes::Character, key);
+            sc.define_name("exposed", Scopes::Bool, key);
+            sc
+        };
+        vd.field_script_value_full("base_secrecy", sc_secrecy, false);
 
         // on_start is undocumented
         for field in &[

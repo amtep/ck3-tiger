@@ -703,8 +703,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         ]),
     ),
     (Scopes::Character, "has_opposite_relation", Item(Item::Relation)),
-    // TODO: figure out what else this can be
-    (Scopes::LandedTitle, "has_order_of_succession", Choice(&["election"])),
+    (Scopes::LandedTitle, "has_order_of_succession", Choice(&["election", "appointment"])),
     (Scopes::Character, "has_outstanding_artifact_claims", Boolean),
     (Scopes::Character, "has_owned_scheme", Boolean),
     (Scopes::Character, "has_pending_court_events", Boolean),
@@ -1602,7 +1601,15 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             ("+value", CompareValue),
         ]),
     ),
-    // TODO: static_group_filter
+    (
+        Scopes::Character,
+        "static_group_filter",
+        Block(&[
+            ("?group", UncheckedValue),
+            ("?scope", Scope(Scopes::all_but_none())),
+            ("match", SetValue) // TODO: check range 0.0..1.0
+        ]),
+    ),
     (Scopes::Character, "stewardship", CompareValue),
     (
         Scopes::Character,
