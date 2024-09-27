@@ -271,6 +271,12 @@ pub fn precheck_iterator_fields(
             }
         }
     }
+    #[cfg(feature = "ck3")]
+    if Game::is_ck3() && name == "succession_appointment_investors" {
+        if let Some(candidate) = block.get_field_value("candidate") {
+            validate_target_ok_this(candidate, data, sc, Scopes::Character);
+        }
+    }
 }
 
 /// This checks the fields that are only used in iterators.
@@ -511,6 +517,16 @@ pub fn validate_inside_iterator(
             vd.field_value("category"); // TODO
         } else {
             // Don't ban, because it's a valid trigger
+        }
+    }
+
+    #[cfg(feature = "ck3")]
+    if Game::is_ck3() {
+        if name == "succession_appointment_investors" {
+            vd.req_field("candidate");
+            vd.field_value("candidate"); // prechecked
+        } else {
+            vd.ban_field("candidate", || format!("`{listtype}_succession_appointment_investors`"));
         }
     }
 }
