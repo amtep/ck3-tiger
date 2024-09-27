@@ -26,6 +26,7 @@ impl DbKind for PortraitEnvironment {
 
         vd.field_item("cubemap", Item::File);
         vd.field_precise_numeric("cubemap_intensity");
+        vd.field_precise_numeric("cubemap_y_rotation");
 
         vd.field_validated("lights", |bv, data| {
             match bv {
@@ -51,6 +52,7 @@ impl DbKind for PortraitEnvironment {
                             vd.ban_field("look_at", || "spot_light or directional_light");
                             vd.ban_field("look_at_node", || "spot_light or directional_light");
                         }
+                        vd.field_block("position_node"); // TODO
 
                         if block.field_value_is("type", "spot_light")
                             || block.field_value_is("type", "point_light")
@@ -90,6 +92,7 @@ impl DbKind for PortraitEnvironment {
                     vd.field_list_precise_numeric_exactly("position", 3);
                     vd.field_list_precise_numeric_exactly("look_at", 3);
                     vd.field_block("look_at_node"); // TODO
+                    vd.field_block("position_node"); // TODO
                     vd.field_precise_numeric("fov");
                     vd.field_list_integers_exactly("camera_near_far", 2);
                 }

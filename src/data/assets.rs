@@ -437,7 +437,7 @@ fn validate_meshsettings(block: &Block, data: &Everything) {
     }
     vd.field_value("subpass");
     vd.field_value("shadow_shader");
-    if Game::is_vic3() {
+    if Game::is_vic3() || Game::is_ck3() {
         vd.field_list("additional_shader_defines");
     }
 }
