@@ -36,6 +36,10 @@ impl DbKind for DomicileType {
         let loca = format!("domicile_{key}");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
+        vd.field_validated_key_block("allowed_for_character", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
         vd.field_choice("rename_window", &["none", "primary_title", "house"]);
         vd.field_item("illustration", Item::File);
         vd.field_item("icon", Item::File);

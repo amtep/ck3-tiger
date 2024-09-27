@@ -10,6 +10,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
+use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -90,6 +91,7 @@ impl DbKind for VassalContract {
                 vd.field_integer("vassal_opinion");
                 vd.multi_field_value("flag");
                 vd.field_integer("score");
+                vd.field_validated("color", validate_possibly_named_color);
                 vd.field_script_value("ai_liege_desire", &mut sc);
                 vd.field_script_value("ai_vassal_desire", &mut sc);
                 vd.field_validated_block("liege_modifier", |block, data| {

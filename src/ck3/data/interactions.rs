@@ -195,7 +195,13 @@ impl DbKind for CharacterInteraction {
         // TODO: The ai_ name check is a heuristic. It would be better to check if the
         // is_shown trigger requires scope:actor to be is_ai = yes. But that's a long way off.
         if !key.as_str().starts_with("ai_") {
-            data.verify_exists(Item::Localization, key);
+            if !block.has_key("name") {
+                data.verify_exists(Item::Localization, key);
+            }
+            if !block.has_key("desc") {
+                let loca = format!("{key}_desc");
+                data.mark_used(Item::Localization, &loca);
+            }
         }
         vd.field_validated_value("extra_icon", |k, mut vd| {
             vd.item(Item::File);
@@ -267,6 +273,12 @@ impl DbKind for CharacterInteraction {
             });
             vd.field_validated_sc("current_description", &mut sc.clone(), validate_desc);
             vd.field_bool("can_invalidate_interaction");
+
+            // undocumented
+
+            vd.field_script_value("scheme_preview_success_chance", &mut sc);
+            vd.field_script_value("scheme_preview_success_chance_max", &mut sc);
+            vd.field_script_value("scheme_preview_speed", &mut sc);
         });
 
         vd.field_bool("send_options_exclusive");
@@ -325,6 +337,7 @@ impl DbKind for CharacterInteraction {
             validate_modifiers_with_base,
         );
 
+        vd.field_validated_sc("name", &mut sc.clone(), validate_desc);
         vd.field_validated_sc("desc", &mut sc.clone(), validate_desc);
         vd.field_choice("greeting", &["negative", "positive"]);
         vd.field_validated_sc("prompt", &mut sc.clone(), validate_desc);

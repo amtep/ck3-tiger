@@ -43,9 +43,10 @@ impl DbKind for CustomLocalization {
         } else {
             sc = ScopeContext::new(Scopes::all(), key);
         }
-        // Scopes depend on the scopes available in the loca where Custom or Custom2 is called. TODO
+        // TODO: Scopes depend on the scopes available in the loca where Custom or Custom2 is called.
         sc.set_strict_scopes(false);
         vd.field_bool("log_loc_errors");
+        vd.field_bool("random_valid");
 
         if block.has_key("parent") {
             vd.field_item("parent", Item::CustomLocalization);
@@ -55,8 +56,6 @@ impl DbKind for CustomLocalization {
             return;
         }
         vd.req_field("type");
-
-        vd.field_bool("random_valid");
 
         vd.multi_field_validated_block("text", |block, data| {
             let mut vd = Validator::new(block, data);

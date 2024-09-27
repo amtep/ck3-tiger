@@ -1940,6 +1940,12 @@ pub fn validate_create_task_contract(
     if let Some(name) = vd.field_value("save_scope_as") {
         sc.define_name_token(name.as_str(), Scopes::TaskContract, name);
     }
+
+    // undocumented
+
+    if let Some(name) = vd.field_value("save_temporary_scope_as") {
+        sc.define_name_token(name.as_str(), Scopes::TaskContract, name);
+    }
 }
 
 pub fn validate_give_noble_family_title(

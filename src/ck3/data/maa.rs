@@ -246,6 +246,10 @@ impl MenAtArmsType {
         vd.field_bool("fallback_in_hired_troops_if_unlocked");
         vd.field_bool("mercenary_fallback");
         vd.field_bool("holy_order_fallback");
+
+        // undocumented
+
+        vd.field_integer("max_regiments");
     }
 }
 

@@ -99,5 +99,9 @@ impl DbKind for Terrain {
             validate_modifs(block, data, ModifKinds::Province, vd);
         });
         vd.field_numeric("provision_cost");
+
+        // undocumented
+
+        vd.field_item("entity", Item::Entity);
     }
 }
