@@ -490,7 +490,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::Character,
         "has_cb_on",
-        Block(&[("target", Scope(Scopes::Character)), ("cb", Item(Item::CasusBelli))]),
+        Block(&[("target", Scope(Scopes::Character)), ("?cb", Item(Item::CasusBelli)), ("?casus_belli", Item(Item::CasusBelli))]),
     ),
     (Scopes::Character, "has_character_flag", UncheckedValue),
     (Scopes::Character, "has_character_modifier", Item(Item::Modifier)),

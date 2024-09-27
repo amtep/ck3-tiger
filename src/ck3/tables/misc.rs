@@ -97,6 +97,8 @@ pub const GOVERNMENT_RULES: &[&str] = &[
     "mercenary",
     "use_title_tier_modifiers",
     "inherit_from_dynastic_government",
+    "state_faith",                    // undocumented
+    "allow_out_of_realm_inheritance", // undocumented
 ];
 
 // LAST UPDATED CK3 VERSION 1.12.1

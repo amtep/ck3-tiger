@@ -1893,6 +1893,9 @@ pub fn validate_start_best_war(
     vd.field_validated_key_block("on_success", |key, block, data| {
         validate_effect(block, data, &mut sc_builder(key), Tooltipped::No);
     });
+    vd.field_validated_key_block("on_failure", |key, block, data| {
+        validate_effect(block, data, &mut sc_builder(key), Tooltipped::No);
+    });
 }
 
 pub fn validate_create_maa_regiment(
@@ -1948,6 +1951,7 @@ pub fn validate_give_noble_family_title(
     _tooltipped: Tooltipped,
 ) {
     vd.field_validated_sc("name", sc, validate_desc);
+    vd.field_validated_sc("article", sc, validate_desc);
     if let Some(name) = vd.field_value("save_scope_as") {
         sc.define_name_token(name.as_str(), Scopes::LandedTitle, name);
     }

@@ -320,10 +320,12 @@ impl DbKind for PortraitCamera {
         vd.field_validated_block("camera", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_list_numeric_exactly("position", 3);
-            vd.field_value("position_node"); // TODO
+            // This is a block in ck3, a value otherwise
+            vd.field("position_node"); // TODO
 
             vd.field_list_numeric_exactly("look_at", 3);
-            vd.field_value("look_at_node"); // TODO
+            // This is a block in ck3, a value otherwise
+            vd.field("look_at_node"); // TODO
 
             vd.field_numeric("fov");
             vd.field_list_numeric_exactly("camera_near_far", 2);

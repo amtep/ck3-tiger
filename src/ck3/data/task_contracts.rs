@@ -10,7 +10,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validator::Validator;
+use crate::validator::{Builder, Validator};
 
 #[derive(Clone, Debug)]
 pub struct TaskContractType {}
@@ -86,7 +86,13 @@ impl DbKind for TaskContractType {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
-        for field in &["on_create", "on_accepted", "on_completed", "on_invalidated"] {
+        vd.field_validated_key_block("on_create", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.define_name("contract", Scopes::TaskContract, key);
+            validate_effect(block, data, &mut sc, Tooltipped::No);
+        });
+
+        for field in &["on_accepted", "on_completed", "on_invalidated"] {
             vd.field_validated_key_block(field, |key, block, data| {
                 let mut sc = ScopeContext::new(Scopes::TaskContract, key);
                 validate_effect(block, data, &mut sc, Tooltipped::No);
@@ -108,5 +114,12 @@ impl DbKind for TaskContractType {
                 vd.field_bool("positive");
             });
         });
+
+        let sc_weight: &Builder = &|key| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.define_name("employer", Scopes::Character, key);
+            sc
+        };
+        vd.field_script_value_full("weight", sc_weight, false);
     }
 }

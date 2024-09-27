@@ -13,7 +13,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::validate_duration;
-use crate::validator::Validator;
+use crate::validator::{Builder, Validator};
 
 #[derive(Clone, Debug)]
 pub struct DomicileType {}
@@ -172,7 +172,7 @@ impl DbKind for DomicileBuilding {
 
         vd.field_choice("slot_type", &["main", "external", "internal"]);
         vd.field_integer("internal_slots");
-        vd.field_list_items("domicile_types", Item::DomicileType);
+        vd.field_list_items("allowed_domicile_types", Item::DomicileType);
         vd.field_item("previous_building", Item::DomicileBuilding);
 
         // TODO: verify scope type
@@ -185,9 +185,19 @@ impl DbKind for DomicileBuilding {
         });
 
         // TODO: verify scope type
-        vd.field_script_value_full("ai_value", Scopes::Character, false);
+        let sc_ai_value: &Builder = &|key| {
+            let mut sc = ScopeContext::new(Scopes::Domicile, key);
+            sc.define_name("owner", Scopes::Character, key);
+            sc
+        };
+
+        vd.field_script_value_full("ai_value", sc_ai_value, false);
 
         vd.multi_field_validated_block("asset", validate_building_asset);
+
+        // undocumented
+
+        vd.field_validated_block_sc("refund", &mut sc, validate_cost);
     }
 }
 

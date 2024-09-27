@@ -230,6 +230,8 @@ impl Title {
         vd.field_bool("delete_on_gain_same_tier");
         vd.field_bool("de_jure_drift_disabled");
         vd.field_bool("ignore_titularity_for_title_weighting");
+        vd.field_bool("require_landless");
+        vd.field_bool("noble_family");
 
         vd.field_list_items("male_names", Item::Localization);
         vd.field_list_items("female_names", Item::Localization);
