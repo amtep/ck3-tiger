@@ -1827,13 +1827,13 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
         (Scopes::Character, "ai_values_divergence", Scope(Scopes::Character), Scopes::Value),
         (
             Scopes::Character,
-            "appointment_character_accumulated_score",
+            "appointment_candidate_accumulated_score",
             Scope(Scopes::LandedTitle),
             Scopes::Value,
         ),
         (
             Scopes::Character,
-            "appointment_character_score",
+            "appointment_candidate_score",
             Scope(Scopes::LandedTitle),
             Scopes::Value,
         ),
