@@ -927,6 +927,7 @@ fn match_trigger_bv(
                     if let Some(target) = vd.field_value("trigger") {
                         let target = target.clone();
                         let mut count = 0;
+                        vd.set_allow_questionmark_equals(true);
                         vd.unknown_block_fields(|key, block| {
                             count += 1;
                             if !key.is("fallback") {

@@ -206,6 +206,7 @@ pub fn validate_switch(
         // clone to avoid calling vd again while target is still borrowed
         let target = target.clone();
         let mut count = 0;
+        vd.set_allow_questionmark_equals(true);
         vd.unknown_block_fields(|key, block| {
             count += 1;
             if !key.is("fallback") {
