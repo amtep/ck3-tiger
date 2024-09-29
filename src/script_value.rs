@@ -10,11 +10,11 @@ use crate::everything::Everything;
 use crate::helpers::TriBool;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, tips, untidy, warn, ErrorKey};
+use crate::report::{err, tips, untidy, warn, ErrorKey, Severity};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_target_ok_this, validate_trigger};
+use crate::trigger::{validate_target_ok_this, validate_trigger, validate_trigger_key_bv};
 use crate::validate::{
     precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
     validate_iterator_fields, validate_scope_chain, ListType,
@@ -138,6 +138,32 @@ fn validate_inner(
                 made_changes = true;
             }
             have_value = TriBool::Maybe;
+        } else if token.is("switch") {
+            if let Some(block) = bv.expect_block() {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("trigger");
+                if let Some(target) = vd.field_value("trigger").cloned() {
+                    vd.set_allow_questionmark_equals(true);
+                    vd.unknown_block_fields(|key, block| {
+                        if !key.is("fallback") {
+                            let synthetic_bv = BV::Value(key.clone());
+                            validate_trigger_key_bv(
+                                &target,
+                                Comparator::Equals(Single),
+                                &synthetic_bv,
+                                data,
+                                sc,
+                                Tooltipped::No,
+                                false,
+                                Severity::Error,
+                            );
+                        }
+                        let vd = Validator::new(block, data);
+                        made_changes |= validate_inner(vd, block, data, sc, have_value, check_desc);
+                    });
+                    have_value = TriBool::Maybe;
+                }
+            }
         } else {
             if let Some((it_type, it_name)) = token.split_once('_') {
                 if it_type.is("every")
