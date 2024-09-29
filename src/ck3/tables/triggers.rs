@@ -1447,7 +1447,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "number_of_virtue_traits_in_common",
         Block(&[("target", Scope(Scopes::Character)), ("+value", CompareValue)]),
     ),
-    // TODO: number_title_maa_regiments_of_type
+    (
+        Scopes::Character,
+        "number_title_maa_regiments_of_type",
+        Block(&[("type", Item(Item::MenAtArms)), ("+value", CompareValue)]),
+    ),
     (Scopes::VassalObligationLevel, "obligation_level_score", CompareValue),
     (
         Scopes::Character,
