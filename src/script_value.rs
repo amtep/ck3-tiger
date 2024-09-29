@@ -80,7 +80,11 @@ fn validate_inner(
             saved_value = false;
             validate_bv(bv, data, sc, check_desc);
             made_changes = true;
-        } else if token.is("multiply") || token.is("divide") || token.is("modulo") {
+        } else if token.is("multiply")
+            || token.is("divide")
+            || token.is("modulo")
+            || token.is("round_to")
+        {
             if have_value == TriBool::False {
                 let msg = format!("nothing to {token} yet");
                 warn(ErrorKey::Logic).msg(msg).loc(token).push();
