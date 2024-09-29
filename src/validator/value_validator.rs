@@ -93,6 +93,17 @@ impl<'a> ValueValidator<'a> {
         self.data.verify_exists_max_sev(itype, &self.value, self.max_severity);
     }
 
+    // Expect the value to be the name of a file (possibly with suffix) in the defined path.
+    #[cfg(feature = "ck3")]
+    #[allow(dead_code)]
+    pub fn icon(&mut self, define: &str, suffix: &str) {
+        if self.validated {
+            return;
+        }
+        self.validated = true;
+        self.data.verify_icon(define, &self.value, suffix);
+    }
+
     /// Add the given suffix to the value and mark that as a used item, without doing any validation.
     /// This is used for very weakly required localization, for example, where no warning is warranted.
     #[cfg(feature = "ck3")] // silence dead code warning
@@ -145,20 +156,6 @@ impl<'a> ValueValidator<'a> {
         let pathname = format!("{path}/{}", self.value);
         // TODO: pass max_severity here
         self.data.verify_exists_implied(Item::File, &pathname, &self.value);
-    }
-
-    /// Expect the value to be the name of a file under the directory specified by the given `define`.
-    #[cfg(feature = "ck3")] // silence dead code warnings
-    pub fn defined_dir_file(&mut self, define: &str) {
-        if self.validated {
-            return;
-        }
-        self.validated = true;
-        if let Some(path) = self.data.get_defined_string_warn(&self.value, define) {
-            let pathname = format!("{path}/{}", self.value);
-            // TODO: pass max_severity here
-            self.data.verify_exists_implied(Item::File, &pathname, &self.value);
-        }
     }
 
     #[must_use]

@@ -181,20 +181,10 @@ impl Trait {
 
         if !vd.field_validated("icon", |bv, data| {
             validate_desc_map(bv, data, &mut sc, |name, data, _| {
-                if let Some(icon_path) =
-                    data.get_defined_string_warn(&self.key, "NGameIcons|TRAIT_ICON_PATH")
-                {
-                    let path = format!("{icon_path}/{name}");
-                    data.verify_exists_implied(Item::File, &path, name);
-                }
+                data.verify_icon("NGameIcons|TRAIT_ICON_PATH", name, "");
             });
         }) {
-            if let Some(icon_path) =
-                data.get_defined_string_warn(&self.key, "NGameIcons|TRAIT_ICON_PATH")
-            {
-                let path = format!("{icon_path}/{}.dds", self.key);
-                data.verify_exists_implied(Item::File, &path, &self.key);
-            }
+            data.verify_icon("NGameIcons|TRAIT_ICON_PATH", &self.key, ".dds");
         }
 
         vd.field_item("category", Item::TraitCategory);

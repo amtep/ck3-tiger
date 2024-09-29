@@ -46,12 +46,7 @@ impl DbKind for CasusBelli {
 
         vd.field_item("group", Item::CasusBelliGroup);
         let icon = vd.field_value("icon").unwrap_or(key);
-        if let Some(icon_path) =
-            data.get_defined_string_warn(key, "NGameIcons|CASUS_BELLI_TYPE_ICON_PATH")
-        {
-            let path = format!("{icon_path}/{icon}.dds");
-            data.verify_exists_implied(Item::File, &path, icon);
-        }
+        data.verify_icon("NGameIcons|CASUS_BELLI_TYPE_ICON_PATH", icon, ".dds");
 
         vd.field_validated_block_rooted(
             "attacker_ticking_warscore_delay",

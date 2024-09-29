@@ -104,26 +104,11 @@ impl DbKind for CharacterInteraction {
         vd.field_bool("common_interaction");
         vd.field_item("category", Item::CharacterInteractionCategory);
 
-        if let Some(icon_path) =
-            data.get_defined_string_warn(key, "NGameIcons|CHARACTER_INTERACTION_ICON_PATH")
-        {
-            if !vd.multi_field_validated_sc("icon", &mut sc, validate_icon) {
-                let pathname = format!("{icon_path}/{key}.dds");
-                data.mark_used(Item::File, &pathname);
-            }
-            if let Some(name) = vd.field_value("alert_icon") {
-                let pathname = format!("{icon_path}/{name}.dds");
-                data.verify_exists_implied(Item::File, &pathname, name);
-            }
-            if let Some(name) = vd.field_value("icon_small") {
-                let pathname = format!("{icon_path}/{name}.dds");
-                data.verify_exists_implied(Item::File, &pathname, name);
-            }
-        } else {
-            vd.field_value("icon");
-            vd.field_value("alert_icon");
-            vd.field_value("icon_small");
+        if !vd.multi_field_validated_sc("icon", &mut sc, validate_icon) {
+            data.mark_used_icon("NGameIcons|CHARACTER_INTERACTION_ICON_PATH", key, ".dds");
         }
+        vd.field_icon("alert_icon", "NGameIcons|CHARACTER_INTERACTION_ICON_PATH", ".dds");
+        vd.field_icon("icon_small", "NGameIcons|CHARACTER_INTERACTION_ICON_PATH", ".dds");
 
         vd.field_validated_block("is_highlighted", |b, data| {
             validate_trigger(b, data, &mut sc.clone(), Tooltipped::No);
@@ -408,12 +393,7 @@ fn validate_bool_or_trigger(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
 fn validate_icon(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
     match bv {
         BV::Value(token) => {
-            if let Some(icon_path) =
-                data.get_defined_string_warn(token, "NGameIcons|CHARACTER_INTERACTION_ICON_PATH")
-            {
-                let pathname = format!("{icon_path}/{token}.dds");
-                data.verify_exists_implied(Item::File, &pathname, token);
-            }
+            data.verify_icon("NGameIcons|CHARACTER_INTERACTION_ICON_PATH", token, ".dds");
         }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
@@ -423,16 +403,7 @@ fn validate_icon(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
                 validate_trigger(block, data, sc, Tooltipped::No);
             });
 
-            vd.field_validated_value("reference", |key, mut vd| {
-                let token = vd.value();
-                if let Some(icon_path) =
-                    data.get_defined_string_warn(key, "NGameIcons|CHARACTER_INTERACTION_ICON_PATH")
-                {
-                    let pathname = format!("{icon_path}/{token}.dds");
-                    data.verify_exists_implied(Item::File, &pathname, token);
-                }
-                vd.accept();
-            });
+            vd.field_icon("reference", "NGameIcons|CHARACTER_INTERACTION_ICON_PATH", ".dds");
         }
     }
 }

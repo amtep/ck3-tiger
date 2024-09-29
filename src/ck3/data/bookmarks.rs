@@ -65,8 +65,7 @@ impl DbKind for Bookmark {
 
         let pathname = format!("gfx/interface/bookmarks/{key}.dds");
         data.verify_exists_implied(Item::File, &pathname, key);
-        let pathname = format!("gfx/interface/bookmarks/start_buttons/{key}.dds");
-        data.verify_exists_implied(Item::File, &pathname, key);
+        data.verify_icon("NGameIcons|BOOKMARK_START_BUTTON_PATH", key, ".dds");
         let pathname = format!("gfx/interface/icons/bookmark_buttons/{key}.dds");
         data.verify_exists_implied(Item::File, &pathname, key);
 

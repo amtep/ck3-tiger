@@ -112,13 +112,7 @@ impl DbKind for TaxSlotObligation {
         let loca = format!("{key}_flavor_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        // icon
-        if let Some(icon_path) =
-            data.get_defined_string_warn(key, "NGameIcons|TAX_SLOT_OBLIGATION_TYPE_PATH")
-        {
-            let pathname = format!("{icon_path}/{key}.dds");
-            data.verify_exists_implied(Item::File, &pathname, key);
-        }
+        data.verify_icon("NGameIcons|TAX_SLOT_OBLIGATION_TYPE_PATH", key, ".dds");
 
         let mut vd = Validator::new(block, data);
         vd.field_validated_key_block("is_shown", |key, block, data| {

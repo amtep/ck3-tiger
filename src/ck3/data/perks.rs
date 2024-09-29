@@ -45,8 +45,7 @@ impl DbKind for Perk {
         if let Some(token) = vd.field_value("tree") {
             let loca = format!("{token}_name");
             data.verify_exists_implied(Item::Localization, &loca, token);
-            let pathname = format!("gfx/interface/icons/lifestyle_tree_backgrounds/{token}.dds");
-            data.verify_exists_implied(Item::File, &pathname, token);
+            data.verify_icon("NGameIcons|LIFESTYPE_TREE_BACKGROUND_PATH", token, ".dds");
         }
         vd.field_validated_block("position", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -54,10 +53,7 @@ impl DbKind for Perk {
         });
 
         let icon = vd.field_value("icon").unwrap_or(key);
-        if let Some(icon_path) = data.get_defined_string_warn(key, "NGameIcons|PERK_ICON_PATH") {
-            let pathname = format!("{icon_path}/{icon}.dds");
-            data.verify_exists_implied(Item::File, &pathname, icon);
-        }
+        data.verify_icon("NGameIcons|PERK_ICON_PATH", icon, ".dds");
 
         vd.field_item("lifestyle", Item::Lifestyle);
         // TODO: check for loops in perk parents

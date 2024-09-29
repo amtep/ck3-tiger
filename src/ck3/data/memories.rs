@@ -39,10 +39,7 @@ impl DbKind for MemoryType {
         sc.define_name("owner", Scopes::Character, key);
 
         // undocumented
-        if let Some(icon) = vd.field_value("icon") {
-            let pathname = format!("gfx/interface/icons/memory_types/{icon}");
-            data.verify_exists_implied(Item::File, &pathname, icon);
-        }
+        vd.field_icon("icon", "NGameIcons|MEMORY_TYPE_ICON_PATH", "");
 
         vd.field_list("categories");
         vd.field_validated_list("participants", |token, _data| {

@@ -74,12 +74,7 @@ impl DbKind for Scheme {
         vd.field_bool("hostile");
 
         let icon = vd.field_value("icon").unwrap_or(key);
-        if let Some(icon_path) =
-            data.get_defined_string_warn(icon, "NGameIcons|SCHEME_TYPE_ICON_PATH")
-        {
-            let pathname = format!("{icon_path}/{icon}.dds");
-            data.verify_exists_implied(Item::File, &pathname, icon);
-        }
+        data.verify_icon("NGameIcons|SCHEME_TYPE_ICON_PATH", icon, ".dds");
         vd.field_item("illustration", Item::File);
 
         vd.field_validated_block("allow", |block, data| {
@@ -267,12 +262,7 @@ impl DbKind for SchemePulseAction {
         };
 
         let icon = vd.field_value("icon").unwrap_or(key);
-        if let Some(icon_path) =
-            data.get_defined_string_warn(icon, "NGameIcons|STATICMODIFIER_ICON_PATH")
-        {
-            let pathname = format!("{icon_path}/{icon}.dds");
-            data.verify_exists_implied(Item::File, &pathname, icon);
-        }
+        data.verify_icon("NGameIcons|STATICMODIFIER_ICON_PATH", icon, ".dds");
 
         vd.field_localization("hud_text", &mut sc_builder(key));
 
@@ -316,12 +306,7 @@ impl DbKind for Countermeasure {
         let loca = format!("scheme_countermeasure_type_{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        if let Some(icon_path) =
-            data.get_defined_string_warn(key, "NGameIcons|SCHEME_COUNTERMEASURE_TYPE_ICON_PATH")
-        {
-            let pathname = format!("{icon_path}/{key}.dds");
-            data.verify_exists_implied(Item::File, &pathname, key);
-        }
+        data.verify_icon("NGameIcons|SCHEME_COUNTERMEASURE_TYPE_ICON_PATH", key, ".dds");
 
         vd.field_validated_key_block("is_shown", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Character, key);

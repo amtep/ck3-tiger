@@ -4,7 +4,6 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::Severity;
 use crate::token::Token;
 use crate::validator::Validator;
 
@@ -62,12 +61,7 @@ impl DbKind for HousePowerBonus {
         let loca = format!("{key}_house_power");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        if let Some(icon_path) =
-            data.get_defined_string_warn(key, "NGameIcons|HOUSE_POWER_BONUS_ICON_PATH")
-        {
-            let pathname = format!("{icon_path}/{key}.dds");
-            data.verify_exists_implied_max_sev(Item::File, &pathname, key, Severity::Warning);
-        }
+        data.verify_icon("NGameIcons|HOUSE_POWER_BONUS_ICON_PATH", key, ".dds");
 
         vd.field_validated_block("liege_modifier", |block, data| {
             let vd = Validator::new(block, data);

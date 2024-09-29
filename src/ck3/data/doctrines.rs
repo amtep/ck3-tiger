@@ -200,18 +200,10 @@ impl Doctrine {
         let mut sc = ScopeContext::new(Scopes::Faith, &self.key);
         sc.define_list("selected_doctrines", Scopes::Doctrine, &self.key);
 
-        let icon_path =
-            data.get_defined_string_warn(&self.key, "NGameIcons|FAITH_DOCTRINE_ICON_PATH");
-        if let Some(icon_path) = icon_path {
-            if let Some(icon) = vd.field_value("icon") {
-                let path = format!("{icon_path}/{icon}.dds");
-                data.verify_exists_implied(Item::File, &path, icon);
-            } else if data.doctrines.categories[self.category.as_str()].needs_icon(data) {
-                let path = format!("{icon_path}/{}.dds", &self.key);
-                data.verify_exists_implied(Item::File, &path, &self.key);
-            }
-        } else {
-            vd.field_value("icon");
+        if let Some(icon) = vd.field_value("icon") {
+            data.verify_icon("NGameIcons|FAITH_DOCTRINE_ICON_PATH", icon, ".dds");
+        } else if data.doctrines.categories[self.category.as_str()].needs_icon(data) {
+            data.verify_icon("NGameIcons|FAITH_DOCTRINE_ICON_PATH", &self.key, ".dds");
         }
 
         if !vd.field_validated_sc("name", &mut sc, validate_desc) {

@@ -58,14 +58,8 @@ fn validate_stage(key: &Token, block: &Block, data: &Everything) {
     vd.req_field("points");
     vd.field_integer("points");
 
-    // icon
     let icon = vd.field_value("icon").unwrap_or(key);
-    if let Some(icon_path) =
-        data.get_defined_string_warn(key, "NGameIcons|HOUSE_UNITY_STAGE_ICON_PATH")
-    {
-        let pathname = format!("{icon_path}/{icon}.dds");
-        data.verify_exists_implied(Item::File, &pathname, icon);
-    }
+    data.verify_icon("NGameIcons|HOUSE_UNITY_STAGE_ICON_PATH", icon, ".dds");
 
     // progress bar
     if let Some(progress_bar_path) =

@@ -42,8 +42,7 @@ impl DbKind for Secret {
         if let Some(token) = vd.field_value("category") {
             let loca = format!("secret_category_{token}");
             data.verify_exists_implied(Item::Localization, &loca, token);
-            let pathname = format!("gfx/interface/icons/secret_categories/{token}.dds");
-            data.verify_exists_implied(Item::File, &pathname, token);
+            data.verify_icon("NGameIcons|SECRET_TYPE_PATH", token, ".dds");
         }
 
         vd.field_validated_block("is_valid", |block, data| {

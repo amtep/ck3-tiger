@@ -31,8 +31,7 @@ impl DbKind for CombatEffect {
 
         let icon = vd.field_value("image").unwrap_or(key);
         if visible {
-            let pathname = format!("gfx/interface/icons/combat_effects/{icon}.dds");
-            data.mark_used(Item::File, &pathname);
+            data.mark_used_icon("NGameIcons|COMBAT_EFFECT_ICON_PATH", icon, ".dds");
         }
 
         vd.field_numeric("advantage");

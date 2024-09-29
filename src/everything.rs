@@ -841,6 +841,23 @@ impl Everything {
         self.verify_exists_implied_max_sev(itype, key, token, Severity::Error);
     }
 
+    #[cfg(feature = "ck3")]
+    pub(crate) fn verify_icon(&self, define: &str, token: &Token, suffix: &str) {
+        if let Some(icon_path) = self.get_defined_string_warn(token, define) {
+            let pathname = format!("{icon_path}/{token}{suffix}");
+            // It's `Severity::Warning` because a missing icon is only a UI issue.
+            self.verify_exists_implied_max_sev(Item::File, &pathname, token, Severity::Warning);
+        }
+    }
+
+    #[cfg(feature = "ck3")]
+    pub(crate) fn mark_used_icon(&self, define: &str, token: &Token, suffix: &str) {
+        if let Some(icon_path) = self.get_defined_string_warn(token, define) {
+            let pathname = format!("{icon_path}/{token}{suffix}");
+            self.fileset.mark_used(&pathname);
+        }
+    }
+
     pub(crate) fn validate_use(&self, itype: Item, key: &Token, block: &Block) {
         self.database.validate_use(itype, key, block, self);
     }

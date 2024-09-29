@@ -32,15 +32,7 @@ impl DbKind for Modifier {
         let loca = format!("{key}_desc");
         data.mark_used(Item::Localization, &loca);
 
-        // icon is also optional
-        if let Some(icon) = vd.field_value("icon") {
-            if let Some(icon_path) =
-                data.get_defined_string_warn(icon, "NGameIcons|STATICMODIFIER_ICON_PATH")
-            {
-                let pathname = format!("{icon_path}/{icon}.dds");
-                data.verify_exists_implied(Item::File, &pathname, icon);
-            }
-        }
+        vd.field_icon("icon", "NGameIcons|STATICMODIFIER_ICON_PATH", ".dds");
 
         vd.field_bool("stacking");
         vd.field_bool("hide_effects");

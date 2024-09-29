@@ -9,7 +9,7 @@ use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, ErrorKey};
+use crate::report::{warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -162,52 +162,28 @@ impl MenAtArmsType {
         let loca = format!("{}_flavor", &self.key);
         data.verify_exists_implied(Item::Localization, &loca, &self.key);
 
-        if let Some(icon_path) =
-            data.get_defined_string_warn(&self.key, "NGameIcons|REGIMENTYPE_ICON_PATH")
-        {
-            if let Some(icon) = vd.field_value("icon") {
-                let path = format!("{icon_path}/{icon}.dds");
-                data.verify_exists_implied(Item::File, &path, icon);
-            } else if let Some(base) = self.block.get_field_value("type") {
-                let base_path = format!("{icon_path}/{base}.dds");
-                let path = format!("{icon_path}/{}.dds", self.key);
-                data.mark_used(Item::File, &base_path);
-                if !data.fileset.exists(&base_path) {
-                    data.verify_exists_implied(Item::File, &path, &self.key);
-                }
-            }
-        } else {
-            vd.field_value("icon");
-        }
-
-        if let Some(icon_path) =
-            data.get_defined_string_warn(&self.key, "NGameIcons|REGIMENTYPE_HORIZONTAL_IMAGE_PATH")
-        {
-            if let Some(icon) = self.block.get_field_value("icon") {
-                let path = format!("{icon_path}/{icon}.dds");
-                data.verify_exists_implied(Item::File, &path, icon);
-            } else if let Some(base) = self.block.get_field_value("type") {
-                let base_path = format!("{icon_path}/{base}.dds");
-                let path = format!("{icon_path}/{}.dds", self.key);
-                data.mark_used(Item::File, &base_path);
-                if !data.fileset.exists(&base_path) {
-                    data.verify_exists_implied(Item::File, &path, &self.key);
-                }
-            }
-        }
-
-        if let Some(icon_path) =
-            data.get_defined_string_warn(&self.key, "NGameIcons|REGIMENTYPE_VERTICAL_IMAGE_PATH")
-        {
-            if let Some(icon) = self.block.get_field_value("icon") {
-                let path = format!("{icon_path}/{icon}.dds");
-                data.verify_exists_implied(Item::File, &path, icon);
-            } else if let Some(base) = self.block.get_field_value("type") {
-                let base_path = format!("{icon_path}/{base}.dds");
-                let path = format!("{icon_path}/{}.dds", self.key);
-                data.mark_used(Item::File, &base_path);
-                if !data.fileset.exists(&base_path) {
-                    data.verify_exists_implied(Item::File, &path, &self.key);
+        if let Some(icon) = vd.field_value("icon") {
+            data.verify_icon("NGameIcons|REGIMENTYPE_ICON_PATH", icon, ".dds");
+            data.verify_icon("NGameIcons|REGIMENTYPE_HORIZONTAL_IMAGE_PATH", icon, ".dds");
+            data.verify_icon("NGameIcons|REGIMENTYPE_VERTICAL_IMAGE_PATH", icon, ".dds");
+        } else if let Some(base) = self.block.get_field_value("type") {
+            for define in &[
+                "NGameIcons|REGIMENTYPE_ICON_PATH",
+                "NGameIcons|REGIMENTYPE_HORIZONTAL_IMAGE_PATH",
+                "NGameIcons|REGIMENTYPE_VERTICAL_IMAGE_PATH",
+            ] {
+                if let Some(icon_path) = data.get_defined_string_warn(&self.key, define) {
+                    let base_path = format!("{icon_path}/{base}.dds");
+                    let path = format!("{icon_path}/{}.dds", self.key);
+                    data.mark_used(Item::File, &base_path);
+                    if !data.fileset.exists(&base_path) {
+                        data.verify_exists_implied_max_sev(
+                            Item::File,
+                            &path,
+                            &self.key,
+                            Severity::Warning,
+                        );
+                    }
                 }
             }
         }

@@ -42,19 +42,9 @@ impl DbKind for ArtifactSlot {
             // TODO: this can probably be simplified
             if category.is("inventory") {
                 let icon = vd.field_value("icon").unwrap_or(key);
-                if let Some(icon_path) =
-                    data.get_defined_string_warn(key, "NGameIcons|INVENTORY_SLOT_ICON_PATH")
-                {
-                    let pathname = format!("{icon_path}/{icon}.dds");
-                    data.verify_exists_implied(Item::File, &pathname, icon);
-                }
+                data.verify_icon("NGameIcons|INVENTORY_SLOT_ICON_PATH", icon, ".dds");
             } else if let Some(icon) = vd.field_value("icon") {
-                if let Some(icon_path) =
-                    data.get_defined_string_warn(key, "NGameIcons|INVENTORY_SLOT_ICON_PATH")
-                {
-                    let pathname = format!("{icon_path}/{icon}.dds");
-                    data.verify_exists_implied(Item::File, &pathname, icon);
-                }
+                data.verify_icon("NGameIcons|INVENTORY_SLOT_ICON_PATH", icon, ".dds");
             }
         }
     }
@@ -158,12 +148,7 @@ impl DbKind for ArtifactVisual {
         vd.multi_field_validated("icon", |bv, data| match bv {
             BV::Value(icon) => {
                 unconditional = true;
-                if let Some(icon_path) =
-                    data.get_defined_string_warn(icon, "NGameIcons|ARTIFACT_ICON_PATH")
-                {
-                    let pathname = format!("{icon_path}/{icon}");
-                    data.verify_exists_implied(Item::File, &pathname, icon);
-                }
+                data.verify_icon("NGameIcons|ARTIFACT_ICON_PATH", icon, "");
             }
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
@@ -173,9 +158,7 @@ impl DbKind for ArtifactVisual {
                 vd.field_validated_block("trigger", |block, data| {
                     validate_trigger(block, data, &mut sc, Tooltipped::No);
                 });
-                vd.field_validated_value("reference", |_, mut vd| {
-                    vd.defined_dir_file("NGameIcons|ARTIFACT_ICON_PATH");
-                });
+                vd.field_icon("reference", "NGameIcons|ARTIFACT_ICON_PATH", "");
             }
         });
         if !unconditional {

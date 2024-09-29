@@ -728,9 +728,9 @@ impl DbKind for ActivityPulseAction {
         let loca = format!("{key}_title");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
+        let define = "NGameIcons|ACTIVITY_PULSE_ACTION_ICON_PATH";
         let icon = vd.field_value("icon").unwrap_or(key);
-        let pathname = format!("gfx/interface/icons/activity_pulse_actions/{icon}.dds");
-        data.verify_exists_implied(Item::File, &pathname, icon);
+        data.verify_icon(define, icon, ".dds");
 
         let mut sc = ScopeContext::new(Scopes::Activity, key);
         sc.define_name("activity", Scopes::Activity, key);
@@ -763,9 +763,9 @@ impl DbKind for ActivityIntent {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
+        let define = "NGameIcons|ACTIVITY_INTENTS_ICON_PATH";
         let icon = vd.field_value("icon").unwrap_or(key);
-        let pathname = format!("gfx/interface/icons/activity_intents/{icon}.dds");
-        data.verify_exists_implied(Item::File, &pathname, icon);
+        data.verify_icon(define, icon, ".dds");
 
         vd.field_bool("auto_complete");
 
@@ -823,10 +823,8 @@ fn validate_option(
     let loca = format!("{key}_desc");
     data.verify_exists_implied(Item::Localization, &loca, key);
     if is_special_option {
-        let pathname = format!("gfx/interface/illustrations/activity_types/{key}.dds");
-        data.verify_exists_implied(Item::File, &pathname, key);
-        let pathname = format!("gfx/interface/icons/activity_types/{key}_icon.dds");
-        data.verify_exists_implied(Item::File, &pathname, key);
+        data.verify_icon("NGameIcons|ACTIVITY_OPTION_TEXTURE_PATH", key, ".dds");
+        data.verify_icon("NGameIcons|ACTIVITY_OPTION_ICON_PATH", key, "_icon.dds");
     }
     let mut sc = ScopeContext::new(Scopes::Character, key);
     if has_special_option {

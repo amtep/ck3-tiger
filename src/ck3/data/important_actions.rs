@@ -55,11 +55,9 @@ impl DbKind for ImportantAction {
         vd.field_choice("type", &["action", "alert", "tutorial"]);
 
         if let Some(token) = vd.field_value("icon") {
-            let pathname = format!("gfx/interface/icons/alerts/{token}.dds");
-            data.verify_exists_implied(Item::File, &pathname, token);
+            data.verify_icon("NGameIcons|IMPORTANT_ACTIONS_TYPE_ICON_PATH", token, ".dds");
         } else if block.field_value_is("type", "alert") {
-            let pathname = format!("gfx/interface/icons/alerts/{key}.dds");
-            data.verify_exists_implied(Item::File, &pathname, key);
+            data.verify_icon("NGameIcons|IMPORTANT_ACTIONS_TYPE_ICON_PATH", key, ".dds");
         }
 
         vd.field_bool("is_dangerous");

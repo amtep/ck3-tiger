@@ -940,6 +940,15 @@ impl<'a> Validator<'a> {
         })
     }
 
+    #[cfg(feature = "ck3")]
+    pub fn field_icon(&mut self, name: &str, define: &str, suffix: &str) -> bool {
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                self.data.verify_icon(define, token, suffix);
+            }
+        })
+    }
+
     /// Just like [`Validator::field_validated_list`], but expect any number of `name` fields in the block.
     #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
     pub fn multi_field_validated_list<F>(&mut self, name: &str, mut f: F) -> bool

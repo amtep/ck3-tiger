@@ -73,14 +73,7 @@ impl DbKind for Building {
             }
         }
 
-        if let Some(icon) = vd.field_value("type_icon") {
-            if let Some(icon_path) =
-                data.get_defined_string_warn(icon, "NGameIcons|BUILDING_TYPE_ICON_PATH")
-            {
-                let pathname = format!("{icon_path}/{icon}");
-                data.verify_exists_implied(Item::File, &pathname, icon);
-            }
-        }
+        vd.field_icon("type_icon", "NGameIcons|BUILDING_TYPE_ICON_PATH", "");
 
         vd.field_script_value_rooted("levy", Scopes::None);
         vd.field_script_value_rooted("max_garrison", Scopes::None);

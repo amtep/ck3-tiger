@@ -49,17 +49,8 @@ impl DbKind for Lifestyle {
         });
 
         let icon = vd.field_value("icon").unwrap_or(key);
-        if let Some(icon_path) = data.get_defined_string_warn(key, "NGameIcons|LIFESTYLE_ICON_PATH")
-        {
-            let pathname = format!("{icon_path}/{icon}.dds");
-            data.verify_exists_implied(Item::File, &pathname, icon);
-        }
-        if let Some(path) =
-            data.get_defined_string_warn(key, "NGameIcons|LIFESTYLE_BACKGROUND_PATH")
-        {
-            let pathname = format!("{path}/{icon}.dds");
-            data.verify_exists_implied(Item::File, &pathname, icon);
-        }
+        data.verify_icon("NGameIcons|LIFESTYLE_ICON_PATH", icon, ".dds");
+        data.verify_icon("NGameIcons|LIFESTYLE_BACKGROUND_PATH", icon, ".dds");
 
         vd.field_numeric("xp_per_level");
         vd.field_numeric("base_xp_gain");

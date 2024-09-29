@@ -78,29 +78,15 @@ impl DbKind for Religion {
 
         validate_doctrines("religion", data, &mut vd);
 
-        if let Some(icon) = vd.field_value("doctrine_background_icon") {
-            if let Some(icon_path) =
-                data.get_defined_string_warn(key, "NGameIcons|FAITH_DOCTRINE_BACKGROUND_PATH")
-            {
-                let pathname = format!("{icon_path}/{icon}");
-                data.verify_exists_implied(Item::File, &pathname, icon);
-            }
-        }
+        vd.field_icon("doctrine_background_icon", "NGameIcons|FAITH_DOCTRINE_BACKGROUND_PATH", "");
         vd.field_value("piety_icon_group"); // TODO
         vd.field_value("graphical_faith");
         vd.field_bool("pagan_roots");
         vd.field_validated_block("traits", validate_traits);
 
-        vd.field_list("custom_faith_icons");
-        if let Some(icons) = block.get_field_list("custom_faith_icons") {
-            if let Some(icon_path) = data.get_defined_string_warn(key, "NGameIcons|FAITH_ICON_PATH")
-            {
-                for icon in &icons {
-                    let pathname = format!("{icon_path}/{icon}.dds");
-                    data.verify_exists_implied(Item::File, &pathname, icon);
-                }
-            }
-        }
+        vd.field_validated_list("custom_faith_icons", |icon, data| {
+            data.verify_icon("NGameIcons|FAITH_ICON_PATH", icon, ".dds");
+        });
 
         vd.field_list("reserved_male_names"); // TODO
         vd.field_list("reserved_female_names"); // TODO
@@ -268,33 +254,17 @@ impl DbKind for Faith {
         vd.field_validated("color", validate_possibly_named_color);
 
         let icon = vd.field_value("icon").unwrap_or(key);
-        if let Some(icon_path) = data.get_defined_string_warn(key, "NGameIcons|FAITH_ICON_PATH") {
-            let pathname = format!("{icon_path}/{icon}.dds");
-            data.verify_exists_implied(Item::File, &pathname, icon);
-        }
+        data.verify_icon("NGameIcons|FAITH_ICON_PATH", icon, ".dds");
         if pagan {
             vd.req_field_fatal("reformed_icon");
         } else {
             vd.ban_field("reformed_icon", || "unreformed faiths");
         }
-        if let Some(icon) = vd.field_value("reformed_icon") {
-            if let Some(icon_path) = data.get_defined_string_warn(key, "NGameIcons|FAITH_ICON_PATH")
-            {
-                let pathname = format!("{icon_path}/{icon}.dds");
-                data.fileset.verify_exists_implied_crashes(&pathname, icon);
-            }
-        }
+        vd.field_icon("reformed_icon", "NGameIcons|FAITH_ICON_PATH", ".dds");
         vd.field_value("graphical_faith");
         vd.field_value("piety_icon_group"); // TODO
 
-        if let Some(icon) = vd.field_value("doctrine_background_icon") {
-            if let Some(icon_path) =
-                data.get_defined_string_warn(key, "NGameIcons|FAITH_DOCTRINE_BACKGROUND_PATH")
-            {
-                let pathname = format!("{icon_path}/{icon}");
-                data.verify_exists_implied(Item::File, &pathname, icon);
-            }
-        }
+        vd.field_icon("doctrine_background_icon", "NGameIcons|FAITH_DOCTRINE_BACKGROUND_PATH", "");
 
         vd.field_item("religious_head", Item::Title);
         vd.req_field("holy_site");
@@ -358,10 +328,7 @@ impl DbKind for ReligionFamily {
         vd.field_bool("is_pagan");
         vd.field_value("graphical_faith");
         vd.field_value("piety_icon_group"); // TODO
-        if let Some(icon) = vd.field_value("doctrine_background_icon") {
-            let pathname = format!("gfx/interface/icons/faith_doctrines/{icon}");
-            data.verify_exists_implied(Item::File, &pathname, icon);
-        }
+        vd.field_icon("doctrine_background_icon", "NGameIcons|FAITH_DOCTRINE_BACKGROUND_PATH", "");
         vd.field_item("hostility_doctrine", Item::Doctrine);
     }
 }

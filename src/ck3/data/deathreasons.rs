@@ -4,7 +4,6 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::Severity;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -47,14 +46,7 @@ impl DbKind for DeathReason {
             data.mark_used(Item::Localization, &loca);
         }
 
-        if let Some(icon) = vd.field_value("icon") {
-            if let Some(icon_path) =
-                data.get_defined_string_warn(key, "NGameIcons|DEATH_REASON_ICON_PATH")
-            {
-                let pathname = format!("{icon_path}/{icon}");
-                data.verify_exists_implied_max_sev(Item::File, &pathname, icon, Severity::Warning);
-            }
-        }
+        vd.field_icon("icon", "NGameIcons|DEATH_REASON_ICON_PATH", "");
 
         vd.field_validated_block("natural_death_trigger", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);

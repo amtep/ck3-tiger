@@ -29,11 +29,7 @@ impl DbKind for Message {
         vd.field_item("desc", Item::Localization);
         vd.field_item("tooltip", Item::Localization);
         vd.field_item("soundeffect", Item::Sound);
-        if let Some(icon) = vd.field_value("icon") {
-            // docs say message_icons
-            let pathname = format!("gfx/interface/icons/message_feed/{icon}.dds");
-            data.verify_exists_implied(Item::File, &pathname, icon);
-        }
+        vd.field_icon("icon", "NGameIcons|MESSAGE_ICON_PATH", ".dds");
         vd.field_choice("style", &["good", "bad", "neutral"]);
 
         vd.advice_field("flags", "removed in 1.12");
