@@ -276,6 +276,9 @@ pub fn precheck_iterator_fields(
         if let Some(candidate) = block.get_field_value("candidate") {
             validate_target_ok_this(candidate, data, sc, Scopes::Character);
         }
+        if let Some(value) = block.get_field("value") {
+            validate_script_value(value, data, sc);
+        }
     }
 }
 
@@ -525,6 +528,7 @@ pub fn validate_inside_iterator(
         if name == "succession_appointment_investors" {
             vd.req_field("candidate");
             vd.field_value("candidate"); // prechecked
+            vd.field_any_cmp("value"); // prechecked
         } else {
             vd.ban_field("candidate", || format!("`{listtype}_succession_appointment_investors`"));
         }
