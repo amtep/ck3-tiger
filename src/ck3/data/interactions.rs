@@ -107,10 +107,7 @@ impl DbKind for CharacterInteraction {
         if let Some(icon_path) =
             data.get_defined_string_warn(key, "NGameIcons|CHARACTER_INTERACTION_ICON_PATH")
         {
-            if let Some(name) = vd.field_value("icon") {
-                let pathname = format!("{icon_path}/{name}.dds");
-                data.verify_exists_implied(Item::File, &pathname, name);
-            } else {
+            if !vd.multi_field_validated_sc("icon", &mut sc, validate_icon) {
                 let pathname = format!("{icon_path}/{key}.dds");
                 data.mark_used(Item::File, &pathname);
             }
@@ -404,6 +401,38 @@ fn validate_bool_or_trigger(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
         }
         BV::Block(b) => {
             validate_trigger(b, data, sc, Tooltipped::No);
+        }
+    }
+}
+
+fn validate_icon(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
+    match bv {
+        BV::Value(token) => {
+            if let Some(icon_path) =
+                data.get_defined_string_warn(token, "NGameIcons|CHARACTER_INTERACTION_ICON_PATH")
+            {
+                let pathname = format!("{icon_path}/{token}.dds");
+                data.verify_exists_implied(Item::File, &pathname, token);
+            }
+        }
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("reference");
+
+            vd.field_validated_block("trigger", |block, data| {
+                validate_trigger(block, data, sc, Tooltipped::No);
+            });
+
+            vd.field_validated_value("reference", |key, mut vd| {
+                let token = vd.value();
+                if let Some(icon_path) =
+                    data.get_defined_string_warn(key, "NGameIcons|CHARACTER_INTERACTION_ICON_PATH")
+                {
+                    let pathname = format!("{icon_path}/{token}.dds");
+                    data.verify_exists_implied(Item::File, &pathname, token);
+                }
+                vd.accept();
+            });
         }
     }
 }
