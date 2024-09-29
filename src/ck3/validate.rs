@@ -59,13 +59,8 @@ pub fn validate_theme_header_background(bv: &BV, data: &Everything, sc: &mut Sco
     }
 }
 
-pub fn validate_theme_icon(block: &Block, data: &Everything, sc: &mut ScopeContext) {
-    let mut vd = Validator::new(block, data);
-
-    vd.field_validated_block("trigger", |b, data| {
-        validate_trigger(b, data, sc, Tooltipped::No);
-    });
-    vd.field_item("reference", Item::File);
+pub fn validate_theme_icon(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
+    validate_theme_header_background(bv, data, sc);
 }
 
 pub fn validate_theme_sound(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -89,14 +84,19 @@ pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut Scop
     }
 }
 
-pub fn validate_theme_effect_2d(block: &Block, data: &Everything, sc: &mut ScopeContext) {
-    let mut vd = Validator::new(block, data);
+pub fn validate_theme_effect_2d(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
+    match bv {
+        BV::Value(token) => data.verify_exists(Item::EventEffect2d, token),
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
 
-    vd.field_validated_block("trigger", |b, data| {
-        validate_trigger(b, data, sc, Tooltipped::No);
-    });
-    if let Some(token) = vd.field_value("reference") {
-        data.verify_exists(Item::EventEffect2d, token);
+            vd.field_validated_block("trigger", |b, data| {
+                validate_trigger(b, data, sc, Tooltipped::No);
+            });
+            if let Some(token) = vd.field_value("reference") {
+                data.verify_exists(Item::EventEffect2d, token);
+            }
+        }
     }
 }
 

@@ -334,7 +334,7 @@ impl Event {
         } else {
             vd.multi_field_validated_sc("override_background", &mut sc, validate_theme_background);
         }
-        vd.multi_field_validated_block_sc("override_icon", &mut sc, validate_theme_icon);
+        vd.multi_field_validated_sc("override_icon", &mut sc, validate_theme_icon);
         vd.multi_field_validated_sc(
             "override_header_background",
             &mut sc,
@@ -346,7 +346,7 @@ impl Event {
             &mut sc,
             validate_theme_transition,
         );
-        vd.multi_field_validated_block_sc("override_effect_2d", &mut sc, validate_theme_effect_2d);
+        vd.multi_field_validated_sc("override_effect_2d", &mut sc, validate_theme_effect_2d);
         // Note: override_environment seems to be unused, and themes defined in
         // common/event_themes don't have environments. So I left it out even though
         // it's in the docs.

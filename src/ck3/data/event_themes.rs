@@ -68,10 +68,10 @@ impl DbKind for EventTheme {
 
         vd.multi_field_validated_sc("background", sc, validate_theme_background);
         vd.multi_field_validated_sc("header_background", sc, validate_theme_header_background);
-        vd.multi_field_validated_block_sc("icon", sc, validate_theme_icon);
+        vd.multi_field_validated_sc("icon", sc, validate_theme_icon);
         vd.multi_field_validated_block_sc("sound", sc, validate_theme_sound);
         vd.multi_field_validated_block_sc("transition", sc, validate_theme_transition);
-        vd.multi_field_validated_block_sc("effect_2d", sc, validate_theme_effect_2d);
+        vd.multi_field_validated_sc("effect_2d", sc, validate_theme_effect_2d);
     }
 }
 
