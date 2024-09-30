@@ -2,13 +2,14 @@ use std::path::PathBuf;
 
 use crate::block::Block;
 use crate::context::ScopeContext;
+use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::game::Game;
+use crate::game::{Game, GameFlags};
 use crate::helpers::{dup_error, TigerHashMap};
-use crate::item::Item;
+use crate::item::{Item, ItemLoader};
 use crate::pdxfile::PdxFile;
-use crate::report::{report, ErrorKey, Severity};
+use crate::report::{report, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -122,5 +123,39 @@ impl Music {
         });
 
         vd.field_list_numeric_exactly("subsequent_playback_chance", 3);
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct MusicPlayerCategory {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::all(), Item::MusicPlayerCategory, MusicPlayerCategory::add)
+}
+
+impl MusicPlayerCategory {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        if key.is("category") {
+            if let Some(id) = block.get_field_value("id") {
+                db.add(Item::MusicPlayerCategory, id.clone(), block, Box::new(Self {}));
+            } else {
+                let msg = "category without id";
+                warn(ErrorKey::FieldMissing).msg(msg).loc(key).push();
+            }
+        } else {
+            let msg = format!("unknown key {key} in music categories");
+            warn(ErrorKey::UnknownField).msg(msg).loc(key).push();
+        }
+    }
+}
+
+impl DbKind for MusicPlayerCategory {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        vd.set_max_severity(Severity::Warning);
+
+        vd.field_value("id"); // used in ::add
+        vd.field_item("name", Item::Localization);
+        vd.field_list_items("tracks", Item::Music);
     }
 }

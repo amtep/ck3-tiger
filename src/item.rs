@@ -88,6 +88,7 @@ pub enum Item {
     MapMode,
     Modifier,
     Music,
+    MusicPlayerCategory,
     NamedColor,
     OnAction,
     Pdxmesh,
@@ -573,6 +574,7 @@ impl Item {
                 Game::Imperator => "common/modifiers/",
             },
             Item::Music => "music/",
+            Item::MusicPlayerCategory => "music/music_player_categories/",
             Item::NamedColor => "common/named_colors/",
             Item::OnAction => match Game::game() {
                 #[cfg(feature = "ck3")]
