@@ -26,7 +26,6 @@ use crate::ck3::data::{
     gameconcepts::GameConcepts,
     interaction_cats::CharacterInteractionCategories,
     maa::MenAtArmsTypes,
-    music::Musics,
     prov_history::ProvinceHistories,
     prov_terrain::{ProvinceProperties, ProvinceTerrains},
     provinces::Ck3Provinces,
@@ -47,6 +46,7 @@ use crate::data::{
     defines::Defines,
     gui::Gui,
     localization::Localization,
+    music::Musics,
     on_actions::OnActions,
     script_values::ScriptValues,
     scripted_effects::{Effect, Effects},
@@ -191,7 +191,6 @@ pub struct Everything {
     pub(crate) data_bindings: DataBindings,
 
     pub(crate) assets: Assets,
-    #[cfg(feature = "ck3")]
     pub(crate) music: Musics,
 
     pub(crate) coas: Coas,
@@ -302,7 +301,6 @@ impl Everything {
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             data_bindings: DataBindings::default(),
             assets: Assets::default(),
-            #[cfg(feature = "ck3")]
             music: Musics::default(),
             coas: Coas::default(),
             #[cfg(feature = "vic3")]
@@ -412,6 +410,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.gui));
             s.spawn(|_| self.fileset.handle(&mut self.on_actions));
             s.spawn(|_| self.fileset.handle(&mut self.coas));
+            s.spawn(|_| self.fileset.handle(&mut self.music));
         });
 
         self.load_all_normal_pdx_files();
@@ -433,7 +432,6 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.doctrines));
             s.spawn(|_| self.fileset.handle(&mut self.menatarmstypes));
             s.spawn(|_| self.fileset.handle(&mut self.data_bindings));
-            s.spawn(|_| self.fileset.handle(&mut self.music));
             s.spawn(|_| self.fileset.handle(&mut self.provinces_ck3));
             s.spawn(|_| self.fileset.handle(&mut self.wars));
         });
@@ -481,6 +479,7 @@ impl Everything {
         s.spawn(|_| self.gui.validate(self));
         s.spawn(|_| self.on_actions.validate(self));
         s.spawn(|_| self.coas.validate(self));
+        s.spawn(|_| self.music.validate(self));
     }
 
     #[cfg(feature = "ck3")]
@@ -497,7 +496,6 @@ impl Everything {
         s.spawn(|_| self.doctrines.validate(self));
         s.spawn(|_| self.menatarmstypes.validate(self));
         s.spawn(|_| self.data_bindings.validate(self));
-        s.spawn(|_| self.music.validate(self));
         s.spawn(|_| self.events_ck3.validate(self));
         s.spawn(|_| self.provinces_ck3.validate(self));
         s.spawn(|_| self.wars.validate(self));
@@ -590,7 +588,6 @@ impl Everything {
             Item::GeneticConstraint => self.traits.constraint_exists(key),
             Item::MenAtArms => self.menatarmstypes.exists(key),
             Item::MenAtArmsBase => self.menatarmstypes.base_exists(key),
-            Item::Music => self.music.exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces_ck3.exists(key),
             Item::RewardItem => REWARD_ITEMS.contains(&key),
@@ -692,6 +689,7 @@ impl Everything {
             Item::GuiTemplate => self.gui.template_exists(key),
             Item::GuiType => self.gui.type_exists(&Lowercase::new(key)),
             Item::Localization => self.localization.exists(key),
+            Item::Music => self.music.exists(key),
             Item::OnAction => self.on_actions.exists(key),
             Item::Pdxmesh => self.assets.mesh_exists(key),
             Item::ScriptedEffect => self.effects.exists(key),
@@ -794,7 +792,6 @@ impl Everything {
             Item::Entry => self.fileset.verify_entry_exists(key, token, max_sev),
             Item::File => self.fileset.verify_exists_implied(key, token, max_sev),
             Item::Localization => self.localization.verify_exists_implied(key, token, max_sev),
-            #[cfg(feature = "ck3")]
             Item::Music => self.music.verify_exists_implied(key, token, max_sev),
             Item::Province => match Game::game() {
                 #[cfg(feature = "ck3")]
@@ -981,7 +978,6 @@ impl Everything {
             Item::GeneticConstraint => Box::new(self.traits.iter_constraint_keys()),
             Item::MenAtArms => Box::new(self.menatarmstypes.iter_keys()),
             Item::MenAtArmsBase => Box::new(self.menatarmstypes.iter_base_keys()),
-            Item::Music => Box::new(self.music.iter_keys()),
             Item::Province => Box::new(self.provinces_ck3.iter_keys()),
             Item::Title => Box::new(self.titles.iter_keys()),
             Item::TitleHistory => Box::new(self.title_history.iter_keys()),
@@ -1026,6 +1022,7 @@ impl Everything {
             Item::GuiTemplate => Box::new(self.gui.iter_template_keys()),
             Item::GuiType => Box::new(self.gui.iter_type_keys()),
             Item::Localization => Box::new(self.localization.iter_keys()),
+            Item::Music => Box::new(self.music.iter_keys()),
             Item::OnAction => Box::new(self.on_actions.iter_keys()),
             Item::Pdxmesh => Box::new(self.assets.iter_mesh_keys()),
             Item::ScriptedEffect => Box::new(self.effects.iter_keys()),

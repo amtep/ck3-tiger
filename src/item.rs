@@ -87,6 +87,7 @@ pub enum Item {
     MapEnvironment,
     MapMode,
     Modifier,
+    Music,
     NamedColor,
     OnAction,
     Pdxmesh,
@@ -280,7 +281,6 @@ pub enum Item {
     #[cfg(feature = "ck3")] ModifierFormat,
     #[cfg(feature = "ck3")] MottoInsert,
     #[cfg(feature = "ck3")] Motto,
-    #[cfg(feature = "ck3")] Music,
     #[cfg(feature = "ck3")] NameEquivalency,
     #[cfg(feature = "ck3")] NameList,
     #[cfg(feature = "ck3")] Nickname,
@@ -572,6 +572,7 @@ impl Item {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/modifiers/",
             },
+            Item::Music => "music/",
             Item::NamedColor => "common/named_colors/",
             Item::OnAction => match Game::game() {
                 #[cfg(feature = "ck3")]
@@ -956,8 +957,6 @@ impl Item {
             Item::MottoInsert => "common/dynasty_house_motto_inserts/",
             #[cfg(feature = "ck3")]
             Item::Motto => "common/dynasty_house_mottos/",
-            #[cfg(feature = "ck3")]
-            Item::Music => "music/",
             #[cfg(feature = "ck3")]
             Item::NameEquivalency => "common/culture/name_equivalency/",
             #[cfg(feature = "ck3")]

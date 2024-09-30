@@ -231,7 +231,6 @@ impl<'a> ValueValidator<'a> {
     }
 
     /// Expect the value to be an integer.
-    #[cfg(not(feature = "imperator"))]
     pub fn integer(&mut self) {
         if self.validated {
             return;

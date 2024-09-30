@@ -18,6 +18,7 @@ pub mod fonts;
 pub mod genes;
 pub mod gui;
 pub mod localization;
+pub mod music;
 pub mod on_actions;
 pub mod portrait;
 pub mod script_values;

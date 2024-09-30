@@ -109,7 +109,6 @@ pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext
 
 // Very similar to validate_duration, but validates part of a block that may contain a duration
 // Also does not accept script values (per the documentation)
-#[cfg(feature = "ck3")]
 pub fn validate_optional_duration_int(vd: &mut Validator) {
     let mut count = 0;
 

@@ -61,7 +61,6 @@ pub mod messages;
 pub mod modif;
 pub mod modifiers;
 pub mod mottos;
-pub mod music;
 pub mod namelists;
 pub mod nickname;
 pub mod opinions;

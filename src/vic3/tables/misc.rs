@@ -16,6 +16,11 @@ pub const DLC_FEATURES_VIC3: &[&str] = &[
     "ep1_cosmetics",
 ];
 
+/// A list of music provided by DLCs, for people who don't have them
+pub const DLC_MUSIC: &[&str] = &[
+    // TODO
+];
+
 // LAST UPDATED VIC3 VERSION 1.3.6
 pub const EVENT_CATEGORIES: &[&str] = &["enactment", "revolution"];
 

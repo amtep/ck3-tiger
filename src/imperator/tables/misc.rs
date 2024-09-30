@@ -7,6 +7,11 @@ pub const DLC_IMPERATOR: &[&str] = &[
     "Hellenistic World Flavor Pack",
 ];
 
+/// A list of music provided by DLCs, for people who don't have them
+pub const DLC_MUSIC: &[&str] = &[
+    // TODO
+];
+
 // LAST UPDATED IMPERATOR VERSION 2.0.4
 // Taken from the object browser
 pub const SOUNDS_IMPERATOR: &[&str] = &[
