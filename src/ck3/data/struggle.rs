@@ -6,6 +6,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::pdxfile::PdxEncoding;
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
@@ -251,5 +252,33 @@ impl Catalyst {
 impl DbKind for Catalyst {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut _vd = Validator::new(block, data);
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct StruggleHistory {}
+
+inventory::submit! {
+    ItemLoader::Full(GameFlags::Ck3, Item::StruggleHistory, PdxEncoding::Utf8Bom, ".txt", true, StruggleHistory::add)
+}
+
+impl StruggleHistory {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::StruggleHistory, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for StruggleHistory {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        let mut sc = ScopeContext::new(Scopes::None, key);
+
+        vd.unknown_block_fields(|key, block| {
+            key.expect_date();
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_block("effect", |block, data| {
+                validate_effect(block, data, &mut sc, Tooltipped::No);
+            });
+        });
     }
 }

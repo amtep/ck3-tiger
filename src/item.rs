@@ -308,6 +308,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] SpecialGuest,
     #[cfg(feature = "ck3")] Story,
     #[cfg(feature = "ck3")] Struggle,
+    #[cfg(feature = "ck3")] StruggleHistory,
     #[cfg(feature = "ck3")] StrugglePhase,
     #[cfg(feature = "ck3")] StrugglePhaseParameter,
     #[cfg(feature = "ck3")] SuccessionAppointment,
@@ -1010,6 +1011,8 @@ impl Item {
             Item::Story => "common/story_cycles/",
             #[cfg(feature = "ck3")]
             Item::Struggle => "common/struggle/struggles/",
+            #[cfg(feature = "ck3")]
+            Item::StruggleHistory => "history/struggles/",
             #[cfg(feature = "ck3")]
             Item::StrugglePhase => "common/struggle/struggles/",
             #[cfg(feature = "ck3")]
