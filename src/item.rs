@@ -292,6 +292,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] PoolSelector,
     #[cfg(feature = "ck3")] PortraitType,
     #[cfg(feature = "ck3")] PrisonType,
+    #[cfg(feature = "ck3")] ProvinceMapping,
     #[cfg(feature = "ck3")] Relation,
     #[cfg(feature = "ck3")] RelationFlag,
     #[cfg(feature = "ck3")] ReligionFamily,
@@ -977,6 +978,8 @@ impl Item {
             Item::PoolSelector => "common/pool_character_selectors/",
             #[cfg(feature = "ck3")]
             Item::PortraitType => "common/portrait_types/",
+            #[cfg(feature = "ck3")]
+            Item::ProvinceMapping => "history/province_mapping/",
             #[cfg(feature = "ck3")]
             Item::PrisonType => "",
             #[cfg(feature = "ck3")]

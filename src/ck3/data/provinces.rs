@@ -6,14 +6,19 @@ use bitvec::boxed::BitBox;
 use image::{DynamicImage, Rgb};
 
 use crate::block::Block;
+use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::game::GameFlags;
 use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::item::Item;
+use crate::item::ItemLoader;
 use crate::parse::csv::{parse_csv, read_csv};
+use crate::pdxfile::PdxEncoding;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, fatal, report, untidy, warn, ErrorKey, Severity};
 use crate::token::{Loc, Token};
+use crate::validator::Validator;
 
 pub type ProvId = u32;
 
@@ -477,5 +482,29 @@ impl Province {
             // TODO: this really needs an explanation, like "missing .... for sea zone"
             data.verify_exists(Item::Localization, &self.comment);
         }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ProvinceMapping {}
+
+inventory::submit! {
+    ItemLoader::Full(GameFlags::Ck3, Item::ProvinceMapping, PdxEncoding::Utf8Bom, ".txt", true, ProvinceMapping::add)
+}
+
+impl ProvinceMapping {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::ProvinceMapping, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for ProvinceMapping {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        vd.unknown_value_fields(|key, value| {
+            data.verify_exists(Item::Province, key);
+            data.verify_exists(Item::Province, value);
+        });
     }
 }
