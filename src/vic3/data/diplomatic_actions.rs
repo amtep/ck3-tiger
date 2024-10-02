@@ -36,10 +36,64 @@ impl DbKind for DiplomaticAction {
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
-        let loca = format!("{key}_action_name");
-        data.verify_exists_implied(Item::Localization, &loca, key);
-        let loca = format!("{key}_action_propose_name");
-        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        if block.get_field_bool("requires_approval").unwrap_or(true) {
+            let loca = format!("{key}_action_name");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            // The actions that are not shown in the lens are meant to be
+            // enforced through diplomatic plays, rather than as proposals.
+            if block.get_field_bool("show_in_lens").unwrap_or(true) {
+                let loca = format!("{key}_proposal_accepted_name");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("{key}_proposal_accepted_desc");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("{key}_proposal_declined_name");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("{key}_proposal_declined_desc");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("{key}_proposal_notification_name");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("{key}_proposal_notification_desc");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("{key}_proposal_third_party_accepted_name");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("{key}_proposal_third_party_accepted_desc");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("{key}_proposal_third_party_declined_name");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("{key}_proposal_third_party_declined_desc");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+            }
+        } else {
+            let loca = format!("{key}_action_notification_name");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            let loca = format!("{key}_action_notification_desc");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            if block.get_field_bool("should_notify_third_parties").unwrap_or(false) {
+                let loca = format!("{key}_action_notification_third_party_name");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("{key}_action_notification_third_party_desc");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+            }
+        }
+        if block.has_key("pact") {
+            let loca = format!("{key}_pact_desc");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            let loca = format!("{key}_action_propose_name");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            let loca = format!("{key}_action_break_name");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            let loca = format!("{key}_action_notification_break_name");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            let loca = format!("{key}_action_notification_break_desc");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            if block.get_field_bool("should_notify_third_parties").unwrap_or(false) {
+                let loca = format!("{key}_action_notification_third_party_break_name");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+                let loca = format!("{key}_action_notification_third_party_break_desc");
+                data.verify_exists_implied(Item::Localization, &loca, key);
+            }
+        }
 
         vd.field_validated_list("groups", |token, data| {
             let mut vd = ValueValidator::new(token, data);
