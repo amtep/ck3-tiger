@@ -54,6 +54,8 @@ impl DbKind for BuildingType {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Country, key);
+        let mut building_sc = ScopeContext::new(Scopes::Building, key);
+        let mut state_sc = ScopeContext::new(Scopes::State, key);
 
         data.verify_exists(Item::Localization, key);
 
@@ -74,13 +76,13 @@ impl DbKind for BuildingType {
 
         vd.field_list_items("unlocking_technologies", Item::Technology);
         vd.field_validated_block("can_build", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut state_sc, Tooltipped::Yes);
         });
         vd.field_validated_block("can_build_government", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut state_sc, Tooltipped::Yes);
         });
         vd.field_validated_block("can_build_private", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut state_sc, Tooltipped::Yes);
         });
 
         vd.field_integer("construction_points");
@@ -111,7 +113,7 @@ impl DbKind for BuildingType {
         vd.field_list_items("production_method_groups", Item::ProductionMethodGroup);
 
         vd.field_validated_block("should_auto_expand", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut building_sc, Tooltipped::Yes);
         });
 
         vd.field_choice("city_type", &["none", "city", "farm", "mine", "port", "wood"]);
@@ -146,9 +148,8 @@ impl DbKind for BuildingType {
 
         // undocumented
 
-        vd.field_validated_key_block("possible", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::State, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        vd.field_validated_block("possible", |block, data| {
+            validate_trigger(block, data, &mut state_sc, Tooltipped::No);
         });
 
         vd.field_validated_block("city_gfx_interactions", |block, data| {
