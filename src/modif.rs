@@ -15,6 +15,8 @@ use crate::report::{err, ErrorKey, Severity};
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::validator::Validator;
+#[cfg(feature = "vic3")]
+use crate::vic3::tables::modifs::modif_loc;
 
 bitflags! {
     /// All the things a modif can apply to.
@@ -115,11 +117,9 @@ pub fn validate_modifs<'a>(
             if Game::is_vic3() {
                 // The Item::ModifierType doesn't need to exist if the defaults are ok,
                 // but the loca should exist.
-                // TODO: should the key be lowercased?
-                // NOTE: In 1.7 these were changed to no longer have a `modifier_` prefix.
-                data.verify_exists(Item::Localization, key);
-                let loca = format!("{key}_desc");
-                data.verify_exists_implied(Item::Localization, &loca, key);
+                let (loca_key, loca_desc_key) = modif_loc(key, data);
+                data.verify_exists_implied(Item::Localization, &loca_key, key);
+                data.verify_exists_implied(Item::Localization, &loca_desc_key, key);
             }
         } else {
             let msg = format!("unknown modifier `{key}`");

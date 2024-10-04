@@ -1,5 +1,7 @@
 #![allow(non_upper_case_globals)]
 
+use std::borrow::Cow;
+
 use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
@@ -401,6 +403,41 @@ fn maybe_warn(itype: Item, s: &Lowercase, name: &Token, data: &Everything, warn:
             report(ErrorKey::MissingItem, sev).strong().msg(msg).info(info).loc(name).push();
         }
     }
+}
+
+/// Return the modifier localization keys.
+/// It's usually just the name, but there are known exceptions.
+pub fn modif_loc(name: &Token, data: &Everything) -> (Cow<'static, str>, Cow<'static, str>) {
+    let name_lc = Lowercase::new(name.as_str());
+
+    if MODIF_MAP.contains_key(&name_lc) {
+        let desc_loc = format!("{name_lc}_desc");
+        return (name_lc.into_cow(), Cow::Owned(desc_loc));
+    }
+
+    if let Some(part) = name_lc.strip_prefix_unchecked("state_") {
+        if let Some(part) = part.strip_suffix_unchecked("_standard_of_living_add") {
+            if data.item_exists_lc(Item::Religion, &part) {
+                return (
+                    Cow::Borrowed("STATE_RELIGION_SOL_MODIFIER"),
+                    Cow::Borrowed("STATE_RELIGION_SOL_MODIFIER_DESC"),
+                );
+            } else if data.item_exists_lc(Item::Culture, &part) {
+                return (
+                    Cow::Borrowed("STATE_CULTURE_SOL_MODIFIER"),
+                    Cow::Borrowed("STATE_CULTURE_SOL_MODIFIER_DESC"),
+                );
+            }
+            // We need some kind of default for missing items, and cultures are more common.
+            return (
+                Cow::Borrowed("STATE_RELIGION_SOL_MODIFIER"),
+                Cow::Borrowed("STATE_RELIGION_SOL_MODIFIER_DESC"),
+            );
+        }
+    }
+    // TODO: should the loca key be lowercased?
+    let desc_loc = format!("{name}_desc");
+    return (Cow::Borrowed(name.as_str()), Cow::Owned(desc_loc));
 }
 
 static MODIF_MAP: Lazy<TigerHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new(|| {
