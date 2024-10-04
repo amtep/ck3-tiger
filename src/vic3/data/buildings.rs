@@ -51,6 +51,19 @@ impl BuildingType {
 }
 
 impl DbKind for BuildingType {
+    fn has_property(
+        &self,
+        _key: &Token,
+        block: &Block,
+        property: &str,
+        _data: &Everything,
+    ) -> bool {
+        if property == "max_level" {
+            return block.get_field_bool("has_max_level").unwrap_or(false);
+        }
+        false
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Country, key);
@@ -70,6 +83,11 @@ impl DbKind for BuildingType {
         vd.field_bool("ignore_stateregion_max_level");
         vd.field_bool("enable_air_connection");
         vd.field_bool("port");
+
+        if block.get_field_bool("has_max_level").unwrap_or(false) {
+            let modif = format!("state_{key}_max_level_add");
+            data.verify_exists_implied(Item::ModifierTypeDefinition, &modif, key);
+        }
 
         vd.replaced_field("recruits_combat_unit", "recruits_combat_units = yes");
         vd.field_bool("recruits_combat_units");

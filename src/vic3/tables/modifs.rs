@@ -337,6 +337,29 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
+    // state_$Building$_max_level_add
+    if let Some(part) = name_lc.strip_prefix_unchecked("state_") {
+        if let Some(part) = part.strip_suffix_unchecked("_max_level_add") {
+            maybe_warn(Item::BuildingType, &part, name, data, warn);
+
+            if let Some(sev) = warn {
+                if data.item_exists(Item::BuildingType, part.as_str())
+                    && !data.item_has_property(Item::BuildingType, part.as_str(), "max_level")
+                {
+                    let msg = format!("building {part} does not have `has_max_level = yes`");
+                    let info = format!("so the modifier {name} does not exist");
+                    report(ErrorKey::MissingItem, sev)
+                        .strong()
+                        .msg(msg)
+                        .info(info)
+                        .loc(name)
+                        .push();
+                }
+            }
+            return Some(ModifKinds::State);
+        }
+    }
+
     // unit_defense_$TerrainKey$_add
     // unit_defense_$TerrainKey$_mult
     // unit_offense_$TerrainKey$_mult
@@ -680,11 +703,6 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("state_accepted_birth_rate_mult", ModifKinds::State),
     ("state_assimilation_mult", ModifKinds::State),
     ("state_birth_rate_mult", ModifKinds::State),
-    ("state_building_barracks_max_level_add", ModifKinds::State),
-    ("state_building_conscription_center_max_level_add", ModifKinds::State),
-    ("state_building_construction_sector_max_level_add", ModifKinds::State),
-    ("state_building_naval_base_max_level_add", ModifKinds::State),
-    ("state_building_port_max_level_add", ModifKinds::State),
     ("state_bureaucracy_population_base_cost_factor_mult", ModifKinds::State),
     ("state_colony_growth_creation_mult", ModifKinds::State),
     ("state_colony_growth_speed_mult", ModifKinds::State),
