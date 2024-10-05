@@ -78,7 +78,7 @@ impl DbKind for TaskContractType {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_key_block("valid_to_continue", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
+            let mut sc = ScopeContext::new(Scopes::TaskContract, key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("valid_to_keep", |key, block, data| {
