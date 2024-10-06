@@ -593,14 +593,7 @@ impl Everything {
             Item::RewardItem => REWARD_ITEMS.contains(&key),
             Item::Sexuality => SEXUALITIES.contains(&key),
             Item::Skill => SKILLS.contains(&key),
-            Item::Sound => {
-                // TODO: verify that file:/ values work
-                if let Some(filename) = key.strip_prefix("file:/") {
-                    self.fileset.exists(filename)
-                } else {
-                    SOUNDS_CK3.contains(&key)
-                }
-            }
+            Item::Sound => self.valid_sound(key),
             Item::Title => self.titles.exists(key),
             Item::TitleHistory => self.title_history.exists(key),
             Item::TitleHistoryType => TITLE_HISTORY_TYPES.contains(&key),
@@ -638,14 +631,7 @@ impl Everything {
             Item::PoliticalMovement => POLITICAL_MOVEMENTS.contains(&key),
             Item::RelationsThreshold => RELATIONS.contains(&key),
             Item::SecretGoal => SECRET_GOALS.contains(&key),
-            Item::Sound => {
-                // TODO: verify that file:/ values work
-                if let Some(filename) = key.strip_prefix("file:/") {
-                    self.fileset.exists(filename)
-                } else {
-                    SOUNDS_VIC3.contains(&key)
-                }
-            }
+            Item::Sound => self.valid_sound(key),
             Item::Strata => STRATA.contains(&key),
             Item::TerrainKey => TERRAIN_KEYS.contains(&key),
             Item::TransferOfPower => TRANSFER_OF_POWER.contains(&key),
@@ -663,13 +649,7 @@ impl Everything {
             Item::Event => self.events_imperator.exists(key),
             Item::EventNamespace => self.events_imperator.namespace_exists(key),
             Item::Province => self.provinces_imperator.exists(key),
-            Item::Sound => {
-                if let Some(filename) = key.strip_prefix("file://") {
-                    self.fileset.exists(filename)
-                } else {
-                    SOUNDS_IMPERATOR.contains(&key)
-                }
-            }
+            Item::Sound => self.valid_sound(key),
             _ => self.database.exists(itype, key),
         }
     }
@@ -1042,6 +1022,23 @@ impl Everything {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => self.iter_keys_imperator(itype),
             },
+        }
+    }
+
+    fn valid_sound(&self, name: &str) -> bool {
+        // TODO: verify that file:/ values work
+        if let Some(filename) = name.strip_prefix("file:/") {
+            self.fileset.exists(filename)
+        } else {
+            let sounds_set = match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => &crate::ck3::tables::sounds::SOUNDS_SET,
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => &crate::vic3::tables::sounds::SOUNDS_SET,
+                #[cfg(feature = "imperator")]
+                Game::Imperator => &crate::imperator::tables::sounds::SOUNDS_SET,
+            };
+            sounds_set.contains(&Lowercase::new(name))
         }
     }
 }
