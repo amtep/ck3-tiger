@@ -146,8 +146,9 @@ impl DbKind for DomicileBuilding {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
+        // This desc is optional.
         let loca = format!("{key}_domicile_building_desc");
-        data.verify_exists_implied(Item::Localization, &loca, key);
+        data.mark_used(Item::Localization, &loca);
 
         vd.field_validated_key_block("can_construct", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
