@@ -1,3 +1,4 @@
+use std::collections::{HashMap, HashSet};
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
@@ -555,7 +556,7 @@ pub fn validate_create_military_formation(
 
 pub fn validate_create_pop(
     _key: &Token,
-    _block: &Block,
+    block: &Block,
     _data: &Everything,
     _sc: &mut ScopeContext,
     mut vd: Validator,
@@ -563,10 +564,69 @@ pub fn validate_create_pop(
 ) {
     // This effect is undocumented
 
-    vd.field_item("culture", Item::Culture);
-    vd.field_item("religion", Item::Religion);
     vd.field_item("pop_type", Item::PopType);
     vd.field_integer("size");
+
+    // TODO: Consider doing sanity checks on the numbers in the splits
+    //  Since they're percentages of the size, not ratios, if they don't add up to 1 you'll get unexpected results
+    //  But that would involve float maths and comparisons for something that isn't technically wrong.
+
+    let mut available_cultures = HashSet::new();
+
+    if block.has_key("culture") {
+        vd.ban_field("cultures", || "pops with several cultures");
+        vd.field_item("culture", Item::Culture);
+        if let Some(token) = vd.field_value("culture") {
+            available_cultures.insert(token.as_str());
+        }
+    } else {
+        vd.field_validated_block("cultures", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.validate_item_key_values(Item::Culture, |key, mut vd| {
+                available_cultures.insert(key.as_str());
+                vd.numeric()
+            })
+        });
+    }
+
+    if block.has_key("religion") {
+        vd.ban_field("split_religion", || "pops without a `religion` field");
+        vd.field_item("religion", Item::Religion);
+    } else if block.has_key("split_religion") {
+        let mut used_cultures = HashMap::new();
+
+        vd.multi_field_validated_block("split_religion", |block, data| {
+            let mut vd = Validator::new(block, data);
+            let mut only_one_culture = false;
+
+            vd.validate_item_key_blocks(Item::Culture, |key, block, data| {
+                if only_one_culture {
+                    let msg = "split_religion should contain only one culture block";
+                    err(ErrorKey::DuplicateItem).msg(msg).loc(key).push();
+                }
+                only_one_culture = true;
+
+                if !available_cultures.contains(key.as_str()) {
+                    let msg = "culture being split does not appear in pop";
+                    err(ErrorKey::FieldMissing).msg(msg).loc(key).push();
+                }
+
+                match used_cultures.get(key.as_str()) {
+                    Some(duplicate) => {
+                        let msg = format!("Trying to split religion of culture {} multiple times", key.as_str());
+                        let msg_other = "First split here";
+                        err(ErrorKey::DuplicateField).msg(msg).loc(key).loc_msg(duplicate, msg_other).push();
+                    },
+                    None => { used_cultures.insert(key.as_str(), key.clone()); },
+                }
+
+                let mut vd = Validator::new(block, data);
+                vd.validate_item_key_values(Item::Religion, |_, mut vd| {
+                    vd.numeric();
+                });
+            });
+        });
+    }
 }
 
 pub fn validate_create_state(

@@ -1,4 +1,5 @@
 use std::borrow::Borrow;
+use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Bound, RangeBounds};
 use std::str::FromStr;
@@ -1544,6 +1545,56 @@ impl<'a> Validator<'a> {
                 if let Some(block) = bv.expect_block() {
                     f(date, key, block, self.data);
                 }
+            }
+        }
+    }
+
+    /// Expect the block to contain any number of `key = value` fields
+    /// where each key is a unique Item of type itype.
+    /// Run the closure `f(key, vd)` for every matching block.
+    #[cfg(feature = "vic3")]
+    pub fn validate_item_key_values<F>(&mut self, itype: Item, mut f: F)
+    where
+        F: FnMut(&Token, ValueValidator),
+    {
+        let mut visited_fields = HashMap::new();
+        for Field(key, _, bv) in self.block.iter_fields() {
+            self.data.verify_exists(itype, key);
+
+            match visited_fields.get(key.as_str()) {
+                Some(&duplicate) => dup_assign_error(key, duplicate),
+                None => { visited_fields.insert(key.as_str(), key); },
+            }
+
+            self.known_fields.push(key.as_str());
+            if let Some(value) = bv.expect_value() {
+                let mut vd = ValueValidator::new(value, self.data);
+                vd.set_max_severity(self.max_severity);
+                f(key, vd);
+            }
+        }
+    }
+
+    /// Expect the block to contain any number of `key = { block }` fields
+    /// where each key is a unique Item of type itype.
+    /// Run the closure `f(key, block, data)` for every matching block.
+    #[cfg(feature = "vic3")]
+    pub fn validate_item_key_blocks<F>(&mut self, itype: Item, mut f: F)
+    where
+        F: FnMut(&Token, &Block, &Everything),
+    {
+        let mut visited_fields = HashMap::new();
+        for Field(key, _, bv) in self.block.iter_fields() {
+            self.data.verify_exists(itype, key);
+
+            match visited_fields.get(key.as_str()) {
+                Some(&duplicate) => dup_assign_error(key, duplicate),
+                None => { visited_fields.insert(key.as_str(), key); },
+            }
+
+            self.known_fields.push(key.as_str());
+            if let Some(block) = bv.expect_block() {
+                f(key, block, self.data);
             }
         }
     }
