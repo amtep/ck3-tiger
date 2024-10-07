@@ -1,9 +1,9 @@
-use std::collections::{HashMap, HashSet};
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
+use crate::helpers::TigerHashSet;
 use crate::item::Item;
 use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -571,19 +571,18 @@ pub fn validate_create_pop(
     //  Since they're percentages of the size, not ratios, if they don't add up to 1 you'll get unexpected results
     //  But that would involve float maths and comparisons for something that isn't technically wrong.
 
-    let mut available_cultures = HashSet::new();
+    let mut available_cultures = TigerHashSet::default();
 
-    if block.has_key("culture") {
+    if let Some(token) = vd.field_value("culture") {
+        available_cultures.insert(token.clone());
+
         vd.ban_field("cultures", || "pops with several cultures");
         vd.field_item("culture", Item::Culture);
-        if let Some(token) = vd.field_value("culture") {
-            available_cultures.insert(token.as_str());
-        }
     } else {
         vd.field_validated_block("cultures", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.validate_item_key_values(Item::Culture, |key, mut vd| {
-                available_cultures.insert(key.as_str());
+                available_cultures.insert(key.clone());
                 vd.numeric()
             })
         });
@@ -593,7 +592,7 @@ pub fn validate_create_pop(
         vd.ban_field("split_religion", || "pops without a `religion` field");
         vd.field_item("religion", Item::Religion);
     } else if block.has_key("split_religion") {
-        let mut used_cultures = HashMap::new();
+        let mut used_cultures = TigerHashSet::default();
 
         vd.multi_field_validated_block("split_religion", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -611,13 +610,13 @@ pub fn validate_create_pop(
                     err(ErrorKey::FieldMissing).msg(msg).loc(key).push();
                 }
 
-                match used_cultures.get(key.as_str()) {
+                match used_cultures.get(key) {
                     Some(duplicate) => {
-                        let msg = format!("Trying to split religion of culture {} multiple times", key.as_str());
-                        let msg_other = "First split here";
+                        let msg = format!("trying to split religion of culture {} multiple times", key);
+                        let msg_other = "first split here";
                         err(ErrorKey::DuplicateField).msg(msg).loc(key).loc_msg(duplicate, msg_other).push();
                     },
-                    None => { used_cultures.insert(key.as_str(), key.clone()); },
+                    None => { used_cultures.insert(key.clone()); },
                 }
 
                 let mut vd = Validator::new(block, data);
@@ -625,6 +624,11 @@ pub fn validate_create_pop(
                     vd.numeric();
                 });
             });
+
+            if !only_one_culture {
+                let msg = "split_religion must contain one culture block";
+                err(ErrorKey::DuplicateItem).msg(msg).loc(block).push();
+            }
         });
     }
 }

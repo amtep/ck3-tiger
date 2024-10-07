@@ -1,5 +1,4 @@
 use std::borrow::Borrow;
-use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Bound, RangeBounds};
 use std::str::FromStr;
@@ -9,7 +8,7 @@ use crate::context::ScopeContext;
 use crate::date::Date;
 use crate::effect::validate_effect_internal;
 use crate::everything::Everything;
-use crate::helpers::dup_assign_error;
+use crate::helpers::{dup_assign_error, TigerHashSet};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 #[cfg(feature = "ck3")]
@@ -1557,13 +1556,13 @@ impl<'a> Validator<'a> {
     where
         F: FnMut(&Token, ValueValidator),
     {
-        let mut visited_fields = HashMap::new();
+        let mut visited_fields = TigerHashSet::default();
         for Field(key, _, bv) in self.block.iter_fields() {
             self.data.verify_exists(itype, key);
 
             match visited_fields.get(key.as_str()) {
                 Some(&duplicate) => dup_assign_error(key, duplicate),
-                None => { visited_fields.insert(key.as_str(), key); },
+                None => { visited_fields.insert(key); },
             }
 
             self.known_fields.push(key.as_str());
@@ -1583,13 +1582,13 @@ impl<'a> Validator<'a> {
     where
         F: FnMut(&Token, &Block, &Everything),
     {
-        let mut visited_fields = HashMap::new();
+        let mut visited_fields = TigerHashSet::default();
         for Field(key, _, bv) in self.block.iter_fields() {
             self.data.verify_exists(itype, key);
 
             match visited_fields.get(key.as_str()) {
                 Some(&duplicate) => dup_assign_error(key, duplicate),
-                None => { visited_fields.insert(key.as_str(), key); },
+                None => { visited_fields.insert(key); },
             }
 
             self.known_fields.push(key.as_str());
