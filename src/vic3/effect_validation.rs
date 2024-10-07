@@ -583,7 +583,7 @@ pub fn validate_create_pop(
             let mut vd = Validator::new(block, data);
             vd.validate_item_key_values(Item::Culture, |key, mut vd| {
                 available_cultures.insert(key.clone());
-                vd.numeric()
+                vd.numeric_range(0.0..=1.0)
             })
         });
     }
@@ -621,7 +621,7 @@ pub fn validate_create_pop(
 
                 let mut vd = Validator::new(block, data);
                 vd.validate_item_key_values(Item::Religion, |_, mut vd| {
-                    vd.numeric();
+                    vd.numeric_range(0.0..=1.0);
                 });
             });
 
