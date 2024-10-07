@@ -1551,7 +1551,7 @@ impl<'a> Validator<'a> {
     /// Expect the block to contain any number of `key = value` fields
     /// where each key is a unique Item of type itype.
     /// Run the closure `f(key, vd)` for every matching block.
-    #[cfg(feature = "vic3")]
+    #[allow(dead_code)]
     pub fn validate_item_key_values<F>(&mut self, itype: Item, mut f: F)
     where
         F: FnMut(&Token, ValueValidator),
@@ -1562,7 +1562,9 @@ impl<'a> Validator<'a> {
 
             match visited_fields.get(key.as_str()) {
                 Some(&duplicate) => dup_assign_error(key, duplicate),
-                None => { visited_fields.insert(key); },
+                None => {
+                    visited_fields.insert(key);
+                }
             }
 
             self.known_fields.push(key.as_str());
@@ -1588,7 +1590,9 @@ impl<'a> Validator<'a> {
 
             match visited_fields.get(key.as_str()) {
                 Some(&duplicate) => dup_assign_error(key, duplicate),
-                None => { visited_fields.insert(key); },
+                None => {
+                    visited_fields.insert(key);
+                }
             }
 
             self.known_fields.push(key.as_str());

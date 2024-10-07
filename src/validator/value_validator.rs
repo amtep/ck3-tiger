@@ -327,8 +327,7 @@ impl<'a> ValueValidator<'a> {
                 };
                 let msg;
                 if low.is_some() && high.is_some() {
-                    msg =
-                        format!("should be between {} and {}", low.unwrap(), high.unwrap());
+                    msg = format!("should be between {} and {}", low.unwrap(), high.unwrap());
                 } else if low.is_some() {
                     msg = format!("should be at least {}", low.unwrap());
                 } else if high.is_some() {

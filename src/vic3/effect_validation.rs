@@ -612,11 +612,18 @@ pub fn validate_create_pop(
 
                 match used_cultures.get(key) {
                     Some(duplicate) => {
-                        let msg = format!("trying to split religion of culture {} multiple times", key);
+                        let msg =
+                            format!("trying to split religion of culture {} multiple times", key);
                         let msg_other = "first split here";
-                        err(ErrorKey::DuplicateField).msg(msg).loc(key).loc_msg(duplicate, msg_other).push();
-                    },
-                    None => { used_cultures.insert(key.clone()); },
+                        err(ErrorKey::DuplicateField)
+                            .msg(msg)
+                            .loc(key)
+                            .loc_msg(duplicate, msg_other)
+                            .push();
+                    }
+                    None => {
+                        used_cultures.insert(key.clone());
+                    }
                 }
 
                 let mut vd = Validator::new(block, data);
