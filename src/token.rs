@@ -336,6 +336,22 @@ impl Token {
         }
     }
 
+    /// Gets the field as a fixed-width decimal, specifically the value multiplied by 100,000
+    pub fn get_fixed_number(&self) -> Option<i64> {
+        if !self.s.contains('.') {
+            return Some(self.s.parse::<i64>().ok()? * 100_000);
+        }
+
+        let r = self.s.find('.')?;
+        let whole = &self.s[..r];
+        let fraction = &self.s[r + 1..];
+
+        if fraction.len() > 5 {
+            return None;
+        }
+        format!("{}{:0<5}", whole, fraction).parse::<i64>().ok()
+    }
+
     pub fn get_number(&self) -> Option<f64> {
         self.s.parse::<f64>().ok()
     }

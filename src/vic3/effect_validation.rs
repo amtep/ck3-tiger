@@ -5,7 +5,7 @@ use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::helpers::TigerHashSet;
 use crate::item::Item;
-use crate::report::{err, warn, ErrorKey};
+use crate::report::{err, warn, ErrorKey, ErrorLoc};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -564,12 +564,19 @@ pub fn validate_create_pop(
 ) {
     // This effect is undocumented
 
+    fn sum_fractions_warner<E: ErrorLoc>(sum_fractions: i64, loc: E) {
+        if sum_fractions != 100_000 {
+            let msg = format!(
+                "fractions should add to exactly 1, currently {}.{}",
+                sum_fractions / 100_000,
+                sum_fractions % 100_000,
+            );
+            warn(ErrorKey::Validation).msg(msg.trim_end_matches('0')).loc(loc).push();
+        };
+    }
+
     vd.field_item("pop_type", Item::PopType);
     vd.field_integer("size");
-
-    // TODO: Consider doing sanity checks on the numbers in the splits
-    //  Since they're percentages of the size, not ratios, if they don't add up to 1 you'll get unexpected results
-    //  But that would involve float maths and comparisons for something that isn't technically wrong.
 
     let mut available_cultures = TigerHashSet::default();
 
@@ -581,10 +588,16 @@ pub fn validate_create_pop(
     } else {
         vd.field_validated_block("cultures", |block, data| {
             let mut vd = Validator::new(block, data);
+            let mut sum_fractions = 0_i64;
+
             vd.validate_item_key_values(Item::Culture, |key, mut vd| {
                 available_cultures.insert(key.clone());
-                vd.numeric_range(0.0..=1.0)
-            })
+                vd.numeric_range(0.0..=1.0);
+
+                sum_fractions += vd.value().get_fixed_number().unwrap_or(0);
+            });
+
+            sum_fractions_warner(sum_fractions, block);
         });
     }
 
@@ -627,9 +640,15 @@ pub fn validate_create_pop(
                 }
 
                 let mut vd = Validator::new(block, data);
+                let mut sum_fractions = 0_i64;
+
                 vd.validate_item_key_values(Item::Religion, |_, mut vd| {
                     vd.numeric_range(0.0..=1.0);
+
+                    sum_fractions += vd.value().get_fixed_number().unwrap_or(0);
                 });
+
+                sum_fractions_warner(sum_fractions, block);
             });
 
             if !only_one_culture {
