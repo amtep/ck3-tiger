@@ -318,7 +318,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "current_tooltip_depth", CompareValue),
     (Scopes::Character, "current_weight", CompareValue),
     (Scopes::Character, "current_weight_for_portrait", CompareValue),
-    (Scopes::all_but_none(), "current_year", CompareValue), // should be None scope, but current_year is buggy
+    (Scopes::None, "current_year", CompareValue),
     (Scopes::None, "custom_description", Control),
     (Scopes::None, "custom_tooltip", Special),
     (Scopes::Character, "days_as_ruler", CompareValue),
