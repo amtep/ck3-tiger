@@ -8,7 +8,7 @@ use crate::context::ScopeContext;
 use crate::date::Date;
 use crate::effect::validate_effect_internal;
 use crate::everything::Everything;
-use crate::helpers::dup_assign_error;
+use crate::helpers::{dup_assign_error, TigerHashSet};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 #[cfg(feature = "ck3")]
@@ -1546,6 +1546,64 @@ impl<'a> Validator<'a> {
                 }
             }
         }
+    }
+
+    /// Expect the block to contain any number of `key = value` or `key = { block }`fields
+    /// where each key is a unique Item of type itype.
+    /// Run the closure `f(key, bv, data)` for every matching block.
+    #[allow(dead_code)]
+    fn validate_item_key_fields<F>(&mut self, itype: Item, mut f: F)
+    where
+        F: FnMut(&Token, &BV, &Everything),
+    {
+        let mut visited_fields = TigerHashSet::default();
+        for Field(key, _, bv) in self.block.iter_fields() {
+            self.data.verify_exists(itype, key);
+
+            match visited_fields.get(key.as_str()) {
+                Some(&duplicate) => dup_assign_error(key, duplicate),
+                None => {
+                    visited_fields.insert(key);
+                }
+            }
+
+            self.known_fields.push(key.as_str());
+
+            f(key, bv, self.data);
+        }
+    }
+
+    /// Expect the block to contain any number of `key = value` fields
+    /// where each key is a unique Item of type itype.
+    /// Run the closure `f(key, vd)` for every matching block.
+    #[allow(dead_code)]
+    pub fn validate_item_key_values<F>(&mut self, itype: Item, mut f: F)
+    where
+        F: FnMut(&Token, ValueValidator),
+    {
+        let sev = self.max_severity;
+        self.validate_item_key_fields(itype, |key, bv, data| {
+            if let Some(value) = bv.expect_value() {
+                let mut vd = ValueValidator::new(value, data);
+                vd.set_max_severity(sev);
+                f(key, vd);
+            }
+        });
+    }
+
+    /// Expect the block to contain any number of `key = { block }` fields
+    /// where each key is a unique Item of type itype.
+    /// Run the closure `f(key, block, data)` for every matching block.
+    #[allow(dead_code)]
+    pub fn validate_item_key_blocks<F>(&mut self, itype: Item, mut f: F)
+    where
+        F: FnMut(&Token, &Block, &Everything),
+    {
+        self.validate_item_key_fields(itype, |key, bv, data| {
+            if let Some(block) = bv.expect_block() {
+                f(key, block, data);
+            }
+        });
     }
 
     /// Expect the block to contain any number of unknown fields (so don't warn about unknown fields anymore).

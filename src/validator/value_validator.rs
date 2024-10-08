@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 use std::fmt::{Debug, Display, Error, Formatter};
-#[cfg(feature = "ck3")]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 use std::ops::{Bound, RangeBounds};
 use std::str::FromStr;
 
@@ -301,6 +301,43 @@ impl<'a> ValueValidator<'a> {
         self.validated = true;
         // TODO: pass max_severity here
         self.value.expect_number();
+    }
+
+    /// Expect the value to be a number with up to 5 decimals within the `range` provided.
+    /// (5 decimals is the limit accepted by the game engine in most contexts).
+    #[cfg(feature = "vic3")]
+    pub fn numeric_range<R: RangeBounds<f64>>(&mut self, range: R) {
+        if self.validated {
+            return;
+        }
+        let sev = Severity::Error.at_most(self.max_severity);
+        self.validated = true;
+        // TODO: pass max_severity here
+        if let Some(f) = self.value.expect_number() {
+            if !range.contains(&f) {
+                let low = match range.start_bound() {
+                    Bound::Unbounded => None,
+                    Bound::Included(&f) => Some(format!("{f} (inclusive)")),
+                    Bound::Excluded(&f) => Some(format!("{f}")),
+                };
+                let high = match range.end_bound() {
+                    Bound::Unbounded => None,
+                    Bound::Included(&f) => Some(format!("{f} (inclusive)")),
+                    Bound::Excluded(&f) => Some(format!("{f}")),
+                };
+                let msg;
+                if low.is_some() && high.is_some() {
+                    msg = format!("should be between {} and {}", low.unwrap(), high.unwrap());
+                } else if low.is_some() {
+                    msg = format!("should be at least {}", low.unwrap());
+                } else if high.is_some() {
+                    msg = format!("should be at most {}", high.unwrap());
+                } else {
+                    unreachable!(); // could not have failed the contains check
+                }
+                report(ErrorKey::Range, sev).msg(msg).loc(self).push();
+            }
+        }
     }
 
     /// Expect the value to be a number with any number of decimals.

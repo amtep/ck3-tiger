@@ -3,8 +3,9 @@ use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
+use crate::helpers::TigerHashSet;
 use crate::item::Item;
-use crate::report::{err, warn, ErrorKey};
+use crate::report::{err, warn, ErrorKey, ErrorLoc};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -555,7 +556,7 @@ pub fn validate_create_military_formation(
 
 pub fn validate_create_pop(
     _key: &Token,
-    _block: &Block,
+    block: &Block,
     _data: &Everything,
     _sc: &mut ScopeContext,
     mut vd: Validator,
@@ -563,10 +564,100 @@ pub fn validate_create_pop(
 ) {
     // This effect is undocumented
 
-    vd.field_item("culture", Item::Culture);
-    vd.field_item("religion", Item::Religion);
+    #[allow(clippy::integer_division)]
+    fn sum_fractions_warner<E: ErrorLoc>(sum_fractions: i64, loc: E) {
+        if sum_fractions != 100_000 {
+            let msg = format!(
+                "fractions should add to exactly 1, currently {}.{:05}",
+                sum_fractions / 100_000,
+                sum_fractions % 100_000,
+            );
+            warn(ErrorKey::Validation).msg(msg.trim_end_matches('0')).loc(loc).push();
+        };
+    }
+
     vd.field_item("pop_type", Item::PopType);
     vd.field_integer("size");
+
+    let mut available_cultures = TigerHashSet::default();
+
+    if let Some(token) = vd.field_value("culture") {
+        available_cultures.insert(token.clone());
+
+        vd.ban_field("cultures", || "pops with several cultures");
+        vd.field_item("culture", Item::Culture);
+    } else {
+        vd.field_validated_block("cultures", |block, data| {
+            let mut vd = Validator::new(block, data);
+            let mut sum_fractions = 0_i64;
+
+            vd.validate_item_key_values(Item::Culture, |key, mut vd| {
+                available_cultures.insert(key.clone());
+                vd.numeric_range(0.0..=1.0);
+
+                sum_fractions += vd.value().get_fixed_number().unwrap_or(0);
+            });
+
+            sum_fractions_warner(sum_fractions, block);
+        });
+    }
+
+    if block.has_key("religion") {
+        vd.ban_field("split_religion", || "pops without a `religion` field");
+        vd.field_item("religion", Item::Religion);
+    } else if block.has_key("split_religion") {
+        let mut used_cultures = TigerHashSet::default();
+
+        vd.multi_field_validated_block("split_religion", |block, data| {
+            let mut vd = Validator::new(block, data);
+            let mut only_one_culture = false;
+
+            vd.validate_item_key_blocks(Item::Culture, |key, block, data| {
+                if only_one_culture {
+                    let msg = "split_religion should contain only one culture block";
+                    err(ErrorKey::DuplicateItem).msg(msg).loc(key).push();
+                }
+                only_one_culture = true;
+
+                if !available_cultures.contains(key.as_str()) {
+                    let msg = "culture being split does not appear in pop";
+                    err(ErrorKey::FieldMissing).msg(msg).loc(key).push();
+                }
+
+                match used_cultures.get(key) {
+                    Some(duplicate) => {
+                        let msg =
+                            format!("trying to split religion of culture {key} multiple times");
+                        let msg_other = "first split here";
+                        err(ErrorKey::DuplicateField)
+                            .msg(msg)
+                            .loc(key)
+                            .loc_msg(duplicate, msg_other)
+                            .push();
+                    }
+                    None => {
+                        used_cultures.insert(key.clone());
+                    }
+                }
+
+                let mut vd = Validator::new(block, data);
+                let mut sum_fractions = 0_i64;
+
+                vd.validate_item_key_values(Item::Religion, |_, mut vd| {
+                    vd.numeric_range(0.0..=1.0);
+
+                    sum_fractions += vd.value().get_fixed_number().unwrap_or(0);
+                });
+
+                sum_fractions_warner(sum_fractions, block);
+            });
+
+            if !only_one_culture {
+                let msg = "split_religion must contain one culture block";
+                err(ErrorKey::DuplicateItem).msg(msg).loc(block).push();
+            }
+        });
+    }
 }
 
 pub fn validate_create_state(
