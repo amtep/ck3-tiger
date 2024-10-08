@@ -167,7 +167,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Province, "add_special_building_slot", Item(Item::SpecialBuilding)),
     (Scopes::Character, "add_stewardship_skill", ScriptValue),
     (Scopes::Character, "add_stress", ScriptValue),
-    (Scopes::Army, "add_supply", ScriptValue),
+    (Scopes::Army, "add_supply", NonNegativeValue),
     (Scopes::Character, "add_targeting_factions_discontent", ScriptValue),
     (Scopes::LandedTitle, "add_title_law", Item(Item::Law)),
     (Scopes::LandedTitle, "add_title_law_effects", Item(Item::Law)),
@@ -798,7 +798,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "stop_promoting_legend", Yes),
     (Scopes::Character, "store_localized_text_in_death", Unchecked),
     (Scopes::Character, "stress_impact", Vb(validate_stress_impact)),
-    (Scopes::Army, "subtract_supply", ScriptValue),
+    (Scopes::Army, "subtract_supply", NonNegativeValue),
     (Scopes::None, "switch", Vb(validate_switch)),
     (Scopes::Character, "take_hostage", Scope(Scopes::Character)),
     (
