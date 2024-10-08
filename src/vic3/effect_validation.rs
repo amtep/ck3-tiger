@@ -568,7 +568,7 @@ pub fn validate_create_pop(
     fn sum_fractions_warner<E: ErrorLoc>(sum_fractions: i64, loc: E) {
         if sum_fractions != 100_000 {
             let msg = format!(
-                "fractions should add to exactly 1, currently {}.{}",
+                "fractions should add to exactly 1, currently {}.{:05}",
                 sum_fractions / 100_000,
                 sum_fractions % 100_000,
             );
