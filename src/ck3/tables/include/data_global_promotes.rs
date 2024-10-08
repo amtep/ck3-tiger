@@ -147,6 +147,7 @@
     ("GetMenAtArmsType", Args::Args(&[DType(Unknown)]), Ck3(MenAtArmsType)),
     ("GetMessageFeedHandler", Args::Args(&[]), Ck3(MessageFeedHandler)),
     ("GetMessageFilterType", Args::Args(&[DType(Unknown)]), Ck3(MessageFilterType)),
+    ("GetMessageGroupType", Args::Args(&[DType(Unknown)]), Ck3(MessageGroupType)),
     ("GetMessageType", Args::Args(&[DType(Unknown)]), Ck3(MessageType)),
     ("GetModifier", Args::Args(&[IType(Item::Modifier)]), Ck3(StaticModifier)),
     ("GetNickname", Args::Args(&[IType(Item::Nickname)]), Ck3(Nickname)),

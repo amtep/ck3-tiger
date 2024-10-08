@@ -59,6 +59,8 @@ impl DbKind for Flavorization {
             vd.field_bool("spouse_takes_title");
             vd.field_bool("only_holder");
             vd.field_bool("top_liege");
+            vd.field_bool("only_vassals");
+            vd.field_bool("ignore_top_liege_government");
         });
         vd.field_value("flag");
         vd.field_list_items("governments", Item::GovernmentType);

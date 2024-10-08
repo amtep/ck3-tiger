@@ -61,5 +61,31 @@ impl DbKind for MessageFilterType {
         vd.field_choice("display", &["feed", "toast", "hidden", "popup"]);
         vd.field_bool("always_show");
         vd.field_bool("auto_pause");
+        vd.field_integer("sort_order");
+        vd.field_item("group", Item::MessageGroupType);
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct MessageGroupType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::MessageGroupType, MessageGroupType::add)
+}
+
+impl MessageGroupType {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::MessageGroupType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for MessageGroupType {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        let loca = format!("message_group_type_{key}");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        vd.field_integer("sort_order");
     }
 }

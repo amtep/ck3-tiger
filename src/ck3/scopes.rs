@@ -583,6 +583,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "culture", Scopes::Culture, Item(Item::Culture)),
         (Scopes::None, "culture_pillar", Scopes::CulturePillar, Item(Item::CulturePillar)),
         (Scopes::None, "culture_tradition", Scopes::CultureTradition, Item(Item::CultureTradition)),
+        (Scopes::Character, "dead_var", Scopes::all(), UncheckedValue),
         (Scopes::None, "decision", Scopes::Decision, Item(Item::Decision)),
         (Scopes::None, "define", Scopes::Value, UncheckedValue),
         (Scopes::None, "doctrine", Scopes::Doctrine, Item(Item::Doctrine)),

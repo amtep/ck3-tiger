@@ -1,5 +1,5 @@
 use crate::block::{Block, BV};
-use crate::ck3::validate::validate_cost_with_renown;
+use crate::ck3::validate::{validate_cost_with_renown, validate_theme_background};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -110,6 +110,11 @@ impl DbKind for CharacterInteraction {
         vd.field_icon("alert_icon", "NGameIcons|CHARACTER_INTERACTION_ICON_PATH", ".dds");
         vd.field_icon("icon_small", "NGameIcons|CHARACTER_INTERACTION_ICON_PATH", ".dds");
 
+        vd.field_validated_key("override_background", |key, bv, data| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            validate_theme_background(bv, data, &mut sc);
+        });
+
         vd.field_validated_block("is_highlighted", |b, data| {
             validate_trigger(b, data, &mut sc.clone(), Tooltipped::No);
         });
@@ -124,6 +129,7 @@ impl DbKind for CharacterInteraction {
         vd.field_integer("ai_max_reply_days");
 
         vd.field_value("interface"); // TODO
+        vd.field_list_choice("custom_character_sort", &["candidate_score", "governor_efficiency"]);
         vd.field_item("scheme", Item::Scheme);
         vd.field_bool("popup_on_receive");
         vd.field_bool("pause_on_receive");

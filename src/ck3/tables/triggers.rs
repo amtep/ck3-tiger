@@ -143,6 +143,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Army, "army_is_moving", Boolean),
     (Scopes::Army, "army_max_size", CompareValue),
     (Scopes::Army, "army_size", CompareValue),
+    (Scopes::Army, "army_supply", CompareValue),
     (Scopes::Artifact, "artifact_durability", CompareValue),
     (Scopes::Artifact, "artifact_max_durability", CompareValue),
     (Scopes::Artifact, "artifact_slot_type", Item(Item::ArtifactSlotType)),
@@ -578,6 +579,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_domicile", Boolean),
     (Scopes::Domicile, "has_domicile_building", Item(Item::DomicileBuilding)),
     (Scopes::Domicile, "has_domicile_building_or_higher", Item(Item::DomicileBuilding)),
+    (Scopes::Domicile, "has_domicile_construction", Item(Item::DomicileBuilding)),
     (Scopes::Domicile, "has_domicile_parameter", Item(Item::DomicileParameter)),
     (Scopes::Character, "has_domicile_temperament_high", Boolean),
     (Scopes::Character, "has_domicile_temperament_low", Boolean),
@@ -857,7 +859,9 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::LandedTitle, "has_wrong_holding_type", Boolean),
     (Scopes::Character, "health", CompareValue),
     (Scopes::Character, "highest_held_title_tier", CompareValue),
+    // TODO: verify whether "prowess" is a valid argument to highest_skill
     (Scopes::Character, "highest_skill", Item(Item::Skill)),
+    (Scopes::Character, "highest_skill_including_prowess", Item(Item::Skill)),
     (Scopes::Character, "holds_landed_title", Boolean),
     (Scopes::Faith, "holy_sites_controlled", CompareValue),
     // TODO: verify "weeks" works here
