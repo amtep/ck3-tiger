@@ -1588,7 +1588,7 @@ impl<'a> Validator<'a> {
                 vd.set_max_severity(sev);
                 f(key, vd);
             }
-        })
+        });
     }
 
     /// Expect the block to contain any number of `key = { block }` fields
@@ -1603,7 +1603,7 @@ impl<'a> Validator<'a> {
             if let Some(block) = bv.expect_block() {
                 f(key, block, data);
             }
-        })
+        });
     }
 
     /// Expect the block to contain any number of unknown fields (so don't warn about unknown fields anymore).

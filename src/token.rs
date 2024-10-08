@@ -349,7 +349,7 @@ impl Token {
         if fraction.len() > 5 {
             return None;
         }
-        format!("{}{:0<5}", whole, fraction).parse::<i64>().ok()
+        format!("{whole}{fraction:0<5}").parse::<i64>().ok()
     }
 
     pub fn get_number(&self) -> Option<f64> {

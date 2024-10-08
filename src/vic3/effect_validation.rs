@@ -564,6 +564,7 @@ pub fn validate_create_pop(
 ) {
     // This effect is undocumented
 
+    #[allow(clippy::integer_division)]
     fn sum_fractions_warner<E: ErrorLoc>(sum_fractions: i64, loc: E) {
         if sum_fractions != 100_000 {
             let msg = format!(
@@ -626,7 +627,7 @@ pub fn validate_create_pop(
                 match used_cultures.get(key) {
                     Some(duplicate) => {
                         let msg =
-                            format!("trying to split religion of culture {} multiple times", key);
+                            format!("trying to split religion of culture {key} multiple times");
                         let msg_other = "first split here";
                         err(ErrorKey::DuplicateField)
                             .msg(msg)
