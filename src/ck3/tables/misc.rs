@@ -392,6 +392,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/lifestyles",
     "common/men_at_arms_types",
     "common/message_filter_types",
+    "common/message_group_types",
     "common/messages",
     "common/modifier_definition_formats",
     "common/modifier_icons",
