@@ -445,7 +445,6 @@ pub fn validate_effect_control(
         vd.field_script_value("value", sc);
     } else {
         vd.ban_field("object", || "`custom_description`");
-        vd.ban_field("value", || "`custom_description`");
     }
 
     if caller == "hidden_effect" || caller == "hidden_effect_new_object" {

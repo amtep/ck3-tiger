@@ -198,7 +198,6 @@ pub fn validate_trigger_internal(
         // object and value are handled in the loop
     } else {
         vd.ban_field("object", || "`custom_description`");
-        vd.ban_field("value", || "`custom_description`");
     }
 
     if caller == "modifier" {
