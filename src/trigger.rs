@@ -456,13 +456,6 @@ pub fn validate_trigger_key_bv(
                         return side_effects;
                     }
                     validate_inscopes(part_flags, part, inscopes, sc);
-                    if sc.scopes() == Scopes::None && part_lc == "current_year" {
-                        warn(ErrorKey::Bugs)
-                            .msg("current_year does not work in empty scope")
-                            .info("try using current_date, or dummy_male.current_year")
-                            .loc(part)
-                            .push();
-                    }
                     sc.close();
                     side_effects |= match_trigger_bv(
                         &trigger,
@@ -1083,13 +1076,6 @@ pub fn validate_target_ok_this(
                         return Scopes::all();
                     }
                     validate_inscopes(part_flags, part, inscopes, sc);
-                    if sc.scopes() == Scopes::None && part_lc == "current_year" {
-                        warn(ErrorKey::Bugs)
-                            .msg("current_year does not work in empty scope")
-                            .info("try using current_date, or dummy_male.current_year")
-                            .loc(part)
-                            .push();
-                    }
                     sc.replace(Scopes::Value, part.clone());
                 } else {
                     // See if the user forgot a prefix like `faith:` or `culture:`
