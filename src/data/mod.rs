@@ -2,6 +2,7 @@
 //! Each sub-mod handles a specific item type or group of related item types.
 
 pub mod accessory;
+pub mod achievements;
 pub mod assets;
 pub mod coa;
 pub mod coadesigner;
