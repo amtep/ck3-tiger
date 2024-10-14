@@ -601,15 +601,6 @@ impl Everything {
             Item::TraitFlag => self.traits.flag_exists(key),
             Item::TraitTrack => self.traits.track_exists(key),
             Item::TraitCategory => TRAIT_CATEGORIES.contains(&key),
-            Item::EpidemicType
-            | Item::EventEffect2d
-            | Item::LegendProperty
-            | Item::LegendType
-            | Item::LegendChapter
-            | Item::LegendChronicle
-            | Item::LegendSeed
-            | Item::LegitimacyType
-            | Item::LegitimacyFlag => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }
@@ -636,7 +627,6 @@ impl Everything {
             Item::TerrainKey => TERRAIN_KEYS.contains(&key),
             Item::TransferOfPower => TRANSFER_OF_POWER.contains(&key),
             Item::Wargoal => WARGOALS.contains(&key),
-            Item::MobilizationOption => true, // TODO
             _ => self.database.exists(itype, key),
         }
     }
