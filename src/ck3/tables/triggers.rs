@@ -839,7 +839,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::TravelPlan, "has_travel_plan_modifier", Item(Item::Modifier)),
     (Scopes::TravelPlan, "has_travel_plan_modifier_duration_remaining", UncheckedValue),
     (Scopes::Province, "has_travel_point_of_interest", Item(Item::PointOfInterest)),
-    (Scopes::Character, "has_triggered_legend_seed", Item(Item::LegendType)),
+    (Scopes::Character, "has_triggered_legend_seed", Item(Item::LegendSeed)),
     (Scopes::Character, "has_truce", Scope(Scopes::Character)),
     (Scopes::Culture, "has_unit_gfx", Item(Item::UnitGfx)),
     (Scopes::Character, "has_usable_hook", Scope(Scopes::Character)),
