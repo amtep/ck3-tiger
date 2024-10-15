@@ -43,14 +43,6 @@ impl Cob {
         }
     }
 
-    #[inline]
-    pub(crate) fn push(&mut self, c: char, str: &'static str, index: usize, loc: Loc) {
-        if matches!(self, Self::Uninit) {
-            self.set(str, index, loc);
-        }
-        self.add_char(c);
-    }
-
     pub(crate) fn take_to_token(&mut self) -> Token {
         match take(self) {
             Cob::Uninit => unreachable!(),
