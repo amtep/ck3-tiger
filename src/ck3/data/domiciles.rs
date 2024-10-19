@@ -49,18 +49,26 @@ impl DbKind for DomicileType {
         vd.field_bool("provisions");
         vd.field_validated_block_sc("move_cooldown", &mut sc, validate_duration);
         vd.field_validated_block_sc("move_cost", &mut sc, validate_cost);
-        vd.multi_field_validated_block("domicile_temperament_low_modifier", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_item("name", Item::Localization);
-            vd.field_script_value("scale", &mut sc);
-            validate_modifs(block, data, ModifKinds::Character, vd);
-        });
-        vd.multi_field_validated_block("domicile_temperament_high_modifier", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_item("name", Item::Localization);
-            vd.field_script_value("scale", &mut sc);
-            validate_modifs(block, data, ModifKinds::Character, vd);
-        });
+        vd.multi_field_validated_key_block(
+            "domicile_temperament_low_modifier",
+            |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::Character, key);
+                let mut vd = Validator::new(block, data);
+                vd.field_item("name", Item::Localization);
+                vd.field_script_value("scale", &mut sc);
+                validate_modifs(block, data, ModifKinds::Character, vd);
+            },
+        );
+        vd.multi_field_validated_key_block(
+            "domicile_temperament_high_modifier",
+            |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::Character, key);
+                let mut vd = Validator::new(block, data);
+                vd.field_item("name", Item::Localization);
+                vd.field_script_value("scale", &mut sc);
+                validate_modifs(block, data, ModifKinds::Character, vd);
+            },
+        );
         vd.field_integer("base_external_slots");
         vd.field_validated_block("domicile_building_slots", |block, data| {
             let mut vd = Validator::new(block, data);
