@@ -298,9 +298,15 @@ impl DbKind for CharacterInteraction {
         vd.field_integer("ai_frequency"); // months
 
         // This is in character scope with no other named scopes builtin
-        vd.field_validated_block_rooted("ai_potential", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::Yes);
-        });
+        vd.field_validated_block_rerooted(
+            "ai_potential",
+            &sc,
+            Scopes::Character,
+            |block, data, sc| {
+                validate_trigger(block, data, sc, Tooltipped::Yes);
+            },
+        );
+
         if let Some(token) = block.get_key("ai_potential") {
             if block.get_field_integer("ai_frequency").unwrap_or(0) == 0
                 && !key.is("revoke_title_interaction")
