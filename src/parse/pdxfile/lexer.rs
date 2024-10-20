@@ -4,6 +4,7 @@ use std::str::CharIndices;
 
 use crate::block::Comparator;
 use crate::block::Eq::Single;
+use crate::game::Game;
 use crate::parse::pdxfile::{CharExt, Cob};
 use crate::report::{err, untidy, warn, ErrorKey};
 use crate::token::{Loc, Token};
@@ -27,6 +28,7 @@ pub enum Lexeme {
     Subtract(Token),               // -
     Multiply(Token),               // *
     Divide(Token),                 // /
+    Directive(Directive, Token),   // @:insert etc
 }
 
 impl Display for Lexeme {
@@ -46,6 +48,7 @@ impl Display for Lexeme {
             Lexeme::Subtract(_) => write!(f, "`-`"),
             Lexeme::Multiply(_) => write!(f, "`*`"),
             Lexeme::Divide(_) => write!(f, "`/`"),
+            Lexeme::Directive(_, token) => write!(f, "directive `{token}`"),
         }
     }
 }
@@ -67,7 +70,8 @@ impl Lexeme {
             | Lexeme::Add(token)
             | Lexeme::Subtract(token)
             | Lexeme::Multiply(token)
-            | Lexeme::Divide(token) => token,
+            | Lexeme::Divide(token)
+            | Lexeme::Directive(_, token) => token,
         }
     }
 
@@ -87,7 +91,8 @@ impl Lexeme {
             | Lexeme::Add(token)
             | Lexeme::Subtract(token)
             | Lexeme::Multiply(token)
-            | Lexeme::Divide(token) => token.loc,
+            | Lexeme::Divide(token)
+            | Lexeme::Directive(_, token) => token.loc,
         }
     }
 
@@ -99,6 +104,16 @@ impl Lexeme {
             _ => unreachable!(),
         }
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Directive {
+    RegisterVariable,
+    LoadVariable,
+    Define,
+    Insert,
+    Log,
+    // `Assert` is left out because it is never passed to the parser.
 }
 
 /// An error type is required by lalrpop, but it will not be used.
@@ -351,28 +366,95 @@ impl<'input> Iterator for Lexer<'input> {
                     let loc = self.loc;
                     self.consume();
                     if let Some((_, '[')) = self.peek() {
+                        // @[ ... ] calculation
                         self.consume();
                         self.in_calc = true;
                         let token = Token::from_static_str("@[", loc);
                         return Some(Ok((start_i, Lexeme::CalcStart(token), start_i + 2)));
                     }
-                    while let Some((i, c)) = self.peek() {
-                        if c.is_local_value_char() {
-                            id.add_char(c);
-                            self.consume();
-                        } else {
-                            return Some(Ok((
-                                start_i,
-                                Lexeme::VariableReference(id.take_to_token()),
-                                i,
-                            )));
+                    if let Some((_, ':')) = self.peek() {
+                        // reader directive, such as @:insert
+                        id.add_char(':');
+                        self.consume();
+                        let mut end_i = self.eof_offset();
+                        while let Some((i, c)) = self.peek() {
+                            // Match c == '-' too, to be able to warn when it's used in place of _
+                            if c.is_alphanumeric() || c == '_' || c == '-' {
+                                id.add_char(c);
+                                self.consume();
+                            } else {
+                                end_i = i;
+                                break;
+                            }
                         }
+                        let token = id.take_to_token();
+                        if !Game::is_ck3() {
+                            let msg = "reader directives are only for CK3 so far";
+                            err(ErrorKey::WrongGame).msg(msg).loc(&token).push();
+                        }
+                        let lexeme = match token.as_str() {
+                            "@:register_variable" => {
+                                let msg =
+                                    "`@:register_variable` is (as of CK3 1.13) not yet supported";
+                                let info = "prefer just @name = value";
+                                err(ErrorKey::Bugs).msg(msg).info(info).loc(&token).push();
+                                Some(Lexeme::Directive(Directive::RegisterVariable, token))
+                            }
+                            "@:register-variable" => {
+                                let msg = format!("unknown reader directive `{token}`");
+                                let info = "did you mean `@:register_variable`?";
+                                err(ErrorKey::ParseError).msg(msg).info(info).loc(&token).push();
+                                None
+                            }
+                            "@:load_variable" => {
+                                let msg = "`@:load_variable` is (as of CK3 1.13) not yet supported";
+                                let info = "prefer just @name";
+                                err(ErrorKey::Bugs).msg(msg).info(info).loc(&token).push();
+                                Some(Lexeme::Directive(Directive::LoadVariable, token))
+                            }
+                            "@:load-variable" => {
+                                let msg = format!("unknown reader directive `{token}`");
+                                let info = "did you mean `@:load_variable`?";
+                                err(ErrorKey::ParseError).msg(msg).info(info).loc(&token).push();
+                                None
+                            }
+                            "@:define" => Some(Lexeme::Directive(Directive::Define, token)),
+                            "@:insert" => Some(Lexeme::Directive(Directive::Insert, token)),
+                            "@:assert" => {
+                                let msg = "`@:assert` should not be left in the script";
+                                err(ErrorKey::Crash).msg(msg).loc(&token).push();
+                                // Swallow @:assert because it would just complicate the parser.
+                                None
+                            }
+                            "@:log" => Some(Lexeme::Directive(Directive::Log, token)),
+                            _ => {
+                                let msg = format!("unknown reader directive `{token}`");
+                                err(ErrorKey::ParseError).msg(msg).loc(&token).push();
+                                None
+                            }
+                        };
+                        if let Some(lexeme) = lexeme {
+                            return Some(Ok((start_i, lexeme, end_i)));
+                        }
+                    } else {
+                        while let Some((i, c)) = self.peek() {
+                            if c.is_local_value_char() {
+                                id.add_char(c);
+                                self.consume();
+                            } else {
+                                return Some(Ok((
+                                    start_i,
+                                    Lexeme::VariableReference(id.take_to_token()),
+                                    i,
+                                )));
+                            }
+                        }
+                        return Some(Ok((
+                            start_i,
+                            Lexeme::VariableReference(id.take_to_token()),
+                            self.eof_offset(),
+                        )));
                     }
-                    return Some(Ok((
-                        start_i,
-                        Lexeme::VariableReference(id.take_to_token()),
-                        self.eof_offset(),
-                    )));
                 }
                 '{' => {
                     let token = Token::from_static_str("{", self.loc);

@@ -18,6 +18,7 @@ mod lexer;
 mod reader;
 lalrpop_mod! {
     #[allow(unused_variables)]
+    #[allow(unused_imports)]
     #[allow(dead_code)]
     #[rustfmt::skip]
     #[allow(clippy::pedantic)]
@@ -132,8 +133,12 @@ fn split_macros(token: &Token) -> Vec<MacroComponent> {
 type HasMacroParams = bool;
 
 fn define_var(reader: &mut ReaderValues, token: &Token, cmp: Comparator, value: &Token) {
-    // SAFETY: The @ is guaranteed by the lexer
-    let name = token.as_str().strip_prefix('@').unwrap();
+    // A direct `@name = value` assignment gets the leading `@`,
+    // while a `@:register_variable name = value` does not.
+    let name = match token.as_str().strip_prefix('@') {
+        Some(name) => name,
+        None => token.as_str(),
+    };
     if !matches!(cmp, Comparator::Equals(Eq::Single)) {
         let msg = format!("expected `{name} =`");
         err(ErrorKey::LocalValues).msg(msg).loc(token).push();

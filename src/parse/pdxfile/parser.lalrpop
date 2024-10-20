@@ -1,7 +1,7 @@
 use lalrpop_util::ParseError;
 
 use crate::block::{Block, BV, BlockItem, Comparator, Eq, Field};
-use crate::parse::pdxfile::lexer::{Lexeme, LexError};
+use crate::parse::pdxfile::lexer::{Directive, Lexeme, LexError};
 use crate::parse::pdxfile::reader::ReaderValues;
 use crate::parse::pdxfile::{HasMacroParams, define_var, warn_macros, split_macros, report_error};
 use crate::report::{err, ErrorKey};
@@ -116,16 +116,8 @@ FileItem: Option<BlockItem> = {
         }
         Some(BlockItem::Block(block.0))
     },
-    // @variable = value definition
-    <var:var> <cmp:cmp> <value:Value> => {
-        if value.1 {
-            let msg = "cannot use $-substitutions when defining reader variables";
-            err(ErrorKey::Macro).msg(msg).loc(value.0).push();
-        } else {
-            define_var(reader, &var.into_token(), cmp.get_cmp(), &value.0);
-        }
-        None
-    },
+    VariableDefinition => None,
+    "@:log" token => None,
 }
 
 /// A single [`BlockItem`]. Macro handling is deferred to the top level.
@@ -155,16 +147,8 @@ BlockItem: Option<(BlockItem, HasMacroParams)> = {
     <value:Value> => Some((BlockItem::Value(value.0), value.1)),
     // loose block
     <block:Block> => Some((BlockItem::Block(block.0), block.1)),
-    // @var = value definition
-    <var:var> <cmp:cmp> <value:Value> => {
-        if value.1 {
-            let msg = "cannot use $-substitutions when defining reader variables";
-            err(ErrorKey::Macro).msg(msg).loc(value.0).push();
-        } else {
-            define_var(reader, &var.into_token(), cmp.get_cmp(), &value.0);
-        }
-        None
-    },
+    VariableDefinition => None,
+    "@:log" token => None,
 }
 
 /// The right-hand side of assignments, or loose values.
@@ -180,9 +164,19 @@ Value: (Token, HasMacroParams) = {
         } else if let Some(s) = reader.get_as_str(name) {
             (Token::from_static_str(s, token.loc), false)
         } else {
-            let msg = "reader variable not defined";
+            let msg = format!("reader variable {name} not defined");
             err(ErrorKey::LocalValues).msg(msg).loc(&token).push();
             (token, false)
+        }
+    },
+    <directive:"@:load_variable"> <name:token> => {
+        let name = name.into_token();
+        if let Some(s) = reader.get_as_str(name.as_str()) {
+            (Token::from_static_str(s, directive.get_loc()), false)
+        } else {
+            let msg = format!("reader variable {name} not defined");
+            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+            (name, false)
         }
     },
     <token:Calculation> => (token, false),
@@ -196,6 +190,39 @@ Key: (Token, HasMacroParams) = {
     <token:token> => (token.into_token(), false),
     <token:Calculation> => (token, false),
     <param:param> => (param.into_token(), true),
+    // Edge case: using `@:load_variable` to name the key
+    <directive:"@:load_variable"> <name:token> => {
+        let name = name.into_token();
+        if let Some(s) = reader.get_as_str(name.as_str()) {
+            (Token::from_static_str(s, directive.get_loc()), false)
+        } else {
+            let msg = format!("reader variable {name} not defined");
+            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+            (name, false)
+        }
+    },
+}
+
+/// Definition of a reader variable, either with the `@name` syntax or `@:register_variable`.
+VariableDefinition: () = {
+    // @variable = value definition
+    <var:var> <cmp:cmp> <value:Value> => {
+        if value.1 {
+            let msg = "cannot use $-substitutions when defining reader variables";
+            err(ErrorKey::Macro).msg(msg).loc(value.0).push();
+        } else {
+            define_var(reader, &var.into_token(), cmp.get_cmp(), &value.0);
+        }
+    },
+    // same as above but using @:register_variable
+    "@:register_variable" <name:token> <cmp:cmp> <value:Value> => {
+        if value.1 {
+            let msg = "cannot use $-substitutions when defining reader variables";
+            err(ErrorKey::Macro).msg(msg).loc(value.0).push();
+        } else {
+            define_var(reader, &name.into_token(), cmp.get_cmp(), &value.0);
+        }
+    },
 }
 
 /// A `@[ ... ]` parse-time calculation.
@@ -273,5 +300,10 @@ extern {
         "-" => Lexeme::Subtract(_),
         "*" => Lexeme::Multiply(_),
         "/" => Lexeme::Divide(_),
+        "@:register_variable" => Lexeme::Directive(Directive::RegisterVariable, _),
+        "@:load_variable" => Lexeme::Directive(Directive::LoadVariable, _),
+        "@:define" => Lexeme::Directive(Directive::Define, _),
+        "@:insert" => Lexeme::Directive(Directive::Insert, _),
+        "@:log" => Lexeme::Directive(Directive::Log, _),
     }
 }
