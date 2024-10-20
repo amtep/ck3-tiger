@@ -1095,6 +1095,7 @@ pub fn validate_setup_cb(
     } else if caller == "setup_invasion_cb" {
         vd.field_value("titles"); // list name
         vd.field_bool("take_occupied");
+        vd.field_target("claimant", sc, Scopes::Character);
     }
     sc.define_name("cb_prestige_factor", Scopes::Value, key);
 }
