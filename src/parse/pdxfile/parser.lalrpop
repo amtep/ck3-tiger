@@ -4,7 +4,7 @@ use crate::block::{Block, BV, BlockItem, Comparator, Eq, Field};
 use crate::parse::pdxfile::lexer::{Directive, Lexeme, LexError};
 use crate::parse::pdxfile::reader::ReaderValues;
 use crate::parse::pdxfile::{HasMacroParams, define_var, warn_macros, split_macros, report_error};
-use crate::report::{err, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::token::Token;
 
 grammar(inputs: &[Token], reader: &mut ReaderValues);
@@ -56,6 +56,12 @@ FileContents: Block = {
         }
         block
     },
+    <mut block:FileContents> <items:MacroInsert> => {
+        for blockitem in items {
+            block.add_item(blockitem);
+        }
+        block
+    },
     // Error handling
     <block:FileContents> <error:!> => {
         report_error(error.error, inputs[0].loc);
@@ -76,9 +82,15 @@ BlockContents: (Block, HasMacroParams) = {
             block
         }
     },
+    <mut block:BlockContents> <items:MacroInsert> => {
+        for blockitem in items {
+            block.0.add_item(blockitem);
+        }
+        block
+    },
 }
 
-/// A top-level `BlockItem`. Macros are handled here.
+/// A top-level `BlockItem`. Blocks with macro parameters are handled here.
 FileItem: Option<BlockItem> = {
     // key = value assignment
     <key:Key> <cmp:cmp> <value:Value> => {
@@ -118,9 +130,10 @@ FileItem: Option<BlockItem> = {
     },
     VariableDefinition => None,
     "@:log" token => None,
+    MacroDefinition => None,
 }
 
-/// A single [`BlockItem`]. Macro handling is deferred to the top level.
+/// A single [`BlockItem`]. Macro parameter handling is deferred to the top level.
 BlockItem: Option<(BlockItem, HasMacroParams)> = {
     // key = value assignment
     <key:Key> <cmp:cmp> <value:Value> => {
@@ -149,6 +162,7 @@ BlockItem: Option<(BlockItem, HasMacroParams)> = {
     <block:Block> => Some((BlockItem::Block(block.0), block.1)),
     VariableDefinition => None,
     "@:log" token => None,
+    MacroDefinition => None,
 }
 
 /// The right-hand side of assignments, or loose values.
@@ -222,6 +236,89 @@ VariableDefinition: () = {
         } else {
             define_var(reader, &name.into_token(), cmp.get_cmp(), &value.0);
         }
+    },
+}
+
+MacroDefinition: () = {
+    "@:define" <name:token> <cmp:cmp> <start:@L> <mut block:Block> <end:@R> => {
+        let name = name.into_token();
+        if !block.1 {
+            let msg = "reader macros without $ parameters can't be inserted (as of CK3 1.13)";
+            err(ErrorKey::Bugs).msg(msg).loc(&name).push();
+        } else {
+            let s = &inputs[0].as_str()[start + 1..end - 1];
+            let mut loc = block.0.loc;
+            loc.column += 1;
+            let token = Token::from_static_str(s, loc);
+            block.0.source = Some(Box::new((split_macros(&token), reader.clone())));
+        }
+        if !matches!(cmp.get_cmp(), Comparator::Equals(Eq::Single)) {
+            let msg = "expected `=`";
+            err(ErrorKey::LocalValues).msg(msg).loc(cmp.into_token()).push();
+        }
+        if reader.has_block(name.as_str()) {
+            let msg = format!("`{name}` is already defined");
+            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+        } else if !name.as_str().starts_with(|c: char| c.is_ascii_alphabetic()) {
+            let msg = "macro names must start with an ascii letter";
+            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+        } else if !name.as_str().chars().all(|c: char| c.is_alphanumeric() || c == '_') {
+            let msg = "macro names must be alphanumeric or `_`";
+            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+        } else {
+            reader.define_block(name.as_str(), block.0);
+        }
+    }
+}
+
+MacroInsert: Vec<BlockItem> = {
+    "@:insert" <name:token> <cmp:cmp> <block:Block> => {
+        let name = name.into_token();
+        if !matches!(cmp.get_cmp(), Comparator::Equals(Eq::Single)) {
+            let msg = format!("expected `{name} =`");
+            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+        }
+        if let Some(defined) = reader.get_block(name.as_str()) {
+            let parms = defined.macro_parms();
+            if parms.is_empty() {
+                let msg = "reader macros without $ parameters can't be inserted (as of CK3 1.13)";
+                err(ErrorKey::Bugs).msg(msg).loc(&name).push();
+                return Vec::new();
+            }
+            // parameter errors are reported with `err` because the game parser gets confused.
+            let mut args: Vec<(&str, Token)> = Vec::new();
+            for (parm, arg) in block.0.iter_assignments() {
+                if args.iter().any(|(p, _)| parm.is(p)) {
+                    let msg = format!("duplicate macro argument `{parm}`");
+                    err(ErrorKey::LocalValues).msg(msg).loc(parm).push();
+                } else if !parms.contains(&parm.as_str()) {
+                    let msg = format!("this macro does not need parameter `{parm}`");
+                    err(ErrorKey::LocalValues).msg(msg).loc(parm).push();
+                } else {
+                    args.push((parm.as_str(), arg.clone()));
+                }
+            }
+            for parm in parms {
+                if !args.iter().any(|(p, _)| &parm == p) {
+                    let msg = format!("this macro needs argument `{parm}`");
+                    err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+                    return Vec::new();
+                }
+            }
+            // SAFETY: we already checked that this block has macro parameters
+            let mut expansion = defined.expand_macro(&args, name.loc).unwrap();
+            expansion.drain().collect()
+        } else {
+            let msg = "reader macro `{name}` is not defined";
+            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+            Vec::new()
+        }
+    },
+    "@:insert" <name:token> => {
+        let name = name.into_token();
+        let msg = "reader macros without $ parameters can't be inserted (as of CK3 1.13)";
+        err(ErrorKey::Bugs).msg(msg).loc(&name).push();
+        Vec::new()
     },
 }
 

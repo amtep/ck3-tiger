@@ -1,5 +1,6 @@
 //! Remembers the `@` definitions seen by the parser.
 
+use crate::block::Block;
 use crate::helpers::TigerHashMap;
 use crate::token::bump;
 
@@ -11,6 +12,8 @@ pub struct ReaderValues {
     numeric: TigerHashMap<String, (f64, &'static str)>,
     /// @-values defined as text. These can be substituted at other locations in the script.
     text: TigerHashMap<String, &'static str>,
+    /// Macros defined with `@:define`
+    blocks: TigerHashMap<String, Block>,
 }
 
 impl ReaderValues {
@@ -48,5 +51,17 @@ impl ReaderValues {
         } else {
             self.text.insert(key, value);
         }
+    }
+
+    pub fn has_block(&self, key: &str) -> bool {
+        self.blocks.contains_key(key)
+    }
+
+    pub fn define_block(&mut self, key: &str, block: Block) {
+        self.blocks.insert(key.to_string(), block);
+    }
+
+    pub fn get_block(&self, key: &str) -> Option<&Block> {
+        self.blocks.get(key)
     }
 }
