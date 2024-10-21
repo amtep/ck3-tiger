@@ -141,14 +141,14 @@ fn define_var(reader: &mut ReaderValues, token: &Token, cmp: Comparator, value: 
     };
     if !matches!(cmp, Comparator::Equals(Eq::Single)) {
         let msg = format!("expected `{name} =`");
-        err(ErrorKey::LocalValues).msg(msg).loc(token).push();
+        err(ErrorKey::ReaderDirectives).msg(msg).loc(token).push();
     }
     if reader.has_variable(name) {
         let msg = format!("`{name}` is already defined as a reader variable");
-        err(ErrorKey::LocalValues).msg(msg).loc(token).push();
+        err(ErrorKey::ReaderDirectives).msg(msg).loc(token).push();
     } else if !name.starts_with(|c: char| c.is_ascii_alphabetic()) {
         let msg = "reader variable names must start with an ascii letter";
-        err(ErrorKey::LocalValues).msg(msg).loc(token).push();
+        err(ErrorKey::ReaderDirectives).msg(msg).loc(token).push();
     } else {
         reader.set_variable(name, value.as_str());
     }

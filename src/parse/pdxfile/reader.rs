@@ -5,7 +5,9 @@ use crate::helpers::TigerHashMap;
 use crate::token::bump;
 
 /// Tracks the @-values defined in this file.
-/// Values starting with `@` are local to a file, and are evaluated at parse time.
+/// Values starting with `@` are local to a file (except for the ones in `reader_export/`),
+/// and are evaluated at parse time.
+/// Other directives are explained in `reader_export/_reader_export.info` in the game files.
 #[derive(Clone, Debug, Default)]
 pub struct ReaderValues {
     /// @-values defined as numbers. Calculations can be done with these in `@[ ... ]` blocks.

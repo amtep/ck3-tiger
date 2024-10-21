@@ -179,7 +179,7 @@ Value: (Token, HasMacroParams) = {
             (Token::from_static_str(s, token.loc), false)
         } else {
             let msg = format!("reader variable {name} not defined");
-            err(ErrorKey::LocalValues).msg(msg).loc(&token).push();
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&token).push();
             (token, false)
         }
     },
@@ -189,7 +189,7 @@ Value: (Token, HasMacroParams) = {
             (Token::from_static_str(s, directive.get_loc()), false)
         } else {
             let msg = format!("reader variable {name} not defined");
-            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
             (name, false)
         }
     },
@@ -211,7 +211,7 @@ Key: (Token, HasMacroParams) = {
             (Token::from_static_str(s, directive.get_loc()), false)
         } else {
             let msg = format!("reader variable {name} not defined");
-            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
             (name, false)
         }
     },
@@ -254,17 +254,17 @@ MacroDefinition: () = {
         }
         if !matches!(cmp.get_cmp(), Comparator::Equals(Eq::Single)) {
             let msg = "expected `=`";
-            err(ErrorKey::LocalValues).msg(msg).loc(cmp.into_token()).push();
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(cmp.into_token()).push();
         }
         if reader.has_block(name.as_str()) {
             let msg = format!("`{name}` is already defined");
-            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
         } else if !name.as_str().starts_with(|c: char| c.is_ascii_alphabetic()) {
             let msg = "macro names must start with an ascii letter";
-            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
         } else if !name.as_str().chars().all(|c: char| c.is_alphanumeric() || c == '_') {
             let msg = "macro names must be alphanumeric or `_`";
-            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
         } else {
             reader.define_block(name.as_str(), block.0);
         }
@@ -276,7 +276,7 @@ MacroInsert: Vec<BlockItem> = {
         let name = name.into_token();
         if !matches!(cmp.get_cmp(), Comparator::Equals(Eq::Single)) {
             let msg = format!("expected `{name} =`");
-            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
         }
         if let Some(defined) = reader.get_block(name.as_str()) {
             let parms = defined.macro_parms();
@@ -290,10 +290,10 @@ MacroInsert: Vec<BlockItem> = {
             for (parm, arg) in block.0.iter_assignments() {
                 if args.iter().any(|(p, _)| parm.is(p)) {
                     let msg = format!("duplicate macro argument `{parm}`");
-                    err(ErrorKey::LocalValues).msg(msg).loc(parm).push();
+                    err(ErrorKey::ReaderDirectives).msg(msg).loc(parm).push();
                 } else if !parms.contains(&parm.as_str()) {
                     let msg = format!("this macro does not need parameter `{parm}`");
-                    err(ErrorKey::LocalValues).msg(msg).loc(parm).push();
+                    err(ErrorKey::ReaderDirectives).msg(msg).loc(parm).push();
                 } else {
                     args.push((parm.as_str(), arg.clone()));
                 }
@@ -301,7 +301,7 @@ MacroInsert: Vec<BlockItem> = {
             for parm in parms {
                 if !args.iter().any(|(p, _)| &parm == p) {
                     let msg = format!("this macro needs argument `{parm}`");
-                    err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+                    err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
                     return Vec::new();
                 }
             }
@@ -310,7 +310,7 @@ MacroInsert: Vec<BlockItem> = {
             expansion.drain().collect()
         } else {
             let msg = "reader macro `{name}` is not defined";
-            err(ErrorKey::LocalValues).msg(msg).loc(&name).push();
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
             Vec::new()
         }
     },
@@ -340,7 +340,7 @@ Factor: f64 = {
     <x:Factor> <div:"/"> <y:Term> => {
         if y == 0.0 {
             let msg = "dividing by zero";
-            err(ErrorKey::LocalValues).msg(msg).loc(div.get_loc()).push();
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(div.get_loc()).push();
             0.0
         } else {
             x / y
@@ -359,7 +359,7 @@ Term: f64 = {
              value
         } else {
              let msg = format!("reader variable {token} not defined");
-             err(ErrorKey::LocalValues).msg(msg).loc(token).push();
+             err(ErrorKey::ReaderDirectives).msg(msg).loc(token).push();
              0.0
         }
     },
@@ -370,7 +370,7 @@ Term: f64 = {
              -value
         } else {
              let msg = format!("reader variable {token} not defined");
-             err(ErrorKey::LocalValues).msg(msg).loc(token).push();
+             err(ErrorKey::ReaderDirectives).msg(msg).loc(token).push();
              0.0
         }
     },
