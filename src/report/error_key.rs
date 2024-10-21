@@ -11,7 +11,7 @@ pub enum ErrorKey {
     ParseError,
     BraceError,
     BracePlacement,
-    LocalValues,
+    ReaderDirectives,
     Packaging,
     Validation,
     Structure,
