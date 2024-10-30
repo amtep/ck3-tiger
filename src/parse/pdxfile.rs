@@ -10,12 +10,14 @@ use crate::block::{Block, Comparator, Eq};
 use crate::fileset::{FileEntry, FileKind};
 use crate::parse::cob::Cob;
 use crate::parse::pdxfile::lexer::{LexError, Lexeme, Lexer};
-pub use crate::parse::pdxfile::reader::ReaderValues;
+pub use crate::parse::pdxfile::memory::GlobalMemory;
+use crate::parse::pdxfile::memory::LocalMemory;
+use crate::parse::ParserMemory;
 use crate::report::{err, store_source_file, ErrorKey};
 use crate::token::{leak, Loc, Token};
 
 mod lexer;
-mod reader;
+pub mod memory;
 lalrpop_mod! {
     #[allow(unused_variables)]
     #[allow(unused_imports)]
@@ -29,8 +31,9 @@ lalrpop_mod! {
 /// Re-parse a macro (which is a scripted effect, trigger, or modifier that uses $ parameters)
 /// after argument substitution. A full re-parse is needed because the game engine allows tricks
 /// such as passing `#` as a macro argument in order to comment out the rest of a line.
-pub fn parse_pdx_macro(inputs: &[Token], mut reader: ReaderValues) -> Block {
-    match parser::FileParser::new().parse(inputs, &mut reader, Lexer::new(inputs)) {
+pub fn parse_pdx_macro(inputs: &[Token], memory: &GlobalMemory) -> Block {
+    let mut local = LocalMemory::new(memory);
+    match parser::FileParser::new().parse(inputs, &mut local, Lexer::new(inputs)) {
         Ok(block) => block,
         Err(e) => {
             eprintln!("Internal error: re-parsing macro failed.\n{e}");
@@ -40,14 +43,14 @@ pub fn parse_pdx_macro(inputs: &[Token], mut reader: ReaderValues) -> Block {
 }
 
 /// Parse a whole file into a `Block`.
-fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
-    let mut reader = ReaderValues::default();
+fn parse_pdx(entry: &FileEntry, content: &'static str, memory: &ParserMemory) -> Block {
     let file_loc = Loc::from(entry);
     let mut loc = file_loc;
     loc.line = 1;
     loc.column = 1;
     let inputs = [Token::from_static_str(content, loc)];
-    match parser::FileParser::new().parse(&inputs, &mut reader, Lexer::new(&inputs)) {
+    let mut local = LocalMemory::new(&memory.pdxfile);
+    match parser::FileParser::new().parse(&inputs, &mut local, Lexer::new(&inputs)) {
         Ok(mut block) => {
             block.loc = file_loc;
             block
@@ -60,17 +63,22 @@ fn parse_pdx(entry: &FileEntry, content: &'static str) -> Block {
 }
 
 /// Parse the content associated with the [`FileEntry`].
-pub fn parse_pdx_file(entry: &FileEntry, content: String, offset: usize) -> Block {
+pub fn parse_pdx_file(
+    entry: &FileEntry,
+    content: String,
+    offset: usize,
+    parser: &ParserMemory,
+) -> Block {
     let content = leak(content);
     store_source_file(entry.fullpath().to_path_buf(), &content[offset..]);
-    parse_pdx(entry, &content[offset..])
+    parse_pdx(entry, &content[offset..], parser)
 }
 
 /// Parse a string into a [`Block`]. This function is meant for use by the validator itself, to
 /// allow it to load game description data from internal strings that are in pdx script format.
 pub fn parse_pdx_internal(input: &'static str, desc: &str) -> Block {
     let entry = FileEntry::new(PathBuf::from(desc), FileKind::Internal, PathBuf::from(desc));
-    parse_pdx(&entry, input)
+    parse_pdx(&entry, input, &ParserMemory::default())
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -132,7 +140,7 @@ fn split_macros(token: &Token) -> Vec<MacroComponent> {
 
 type HasMacroParams = bool;
 
-fn define_var(reader: &mut ReaderValues, token: &Token, cmp: Comparator, value: &Token) {
+fn define_var(memory: &mut LocalMemory, token: &Token, cmp: Comparator, value: Token) {
     // A direct `@name = value` assignment gets the leading `@`,
     // while a `@:register_variable name = value` does not.
     let name = match token.as_str().strip_prefix('@') {
@@ -143,14 +151,14 @@ fn define_var(reader: &mut ReaderValues, token: &Token, cmp: Comparator, value: 
         let msg = format!("expected `{name} =`");
         err(ErrorKey::ReaderDirectives).msg(msg).loc(token).push();
     }
-    if reader.has_variable(name) {
+    if memory.has_variable(name) {
         let msg = format!("`{name}` is already defined as a reader variable");
         err(ErrorKey::ReaderDirectives).msg(msg).loc(token).push();
     } else if !name.starts_with(|c: char| c.is_ascii_alphabetic()) {
         let msg = "reader variable names must start with an ascii letter";
         err(ErrorKey::ReaderDirectives).msg(msg).loc(token).push();
     } else {
-        reader.set_variable(name, value.as_str());
+        memory.set_variable(name.to_string(), value);
     }
 }
 
@@ -178,6 +186,24 @@ fn report_error(error: ParseError<usize, Lexeme, LexError>, mut file_loc: Loc) {
             err(ErrorKey::ParseError).msg(msg).loc(token).push();
         }
     };
+}
+
+fn get_numeric_var(memory: &LocalMemory, name: &Token) -> f64 {
+    if let Some(value) = name.get_number() {
+        value
+    } else if let Some(v) = memory.get_variable(name.as_str()) {
+        if let Some(value) = v.get_number() {
+            value
+        } else {
+            let msg = format!("expected reader variable `{name}` to be numeric");
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(name).loc_msg(v, "defined here").push();
+            0.0
+        }
+    } else {
+        let msg = format!("reader variable {name} not defined");
+        err(ErrorKey::ReaderDirectives).msg(msg).loc(name).push();
+        0.0
+    }
 }
 
 /// A convenience trait to add some methods to [`char`]

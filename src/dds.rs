@@ -6,6 +6,7 @@ use std::path::PathBuf;
 
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::TigerHashMap;
+use crate::parse::ParserMemory;
 use crate::report::{err, tips, warn, ErrorKey};
 #[cfg(feature = "ck3")]
 use crate::token::Token;
@@ -76,7 +77,7 @@ impl FileHandler<DdsInfo> for DdsFiles {
         PathBuf::from("gfx")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<DdsInfo> {
+    fn load_file(&self, entry: &FileEntry, _parser: &ParserMemory) -> Option<DdsInfo> {
         if !entry.filename().to_string_lossy().ends_with(".dds") {
             return None;
         }

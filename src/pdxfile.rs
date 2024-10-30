@@ -12,6 +12,7 @@ use encoding_rs::{UTF_8, WINDOWS_1252};
 use crate::block::Block;
 use crate::fileset::FileEntry;
 use crate::parse::pdxfile::parse_pdx_file;
+use crate::parse::ParserMemory;
 use crate::report::{err, warn, ErrorKey};
 
 const BOM_UTF8_BYTES: &[u8] = b"\xef\xbb\xbf";
@@ -43,30 +44,30 @@ impl PdxFile {
     }
 
     /// Parse a UTF-8 file that should start with a BOM (Byte Order Marker).
-    pub fn read(entry: &FileEntry) -> Option<Block> {
+    pub fn read(entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         let contents = Self::read_utf8(entry)?;
         if contents.starts_with(BOM_CHAR) {
-            Some(parse_pdx_file(entry, contents, BOM_UTF8_LEN))
+            Some(parse_pdx_file(entry, contents, BOM_UTF8_LEN, parser))
         } else {
             let msg = "file must start with a UTF-8 BOM";
             warn(ErrorKey::Encoding).msg(msg).loc(entry).push();
-            Some(parse_pdx_file(entry, contents, 0))
+            Some(parse_pdx_file(entry, contents, 0, parser))
         }
     }
 
     /// Parse a UTF-8 file that may optionally start with a BOM (Byte Order Marker).
-    pub fn read_optional_bom(entry: &FileEntry) -> Option<Block> {
+    pub fn read_optional_bom(entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         let contents = Self::read_utf8(entry)?;
         if contents.starts_with(BOM_CHAR) {
-            Some(parse_pdx_file(entry, contents, BOM_UTF8_LEN))
+            Some(parse_pdx_file(entry, contents, BOM_UTF8_LEN, parser))
         } else {
-            Some(parse_pdx_file(entry, contents, 0))
+            Some(parse_pdx_file(entry, contents, 0, parser))
         }
     }
 
     /// Parse a file that may be in UTF-8 with BOM encoding, or Windows-1252 encoding.
     #[cfg(feature = "ck3")]
-    pub fn read_detect_encoding(entry: &FileEntry) -> Option<Block> {
+    pub fn read_detect_encoding(entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         let bytes = match read(entry.fullpath()) {
             Ok(bytes) => bytes,
             Err(e) => {
@@ -83,7 +84,7 @@ impl PdxFile {
                 err(ErrorKey::Encoding).msg(msg).loc(entry).push();
                 None
             } else {
-                Some(parse_pdx_file(entry, contents.into_owned(), 0))
+                Some(parse_pdx_file(entry, contents.into_owned(), 0, parser))
             }
         } else {
             let (contents, errors) = WINDOWS_1252.decode_without_bom_handling(&bytes);
@@ -92,17 +93,21 @@ impl PdxFile {
                 err(ErrorKey::Encoding).msg(msg).loc(entry).push();
                 None
             } else {
-                Some(parse_pdx_file(entry, contents.into_owned(), 0))
+                Some(parse_pdx_file(entry, contents.into_owned(), 0, parser))
             }
         }
     }
 
-    pub fn read_encoded(entry: &FileEntry, encoding: PdxEncoding) -> Option<Block> {
+    pub fn read_encoded(
+        entry: &FileEntry,
+        encoding: PdxEncoding,
+        parser: &ParserMemory,
+    ) -> Option<Block> {
         match encoding {
-            PdxEncoding::Utf8Bom => Self::read(entry),
-            PdxEncoding::Utf8OptionalBom => Self::read_optional_bom(entry),
+            PdxEncoding::Utf8Bom => Self::read(entry, parser),
+            PdxEncoding::Utf8OptionalBom => Self::read_optional_bom(entry, parser),
             #[cfg(feature = "ck3")]
-            PdxEncoding::Detect => Self::read_detect_encoding(entry),
+            PdxEncoding::Detect => Self::read_detect_encoding(entry, parser),
         }
     }
 }

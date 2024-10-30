@@ -2,12 +2,12 @@ use lalrpop_util::ParseError;
 
 use crate::block::{Block, BV, BlockItem, Comparator, Eq, Field};
 use crate::parse::pdxfile::lexer::{Directive, Lexeme, LexError};
-use crate::parse::pdxfile::reader::ReaderValues;
-use crate::parse::pdxfile::{HasMacroParams, define_var, warn_macros, split_macros, report_error};
+use crate::parse::pdxfile::memory::LocalMemory;
+use crate::parse::pdxfile::{HasMacroParams, define_var, warn_macros, split_macros, report_error, get_numeric_var};
 use crate::report::{err, warn, ErrorKey};
 use crate::token::Token;
 
-grammar(inputs: &[Token], reader: &mut ReaderValues);
+grammar<'memory>(inputs: &[Token], memory: &mut LocalMemory<'memory>);
 
 /// A file is parsed as an undelimited [`Block`].
 pub File: Block = {
@@ -107,7 +107,7 @@ FileItem: Option<BlockItem> = {
             let mut loc = block.0.loc;
             loc.column += 1;
             let token = Token::from_static_str(s, loc);
-            block.0.source = Some(Box::new((split_macros(&token), reader.clone())));
+            block.0.source = Some(Box::new((split_macros(&token), memory.to_global())));
         }
         Some(BlockItem::Field(Field(key.0, cmp.get_cmp(), BV::Block(block.0))))
     },
@@ -124,7 +124,7 @@ FileItem: Option<BlockItem> = {
             let mut loc = block.0.loc;
             loc.column += 1;
             let token = Token::from_static_str(s, loc);
-            block.0.source = Some(Box::new((split_macros(&token), reader.clone())));
+            block.0.source = Some(Box::new((split_macros(&token), memory.to_global())));
         }
         Some(BlockItem::Block(block.0))
     },
@@ -175,8 +175,9 @@ Value: (Token, HasMacroParams) = {
         if name.contains('!') {
             // Check for a `!` to avoid looking up macros in gui code that uses `@icon!` syntax.
             (token, false)
-        } else if let Some(s) = reader.get_as_str(name) {
-            (Token::from_static_str(s, token.loc), false)
+        } else if let Some(t) = memory.get_variable(name) {
+            // TODO: use loc.link here and in @:load_variable?
+            (Token::from_static_str(t.as_str(), token.loc), false)
         } else {
             let msg = format!("reader variable {name} not defined");
             err(ErrorKey::ReaderDirectives).msg(msg).loc(&token).push();
@@ -185,8 +186,8 @@ Value: (Token, HasMacroParams) = {
     },
     <directive:"@:load_variable"> <name:token> => {
         let name = name.into_token();
-        if let Some(s) = reader.get_as_str(name.as_str()) {
-            (Token::from_static_str(s, directive.get_loc()), false)
+        if let Some(t) = memory.get_variable(name.as_str()) {
+            (Token::from_static_str(t.as_str(), directive.get_loc()), false)
         } else {
             let msg = format!("reader variable {name} not defined");
             err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
@@ -207,8 +208,8 @@ Key: (Token, HasMacroParams) = {
     // Edge case: using `@:load_variable` to name the key
     <directive:"@:load_variable"> <name:token> => {
         let name = name.into_token();
-        if let Some(s) = reader.get_as_str(name.as_str()) {
-            (Token::from_static_str(s, directive.get_loc()), false)
+        if let Some(t) = memory.get_variable(name.as_str()) {
+            (Token::from_static_str(t.as_str(), directive.get_loc()), false)
         } else {
             let msg = format!("reader variable {name} not defined");
             err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
@@ -225,7 +226,7 @@ VariableDefinition: () = {
             let msg = "cannot use $-substitutions when defining reader variables";
             err(ErrorKey::Macro).msg(msg).loc(value.0).push();
         } else {
-            define_var(reader, &var.into_token(), cmp.get_cmp(), &value.0);
+            define_var(memory, &var.into_token(), cmp.get_cmp(), value.0);
         }
     },
     // same as above but using @:register_variable
@@ -234,7 +235,7 @@ VariableDefinition: () = {
             let msg = "cannot use $-substitutions when defining reader variables";
             err(ErrorKey::Macro).msg(msg).loc(value.0).push();
         } else {
-            define_var(reader, &name.into_token(), cmp.get_cmp(), &value.0);
+            define_var(memory, &name.into_token(), cmp.get_cmp(), value.0);
         }
     },
 }
@@ -250,13 +251,13 @@ MacroDefinition: () = {
             let mut loc = block.0.loc;
             loc.column += 1;
             let token = Token::from_static_str(s, loc);
-            block.0.source = Some(Box::new((split_macros(&token), reader.clone())));
+            block.0.source = Some(Box::new((split_macros(&token), memory.to_global())));
         }
         if !matches!(cmp.get_cmp(), Comparator::Equals(Eq::Single)) {
             let msg = "expected `=`";
             err(ErrorKey::ReaderDirectives).msg(msg).loc(cmp.into_token()).push();
         }
-        if reader.has_block(name.as_str()) {
+        if memory.has_block(name.as_str()) {
             let msg = format!("`{name}` is already defined");
             err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
         } else if !name.as_str().starts_with(|c: char| c.is_ascii_alphabetic()) {
@@ -266,7 +267,7 @@ MacroDefinition: () = {
             let msg = "macro names must be alphanumeric or `_`";
             err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
         } else {
-            reader.define_block(name.as_str(), block.0);
+            memory.define_block(name.to_string(), block.0);
         }
     }
 }
@@ -278,7 +279,7 @@ MacroInsert: Vec<BlockItem> = {
             let msg = format!("expected `{name} =`");
             err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
         }
-        if let Some(defined) = reader.get_block(name.as_str()) {
+        if let Some(defined) = memory.get_block(name.as_str()) {
             let parms = defined.macro_parms();
             if parms.is_empty() {
                 let msg = "reader macros without $ parameters can't be inserted (as of CK3 1.13)";
@@ -352,28 +353,9 @@ Factor: f64 = {
 /// Precedence 2: unary negation or just a value
 Term: f64 = {
     // The token can be the name of a reader variable (without an @) or a literal number.
-    <token:token> => {
-        let token = token.into_token();
-        // reader.get_value handles literal numbers too.
-        if let Some(value) = reader.get_value(token.as_str()) {
-             value
-        } else {
-             let msg = format!("reader variable {token} not defined");
-             err(ErrorKey::ReaderDirectives).msg(msg).loc(token).push();
-             0.0
-        }
-    },
+    <token:token> => get_numeric_var(memory, &token.into_token()),
     // Unary negation
-    "-" <token:token> => {
-        let token = token.into_token();
-        if let Some(value) = reader.get_value(token.as_str()) {
-             -value
-        } else {
-             let msg = format!("reader variable {token} not defined");
-             err(ErrorKey::ReaderDirectives).msg(msg).loc(token).push();
-             0.0
-        }
-    },
+    "-" <token:token> => -get_numeric_var(memory, &token.into_token()),
     // Nested expression
     "(" <Expr> ")",
 }

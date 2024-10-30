@@ -6,6 +6,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::TigerHashSet;
 use crate::item::Item;
+use crate::parse::ParserMemory;
 use crate::report::{err, report, ErrorKey, Severity};
 use crate::token::Token;
 
@@ -57,7 +58,7 @@ impl FileHandler<DynamicImage> for Vic3Provinces {
         PathBuf::from("map_data/provinces.png")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<DynamicImage> {
+    fn load_file(&self, entry: &FileEntry, _parser: &ParserMemory) -> Option<DynamicImage> {
         if entry.path().components().count() == 2 {
             let img = match image::open(entry.fullpath()) {
                 Ok(img) => img,

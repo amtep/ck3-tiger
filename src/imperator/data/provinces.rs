@@ -9,6 +9,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::parse::csv::{parse_csv, read_csv};
+use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, fatal, report, untidy, warn, ErrorKey, Severity};
 use crate::token::{Loc, Token};
@@ -174,7 +175,7 @@ impl FileHandler<FileContent> for ImperatorProvinces {
         PathBuf::from("map_data")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<FileContent> {
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<FileContent> {
         if entry.path().components().count() == 2 {
             match &*entry.filename().to_string_lossy() {
                 "adjacencies.csv" => {
@@ -225,7 +226,7 @@ impl FileHandler<FileContent> for ImperatorProvinces {
                 }
 
                 "default.map" => {
-                    return PdxFile::read_optional_bom(entry).map(FileContent::DefaultMap);
+                    return PdxFile::read_optional_bom(entry, parser).map(FileContent::DefaultMap);
                 }
                 _ => (),
             }

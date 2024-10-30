@@ -6,6 +6,7 @@ use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::TigerHashMap;
+use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -50,12 +51,12 @@ impl FileHandler<Block> for History {
         PathBuf::from("common/history/")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return None;
         }
 
-        PdxFile::read(entry)
+        PdxFile::read(entry, parser)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {

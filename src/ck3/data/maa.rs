@@ -8,6 +8,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
+use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::report::{warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
@@ -66,12 +67,12 @@ impl FileHandler<Block> for MenAtArmsTypes {
         PathBuf::from("common/men_at_arms_types")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return None;
         }
 
-        PdxFile::read(entry)
+        PdxFile::read(entry, parser)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {

@@ -12,6 +12,7 @@ use png::{ColorType, Decoder};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{TigerHashMap, TigerHashSet};
+use crate::parse::ParserMemory;
 use crate::report::{err, warn, will_maybe_log, ErrorKey};
 
 /// The `rivers.png` has an indexed palette where the colors don't matter, only the index values
@@ -325,7 +326,7 @@ impl FileHandler<()> for Rivers {
         PathBuf::from("map_data/rivers.png")
     }
 
-    fn load_file(&self, _entry: &FileEntry) -> Option<()> {
+    fn load_file(&self, _entry: &FileEntry, _parser: &ParserMemory) -> Option<()> {
         Some(())
     }
 

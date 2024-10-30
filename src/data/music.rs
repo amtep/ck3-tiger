@@ -8,6 +8,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::game::{Game, GameFlags};
 use crate::helpers::{dup_error, TigerHashMap};
 use crate::item::{Item, ItemLoader};
+use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::report::{report, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
@@ -76,7 +77,7 @@ impl FileHandler<Block> for Musics {
         PathBuf::from("music")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         if entry.path().parent().unwrap().ends_with("music_player_categories") {
             return None;
         }
@@ -84,7 +85,7 @@ impl FileHandler<Block> for Musics {
             return None;
         }
 
-        PdxFile::read(entry)
+        PdxFile::read(entry, parser)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
