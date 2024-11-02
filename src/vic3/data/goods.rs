@@ -24,6 +24,14 @@ impl DbKind for Goods {
         let mut vd = Validator::new(block, data);
 
         data.verify_exists(Item::Localization, key);
+        let tradeable = block.get_field_bool("tradeable").unwrap_or(true);
+        let local = block.get_field_bool("local").unwrap_or(false);
+        if tradeable && !local {
+            let loca = format!("trade_route_import_lens_option_{key}_tooltip");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            let loca = format!("trade_route_export_lens_option_{key}_tooltip");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+        }
 
         vd.field_item("texture", Item::File);
         vd.field_numeric("cost");

@@ -71,6 +71,11 @@ impl DbKind for BuildingType {
         let mut state_sc = ScopeContext::new(Scopes::State, key);
 
         data.verify_exists(Item::Localization, key);
+        if block.get_field_bool("expandable").unwrap_or(true) {
+            let loca = format!("{key}_lens_option");
+            // TODO: figure out when this is required
+            data.mark_used(Item::Localization, &loca);
+        }
 
         vd.field_item("building_group", Item::BuildingGroup);
         vd.field_item("texture", Item::File);
