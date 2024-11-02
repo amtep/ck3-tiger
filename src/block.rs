@@ -2,7 +2,7 @@
 
 use crate::date::Date;
 use crate::macros::MACRO_MAP;
-use crate::parse::pdxfile::{parse_pdx_macro, GlobalMemory, MacroComponent, MacroComponentKind};
+use crate::parse::pdxfile::{parse_pdx_macro, MacroComponent, MacroComponentKind, PdxfileMemory};
 use crate::token::{Loc, Token};
 
 mod blockitem;
@@ -45,7 +45,7 @@ pub struct Block {
     /// The source has already been split into a vec that alternates content with macro parameters.
     /// It is in a `Box` to save space (80 bytes) from blocks that don't contain macro substitutions,
     /// which is most of them.
-    pub source: Option<Box<(Vec<MacroComponent>, GlobalMemory)>>,
+    pub source: Option<Box<(Vec<MacroComponent>, PdxfileMemory)>>,
 }
 
 impl Block {
@@ -472,10 +472,15 @@ impl Block {
 
     /// Expand a block that has macro parameters by substituting arguments for those parameters,
     /// then re-parsing the script, that links the expanded content back to `loc`.
-    pub fn expand_macro(&self, args: &[(&str, Token)], loc: Loc) -> Option<Block> {
+    pub fn expand_macro(
+        &self,
+        args: &[(&str, Token)],
+        loc: Loc,
+        global: &PdxfileMemory,
+    ) -> Option<Block> {
         let link_index = MACRO_MAP.get_or_insert_loc(loc);
         if let Some(block_source) = &self.source {
-            let (ref source, ref memory) = **block_source;
+            let (ref source, ref local) = **block_source;
             let mut content = Vec::new();
             for part in source {
                 let token = part.token();
@@ -500,7 +505,7 @@ impl Block {
                     }
                 }
             }
-            Some(parse_pdx_macro(&content, memory))
+            Some(parse_pdx_macro(&content, global, local))
         } else {
             None
         }

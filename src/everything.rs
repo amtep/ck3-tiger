@@ -114,7 +114,7 @@ pub struct Everything {
     /// The global parser state, carrying information between files.
     /// Currently only used by the pdxfile parser, to handle the `reader_export` directory,
     /// which is specially processed before all other files.
-    parser: ParserMemory,
+    pub parser: ParserMemory,
 
     /// A cache of define values (from common/defines) that are missing and that have already been
     /// warned about as missing. This is to avoid duplicate warnings.

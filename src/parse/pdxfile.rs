@@ -10,8 +10,8 @@ use crate::block::{Block, Comparator, Eq};
 use crate::fileset::{FileEntry, FileKind};
 use crate::parse::cob::Cob;
 use crate::parse::pdxfile::lexer::{LexError, Lexeme, Lexer};
-pub use crate::parse::pdxfile::memory::GlobalMemory;
-use crate::parse::pdxfile::memory::LocalMemory;
+use crate::parse::pdxfile::memory::CombinedMemory;
+pub use crate::parse::pdxfile::memory::PdxfileMemory;
 use crate::parse::ParserMemory;
 use crate::report::{err, store_source_file, ErrorKey};
 use crate::token::{leak, Loc, Token};
@@ -31,9 +31,9 @@ lalrpop_mod! {
 /// Re-parse a macro (which is a scripted effect, trigger, or modifier that uses $ parameters)
 /// after argument substitution. A full re-parse is needed because the game engine allows tricks
 /// such as passing `#` as a macro argument in order to comment out the rest of a line.
-pub fn parse_pdx_macro(inputs: &[Token], memory: &GlobalMemory) -> Block {
-    let mut local = LocalMemory::new(memory);
-    match parser::FileParser::new().parse(inputs, &mut local, Lexer::new(inputs)) {
+pub fn parse_pdx_macro(inputs: &[Token], global: &PdxfileMemory, local: &PdxfileMemory) -> Block {
+    let mut combined = CombinedMemory::from_local(global, local.clone());
+    match parser::FileParser::new().parse(inputs, &mut combined, Lexer::new(inputs)) {
         Ok(block) => block,
         Err(e) => {
             eprintln!("Internal error: re-parsing macro failed.\n{e}");
@@ -49,8 +49,8 @@ fn parse_pdx(entry: &FileEntry, content: &'static str, memory: &ParserMemory) ->
     loc.line = 1;
     loc.column = 1;
     let inputs = [Token::from_static_str(content, loc)];
-    let mut local = LocalMemory::new(&memory.pdxfile);
-    match parser::FileParser::new().parse(&inputs, &mut local, Lexer::new(&inputs)) {
+    let mut combined = CombinedMemory::new(&memory.pdxfile);
+    match parser::FileParser::new().parse(&inputs, &mut combined, Lexer::new(&inputs)) {
         Ok(mut block) => {
             block.loc = file_loc;
             block
@@ -140,7 +140,7 @@ fn split_macros(token: &Token) -> Vec<MacroComponent> {
 
 type HasMacroParams = bool;
 
-fn define_var(memory: &mut LocalMemory, token: &Token, cmp: Comparator, value: Token) {
+fn define_var(memory: &mut CombinedMemory, token: &Token, cmp: Comparator, value: Token) {
     // A direct `@name = value` assignment gets the leading `@`,
     // while a `@:register_variable name = value` does not.
     let name = match token.as_str().strip_prefix('@') {
@@ -188,7 +188,7 @@ fn report_error(error: ParseError<usize, Lexeme, LexError>, mut file_loc: Loc) {
     };
 }
 
-fn get_numeric_var(memory: &LocalMemory, name: &Token) -> f64 {
+fn get_numeric_var(memory: &CombinedMemory, name: &Token) -> f64 {
     if let Some(value) = name.get_number() {
         value
     } else if let Some(v) = memory.get_variable(name.as_str()) {

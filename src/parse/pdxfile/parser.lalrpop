@@ -2,12 +2,12 @@ use lalrpop_util::ParseError;
 
 use crate::block::{Block, BV, BlockItem, Comparator, Eq, Field};
 use crate::parse::pdxfile::lexer::{Directive, Lexeme, LexError};
-use crate::parse::pdxfile::memory::LocalMemory;
+use crate::parse::pdxfile::memory::CombinedMemory;
 use crate::parse::pdxfile::{HasMacroParams, define_var, warn_macros, split_macros, report_error, get_numeric_var};
 use crate::report::{err, warn, ErrorKey};
 use crate::token::Token;
 
-grammar<'memory>(inputs: &[Token], memory: &mut LocalMemory<'memory>);
+grammar<'memory>(inputs: &[Token], memory: &mut CombinedMemory<'memory>);
 
 /// A file is parsed as an undelimited [`Block`].
 pub File: Block = {
@@ -107,7 +107,7 @@ FileItem: Option<BlockItem> = {
             let mut loc = block.0.loc;
             loc.column += 1;
             let token = Token::from_static_str(s, loc);
-            block.0.source = Some(Box::new((split_macros(&token), memory.to_global())));
+            block.0.source = Some(Box::new((split_macros(&token), memory.get_local())));
         }
         Some(BlockItem::Field(Field(key.0, cmp.get_cmp(), BV::Block(block.0))))
     },
@@ -124,7 +124,7 @@ FileItem: Option<BlockItem> = {
             let mut loc = block.0.loc;
             loc.column += 1;
             let token = Token::from_static_str(s, loc);
-            block.0.source = Some(Box::new((split_macros(&token), memory.to_global())));
+            block.0.source = Some(Box::new((split_macros(&token), memory.get_local())));
         }
         Some(BlockItem::Block(block.0))
     },
@@ -251,7 +251,7 @@ MacroDefinition: () = {
             let mut loc = block.0.loc;
             loc.column += 1;
             let token = Token::from_static_str(s, loc);
-            block.0.source = Some(Box::new((split_macros(&token), memory.to_global())));
+            block.0.source = Some(Box::new((split_macros(&token), memory.get_local())));
         }
         if !matches!(cmp.get_cmp(), Comparator::Equals(Eq::Single)) {
             let msg = "expected `=`";
@@ -307,7 +307,7 @@ MacroInsert: Vec<BlockItem> = {
                 }
             }
             // SAFETY: we already checked that this block has macro parameters
-            let mut expansion = defined.expand_macro(&args, name.loc).unwrap();
+            let mut expansion = defined.expand_macro(&args, name.loc, memory.as_global()).unwrap();
             expansion.drain().collect()
         } else {
             let msg = "reader macro `{name}` is not defined";
