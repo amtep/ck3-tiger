@@ -12,6 +12,8 @@ use encoding_rs::{UTF_8, WINDOWS_1252};
 use crate::block::Block;
 use crate::fileset::FileEntry;
 use crate::parse::pdxfile::parse_pdx_file;
+#[cfg(feature = "ck3")]
+use crate::parse::pdxfile::{parse_reader_export, PdxfileMemory};
 use crate::parse::ParserMemory;
 use crate::report::{err, warn, ErrorKey};
 
@@ -108,6 +110,19 @@ impl PdxFile {
             PdxEncoding::Utf8OptionalBom => Self::read_optional_bom(entry, parser),
             #[cfg(feature = "ck3")]
             PdxEncoding::Detect => Self::read_detect_encoding(entry, parser),
+        }
+    }
+
+    #[cfg(feature = "ck3")]
+    pub fn reader_export(entry: &FileEntry, memory: &mut PdxfileMemory) {
+        if let Some(contents) = Self::read_utf8(entry) {
+            if contents.starts_with(BOM_CHAR) {
+                parse_reader_export(entry, contents, BOM_UTF8_LEN, memory);
+            } else {
+                let msg = "file must start with a UTF-8 BOM";
+                warn(ErrorKey::Encoding).msg(msg).loc(entry).push();
+                parse_reader_export(entry, contents, 0, memory);
+            }
         }
     }
 }

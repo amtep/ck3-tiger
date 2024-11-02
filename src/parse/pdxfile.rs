@@ -74,6 +74,32 @@ pub fn parse_pdx_file(
     parse_pdx(entry, &content[offset..], parser)
 }
 
+/// Parse the content associated with the [`FileEntry`], and update the global parser memory.
+#[cfg(feature = "ck3")]
+pub fn parse_reader_export(
+    entry: &FileEntry,
+    content: String,
+    offset: usize,
+    global: &mut PdxfileMemory,
+) {
+    let content = leak(content);
+    store_source_file(entry.fullpath().to_path_buf(), &content[offset..]);
+    let content = &content[offset..];
+    let mut loc = Loc::from(entry);
+    loc.line = 1;
+    loc.column = 1;
+    let inputs = [Token::from_static_str(content, loc)];
+    let mut combined = CombinedMemory::new(global);
+    match parser::FileParser::new().parse(&inputs, &mut combined, Lexer::new(&inputs)) {
+        Ok(_) => {
+            global.merge(combined.into_local());
+        }
+        Err(e) => {
+            eprintln!("Internal error: parsing file {} failed.\n{e}", entry.path().display());
+        }
+    }
+}
+
 /// Parse a string into a [`Block`]. This function is meant for use by the validator itself, to
 /// allow it to load game description data from internal strings that are in pdx script format.
 pub fn parse_pdx_internal(input: &'static str, desc: &str) -> Block {

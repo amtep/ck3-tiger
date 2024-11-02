@@ -372,6 +372,16 @@ impl Everything {
         }
     }
 
+    #[cfg(feature = "ck3")]
+    fn load_reader_export(&mut self) {
+        let path = PathBuf::from("reader_export");
+        for entry in self.fileset.get_files_under(&path) {
+            if entry.filename().to_string_lossy().ends_with(".txt") {
+                PdxFile::reader_export(entry, &mut self.parser.pdxfile);
+            }
+        }
+    }
+
     fn load_pdx_files(&mut self, loader: &ItemLoader) {
         let path = PathBuf::from(loader.itype().path());
         for mut block in self.fileset.filter_map_under(&path, |entry| {
@@ -462,6 +472,8 @@ impl Everything {
     }
 
     pub fn load_all(&mut self) {
+        #[cfg(feature = "ck3")]
+        self.load_reader_export();
         self.load_all_generic();
         match Game::game() {
             #[cfg(feature = "ck3")]

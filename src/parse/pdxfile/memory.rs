@@ -73,4 +73,10 @@ impl<'global> CombinedMemory<'global> {
     pub fn get_local(&self) -> PdxfileMemory {
         self.local.clone()
     }
+
+    /// Ignore the global part of the memory.
+    #[cfg(feature = "ck3")]
+    pub fn into_local(self) -> PdxfileMemory {
+        self.local
+    }
 }
