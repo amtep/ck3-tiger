@@ -48,6 +48,36 @@ impl BuildingType {
         let msg = format!("production method `{pm}` not valid for `{building}`");
         err(ErrorKey::Validation).msg(msg).loc(pm).push();
     }
+
+    pub fn is_discoverable(block: &Block, data: &Everything) -> bool {
+        let mut seen = Vec::new();
+        if let Some(group) = block.get_field_value("building_group") {
+            let mut group = group.as_str();
+            loop {
+                seen.push(group);
+                if let Some((_, block)) = data.get_key_block(Item::BuildingGroup, group) {
+                    if block.get_field_bool("discoverable_resource").unwrap_or(false) {
+                        return true;
+                    }
+                    if let Some(parent) = block.get_field_value("parent_group") {
+                        if seen.contains(&parent.as_str()) {
+                            let msg = "cycle in building groups";
+                            let info =
+                                format!("building group `{parent}` ends up being its own parent");
+                            err(ErrorKey::Loop).msg(msg).info(info).loc(parent).push();
+                            break;
+                        }
+                        group = parent.as_str();
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+        false
+    }
 }
 
 impl DbKind for BuildingType {
@@ -75,6 +105,11 @@ impl DbKind for BuildingType {
             let loca = format!("{key}_lens_option");
             // TODO: figure out when this is required
             data.mark_used(Item::Localization, &loca);
+        }
+
+        if BuildingType::is_discoverable(block, data) {
+            let loca = format!("{key}_discovered_resource");
+            data.verify_exists_implied(Item::Localization, &loca, key);
         }
 
         vd.field_item("building_group", Item::BuildingGroup);
