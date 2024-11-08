@@ -24,8 +24,8 @@ struct Cli {
 fn main() -> Result<()> {
     let mut args = Cli::parse();
 
-    // LAST UPDATED CK3 VERSION 1.12.3
-    eprintln!("This scanner was made for Crusader Kings version 1.12.3 (Scythe).");
+    // LAST UPDATED CK3 VERSION 1.14.0.2
+    eprintln!("This scanner was made for Crusader Kings version 1.14 (Traverse).");
     eprintln!("If you are using a newer version of Crusader Kings, it may be inaccurate.");
     eprintln!("The scanner does not find 100% of types of items in the mod.");
 

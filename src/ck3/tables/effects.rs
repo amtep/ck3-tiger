@@ -51,7 +51,7 @@ static SCOPE_EFFECT_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Effect)>> = La
     hash
 });
 
-// LAST UPDATED CK3 VERSION 1.12.1
+// LAST UPDATED CK3 VERSION 1.14.0.2
 // See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::TravelPlan, "abort_travel_plan", Boolean),
@@ -454,6 +454,8 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Culture, "leave_era", Item(Item::CultureEra)),
     (Scopes::Character, "leave_faction", Scope(Scopes::Faction)),
     (Scopes::all(), "lose_combat", Removed("1.9", "")),
+    (Scopes::Domicile, "lower_domicile_building", Item(Item::DomicileBuilding)),
+    (Scopes::Domicile, "lower_domicile_building_no_refund", Item(Item::DomicileBuilding)),
     (Scopes::Character, "make_claim_strong", Scope(Scopes::LandedTitle)),
     (Scopes::Character, "make_claim_weak", Scope(Scopes::LandedTitle)),
     (Scopes::Character, "make_concubine", Scope(Scopes::Character)),
@@ -543,6 +545,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "remove_decision_cooldown", Item(Item::Decision)),
     (Scopes::Faith, "remove_doctrine", ScopeOrItem(Scopes::Doctrine, Item::Doctrine)),
     (Scopes::Domicile, "remove_domicile_building", Item(Item::DomicileBuilding)),
+    (Scopes::Domicile, "remove_domicile_building_no_refund", Item(Item::DomicileBuilding)),
     (Scopes::Dynasty, "remove_dynasty_modifier", Item(Item::Modifier)),
     (Scopes::Dynasty, "remove_dynasty_perk", Item(Item::DynastyPerk)),
     (Scopes::Character, "remove_from_activity", Scope(Scopes::Activity)),
@@ -810,6 +813,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::LandedTitle, "title_leave_faction", Scope(Scopes::Faction)),
     (Scopes::LandedTitle, "transfer_owned_maa_control", Scope(Scopes::LandedTitle)),
     (Scopes::Regiment, "transfer_title_maa", Scope(Scopes::LandedTitle)),
+    (Scopes::LandedTitle, "transfer_title_maa_ownership", Scope(Scopes::LandedTitle)),
     (Scopes::None, "trigger_event", Vbv(validate_trigger_event)),
     (Scopes::None, "try_create_important_action", Vb(validate_try_create_important_action)),
     (Scopes::None, "try_create_suggestion", Vb(validate_try_create_suggestion)),

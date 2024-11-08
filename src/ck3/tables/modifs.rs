@@ -14,7 +14,7 @@ use crate::token::Token;
 
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
 /// Returns None otherwise.
-// LAST UPDATED CK3 VERSION 1.12.1
+// LAST UPDATED CK3 VERSION 1.14.0.2
 pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> Option<ModifKinds> {
     let name_lc = Lowercase::new(name.as_str());
 
@@ -372,7 +372,7 @@ static MODIF_MAP: Lazy<TigerHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.12.1
+/// LAST UPDATED CK3 VERSION 1.14.0.2
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 const MODIF_TABLE: &[(&str, ModifKinds)] = &[
@@ -938,7 +938,7 @@ static SPECIAL_MODIF_LOC_MAP: Lazy<TigerHashMap<Lowercase<'static>, &'static str
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.12.1
+/// LAST UPDATED CK3 VERSION 1.14.0.2
 /// Special cases for static modifs defined in `modifiers/modifiers_l_english.yml`
 const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[
     // Negate penalty

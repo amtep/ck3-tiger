@@ -23,7 +23,7 @@ bitflags! {
     ///
     /// The available scope types depend on the game.
     /// They are listed in `event_scopes.log` from the game data dumps.
-    // LAST UPDATED CK3 VERSION 1.12.1
+    // LAST UPDATED CK3 VERSION 1.14.0.2
     // LAST UPDATED VIC3 VERSION 1.7.0
     // LAST UPDATED IR VERSION 2.0.4
     //

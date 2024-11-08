@@ -8,7 +8,7 @@ use crate::everything::Everything;
 use crate::helpers::{display_choices, TigerHashMap};
 use crate::scopes::{ArgumentValue, Scopes};
 
-// LAST UPDATED CK3 VERSION 1.12.1
+// LAST UPDATED CK3 VERSION 1.14.0.2
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
         "none" => Scopes::None,
@@ -71,7 +71,7 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     })
 }
 
-// LAST UPDATED CK3 VERSION 1.12.1
+// LAST UPDATED CK3 VERSION 1.14.0.2
 pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
     let mut vec = Vec::new();
     if s.contains(Scopes::None) {
@@ -245,7 +245,7 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     display_choices(f, &vec, "or")
 }
 
-// LAST UPDATED CK3 VERSION 1.12.1
+// LAST UPDATED CK3 VERSION 1.14.0.2
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
     use crate::item::Item;
     if scopes == Scopes::AccoladeType && data.item_exists(Item::AccoladeType, arg) {
@@ -330,7 +330,7 @@ static SCOPE_TO_SCOPE_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes)>> = 
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.13.0.1
+/// LAST UPDATED CK3 VERSION 1.14.0.2
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
@@ -562,7 +562,7 @@ static SCOPE_PREFIX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes, Argume
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.13.0.1
+/// LAST UPDATED CK3 VERSION 1.14.0.2
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
@@ -677,7 +677,7 @@ static SCOPE_ITERATOR_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes)>> = 
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.13.0.1
+/// LAST UPDATED CK3 VERSION 1.14.0.2
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.

@@ -13,7 +13,7 @@ use crate::trigger::Trigger;
 
 use Trigger::*;
 
-/// LAST UPDATED CK3 VERSION 1.12.1
+/// LAST UPDATED CK3 VERSION 1.14.0.2
 pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger)> {
     let name_lc = name.as_str().to_ascii_lowercase();
 
@@ -76,7 +76,7 @@ static TRIGGER_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Trigger)>> = Lazy::
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.12.1
+/// LAST UPDATED CK3 VERSION 1.14.0.2
 /// See `triggers.log` from the game data dumps
 /// special:
 ///    `<legacy>_track_perks`
@@ -1300,7 +1300,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::CharacterMemory, "memory_creation_date", CompareDate),
     (Scopes::CharacterMemory, "memory_end_date", CompareDate),
     (Scopes::MercenaryCompany, "mercenary_company_expiration_days", CompareValue),
-    (Scopes::Character, "missing_unique_ancestors", CompareValue),
+    (Scopes::Character, "missing_unique_ancestors", Removed("1.14", "replaced with parent_relatedness")),
     (Scopes::Character, "monthly_character_balance", CompareValueWarnEq),
     (Scopes::Character, "monthly_character_expenses", CompareValueWarnEq),
     (Scopes::Character, "monthly_character_income", CompareValueWarnEq),
@@ -1467,6 +1467,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Epidemic, "outbreak_start_date", CompareDate),
     (Scopes::Character, "owns_a_story", Boolean),
     (Scopes::Character, "owns_story_of_type", Item(Item::Story)),
+    (Scopes::Character, "parent_relatedness", CompareValue),
     (Scopes::Character, "patrilinear_betrothal", Boolean),
     (Scopes::Character, "patrilinear_marriage", Boolean),
     (Scopes::CombatSide, "percent_enemies_killed", CompareValue),
@@ -1823,7 +1824,7 @@ static TRIGGER_COMPLEX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, ArgumentVal
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.12.1
+/// LAST UPDATED CK3 VERSION 1.14.0.2
 /// See `triggers.log` from the game data dumps
 /// `(inscopes, trigger name, argtype, outscopes)`
 /// Currently only works with single argument triggers
