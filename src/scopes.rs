@@ -284,6 +284,9 @@ pub enum ArgumentValue {
     /// The value can be either a Scope or an Item
     #[cfg(feature = "ck3")]
     ScopeOrItem(Scopes, Item),
+    /// The value can be a trait name or `trait|track`.
+    #[cfg(feature = "ck3")]
+    TraitTrack,
     /// The value must be the name of a modif
     #[cfg(feature = "vic3")]
     Modif,

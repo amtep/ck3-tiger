@@ -1867,7 +1867,7 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
         // All `<lifestyle>_diff` without `abs` field
         (Scopes::Character, "diplomacy_diff", Scope(Scopes::Character), Scopes::Value),
         // Use `|` for multi-track traits, e.g. `has_trait_xp(lifestyle_traveler|danger)`
-        // (Scopes::Character, "has_trait_xp", Item(Item::Trait), Scopes::Value),
+        (Scopes::Character, "has_trait_xp", TraitTrack, Scopes::Value),
         (Scopes::Character, "intrigue_diff", Scope(Scopes::Character), Scopes::Value),
         (Scopes::Character, "join_faction_chance", Scope(Scopes::Faction), Scopes::Value),
         (Scopes::Character, "learning_diff", Scope(Scopes::Character), Scopes::Value),

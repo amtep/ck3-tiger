@@ -1323,7 +1323,7 @@ fn validate_argument_internal(
 ) {
     match validation {
         ArgumentValue::Item(item) => data.verify_exists(item, arg),
-        #[cfg(not(feature = "imperator"))]
+        #[cfg(any(feature = "ck3", feature = "vic3"))]
         ArgumentValue::Scope(scope) => {
             validate_target(arg, data, sc, scope);
         }
@@ -1331,6 +1331,16 @@ fn validate_argument_internal(
         ArgumentValue::ScopeOrItem(scope, item) => {
             if !data.item_exists(item, arg.as_str()) {
                 validate_target(arg, data, sc, scope);
+            }
+        }
+        #[cfg(feature = "ck3")]
+        ArgumentValue::TraitTrack => {
+            if let Some((traitname, track)) = arg.split_once('|') {
+                // TODO: verify that the track belongs to this trait
+                data.verify_exists(Item::Trait, &traitname);
+                data.verify_exists(Item::TraitTrack, &track);
+            } else {
+                data.verify_exists(Item::Trait, arg);
             }
         }
         #[cfg(feature = "vic3")]
