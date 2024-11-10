@@ -12,7 +12,7 @@ pub static SOUNDS_SET: Lazy<TigerHashSet<Lowercase<'static>>> = Lazy::new(|| {
     set
 });
 
-// LAST UPDATED CK3 VERSION 1.12.1
+// LAST UPDATED CK3 VERSION 1.14.0.2
 // Taken from the object browser, under audio events
 const SOUNDS: &[&str] = &[
     "event:/DLC/BP1/MUSIC/moodtrack/mx_BP1Mood_Generic",
@@ -598,6 +598,7 @@ const SOUNDS: &[&str] = &[
     "event:/SFX/UI/Character/Lifestyle/sfx_ui_character_lifestyle_learning_lifestyle",
     "event:/SFX/UI/Character/Lifestyle/sfx_ui_character_lifestyle_martial_lifestyle",
     "event:/SFX/UI/Character/Lifestyle/sfx_ui_character_lifestyle_stewardship_lifestyle",
+    "event:/SFX/UI/Character/Lifestyle/sfx_ui_character_lifestyle_wanderer_lifestyle",
     "event:/SFX/UI/Character/sfx_ui_character_death",
     "event:/SFX/UI/Character/sfx_ui_character_portrait_pointer_over",
     "event:/SFX/UI/Character/sfx_ui_character_portrait_select",
@@ -689,6 +690,7 @@ const SOUNDS: &[&str] = &[
     "event:/SFX/UI/Unique/CharacterLifestyle/sfx_ui_unique_lifestyle_learning",
     "event:/SFX/UI/Unique/CharacterLifestyle/sfx_ui_unique_lifestyle_martial",
     "event:/SFX/UI/Unique/CharacterLifestyle/sfx_ui_unique_lifestyle_stewardship",
+    "event:/SFX/UI/Unique/CharacterLifestyle/sfx_ui_unique_lifestyle_wanderer",
     "event:/SFX/UI/Unique/Construction/Building/sfx_ui_unique_construction_building_generic",
     "event:/SFX/UI/Unique/Construction/Holding/sfx_ui_unique_construction_holding_Castle",
     "event:/SFX/UI/Unique/Construction/Holding/sfx_ui_unique_construction_holding_Church",
