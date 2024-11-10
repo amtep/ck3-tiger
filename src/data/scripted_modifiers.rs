@@ -6,6 +6,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, TigerHashMap, BANNED_NAMES};
 use crate::macros::{MacroCache, MACRO_MAP};
+use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
@@ -61,12 +62,12 @@ impl FileHandler<Block> for ScriptedModifiers {
         PathBuf::from("common/scripted_modifiers")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return None;
         }
 
-        PdxFile::read(entry)
+        PdxFile::read(entry, parser)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
@@ -135,7 +136,7 @@ impl ScriptedModifier {
         // Every invocation is treated as different even if the args are the same,
         // because we want to point to the correct one when reporting errors.
         if !self.cached_compat(key, args, sc) {
-            if let Some(block) = self.block.expand_macro(args, key.loc) {
+            if let Some(block) = self.block.expand_macro(args, key.loc, &data.parser.pdxfile) {
                 let mut our_sc = ScopeContext::new_unrooted(Scopes::all(), &self.key);
                 our_sc.set_strict_scopes(false);
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit

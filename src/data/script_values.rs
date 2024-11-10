@@ -6,6 +6,7 @@ use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, exact_dup_error, TigerHashMap, BANNED_NAMES};
+use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -92,12 +93,12 @@ impl FileHandler<Block> for ScriptValues {
         PathBuf::from("common/script_values")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return None;
         }
 
-        PdxFile::read(entry)
+        PdxFile::read(entry, parser)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, block: Block) {

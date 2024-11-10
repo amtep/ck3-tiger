@@ -8,6 +8,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::game::{Game, GameFlags};
 use crate::helpers::{dup_error, exact_dup_advice, TigerHashMap};
 use crate::item::{Item, ItemLoader};
+use crate::parse::ParserMemory;
 use crate::pdxfile::{PdxEncoding, PdxFile};
 use crate::report::{untidy, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
@@ -90,12 +91,12 @@ impl FileHandler<Block> for Coas {
         PathBuf::from("common/coat_of_arms/coat_of_arms/")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return None;
         }
 
-        PdxFile::read_optional_bom(entry)
+        PdxFile::read_optional_bom(entry, parser)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, block: Block) {

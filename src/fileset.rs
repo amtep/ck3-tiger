@@ -20,6 +20,7 @@ use crate::item::Item;
 use crate::mod_metadata::ModMetadata;
 #[cfg(any(feature = "ck3", feature = "imperator"))]
 use crate::modfile::ModFile;
+use crate::parse::ParserMemory;
 use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{
     add_loaded_dlc_root, add_loaded_mod_root, err, fatal, report, warn_abbreviated, warn_header,
@@ -151,7 +152,7 @@ pub trait FileHandler<T: Send>: Sync + Send {
     /// If a `T` is returned, it will be passed to `handle_file` later.
     /// Since `load_file` is executed multi-threaded while `handle_file`
     /// is single-threaded, try to do the heavy work in this function.
-    fn load_file(&self, entry: &FileEntry) -> Option<T>;
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<T>;
 
     /// This is called for each matching file in turn, in lexical order.
     /// That's the order in which the CK3 game engine loads them too.
@@ -461,13 +462,13 @@ impl Fileset {
         self.get_files_under(subpath).par_iter().filter_map(f).collect()
     }
 
-    pub fn handle<T: Send, H: FileHandler<T>>(&self, handler: &mut H) {
+    pub fn handle<T: Send, H: FileHandler<T>>(&self, handler: &mut H, parser: &ParserMemory) {
         if let Some(config) = &self.config {
             handler.config(config);
         }
         let subpath = handler.subpath();
         let entries = self.filter_map_under(&subpath, |entry| {
-            handler.load_file(entry).map(|loaded| (entry.clone(), loaded))
+            handler.load_file(entry, parser).map(|loaded| (entry.clone(), loaded))
         });
         for (entry, loaded) in entries {
             handler.handle_file(&entry, loaded);

@@ -4,6 +4,7 @@ use crate::block::Block;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
+use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, warn, ErrorKey};
 use crate::token::Token;
@@ -36,12 +37,12 @@ impl FileHandler<Block> for Wars {
         PathBuf::from("history/wars")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return None;
         }
 
-        PdxFile::read_optional_bom(entry)
+        PdxFile::read_optional_bom(entry, parser)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {

@@ -71,6 +71,7 @@ use crate::lowercase::Lowercase;
 use crate::macros::MACRO_MAP;
 #[cfg(feature = "vic3")]
 use crate::parse::json::parse_json_file;
+use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 #[cfg(feature = "ck3")]
 use crate::report::err;
@@ -109,6 +110,11 @@ pub enum FilesError {
 pub struct Everything {
     /// Config from file
     config: Block,
+
+    /// The global parser state, carrying information between files.
+    /// Currently only used by the pdxfile parser, to handle the `reader_export` directory,
+    /// which is specially processed before all other files.
+    pub parser: ParserMemory,
 
     /// A cache of define values (from common/defines) that are missing and that have already been
     /// warned about as missing. This is to avoid duplicate warnings.
@@ -247,6 +253,7 @@ impl Everything {
         fileset.finalize();
 
         Ok(Everything {
+            parser: ParserMemory::default(),
             fileset,
             dds: DdsFiles::default(),
             config,
@@ -312,7 +319,7 @@ impl Everything {
 
     fn read_config(name: &str, path: &Path) -> Option<Block> {
         let entry = FileEntry::new(PathBuf::from(name), FileKind::Mod, path.to_path_buf());
-        PdxFile::read_optional_bom(&entry)
+        PdxFile::read_optional_bom(&entry, &ParserMemory::default())
     }
 
     pub fn load_config_filtering_rules(&self) {
@@ -365,11 +372,21 @@ impl Everything {
         }
     }
 
+    #[cfg(feature = "ck3")]
+    fn load_reader_export(&mut self) {
+        let path = PathBuf::from("reader_export");
+        for entry in self.fileset.get_files_under(&path) {
+            if entry.filename().to_string_lossy().ends_with(".txt") {
+                PdxFile::reader_export(entry, &mut self.parser.pdxfile);
+            }
+        }
+    }
+
     fn load_pdx_files(&mut self, loader: &ItemLoader) {
         let path = PathBuf::from(loader.itype().path());
         for mut block in self.fileset.filter_map_under(&path, |entry| {
             if entry.filename().to_string_lossy().ends_with(loader.extension()) {
-                PdxFile::read_encoded(entry, loader.encoding())
+                PdxFile::read_encoded(entry, loader.encoding(), &self.parser)
             } else {
                 None
             }
@@ -398,19 +415,19 @@ impl Everything {
 
     fn load_all_generic(&mut self) {
         scope(|s| {
-            s.spawn(|_| self.fileset.handle(&mut self.dds));
-            s.spawn(|_| self.fileset.handle(&mut self.localization));
-            s.spawn(|_| self.fileset.handle(&mut self.scripted_lists));
-            s.spawn(|_| self.fileset.handle(&mut self.defines));
-            s.spawn(|_| self.fileset.handle(&mut self.scripted_modifiers));
-            s.spawn(|_| self.fileset.handle(&mut self.script_values));
-            s.spawn(|_| self.fileset.handle(&mut self.triggers));
-            s.spawn(|_| self.fileset.handle(&mut self.effects));
-            s.spawn(|_| self.fileset.handle(&mut self.assets));
-            s.spawn(|_| self.fileset.handle(&mut self.gui));
-            s.spawn(|_| self.fileset.handle(&mut self.on_actions));
-            s.spawn(|_| self.fileset.handle(&mut self.coas));
-            s.spawn(|_| self.fileset.handle(&mut self.music));
+            s.spawn(|_| self.fileset.handle(&mut self.dds, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.localization, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.scripted_lists, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.defines, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.scripted_modifiers, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.script_values, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.triggers, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.effects, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.assets, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.gui, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.on_actions, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.coas, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.music, &self.parser));
         });
 
         self.load_all_normal_pdx_files();
@@ -419,42 +436,44 @@ impl Everything {
     #[cfg(feature = "ck3")]
     fn load_all_ck3(&mut self) {
         scope(|s| {
-            s.spawn(|_| self.fileset.handle(&mut self.events_ck3));
-            s.spawn(|_| self.fileset.handle(&mut self.interaction_cats));
-            s.spawn(|_| self.fileset.handle(&mut self.province_histories));
-            s.spawn(|_| self.fileset.handle(&mut self.province_properties));
-            s.spawn(|_| self.fileset.handle(&mut self.province_terrains));
-            s.spawn(|_| self.fileset.handle(&mut self.gameconcepts));
-            s.spawn(|_| self.fileset.handle(&mut self.titles));
-            s.spawn(|_| self.fileset.handle(&mut self.characters));
-            s.spawn(|_| self.fileset.handle(&mut self.traits));
-            s.spawn(|_| self.fileset.handle(&mut self.title_history));
-            s.spawn(|_| self.fileset.handle(&mut self.doctrines));
-            s.spawn(|_| self.fileset.handle(&mut self.menatarmstypes));
-            s.spawn(|_| self.fileset.handle(&mut self.data_bindings));
-            s.spawn(|_| self.fileset.handle(&mut self.provinces_ck3));
-            s.spawn(|_| self.fileset.handle(&mut self.wars));
+            s.spawn(|_| self.fileset.handle(&mut self.events_ck3, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.interaction_cats, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.province_histories, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.province_properties, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.province_terrains, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.gameconcepts, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.titles, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.characters, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.traits, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.title_history, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.doctrines, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.menatarmstypes, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.data_bindings, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.provinces_ck3, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.wars, &self.parser));
         });
         crate::ck3::data::buildings::Building::finalize(&mut self.database);
     }
 
     #[cfg(feature = "vic3")]
     fn load_all_vic3(&mut self) {
-        self.fileset.handle(&mut self.history);
-        self.fileset.handle(&mut self.events_vic3);
-        self.fileset.handle(&mut self.provinces_vic3);
-        self.fileset.handle(&mut self.data_bindings);
+        self.fileset.handle(&mut self.history, &self.parser);
+        self.fileset.handle(&mut self.events_vic3, &self.parser);
+        self.fileset.handle(&mut self.provinces_vic3, &self.parser);
+        self.fileset.handle(&mut self.data_bindings, &self.parser);
         self.load_json(Item::TerrainMask, TerrainMask::add_json);
     }
 
     #[cfg(feature = "imperator")]
     fn load_all_imperator(&mut self) {
-        self.fileset.handle(&mut self.events_imperator);
-        self.fileset.handle(&mut self.decisions_imperator);
-        self.fileset.handle(&mut self.provinces_imperator);
+        self.fileset.handle(&mut self.events_imperator, &self.parser);
+        self.fileset.handle(&mut self.decisions_imperator, &self.parser);
+        self.fileset.handle(&mut self.provinces_imperator, &self.parser);
     }
 
     pub fn load_all(&mut self) {
+        #[cfg(feature = "ck3")]
+        self.load_reader_export();
         self.load_all_generic();
         match Game::game() {
             #[cfg(feature = "ck3")]
@@ -538,7 +557,7 @@ impl Everything {
 
     pub fn check_rivers(&mut self) {
         let mut rivers = Rivers::default();
-        self.fileset.handle(&mut rivers);
+        self.fileset.handle(&mut rivers, &self.parser);
         rivers.validate(self);
     }
 

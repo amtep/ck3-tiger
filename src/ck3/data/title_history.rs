@@ -9,6 +9,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::TigerHashMap;
 use crate::item::Item;
+use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -67,12 +68,12 @@ impl FileHandler<Block> for TitleHistories {
         PathBuf::from("history/titles")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".txt") {
             return None;
         }
 
-        PdxFile::read_detect_encoding(entry)
+        PdxFile::read_detect_encoding(entry, parser)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {

@@ -5,6 +5,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, TigerHashMap};
 use crate::item::Item;
+use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::report::{warn, ErrorKey};
 use crate::token::{Loc, Token};
@@ -63,13 +64,13 @@ impl FileHandler<Block> for ProvinceTerrains {
         PathBuf::from("common/province_terrain")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with("province_terrain.txt") {
             // Omit _province_properties.txt
             return None;
         }
 
-        PdxFile::read_detect_encoding(entry)
+        PdxFile::read_detect_encoding(entry, parser)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
@@ -140,12 +141,12 @@ impl FileHandler<Block> for ProvinceProperties {
         PathBuf::from("common/province_terrain")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with("province_properties.txt") {
             // Omit _province_terrain.txt
             return None;
         }
-        PdxFile::read_detect_encoding(entry)
+        PdxFile::read_detect_encoding(entry, parser)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {

@@ -1,0 +1,388 @@
+use lalrpop_util::ParseError;
+
+use crate::block::{Block, BV, BlockItem, Comparator, Eq, Field};
+use crate::parse::pdxfile::lexer::{Directive, Lexeme, LexError};
+use crate::parse::pdxfile::memory::CombinedMemory;
+use crate::parse::pdxfile::{HasMacroParams, define_var, warn_macros, split_macros, report_error, get_numeric_var};
+use crate::report::{err, warn, ErrorKey};
+use crate::token::Token;
+
+grammar<'memory>(inputs: &[Token], memory: &mut CombinedMemory<'memory>);
+
+/// A file is parsed as an undelimited [`Block`].
+pub File: Block = {
+    <FileContents>,
+}
+
+pub Block: (Block, HasMacroParams) = {
+    // The normal case
+    <loc:"{"> <mut block:BlockContents> "}" => {
+        block.0.loc = loc.get_loc();
+        block
+    },
+    // Error handling: an unterminated field
+    "{" <block:BlockContents> Key <cmp:cmp> "}" => {
+        let msg = format!("expected block or value after {cmp}");
+        err(ErrorKey::ParseError).msg(msg).loc(cmp.get_loc()).push();
+        block
+    },
+    // Error handling: an unterminated @var definition
+    "{" <block:BlockContents> var <cmp:cmp> "}" => {
+        let msg = format!("expected value after {cmp}");
+        err(ErrorKey::ParseError).msg(msg).loc(cmp.get_loc()).push();
+        block
+    },
+    // Error handling: generic
+    <loc:"{"> <mut block:BlockContents> <error:!> => {
+        if let ParseError::UnrecognizedEof { .. } = error.error {
+            let msg = "opening { was never closed";
+            err(ErrorKey::BraceError).msg(msg).loc(loc.get_loc()).push();
+        } else {
+            report_error(error.error, inputs[0].loc);
+        }
+        block.0.loc = loc.get_loc();
+        block
+    },
+}
+
+/// Zero-or-more `FileItem`s form the top-level block.
+FileContents: Block = {
+    // Start empty
+    => Block::new(inputs[0].loc),
+    // Add an item
+    <mut block:FileContents> <opt_item:FileItem> => {
+        if let Some(blockitem) = opt_item {
+            block.add_item_check_tag(blockitem);
+        }
+        block
+    },
+    <mut block:FileContents> <items:MacroInsert> => {
+        for blockitem in items {
+            block.add_item(blockitem);
+        }
+        block
+    },
+    // Error handling
+    <block:FileContents> <error:!> => {
+        report_error(error.error, inputs[0].loc);
+        block
+    },
+}
+
+/// A block contains zero or more `BlockItem`s
+BlockContents: (Block, HasMacroParams) = {
+    // Start empty
+    => (Block::new(inputs[0].loc), false), // dummy loc, replaced later
+    // Add an item. Macro handling is deferred to the top level block.
+    <mut block:BlockContents> <opt_item:BlockItem> => {
+        if let Some((blockitem, has_macro_params)) = opt_item {
+            block.0.add_item_check_tag(blockitem);
+            (block.0, block.1 || has_macro_params)
+        } else {
+            block
+        }
+    },
+    <mut block:BlockContents> <items:MacroInsert> => {
+        for blockitem in items {
+            block.0.add_item(blockitem);
+        }
+        block
+    },
+}
+
+/// A top-level `BlockItem`. Blocks with macro parameters are handled here.
+FileItem: Option<BlockItem> = {
+    // key = value assignment
+    <key:Key> <cmp:cmp> <value:Value> => {
+        warn_macros(&key.0, key.1);
+        warn_macros(&value.0, value.1);
+        Some(BlockItem::Field(Field(key.0, cmp.get_cmp(), BV::Value(value.0))))
+    },
+    // key = { block } definition
+    <key:Key> <cmp:cmp> <start:@L> <mut block:Block> <end:@R> => {
+        warn_macros(&key.0, key.1);
+        if block.1 && inputs.len() == 1 {
+            // Handle a block with macro parameters
+            let s = &inputs[0].as_str()[start + 1..end - 1];
+            let mut loc = block.0.loc;
+            loc.column += 1;
+            let token = Token::from_static_str(s, loc);
+            block.0.source = Some(Box::new((split_macros(&token), memory.get_local())));
+        }
+        Some(BlockItem::Field(Field(key.0, cmp.get_cmp(), BV::Block(block.0))))
+    },
+    // loose value
+    <value:Value> => {
+        warn_macros(&value.0, value.1);
+        Some(BlockItem::Value(value.0))
+    },
+    // loose block
+    <start:@L> <mut block:Block> <end:@R> => {
+        if block.1 && inputs.len() == 1 {
+            // Handle a block with macro parameters
+            let s = &inputs[0].as_str()[start + 1..end - 1];
+            let mut loc = block.0.loc;
+            loc.column += 1;
+            let token = Token::from_static_str(s, loc);
+            block.0.source = Some(Box::new((split_macros(&token), memory.get_local())));
+        }
+        Some(BlockItem::Block(block.0))
+    },
+    VariableDefinition => None,
+    "@:log" token => None,
+    MacroDefinition => None,
+}
+
+/// A single [`BlockItem`]. Macro parameter handling is deferred to the top level.
+BlockItem: Option<(BlockItem, HasMacroParams)> = {
+    // key = value assignment
+    <key:Key> <cmp:cmp> <value:Value> => {
+        Some((BlockItem::Field(Field(key.0, cmp.get_cmp(), BV::Value(value.0))), key.1 || value.1))
+    },
+    // key = { block } definition
+    <key:Key> <cmp:cmp> <block:Block> => {
+        Some((BlockItem::Field(Field(key.0, cmp.get_cmp(), BV::Block(block.0))), key.1 || block.1))
+    },
+    // Error handling: key = =
+    <key:Key> <cmp1:cmp> <cmp2:cmp> => {
+        let cmp1 = cmp1.get_cmp();
+        if cmp1 == Comparator::Equals(Eq::Single) {
+            // Special handling to allow `{ OPERATOR = >= }` in macro arguments.
+            let value = cmp2.into_token();
+            Some((BlockItem::Field(Field(key.0, cmp1, BV::Value(value))), key.1))
+        } else {
+            let msg = format!("double comparator `{}`", cmp2.get_cmp());
+            err(ErrorKey::ParseError).msg(msg).loc(cmp2.into_token()).push();
+            None
+        }
+    },
+    // loose value
+    <value:Value> => Some((BlockItem::Value(value.0), value.1)),
+    // loose block
+    <block:Block> => Some((BlockItem::Block(block.0), block.1)),
+    VariableDefinition => None,
+    "@:log" token => None,
+    MacroDefinition => None,
+}
+
+/// The right-hand side of assignments, or loose values.
+Value: (Token, HasMacroParams) = {
+    <token:token> => (token.into_token(), false),
+    <var:var> => {
+        let token = var.into_token();
+        // SAFETY: The @ is guaranteed by the lexer
+        let name = token.as_str().strip_prefix('@').unwrap();
+        if name.contains('!') {
+            // Check for a `!` to avoid looking up macros in gui code that uses `@icon!` syntax.
+            (token, false)
+        } else if let Some(t) = memory.get_variable(name) {
+            // TODO: use loc.link here and in @:load_variable?
+            (Token::from_static_str(t.as_str(), token.loc), false)
+        } else {
+            let msg = format!("reader variable {name} not defined");
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&token).push();
+            (token, false)
+        }
+    },
+    <directive:"@:load_variable"> <name:token> => {
+        let name = name.into_token();
+        if let Some(t) = memory.get_variable(name.as_str()) {
+            (Token::from_static_str(t.as_str(), directive.get_loc()), false)
+        } else {
+            let msg = format!("reader variable {name} not defined");
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
+            (name, false)
+        }
+    },
+    <token:Calculation> => (token, false),
+    <param:param> => (param.into_token(), true),
+}
+
+/// The left-hand side of assignments.
+/// @var reader variables are not handled here;
+/// they get a separate alternative in `BlockItem` or `FileItem`.
+Key: (Token, HasMacroParams) = {
+    <token:token> => (token.into_token(), false),
+    <token:Calculation> => (token, false),
+    <param:param> => (param.into_token(), true),
+    // Edge case: using `@:load_variable` to name the key
+    <directive:"@:load_variable"> <name:token> => {
+        let name = name.into_token();
+        if let Some(t) = memory.get_variable(name.as_str()) {
+            (Token::from_static_str(t.as_str(), directive.get_loc()), false)
+        } else {
+            let msg = format!("reader variable {name} not defined");
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
+            (name, false)
+        }
+    },
+}
+
+/// Definition of a reader variable, either with the `@name` syntax or `@:register_variable`.
+VariableDefinition: () = {
+    // @variable = value definition
+    <var:var> <cmp:cmp> <value:Value> => {
+        if value.1 {
+            let msg = "cannot use $-substitutions when defining reader variables";
+            err(ErrorKey::Macro).msg(msg).loc(value.0).push();
+        } else {
+            define_var(memory, &var.into_token(), cmp.get_cmp(), value.0);
+        }
+    },
+    // same as above but using @:register_variable
+    "@:register_variable" <name:token> <cmp:cmp> <value:Value> => {
+        if value.1 {
+            let msg = "cannot use $-substitutions when defining reader variables";
+            err(ErrorKey::Macro).msg(msg).loc(value.0).push();
+        } else {
+            define_var(memory, &name.into_token(), cmp.get_cmp(), value.0);
+        }
+    },
+}
+
+MacroDefinition: () = {
+    "@:define" <name:token> <cmp:cmp> <start:@L> <mut block:Block> <end:@R> => {
+        let name = name.into_token();
+        if !block.1 {
+            let msg = "reader macros without $ parameters can't be inserted (as of CK3 1.13)";
+            err(ErrorKey::Bugs).msg(msg).loc(&name).push();
+        } else {
+            let s = &inputs[0].as_str()[start + 1..end - 1];
+            let mut loc = block.0.loc;
+            loc.column += 1;
+            let token = Token::from_static_str(s, loc);
+            block.0.source = Some(Box::new((split_macros(&token), memory.get_local())));
+        }
+        if !matches!(cmp.get_cmp(), Comparator::Equals(Eq::Single)) {
+            let msg = "expected `=`";
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(cmp.into_token()).push();
+        }
+        if memory.has_block(name.as_str()) {
+            let msg = format!("`{name}` is already defined");
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
+        } else if !name.as_str().starts_with(|c: char| c.is_ascii_alphabetic()) {
+            let msg = "macro names must start with an ascii letter";
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
+        } else if !name.as_str().chars().all(|c: char| c.is_alphanumeric() || c == '_') {
+            let msg = "macro names must be alphanumeric or `_`";
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
+        } else {
+            memory.define_block(name.to_string(), block.0);
+        }
+    }
+}
+
+MacroInsert: Vec<BlockItem> = {
+    "@:insert" <name:token> <cmp:cmp> <block:Block> => {
+        let name = name.into_token();
+        if !matches!(cmp.get_cmp(), Comparator::Equals(Eq::Single)) {
+            let msg = format!("expected `{name} =`");
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
+        }
+        if let Some(defined) = memory.get_block(name.as_str()) {
+            let parms = defined.macro_parms();
+            if parms.is_empty() {
+                let msg = "reader macros without $ parameters can't be inserted (as of CK3 1.13)";
+                err(ErrorKey::Bugs).msg(msg).loc(&name).push();
+                return Vec::new();
+            }
+            // parameter errors are reported with `err` because the game parser gets confused.
+            let mut args: Vec<(&str, Token)> = Vec::new();
+            for (parm, arg) in block.0.iter_assignments() {
+                if args.iter().any(|(p, _)| parm.is(p)) {
+                    let msg = format!("duplicate macro argument `{parm}`");
+                    err(ErrorKey::ReaderDirectives).msg(msg).loc(parm).push();
+                } else if !parms.contains(&parm.as_str()) {
+                    let msg = format!("this macro does not need parameter `{parm}`");
+                    err(ErrorKey::ReaderDirectives).msg(msg).loc(parm).push();
+                } else {
+                    args.push((parm.as_str(), arg.clone()));
+                }
+            }
+            for parm in parms {
+                if !args.iter().any(|(p, _)| &parm == p) {
+                    let msg = format!("this macro needs argument `{parm}`");
+                    err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
+                    return Vec::new();
+                }
+            }
+            // SAFETY: we already checked that this block has macro parameters
+            let mut expansion = defined.expand_macro(&args, name.loc, memory.as_global()).unwrap();
+            expansion.drain().collect()
+        } else {
+            let msg = "reader macro `{name}` is not defined";
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(&name).push();
+            Vec::new()
+        }
+    },
+    "@:insert" <name:token> => {
+        let name = name.into_token();
+        let msg = "reader macros without $ parameters can't be inserted (as of CK3 1.13)";
+        err(ErrorKey::Bugs).msg(msg).loc(&name).push();
+        Vec::new()
+    },
+}
+
+/// A `@[ ... ]` parse-time calculation.
+Calculation: Token = {
+    <start:"@["> <expr:Expr> "]" => Token::new(&expr.to_string(), start.get_loc()),
+}
+
+/// Precedence 0: addition and subtraction.
+Expr: f64 = {
+    <x:Expr> "+" <y:Factor> => x + y,
+    <x:Expr> "-" <y:Factor> => x - y,
+    <Factor>,
+}
+
+/// Precedence 1: multiplication and division.
+Factor: f64 = {
+    <x:Factor> "*" <y:Term> => x * y,
+    <x:Factor> <div:"/"> <y:Term> => {
+        if y == 0.0 {
+            let msg = "dividing by zero";
+            err(ErrorKey::ReaderDirectives).msg(msg).loc(div.get_loc()).push();
+            0.0
+        } else {
+            x / y
+        }
+    },
+    <Term>,
+}
+
+/// Precedence 2: unary negation or just a value
+Term: f64 = {
+    // The token can be the name of a reader variable (without an @) or a literal number.
+    <token:token> => get_numeric_var(memory, &token.into_token()),
+    // Unary negation
+    "-" <token:token> => -get_numeric_var(memory, &token.into_token()),
+    // Nested expression
+    "(" <Expr> ")",
+}
+
+extern {
+    type Location = usize;
+    type Error = LexError;
+
+    enum Lexeme {
+        token => Lexeme::General(_),
+        cmp => Lexeme::Comparator(_, _),
+        var => Lexeme::VariableReference(_),
+        param => Lexeme::MacroParam(_),
+        "{" => Lexeme::BlockStart(_),
+        "}" => Lexeme::BlockEnd(_),
+        "@[" => Lexeme::CalcStart(_),
+        "]" => Lexeme::CalcEnd(_),
+        "(" => Lexeme::OpenParen(_),
+        ")" => Lexeme::CloseParen(_),
+        "+" => Lexeme::Add(_),
+        "-" => Lexeme::Subtract(_),
+        "*" => Lexeme::Multiply(_),
+        "/" => Lexeme::Divide(_),
+        "@:register_variable" => Lexeme::Directive(Directive::RegisterVariable, _),
+        "@:load_variable" => Lexeme::Directive(Directive::LoadVariable, _),
+        "@:define" => Lexeme::Directive(Directive::Define, _),
+        "@:insert" => Lexeme::Directive(Directive::Insert, _),
+        "@:log" => Lexeme::Directive(Directive::Log, _),
+    }
+}

@@ -2,7 +2,7 @@
 
 use crate::date::Date;
 use crate::macros::MACRO_MAP;
-use crate::parse::pdxfile::{parse_pdx_macro, MacroComponent, MacroComponentKind};
+use crate::parse::pdxfile::{parse_pdx_macro, MacroComponent, MacroComponentKind, PdxfileMemory};
 use crate::token::{Loc, Token};
 
 mod blockitem;
@@ -45,7 +45,7 @@ pub struct Block {
     /// The source has already been split into a vec that alternates content with macro parameters.
     /// It is in a `Box` to save space (80 bytes) from blocks that don't contain macro substitutions,
     /// which is most of them.
-    pub source: Option<Vec<MacroComponent>>,
+    pub source: Option<Box<(Vec<MacroComponent>, PdxfileMemory)>>,
 }
 
 impl Block {
@@ -55,11 +55,13 @@ impl Block {
     }
 
     /// Add a loose value to this `Block`. Mostly used by the parser.
+    #[allow(dead_code)]
     pub fn add_value(&mut self, value: Token) {
         self.v.push(BlockItem::Value(value));
     }
 
     /// Add a loose sub-block to this `Block`. Mostly used by the parser.
+    #[allow(dead_code)]
     pub fn add_block(&mut self, block: Block) {
         self.v.push(BlockItem::Block(block));
     }
@@ -74,6 +76,33 @@ impl Block {
     /// It can contain any of the variations of things that a `Block` can hold.
     pub fn add_item(&mut self, item: BlockItem) {
         self.v.push(item);
+    }
+
+    /// Add a `BlockItem` to this `Block`.
+    /// If it is a `BlockItem::Block` and the previous item is a `key = tag`,
+    /// where the tag is one of a predefined set of strings, then combine
+    /// the block with that previous item.
+    pub fn add_item_check_tag(&mut self, item: BlockItem) {
+        if let BlockItem::Block(mut block) = item {
+            if let Some(BlockItem::Field(Field(key, cmp, BV::Value(value)))) = self.v.last() {
+                if value.is("hsv")
+                    || value.is("rgb")
+                    || value.is("hsv360")
+                    || value.is("cylindrical")
+                    || value.is("cartesian")
+                {
+                    let key = key.clone();
+                    let cmp = *cmp;
+                    block.tag = Some(Box::new(value.clone()));
+                    self.v.pop();
+                    self.v.push(BlockItem::Field(Field(key, cmp, BV::Block(block))));
+                    return;
+                }
+            }
+            self.v.push(BlockItem::Block(block));
+        } else {
+            self.v.push(item);
+        }
     }
 
     /// If this block contains a field `name` which takes a block as argument, add the contents of
@@ -426,7 +455,8 @@ impl Block {
     /// Return a sorted vector of macro parameters taken by this block.
     /// Macro parameters are between `$` like `$CHARACTER$`.
     pub fn macro_parms(&self) -> Vec<&'static str> {
-        if let Some(source) = &self.source {
+        if let Some(block_source) = &self.source {
+            let (ref source, _) = **block_source;
             let mut vec = source
                 .iter()
                 .filter(|mc| mc.kind() == MacroComponentKind::Macro)
@@ -442,14 +472,20 @@ impl Block {
 
     /// Expand a block that has macro parameters by substituting arguments for those parameters,
     /// then re-parsing the script, that links the expanded content back to `loc`.
-    pub fn expand_macro(&self, args: &[(&str, Token)], loc: Loc) -> Option<Block> {
+    pub fn expand_macro(
+        &self,
+        args: &[(&str, Token)],
+        loc: Loc,
+        global: &PdxfileMemory,
+    ) -> Option<Block> {
         let link_index = MACRO_MAP.get_or_insert_loc(loc);
-        if let Some(source) = &self.source {
+        if let Some(block_source) = &self.source {
+            let (ref source, ref local) = **block_source;
             let mut content = Vec::new();
             for part in source {
                 let token = part.token();
                 match part.kind() {
-                    MacroComponentKind::Source | MacroComponentKind::LocalValue => {
+                    MacroComponentKind::Source => {
                         content.push(token.clone().linked(Some(link_index)));
                     }
                     MacroComponentKind::Macro => {
@@ -469,7 +505,7 @@ impl Block {
                     }
                 }
             }
-            Some(parse_pdx_macro(&content))
+            Some(parse_pdx_macro(&content, global, local))
         } else {
             None
         }

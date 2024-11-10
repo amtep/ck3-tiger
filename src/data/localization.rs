@@ -24,6 +24,7 @@ use crate::imperator::tables::localization::BUILTIN_MACROS_IMPERATOR;
 use crate::item::Item;
 use crate::macros::{MacroMapIndex, MACRO_MAP};
 use crate::parse::localization::{parse_loca, ValueParser};
+use crate::parse::ParserMemory;
 use crate::report::{
     err, report, warn, warn_abbreviated, warn_header, will_maybe_log, ErrorKey, Severity,
 };
@@ -609,7 +610,11 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
         PathBuf::from("localization")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<(&'static str, Vec<LocaEntry>)> {
+    fn load_file(
+        &self,
+        entry: &FileEntry,
+        _parser: &ParserMemory,
+    ) -> Option<(&'static str, Vec<LocaEntry>)> {
         let depth = entry.path().components().count();
         assert!(depth >= 2);
         assert!(entry.path().starts_with("localization"));

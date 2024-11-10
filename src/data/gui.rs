@@ -11,6 +11,7 @@ use crate::gui::{BuiltinWidget, GuiBlock, GuiBlockFrom};
 use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
+use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, fatal, untidy, warn, ErrorKey, Severity};
 use crate::token::Token;
@@ -271,12 +272,12 @@ impl FileHandler<Block> for Gui {
         PathBuf::from("gui")
     }
 
-    fn load_file(&self, entry: &FileEntry) -> Option<Block> {
+    fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         if !entry.filename().to_string_lossy().ends_with(".gui") {
             return None;
         }
 
-        PdxFile::read_optional_bom(entry)
+        PdxFile::read_optional_bom(entry, parser)
     }
 
     fn handle_file(&mut self, entry: &FileEntry, mut block: Block) {
