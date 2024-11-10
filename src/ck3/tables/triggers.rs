@@ -1218,7 +1218,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "is_valid_for_event_debug_cooldown", Item(Item::Event)), // will not work in release mode
     (Scopes::Character, "is_valid_successor_for_accolade", Scope(Scopes::Accolade)),
     (Scopes::TaskContract, "is_valid_to_keep", Boolean),
-    // TODO: is_valid_to_hire_court_position_type
+    (Scopes::Character, "is_valid_to_hire_court_position_type", Item(Item::CourtPosition)),
     (Scopes::Character, "is_vassal_of", Scope(Scopes::Character)),
     (Scopes::Character, "is_vassal_or_below_of", Scope(Scopes::Character)),
     (Scopes::Character, "is_visibly_fertile", Boolean),
