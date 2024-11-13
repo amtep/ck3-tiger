@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 
-use crate::block::{Block, BlockItem, Field, BV};
+use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::game::Game;
-use crate::helpers::{TigerHashMap, TigerHashSet};
+use crate::helpers::TigerHashMap;
 use crate::item::Item;
 use crate::on_action::on_action_scopecontext;
 use crate::parse::ParserMemory;
@@ -28,7 +28,7 @@ pub struct OnActions {
 impl OnActions {
     fn load_item(&mut self, key: Token, block: Block) {
         if let Some(other) = self.on_actions.get_mut(key.as_str()) {
-            on_action_special_append(&mut other.block, block);
+            other.add(key, block);
         } else {
             self.on_actions.insert(key.as_str(), OnAction::new(key, block));
         }
@@ -39,7 +39,8 @@ impl OnActions {
     }
 
     pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
-        self.on_actions.values().map(|item| &item.key)
+        // SAFETY: The item's constructor guarantees at least one element in `actions`.
+        self.on_actions.values().map(|item| &item.actions[0].0)
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -76,60 +77,53 @@ impl FileHandler<Block> for OnActions {
     }
 }
 
-fn on_action_special_append(first: &mut Block, mut second: Block) {
-    const SPECIAL_FIELDS: &[&str] = &[
-        "events",
-        "random_events",
-        "first_valid",
-        "on_actions",
-        "random_on_action",
-        "first_valid_on_action",
-    ];
-    let mut seen: TigerHashSet<String> = TigerHashSet::default();
-    for item in second.drain() {
-        if let BlockItem::Field(Field(key, cmp, BV::Block(mut block))) = item {
-            // For the special fields, append the first one we see to the first block's corresponding field.
-            if SPECIAL_FIELDS.contains(&key.as_str()) && !seen.contains(&key.to_string()) {
-                seen.insert(key.to_string());
-                if first.add_to_field_block(key.as_str(), &mut block) {
-                    continue;
-                }
-            }
-            first.add_key_bv(key, cmp, BV::Block(block));
-        } else {
-            first.add_item(item);
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
+/// Actions override in a special way, which is why this struct contains all actions defined under
+/// the same name, rather than each new one replacing the prior one.
 pub struct OnAction {
-    key: Token,
-    block: Block,
+    actions: Vec<(Token, Block)>,
 }
 
 impl OnAction {
     pub fn new(key: Token, block: Block) -> Self {
-        Self { key, block }
+        Self { actions: vec![(key, block)] }
+    }
+
+    pub fn add(&mut self, key: Token, block: Block) {
+        self.actions.push((key, block));
     }
 
     pub fn validate(&self, data: &Everything) {
-        let mut sc;
-        if let Some(sc_builtin) = on_action_scopecontext(&self.key, data) {
-            sc = sc_builtin;
-        } else {
-            sc = ScopeContext::new(Scopes::non_primitive(), &self.key);
-            sc.set_strict_scopes(false);
+        let mut seen_trigger = false;
+        let mut seen_effect = false;
+        for (key, block) in self.actions.iter().rev() {
+            // Make an sc for each array entry, to make use it uses the local `key`.
+            // This is important to distinguish between vanilla errors and mod errors.
+            let mut sc = if let Some(builtin_sc) = on_action_scopecontext(key, data) {
+                builtin_sc
+            } else {
+                let mut generated_sc = ScopeContext::new(Scopes::non_primitive(), key);
+                generated_sc.set_strict_scopes(false);
+                generated_sc
+            };
+            validate_on_action_internal(block, data, &mut sc, &mut seen_trigger, &mut seen_effect);
         }
-
-        validate_on_action(&self.block, data, &mut sc);
     }
 }
 
-pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+fn validate_on_action_internal(
+    block: &Block,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    seen_trigger: &mut bool,
+    seen_effect: &mut bool,
+) {
     let mut vd = Validator::new(block, data);
-    vd.field_validated_block("trigger", |b, data| {
-        validate_trigger(b, data, sc, Tooltipped::No);
+    vd.field_validated_block("trigger", |block, data| {
+        if !*seen_trigger {
+            *seen_trigger = true;
+            validate_trigger(block, data, sc, Tooltipped::No);
+        }
     });
     vd.field_validated_block_sc("weight_multiplier", sc, validate_modifiers_with_base);
 
@@ -247,9 +241,19 @@ pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContex
             warn(ErrorKey::Validation).msg(msg).info(info).loc(key).push();
         }
     });
-    vd.field_validated_block("effect", |b, data| {
-        validate_effect(b, data, sc, Tooltipped::No);
+    vd.field_validated_block("effect", |block, data| {
+        if !*seen_effect {
+            *seen_effect = true;
+            validate_effect(block, data, sc, Tooltipped::No);
+        }
     });
     // TODO: check for infinite fallback loops?
     vd.field_item("fallback", Item::OnAction);
+}
+
+#[cfg(feature = "vic3")]
+pub fn validate_on_action(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut seen_trigger = false;
+    let mut seen_effect = false;
+    validate_on_action_internal(block, data, sc, &mut seen_trigger, &mut seen_effect);
 }

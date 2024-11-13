@@ -105,28 +105,9 @@ impl Block {
         }
     }
 
-    /// If this block contains a field `name` which takes a block as argument, add the contents of
-    /// `block` to that block. It's used for merging items that have special merging rules.
-    /// Currently only used for `on_action`.
-    pub fn add_to_field_block(&mut self, name: &str, block: &mut Block) -> bool {
-        for item in self.v.iter_mut().rev() {
-            if let BlockItem::Field(Field(key, _, bv)) = item {
-                if key.is(name) {
-                    match bv {
-                        BV::Value(_) => (),
-                        BV::Block(b) => {
-                            b.append(block);
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        false
-    }
-
     /// Combine two blocks by adding the contents of `other` to this block.
     /// To avoid lots of cloning, `other` will be emptied in the process.
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub fn append(&mut self, other: &mut Block) {
         self.v.append(&mut other.v);
     }
