@@ -1208,13 +1208,13 @@ pub fn validate_start_travel_plan(
     vd.field_choice("on_arrival_destinations", &["all", "first", "last", "all_but_last"]);
     // Root for these events is travel plan owner
     if let Some(token) = block.get_field_value("on_arrival_event") {
-        data.check_event_scope(token, sc);
+        data.events.check_scope(token, sc);
     }
     if let Some(token) = block.get_field_value("on_start_event") {
-        data.check_event_scope(token, sc);
+        data.events.check_scope(token, sc);
     }
     if let Some(token) = block.get_field_value("on_travel_planner_cancel_event") {
-        data.check_event_scope(token, sc);
+        data.events.check_scope(token, sc);
     }
 }
 

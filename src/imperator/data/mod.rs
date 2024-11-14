@@ -14,7 +14,6 @@ pub mod diplomatic_stances;
 pub mod economic_policies;
 pub mod event_pictures;
 pub mod event_themes;
-pub mod events;
 pub mod goods;
 pub mod governments;
 pub mod governor_policies;

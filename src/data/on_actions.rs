@@ -137,7 +137,7 @@ fn validate_on_action_internal(
         vd.multi_field_validated_block_sc("delay", sc, validate_duration);
         for token in vd.values() {
             data.verify_exists(Item::Event, token);
-            data.check_event_scope(token, sc);
+            data.events.check_scope(token, sc);
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
@@ -160,7 +160,7 @@ fn validate_on_action_internal(
                 continue;
             }
             data.verify_exists(Item::Event, token);
-            data.check_event_scope(token, sc);
+            data.events.check_scope(token, sc);
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
@@ -176,7 +176,7 @@ fn validate_on_action_internal(
         let mut vd = Validator::new(b, data);
         for token in vd.values() {
             data.verify_exists(Item::Event, token);
-            data.check_event_scope(token, sc);
+            data.events.check_scope(token, sc);
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3

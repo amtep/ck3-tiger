@@ -243,7 +243,7 @@ pub fn validate_trigger_event(
     match bv {
         BV::Value(token) => {
             data.verify_exists(Item::Event, token);
-            data.check_event_scope(token, sc);
+            data.events.check_scope(token, sc);
         }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
@@ -262,7 +262,7 @@ pub fn validate_trigger_event(
             }
             validate_optional_duration(&mut vd, sc);
             if let Some(token) = block.get_field_value("id") {
-                data.check_event_scope(token, sc);
+                data.events.check_scope(token, sc);
             }
         }
     }

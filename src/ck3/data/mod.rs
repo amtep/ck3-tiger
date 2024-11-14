@@ -31,7 +31,6 @@ pub mod environment;
 pub mod epidemics;
 pub mod event_effect_2d;
 pub mod event_themes;
-pub mod events;
 pub mod factions;
 pub mod flavorization;
 pub mod focus;

@@ -22,7 +22,6 @@ use crate::ck3::data::{
     characters::Characters,
     climate::Climate,
     doctrines::Doctrines,
-    events::Ck3Events,
     gameconcepts::GameConcepts,
     interaction_cats::CharacterInteractionCategories,
     maa::MenAtArmsTypes,
@@ -44,6 +43,7 @@ use crate::data::{
     assets::Assets,
     coa::Coas,
     defines::Defines,
+    events::Events,
     gui::Gui,
     localization::Localization,
     music::Musics,
@@ -61,9 +61,7 @@ use crate::game::Game;
 #[cfg(feature = "ck3")]
 use crate::helpers::TigerHashSet;
 #[cfg(feature = "imperator")]
-use crate::imperator::data::{
-    decisions::Decisions, events::ImperatorEvents, provinces::ImperatorProvinces,
-};
+use crate::imperator::data::{decisions::Decisions, provinces::ImperatorProvinces};
 #[cfg(feature = "imperator")]
 use crate::imperator::tables::misc::*;
 use crate::item::{Item, ItemLoader};
@@ -80,7 +78,7 @@ use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]
 use crate::vic3::data::{
-    buy_packages::BuyPackage, events::Vic3Events, history::History, provinces::Vic3Provinces,
+    buy_packages::BuyPackage, history::History, provinces::Vic3Provinces,
     strategic_regions::StrategicRegion, terrain::TerrainMask,
 };
 #[cfg(feature = "vic3")]
@@ -137,12 +135,7 @@ pub struct Everything {
 
     pub(crate) defines: Defines,
 
-    #[cfg(feature = "ck3")]
-    pub(crate) events_ck3: Ck3Events,
-    #[cfg(feature = "vic3")]
-    pub(crate) events_vic3: Vic3Events,
-    #[cfg(feature = "imperator")]
-    pub(crate) events_imperator: ImperatorEvents,
+    pub(crate) events: Events,
     #[cfg(feature = "imperator")]
     pub(crate) decisions_imperator: Decisions,
 
@@ -263,12 +256,7 @@ impl Everything {
             localization: Localization::default(),
             scripted_lists: ScriptedLists::default(),
             defines: Defines::default(),
-            #[cfg(feature = "ck3")]
-            events_ck3: Ck3Events::default(),
-            #[cfg(feature = "vic3")]
-            events_vic3: Vic3Events::default(),
-            #[cfg(feature = "imperator")]
-            events_imperator: ImperatorEvents::default(),
+            events: Events::default(),
             #[cfg(feature = "imperator")]
             decisions_imperator: Decisions::default(),
             scripted_modifiers: ScriptedModifiers::default(),
@@ -416,6 +404,7 @@ impl Everything {
     fn load_all_generic(&mut self) {
         scope(|s| {
             s.spawn(|_| self.fileset.handle(&mut self.dds, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.events, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.localization, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.scripted_lists, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.defines, &self.parser));
@@ -436,7 +425,6 @@ impl Everything {
     #[cfg(feature = "ck3")]
     fn load_all_ck3(&mut self) {
         scope(|s| {
-            s.spawn(|_| self.fileset.handle(&mut self.events_ck3, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.interaction_cats, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.province_histories, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.province_properties, &self.parser));
@@ -458,7 +446,6 @@ impl Everything {
     #[cfg(feature = "vic3")]
     fn load_all_vic3(&mut self) {
         self.fileset.handle(&mut self.history, &self.parser);
-        self.fileset.handle(&mut self.events_vic3, &self.parser);
         self.fileset.handle(&mut self.provinces_vic3, &self.parser);
         self.fileset.handle(&mut self.data_bindings, &self.parser);
         self.load_json(Item::TerrainMask, TerrainMask::add_json);
@@ -466,7 +453,6 @@ impl Everything {
 
     #[cfg(feature = "imperator")]
     fn load_all_imperator(&mut self) {
-        self.fileset.handle(&mut self.events_imperator, &self.parser);
         self.fileset.handle(&mut self.decisions_imperator, &self.parser);
         self.fileset.handle(&mut self.provinces_imperator, &self.parser);
     }
@@ -494,6 +480,7 @@ impl Everything {
         s.spawn(|_| self.script_values.validate(self));
         s.spawn(|_| self.triggers.validate(self));
         s.spawn(|_| self.effects.validate(self));
+        s.spawn(|_| self.events.validate(self));
         s.spawn(|_| self.assets.validate(self));
         s.spawn(|_| self.gui.validate(self));
         s.spawn(|_| self.on_actions.validate(self));
@@ -515,7 +502,6 @@ impl Everything {
         s.spawn(|_| self.doctrines.validate(self));
         s.spawn(|_| self.menatarmstypes.validate(self));
         s.spawn(|_| self.data_bindings.validate(self));
-        s.spawn(|_| self.events_ck3.validate(self));
         s.spawn(|_| self.provinces_ck3.validate(self));
         s.spawn(|_| self.wars.validate(self));
         s.spawn(|_| Climate::validate_all(&self.database, self));
@@ -523,7 +509,6 @@ impl Everything {
 
     #[cfg(feature = "vic3")]
     fn validate_all_vic3<'a>(&'a self, s: &Scope<'a>) {
-        s.spawn(|_| self.events_vic3.validate(self));
         s.spawn(|_| self.history.validate(self));
         s.spawn(|_| self.provinces_vic3.validate(self));
         s.spawn(|_| self.data_bindings.validate(self));
@@ -533,7 +518,6 @@ impl Everything {
 
     #[cfg(feature = "imperator")]
     fn validate_all_imperator<'a>(&'a self, s: &Scope<'a>) {
-        s.spawn(|_| self.events_imperator.validate(self));
         s.spawn(|_| self.decisions_imperator.validate(self));
         s.spawn(|_| self.provinces_imperator.validate(self));
     }
@@ -601,8 +585,6 @@ impl Everything {
             Item::Doctrine => self.doctrines.exists(key),
             Item::DoctrineCategory => self.doctrines.category_exists(key),
             Item::DoctrineParameter => self.doctrines.parameter_exists(key),
-            Item::Event => self.events_ck3.exists(key),
-            Item::EventNamespace => self.events_ck3.namespace_exists(key),
             Item::GameConcept => self.gameconcepts.exists(key),
             Item::GeneticConstraint => self.traits.constraint_exists(key),
             Item::MenAtArms => self.menatarmstypes.exists(key),
@@ -633,9 +615,7 @@ impl Everything {
             Item::CountryTier => COUNTRY_TIERS.contains(&key),
             Item::Dlc => DLC_VIC3.contains(&key),
             Item::DlcFeature => DLC_FEATURES_VIC3.contains(&key),
-            Item::Event => self.events_vic3.exists(key),
             Item::EventCategory => EVENT_CATEGORIES.contains(&key),
-            Item::EventNamespace => self.events_vic3.namespace_exists(key),
             Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
             Item::Level => LEVELS.contains(&key),
             Item::PoliticalMovement => POLITICAL_MOVEMENTS.contains(&key),
@@ -655,8 +635,6 @@ impl Everything {
         match itype {
             Item::Dlc => DLC_IMPERATOR.contains(&key),
             Item::Decision => self.decisions_imperator.exists(key),
-            Item::Event => self.events_imperator.exists(key),
-            Item::EventNamespace => self.events_imperator.namespace_exists(key),
             Item::Province => self.provinces_imperator.exists(key),
             Item::Sound => self.valid_sound(key),
             _ => self.database.exists(itype, key),
@@ -672,6 +650,8 @@ impl Everything {
             Item::Define => self.defines.exists(key),
             Item::Entity => self.assets.entity_exists(key),
             Item::Entry => self.fileset.entry_exists(key),
+            Item::Event => self.events.exists(key),
+            Item::EventNamespace => self.events.namespace_exists(key),
             Item::File => self.fileset.exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::GuiLayer => self.gui.layer_exists(key),
@@ -884,7 +864,7 @@ impl Everything {
             if let Some(trigger) = self.triggers.get(key.as_str()) {
                 return Some(trigger);
             }
-            if let Some(trigger) = self.events_ck3.get_trigger(key) {
+            if let Some(trigger) = self.events.get_trigger(key) {
                 return Some(trigger);
             }
             return None;
@@ -898,23 +878,12 @@ impl Everything {
             if let Some(effect) = self.effects.get(key.as_str()) {
                 return Some(effect);
             }
-            if let Some(effect) = self.events_ck3.get_effect(key) {
+            if let Some(effect) = self.events.get_effect(key) {
                 return Some(effect);
             }
             return None;
         }
         self.effects.get(key.as_str())
-    }
-
-    pub(crate) fn check_event_scope(&self, token: &Token, sc: &mut ScopeContext) {
-        match Game::game() {
-            #[cfg(feature = "ck3")]
-            Game::Ck3 => self.events_ck3.check_scope(token, sc),
-            #[cfg(feature = "vic3")]
-            Game::Vic3 => self.events_vic3.check_scope(token, sc),
-            #[cfg(feature = "imperator")]
-            Game::Imperator => self.events_imperator.check_scope(token, sc),
-        };
     }
 
     #[cfg(feature = "ck3")] // happens not to be used by vic3
@@ -961,8 +930,6 @@ impl Everything {
             Item::Doctrine => Box::new(self.doctrines.iter_keys()),
             Item::DoctrineCategory => Box::new(self.doctrines.iter_category_keys()),
             Item::DoctrineParameter => Box::new(self.doctrines.iter_parameter_keys()),
-            Item::Event => Box::new(self.events_ck3.iter_keys()),
-            Item::EventNamespace => Box::new(self.events_ck3.iter_namespace_keys()),
             Item::GameConcept => Box::new(self.gameconcepts.iter_keys()),
             Item::GeneticConstraint => Box::new(self.traits.iter_constraint_keys()),
             Item::MenAtArms => Box::new(self.menatarmstypes.iter_keys()),
@@ -979,19 +946,13 @@ impl Everything {
 
     #[cfg(feature = "vic3")]
     fn iter_keys_vic3<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
-        match itype {
-            Item::Event => Box::new(self.events_vic3.iter_keys()),
-            Item::EventNamespace => Box::new(self.events_vic3.iter_namespace_keys()),
-            _ => Box::new(self.database.iter_keys(itype)),
-        }
+        Box::new(self.database.iter_keys(itype))
     }
 
     #[cfg(feature = "imperator")]
     fn iter_keys_imperator<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
         match itype {
             Item::Decision => Box::new(self.decisions_imperator.iter_keys()),
-            Item::Event => Box::new(self.events_imperator.iter_keys()),
-            Item::EventNamespace => Box::new(self.events_imperator.iter_namespace_keys()),
             Item::Province => Box::new(self.provinces_imperator.iter_keys()),
             _ => Box::new(self.database.iter_keys(itype)),
         }
@@ -1005,6 +966,8 @@ impl Everything {
             Item::CoaTemplate => Box::new(self.coas.iter_template_keys()),
             Item::Define => Box::new(self.defines.iter_keys()),
             Item::Entity => Box::new(self.assets.iter_entity_keys()),
+            Item::Event => Box::new(self.events.iter_keys()),
+            Item::EventNamespace => Box::new(self.events.iter_namespace_keys()),
             Item::File => Box::new(self.fileset.iter_keys()),
             Item::GeneAttribute => Box::new(self.assets.iter_attribute_keys()),
             Item::GuiLayer => Box::new(self.gui.iter_layer_keys()),

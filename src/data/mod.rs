@@ -15,6 +15,7 @@ pub mod defines;
 pub mod dna;
 pub mod effect_localization;
 pub mod ethnicity;
+pub mod events;
 pub mod fonts;
 pub mod genes;
 pub mod gui;
