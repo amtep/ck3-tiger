@@ -1182,7 +1182,7 @@ pub fn validate_start_struggle(
 
 pub fn validate_start_travel_plan(
     _key: &Token,
-    block: &Block,
+    _block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
     mut vd: Validator,
@@ -1199,23 +1199,13 @@ pub fn validate_start_travel_plan(
     vd.field_bool("travel_with_domicile");
     vd.field_bool("players_use_planner");
     vd.field_bool("return_trip");
-    vd.field_item("on_arrival_event", Item::Event);
-    vd.field_item("on_arrival_on_action", Item::OnAction);
-    vd.field_item("on_start_event", Item::Event);
-    vd.field_item("on_start_on_action", Item::OnAction);
-    vd.field_item("on_travel_planner_cancel_event", Item::Event);
-    vd.field_item("on_travel_planner_cancel_on_action", Item::OnAction);
+    vd.field_event("on_arrival_event", sc);
+    vd.field_action("on_arrival_on_action", sc);
+    vd.field_event("on_start_event", sc);
+    vd.field_action("on_start_on_action", sc);
+    vd.field_event("on_travel_planner_cancel_event", sc);
+    vd.field_action("on_travel_planner_cancel_on_action", sc);
     vd.field_choice("on_arrival_destinations", &["all", "first", "last", "all_but_last"]);
-    // Root for these events is travel plan owner
-    if let Some(token) = block.get_field_value("on_arrival_event") {
-        data.events.check_scope(token, sc);
-    }
-    if let Some(token) = block.get_field_value("on_start_event") {
-        data.events.check_scope(token, sc);
-    }
-    if let Some(token) = block.get_field_value("on_travel_planner_cancel_event") {
-        data.events.check_scope(token, sc);
-    }
 }
 
 pub fn validate_start_war(
@@ -1993,7 +1983,7 @@ pub fn validate_change_appointment_investment(
 }
 
 pub fn validate_set_important_location(
-    _key: &Token,
+    key: &Token,
     _block: &Block,
     _data: &Everything,
     sc: &mut ScopeContext,
@@ -2010,8 +2000,13 @@ pub fn validate_set_important_location(
     // scope:changed_top_liege - former top liege of the important location
     // In leave realm:
     // scope:changed_top_liege - new top liege of the important location"
-    vd.field_item("enter_realm_event", Item::Event);
-    vd.field_item("enter_realm_on_action", Item::OnAction);
-    vd.field_item("leave_realm_event", Item::Event);
-    vd.field_item("leave_realm_on_action", Item::OnAction);
+    let mut sc = ScopeContext::new(Scopes::Character, key);
+    sc.define_name("county", Scopes::LandedTitle, key);
+    sc.define_name("title", Scopes::LandedTitle, key);
+    sc.define_name("changed_top_liege", Scopes::Character, key);
+
+    vd.field_event("enter_realm_event", &mut sc);
+    vd.field_action("enter_realm_on_action", &sc);
+    vd.field_event("leave_realm_event", &mut sc);
+    vd.field_action("leave_realm_on_action", &sc);
 }

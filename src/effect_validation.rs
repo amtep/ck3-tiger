@@ -244,12 +244,15 @@ pub fn validate_trigger_event(
         BV::Value(token) => {
             data.verify_exists(Item::Event, token);
             data.events.check_scope(token, sc);
+            if let Some(mut event_sc) = sc.root_for_event(token) {
+                data.events.validate_call(token, data, &mut event_sc);
+            }
         }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);
-            vd.field_item("id", Item::Event);
-            vd.field_item("on_action", Item::OnAction);
+            vd.field_event("id", sc);
+            vd.field_action("on_action", sc);
             #[cfg(feature = "ck3")]
             if Game::is_ck3() {
                 vd.field_target("saved_event_id", sc, Scopes::Flag);
@@ -261,9 +264,6 @@ pub fn validate_trigger_event(
                 vd.field_bool("popup");
             }
             validate_optional_duration(&mut vd, sc);
-            if let Some(token) = block.get_field_value("id") {
-                data.events.check_scope(token, sc);
-            }
         }
     }
 }

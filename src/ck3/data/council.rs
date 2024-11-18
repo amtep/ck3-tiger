@@ -245,7 +245,7 @@ impl DbKind for CouncilTask {
         vd.field_validated_block("on_monthly", |block, data| {
             validate_effect(block, data, &mut sc, Tooltipped::No);
         });
-        vd.field_item("monthly_on_action", Item::OnAction);
+        vd.field_action("monthly_on_action", &sc);
 
         if let Some(token) = block.get_field_value("task_type") {
             if token.is("task_type_county") {

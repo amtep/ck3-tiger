@@ -29,9 +29,8 @@ pub fn get_event_scope(key: &Token, block: &Block) -> (Scopes, Token) {
     }
 }
 
-pub fn validate_event(event: &Event, data: &Everything) {
+pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(&event.block, data);
-    let mut sc = event.sc();
 
     let mut tooltipped_immediate = Tooltipped::Past;
     let mut tooltipped = Tooltipped::Yes;
@@ -53,19 +52,19 @@ pub fn validate_event(event: &Event, data: &Everything) {
     vd.field_item("dlc", Item::Dlc);
 
     vd.field_validated_block("trigger", |block, data| {
-        validate_trigger(block, data, &mut sc, Tooltipped::No);
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
     vd.field_validated_block("immediate", |block, data| {
-        validate_effect(block, data, &mut sc, tooltipped_immediate);
+        validate_effect(block, data, sc, tooltipped_immediate);
     });
     vd.field_validated_block("after", |block, data| {
-        validate_effect(block, data, &mut sc, tooltipped);
+        validate_effect(block, data, sc, tooltipped);
     });
 
     vd.multi_field_validated_block("event_image", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
         if let Some(token) = vd.field_value("video") {
             if token.as_str().contains('/') {
@@ -87,25 +86,25 @@ pub fn validate_event(event: &Event, data: &Everything) {
     vd.field_integer("duration");
 
     vd.field_validated_block("cancellation_trigger", |block, data| {
-        validate_trigger(block, data, &mut sc, Tooltipped::No);
+        validate_trigger(block, data, sc, Tooltipped::No);
     });
 
-    vd.field_validated_sc("title", &mut sc, validate_desc);
-    vd.field_validated_sc("desc", &mut sc, validate_desc);
-    vd.field_validated_sc("flavor", &mut sc, validate_desc);
-    vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
+    vd.field_validated_sc("title", sc, validate_desc);
+    vd.field_validated_sc("desc", sc, validate_desc);
+    vd.field_validated_sc("flavor", sc, validate_desc);
+    vd.field_validated_block_sc("cooldown", sc, validate_duration);
 
-    vd.field_target("placement", &mut sc, Scopes::Country | Scopes::State | Scopes::StateRegion);
-    vd.field_target("left_icon", &mut sc, Scopes::Character);
-    vd.field_target("right_icon", &mut sc, Scopes::Character);
-    vd.field_target("minor_left_icon", &mut sc, Scopes::Country);
-    vd.field_target("minor_right_icon", &mut sc, Scopes::Country);
+    vd.field_target("placement", sc, Scopes::Country | Scopes::State | Scopes::StateRegion);
+    vd.field_target("left_icon", sc, Scopes::Character);
+    vd.field_target("right_icon", sc, Scopes::Character);
+    vd.field_target("minor_left_icon", sc, Scopes::Country);
+    vd.field_target("minor_right_icon", sc, Scopes::Country);
 
     if !hidden {
         vd.req_field("option");
     }
     vd.multi_field_validated_block("option", |block, data| {
-        validate_event_option(block, data, &mut sc, tooltipped);
+        validate_event_option(block, data, sc, tooltipped);
     });
 }
 

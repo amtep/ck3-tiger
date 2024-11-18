@@ -37,9 +37,8 @@ pub fn get_event_scope(key: &Token, block: &Block) -> (Scopes, Token) {
     }
 }
 
-pub fn validate_event(event: &Event, data: &Everything) {
+pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(&event.block, data);
-    let mut sc = event.sc();
 
     let mut tooltipped_immediate = Tooltipped::Past;
     let mut tooltipped = Tooltipped::Yes;
@@ -74,27 +73,27 @@ pub fn validate_event(event: &Event, data: &Everything) {
     vd.field_bool("hidden");
     vd.field_bool("major");
     vd.field_validated_block("major_trigger", |b, data| {
-        validate_trigger(b, data, &mut sc, Tooltipped::No);
+        validate_trigger(b, data, sc, Tooltipped::No);
     });
 
     vd.field_validated_block("immediate", |b, data| {
-        validate_effect(b, data, &mut sc, tooltipped_immediate);
+        validate_effect(b, data, sc, tooltipped_immediate);
     });
     vd.field_validated_block("trigger", |b, data| {
-        validate_trigger(b, data, &mut sc, Tooltipped::No);
+        validate_trigger(b, data, sc, Tooltipped::No);
     });
     vd.field_validated_block("on_trigger_fail", |b, data| {
-        validate_effect(b, data, &mut sc, Tooltipped::No);
+        validate_effect(b, data, sc, Tooltipped::No);
     });
-    vd.field_validated_block_sc("weight_multiplier", &mut sc, validate_modifiers_with_base);
+    vd.field_validated_block_sc("weight_multiplier", sc, validate_modifiers_with_base);
 
-    vd.field_validated_sc("title", &mut sc, validate_desc);
-    vd.field_validated_sc("desc", &mut sc, validate_desc);
+    vd.field_validated_sc("title", sc, validate_desc);
+    vd.field_validated_sc("desc", sc, validate_desc);
 
     if evtype == "letter_event" {
-        vd.field_validated_sc("opening", &mut sc, validate_desc);
+        vd.field_validated_sc("opening", sc, validate_desc);
         vd.req_field("sender");
-        vd.field_validated_sc("sender", &mut sc, validate_portrait);
+        vd.field_validated_sc("sender", sc, validate_portrait);
     } else {
         vd.advice_field("opening", "only needed for letter_event");
         vd.advice_field("sender", "only needed for letter_event");
@@ -105,46 +104,42 @@ pub fn validate_event(event: &Event, data: &Everything) {
         vd.advice_field("center_portrait", "not needed for court_event");
     } else {
         vd.field_validated("left_portrait", |bv, data| {
-            validate_portrait(bv, data, &mut sc);
+            validate_portrait(bv, data, sc);
         });
         vd.field_validated("right_portrait", |bv, data| {
-            validate_portrait(bv, data, &mut sc);
+            validate_portrait(bv, data, sc);
         });
         vd.field_validated("center_portrait", |bv, data| {
-            validate_portrait(bv, data, &mut sc);
+            validate_portrait(bv, data, sc);
         });
     }
     vd.field_validated("lower_left_portrait", |bv, data| {
-        validate_portrait(bv, data, &mut sc);
+        validate_portrait(bv, data, sc);
     });
     vd.field_validated("lower_center_portrait", |bv, data| {
-        validate_portrait(bv, data, &mut sc);
+        validate_portrait(bv, data, sc);
     });
     vd.field_validated("lower_right_portrait", |bv, data| {
-        validate_portrait(bv, data, &mut sc);
+        validate_portrait(bv, data, sc);
     });
     // TODO: check that artifacts are not in the same position as a character
-    vd.multi_field_validated_block_sc("artifact", &mut sc, validate_artifact);
-    vd.field_validated_block_sc("court_scene", &mut sc, validate_court_scene);
+    vd.multi_field_validated_block_sc("artifact", sc, validate_artifact);
+    vd.field_validated_block_sc("court_scene", sc, validate_court_scene);
     if let Some(token) = vd.field_value("theme") {
         data.verify_exists(Item::EventTheme, token);
-        data.validate_call(Item::EventTheme, token, &event.block, &mut sc);
+        data.validate_call(Item::EventTheme, token, &event.block, sc);
     }
     // TODO: warn if more than one of each is defined with no trigger
     if evtype == "court_event" {
         vd.advice_field("override_background", "not needed for court_event");
     } else {
-        vd.multi_field_validated_sc("override_background", &mut sc, validate_theme_background);
+        vd.multi_field_validated_sc("override_background", sc, validate_theme_background);
     }
-    vd.multi_field_validated_sc("override_icon", &mut sc, validate_theme_icon);
-    vd.multi_field_validated_sc(
-        "override_header_background",
-        &mut sc,
-        validate_theme_header_background,
-    );
-    vd.multi_field_validated_block_sc("override_sound", &mut sc, validate_theme_sound);
-    vd.multi_field_validated_block_sc("override_transition", &mut sc, validate_theme_transition);
-    vd.multi_field_validated_sc("override_effect_2d", &mut sc, validate_theme_effect_2d);
+    vd.multi_field_validated_sc("override_icon", sc, validate_theme_icon);
+    vd.multi_field_validated_sc("override_header_background", sc, validate_theme_header_background);
+    vd.multi_field_validated_block_sc("override_sound", sc, validate_theme_sound);
+    vd.multi_field_validated_block_sc("override_transition", sc, validate_theme_transition);
+    vd.multi_field_validated_sc("override_effect_2d", sc, validate_theme_effect_2d);
     // Note: override_environment seems to be unused, and themes defined in
     // common/event_themes don't have environments. So I left it out even though
     // it's in the docs.
@@ -153,13 +148,13 @@ pub fn validate_event(event: &Event, data: &Everything) {
         vd.req_field("option");
     }
     vd.multi_field_validated_block("option", |block, data| {
-        validate_event_option(block, data, &mut sc, tooltipped);
+        validate_event_option(block, data, sc, tooltipped);
     });
 
     vd.field_validated_block("after", |b, data| {
-        validate_effect(b, data, &mut sc, tooltipped);
+        validate_effect(b, data, sc, tooltipped);
     });
-    vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
+    vd.field_validated_block_sc("cooldown", sc, validate_duration);
     vd.field_value("soundeffect"); // TODO
     vd.field_bool("orphan");
     // TODO: validate widget

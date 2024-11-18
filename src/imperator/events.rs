@@ -40,9 +40,8 @@ pub fn get_event_scope(key: &Token, block: &Block) -> (Scopes, Token) {
     }
 }
 
-pub fn validate_event(event: &Event, data: &Everything) {
+pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(&event.block, data);
-    let mut sc = event.sc();
 
     let mut tooltipped_immediate = Tooltipped::Past;
     let mut tooltipped = Tooltipped::Yes;
@@ -51,15 +50,23 @@ pub fn validate_event(event: &Event, data: &Everything) {
     vd.field_bool("hidden");
     vd.field_bool("interface_lock");
     vd.field_bool("fire_only_once");
+
+    vd.field_validated_block("trigger", |block, data| {
+        validate_trigger(block, data, sc, Tooltipped::No);
+    });
+    vd.field_validated_block("immediate", |block, data| {
+        validate_effect(block, data, sc, tooltipped_immediate);
+    });
+
     vd.field_item_or_target(
         "goto_location",
-        &mut sc,
+        sc,
         Item::Province,
         Scopes::Province.union(Scopes::Country),
     );
 
-    vd.field_validated_sc("title", &mut sc, validate_desc);
-    vd.field_validated_sc("desc", &mut sc, validate_desc);
+    vd.field_validated_sc("title", sc, validate_desc);
+    vd.field_validated_sc("desc", sc, validate_desc);
 
     let hidden = event.block.field_value_is("hidden", "yes");
     if hidden {
@@ -79,11 +86,13 @@ pub fn validate_event(event: &Event, data: &Everything) {
     }
     vd.field_item("picture", Item::EventPicture);
 
+    vd.field_validated_block_sc("weight_multiplier", sc, validate_modifiers_with_base);
+
     for field in &["left_portrait", "right_portrait"] {
         let mut count = 0;
         vd.multi_field_validated_value(field, |_, mut vd| {
             count += 1;
-            vd.target_ok_this(&mut sc, Scopes::Character);
+            vd.target_ok_this(sc, Scopes::Character);
             if count == 4 {
                 let msg = format!("Event has more than 3 {field} attributes.");
                 let info = "Events can only have up to 3 portraits displayed at a time.";
@@ -92,24 +101,15 @@ pub fn validate_event(event: &Event, data: &Everything) {
         });
     }
 
-    vd.field_validated_block_sc("weight_multiplier", &mut sc, validate_modifiers_with_base);
-
-    vd.field_validated_block("trigger", |block, data| {
-        validate_trigger(block, data, &mut sc, Tooltipped::No);
-    });
-    vd.field_validated_block("immediate", |block, data| {
-        validate_effect(block, data, &mut sc, tooltipped_immediate);
-    });
-
     if !hidden {
         vd.req_field("option");
     }
     vd.multi_field_validated_block("option", |block, data| {
-        validate_event_option(block, data, &mut sc, tooltipped);
+        validate_event_option(block, data, sc, tooltipped);
     });
 
     vd.field_validated_block("after", |block, data| {
-        validate_effect(block, data, &mut sc, tooltipped_immediate);
+        validate_effect(block, data, sc, tooltipped_immediate);
     });
 }
 

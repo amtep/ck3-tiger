@@ -56,6 +56,6 @@ impl DbKind for PartyAgenda {
             validate_effect(b, data, &mut sc, Tooltipped::No);
         });
 
-        vd.field_item("monthly_on_action", Item::OnAction);
+        vd.field_action("monthly_on_action", &sc);
     }
 }

@@ -3,8 +3,8 @@
 use std::borrow::Cow;
 
 use crate::game::Game;
-use crate::helpers::{stringify_choices, TigerHashMap};
-use crate::report::{err, warn, ErrorKey};
+use crate::helpers::{stringify_choices, ActionOrEvent, TigerHashMap};
+use crate::report::{err, warn, ErrorKey, ReportBuilderStage3};
 use crate::scopes::Scopes;
 use crate::token::Token;
 
@@ -59,6 +59,13 @@ pub struct ScopeContext {
     /// `scope_override` config file feature. If `no_warn` is set then this `ScopeContext` will not
     /// emit any reports.
     no_warn: bool,
+
+    /// A token indicating where this context was created and its named scopes were initialized.
+    source: Token,
+
+    /// A history of the actions and events that were triggered on the way from `source` to the
+    /// current context.
+    traceback: Vec<ActionOrEvent>,
 }
 
 #[derive(Clone, Debug)]
@@ -148,10 +155,11 @@ impl ScopeContext {
     /// Make a new `ScopeContext`, with `this` and `root` the same, and `root` of the given scope
     /// types. `token` is used when reporting errors about the use of `root`.
     pub fn new<T: Into<Token>>(root: Scopes, token: T) -> Self {
+        let token = token.into();
         ScopeContext {
             prev: None,
             this: ScopeEntry::Rootref,
-            root: ScopeEntry::Scope(root, Reason::Builtin(token.into())),
+            root: ScopeEntry::Scope(root, Reason::Builtin(token.clone())),
             names: TigerHashMap::default(),
             list_names: TigerHashMap::default(),
             named: Vec::new(),
@@ -160,6 +168,8 @@ impl ScopeContext {
             is_unrooted: false,
             strict_scopes: true,
             no_warn: false,
+            source: token,
+            traceback: Vec::new(),
         }
     }
 
@@ -176,7 +186,7 @@ impl ScopeContext {
                 this: ScopeEntry::Scope(Scopes::all(), Reason::Token(token.clone())),
             })),
             this: ScopeEntry::Scope(this, Reason::Token(token.clone())),
-            root: ScopeEntry::Scope(Scopes::all(), Reason::Token(token)),
+            root: ScopeEntry::Scope(Scopes::all(), Reason::Token(token.clone())),
             names: TigerHashMap::default(),
             list_names: TigerHashMap::default(),
             named: Vec::new(),
@@ -185,6 +195,8 @@ impl ScopeContext {
             is_unrooted: true,
             strict_scopes: true,
             no_warn: false,
+            source: token,
+            traceback: Vec::new(),
         }
     }
 
@@ -210,6 +222,48 @@ impl ScopeContext {
     /// It's used for scope contexts that are known to be wrong, related to the `scope_override` config file feature.
     pub fn set_no_warn(&mut self, no_warn: bool) {
         self.no_warn = no_warn;
+    }
+
+    /// Change this context's `source` value to something more appropriate than the default (which
+    /// is the token passed to `new`).
+    pub fn set_source<T: Into<Token>>(&mut self, source: T) {
+        self.source = source.into();
+    }
+
+    /// Helper function for `root_for_event` and `root_for_action`.
+    fn root_for(&self, trace: ActionOrEvent) -> Option<Self> {
+        if !self.strict_scopes || self.no_warn || self.traceback.contains(&trace) {
+            return None;
+        }
+        let mut new_sc = self.clone();
+        for named in &mut new_sc.named {
+            if matches!(named, ScopeEntry::Rootref) {
+                *named = new_sc.root.clone();
+            }
+        }
+        let (scopes, reason) = new_sc.scopes_reason();
+        new_sc.root = ScopeEntry::Scope(scopes, reason.clone());
+        new_sc.this = ScopeEntry::Rootref;
+        new_sc.prev = None;
+        new_sc.is_unrooted = false;
+        new_sc.traceback.push(trace);
+        Some(new_sc)
+    }
+
+    /// Create a `ScopeContext` to use for a triggered event, if validating the event with this
+    /// scope context is useful.
+    pub fn root_for_event<T: Into<Token>>(&self, event_id: T) -> Option<Self> {
+        self.root_for(ActionOrEvent::new_event(event_id.into()))
+    }
+
+    /// Create a `ScopeContext` to use for a triggered action, if validating the action with this
+    /// scope context is useful.
+    pub fn root_for_action<T: Into<Token>>(&self, action: T) -> Option<Self> {
+        let action = action.into();
+        if self.source == action {
+            return None;
+        }
+        self.root_for(ActionOrEvent::new_action(action))
     }
 
     /// Change the scope type and related token of `root` for this `ScopeContext`.
@@ -486,7 +540,7 @@ impl ScopeContext {
                         let info = format!("available names are {}", stringify_choices(&names));
                         builder = builder.info(info);
                     }
-                    builder.loc(token).push();
+                    self.log_traceback(builder.loc(token)).push();
                 }
                 // Don't treat it as an input scope, because we already warned about it
                 self.is_input.push(None);
@@ -621,6 +675,14 @@ impl ScopeContext {
                 }
             }
         }
+    }
+
+    /// Add messages to a report that describe where this `ScopeContext` came from.
+    pub fn log_traceback(&self, mut builder: ReportBuilderStage3) -> ReportBuilderStage3 {
+        for elem in self.traceback.iter().rev() {
+            builder = builder.loc_msg(elem.token(), "triggered from here");
+        }
+        builder.loc_msg(&self.source, "scopes initialized here")
     }
 
     #[doc(hidden)]
@@ -881,7 +943,10 @@ impl ScopeContext {
                 let token = other.is_input[oidx].as_ref().unwrap();
                 let msg = format!("`{key}` expects scope:{name} to be set");
                 let msg2 = "here";
-                warn(ErrorKey::StrictScopes).msg(msg).loc(key).loc_msg(token, msg2).push();
+                self.log_traceback(
+                    warn(ErrorKey::StrictScopes).msg(msg).loc(key).loc_msg(token, msg2),
+                )
+                .push();
             } else {
                 // Their scopes now become our scopes.
                 let (s, reason) = other.resolve_named(oidx);
@@ -907,7 +972,10 @@ impl ScopeContext {
                 let token = other.is_input[oidx].as_ref().unwrap();
                 let msg = format!("`{key}` expects list {name} to exist");
                 let msg2 = "here";
-                warn(ErrorKey::StrictScopes).msg(msg).loc(key).loc_msg(token, msg2).push();
+                self.log_traceback(
+                    warn(ErrorKey::StrictScopes).msg(msg).loc(key).loc_msg(token, msg2),
+                )
+                .push();
             } else {
                 // Their lists now become our lists.
                 let (s, reason) = other.resolve_named(oidx);

@@ -48,6 +48,12 @@ impl OnActions {
             item.validate(data);
         }
     }
+
+    pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
+        if let Some(action) = self.on_actions.get(key.as_str()) {
+            action.validate_call(data, sc);
+        }
+    }
 }
 
 impl FileHandler<Block> for OnActions {
@@ -109,6 +115,18 @@ impl OnAction {
             validate_on_action_internal(block, data, &mut sc, &mut seen_trigger, &mut seen_effect);
         }
     }
+
+    /// Revalidate an `on_action` under the given scope context.
+    /// It is not necessary to validate anything non scope related,
+    /// but in this case it is easier to just call the full function because
+    /// everything in an action is scope related.
+    pub fn validate_call(&self, data: &Everything, sc: &mut ScopeContext) {
+        let mut seen_trigger = false;
+        let mut seen_effect = false;
+        for (_, block) in self.actions.iter().rev() {
+            validate_on_action_internal(block, data, sc, &mut seen_trigger, &mut seen_effect);
+        }
+    }
 }
 
 fn validate_on_action_internal(
@@ -127,6 +145,13 @@ fn validate_on_action_internal(
     });
     vd.field_validated_block_sc("weight_multiplier", sc, validate_modifiers_with_base);
 
+    vd.field_validated_block("effect", |block, data| {
+        if !*seen_effect {
+            *seen_effect = true;
+            validate_effect(block, data, sc, Tooltipped::No);
+        }
+    });
+
     // TODO: multiple random_events blocks in one on_action aren't outright bugged on Vic3,
     // but they might still get merged together into one big event pool. Verify.
 
@@ -138,6 +163,9 @@ fn validate_on_action_internal(
         for token in vd.values() {
             data.verify_exists(Item::Event, token);
             data.events.check_scope(token, sc);
+            if let Some(mut event_sc) = sc.root_for_event(token) {
+                data.events.validate_call(token, data, &mut event_sc);
+            }
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
@@ -161,6 +189,9 @@ fn validate_on_action_internal(
             }
             data.verify_exists(Item::Event, token);
             data.events.check_scope(token, sc);
+            if let Some(mut event_sc) = sc.root_for_event(token) {
+                data.events.validate_call(token, data, &mut event_sc);
+            }
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
@@ -177,6 +208,9 @@ fn validate_on_action_internal(
         for token in vd.values() {
             data.verify_exists(Item::Event, token);
             data.events.check_scope(token, sc);
+            if let Some(mut event_sc) = sc.root_for_event(token) {
+                data.events.validate_call(token, data, &mut event_sc);
+            }
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
@@ -194,6 +228,9 @@ fn validate_on_action_internal(
         vd.multi_field_validated_block_sc("delay", sc, validate_duration);
         for token in vd.values() {
             data.verify_exists(Item::OnAction, token);
+            if let Some(mut action_sc) = sc.root_for_action(token) {
+                data.on_actions.validate_call(token, data, &mut action_sc);
+            }
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
@@ -215,6 +252,9 @@ fn validate_on_action_internal(
                 continue;
             }
             data.verify_exists(Item::OnAction, token);
+            if let Some(mut action_sc) = sc.root_for_action(token) {
+                data.on_actions.validate_call(token, data, &mut action_sc);
+            }
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
@@ -231,6 +271,9 @@ fn validate_on_action_internal(
         let mut vd = Validator::new(b, data);
         for token in vd.values() {
             data.verify_exists(Item::OnAction, token);
+            if let Some(mut action_sc) = sc.root_for_action(token) {
+                data.on_actions.validate_call(token, data, &mut action_sc);
+            }
         }
         count += 1;
         #[cfg(feature = "ck3")] // Verified: this is only a problem in CK3
@@ -241,14 +284,8 @@ fn validate_on_action_internal(
             warn(ErrorKey::Validation).msg(msg).info(info).loc(key).push();
         }
     });
-    vd.field_validated_block("effect", |block, data| {
-        if !*seen_effect {
-            *seen_effect = true;
-            validate_effect(block, data, sc, Tooltipped::No);
-        }
-    });
     // TODO: check for infinite fallback loops?
-    vd.field_item("fallback", Item::OnAction);
+    vd.field_action("fallback", sc);
 }
 
 #[cfg(feature = "vic3")]

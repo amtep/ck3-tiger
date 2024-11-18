@@ -114,7 +114,11 @@ pub const ON_ACTION_SCOPES: &str = "
         on_diplomatic_action_subject_increase_own_autonomy = on_diplomatic_action
 
 
-	on_diplomats_expelled = on_diplomatic_action
+	on_diplomats_expelled = {
+		root = diplomatic_action
+		initiator = country
+		target = country
+	}
 
 	on_diplomatic_pact_auto_break = {
 		root = diplomatic_pact

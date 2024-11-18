@@ -121,6 +121,12 @@ impl Events {
             item.validate(data);
         }
     }
+
+    pub fn validate_call(&self, key: &Token, data: &Everything, sc: &mut ScopeContext) {
+        if let Some(event) = self.get_event(key.as_str()) {
+            event.validate_call(data, sc);
+        }
+    }
 }
 
 impl FileHandler<Block> for Events {
@@ -228,19 +234,28 @@ impl Event {
             }
         }
 
+        let mut sc = ScopeContext::new(self.expects_scope, &self.expects_from_token);
+        sc.set_strict_scopes(false);
+        sc.set_source(&self.key);
+
         match Game::game() {
             #[cfg(feature = "ck3")]
-            Game::Ck3 => crate::ck3::events::validate_event(self, data),
+            Game::Ck3 => crate::ck3::events::validate_event(self, data, &mut sc),
             #[cfg(feature = "vic3")]
-            Game::Vic3 => crate::vic3::events::validate_event(self, data),
+            Game::Vic3 => crate::vic3::events::validate_event(self, data, &mut sc),
             #[cfg(feature = "imperator")]
-            Game::Imperator => crate::imperator::events::validate_event(self, data),
+            Game::Imperator => crate::imperator::events::validate_event(self, data, &mut sc),
         };
     }
 
-    pub fn sc(&self) -> ScopeContext {
-        let mut sc = ScopeContext::new(self.expects_scope, &self.expects_from_token);
-        sc.set_strict_scopes(false);
-        sc
+    pub fn validate_call(&self, data: &Everything, sc: &mut ScopeContext) {
+        match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => crate::ck3::events::validate_event(self, data, sc),
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => crate::vic3::events::validate_event(self, data, sc),
+            #[cfg(feature = "imperator")]
+            Game::Imperator => crate::imperator::events::validate_event(self, data, sc),
+        };
     }
 }

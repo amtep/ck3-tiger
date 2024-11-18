@@ -3,6 +3,7 @@ use ahash::{HashMap, HashSet, RandomState};
 use bimap::BiHashMap;
 
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
 use crate::report::{tips, warn, ErrorKey};
 use crate::token::Token;
@@ -114,3 +115,54 @@ pub const BANNED_NAMES: &[&str] = &[
 ];
 
 pub(crate) type BiTigerHashMap<L, R> = BiHashMap<L, R, RandomState, RandomState>;
+
+#[derive(Debug, Clone)]
+pub(crate) enum ActionOrEvent {
+    Action(Token),
+    Event(Token, &'static str, usize),
+}
+
+impl ActionOrEvent {
+    pub(crate) fn new_action(key: Token) -> Self {
+        Self::Action(key)
+    }
+
+    pub(crate) fn new_event(key: Token) -> Self {
+        if let Some((namespace, nr)) = key.as_str().split_once('.') {
+            if let Ok(nr) = usize::from_str(nr) {
+                return Self::Event(key, namespace, nr);
+            }
+        }
+        let namespace = key.as_str();
+        Self::Event(key, namespace, 0)
+    }
+
+    pub(crate) fn token(&self) -> &Token {
+        match self {
+            Self::Action(token) | Self::Event(token, _, _) => token,
+        }
+    }
+}
+
+impl PartialEq for ActionOrEvent {
+    fn eq(&self, other: &Self) -> bool {
+        match self {
+            Self::Action(token) => {
+                if let Self::Action(other_token) = other {
+                    token == other_token
+                } else {
+                    false
+                }
+            }
+            Self::Event(_, namespace, nr) => {
+                if let Self::Event(_, other_namespace, other_nr) = other {
+                    namespace == other_namespace && nr == other_nr
+                } else {
+                    false
+                }
+            }
+        }
+    }
+}
+
+impl Eq for ActionOrEvent {}

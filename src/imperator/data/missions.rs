@@ -117,7 +117,7 @@ fn validate_task(key: &Token, block: &Block, sc: &mut ScopeContext, data: &Every
 
     vd.field_value("icon");
     vd.field_script_value("duration", sc);
-    vd.field_item("monthly_on_action", Item::OnAction);
+    vd.field_action("monthly_on_action", sc);
     vd.field_bool("final");
 
     vd.field_list_items("requires", Item::MissionTask);

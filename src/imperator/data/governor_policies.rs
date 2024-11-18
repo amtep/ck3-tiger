@@ -45,7 +45,7 @@ impl DbKind for GovernorPolicy {
             validate_modifs(block, data, ModifKinds::State, vd);
         });
 
-        vd.field_item("on_action", Item::OnAction);
+        vd.field_action("on_action", &sc);
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
     }
 }

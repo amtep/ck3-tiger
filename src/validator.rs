@@ -399,6 +399,42 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be set to the key of an `on_action`.
+    /// The action is looked up and must exist.
+    /// If it would be useful, validate the action with the given `ScopeContext`.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    pub fn field_action(&mut self, name: &str, sc: &ScopeContext) -> bool {
+        let sev = self.max_severity;
+        let data = &self.data;
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                self.data.verify_exists_max_sev(Item::OnAction, token, sev);
+                if let Some(mut action_sc) = sc.root_for_action(token) {
+                    self.data.on_actions.validate_call(token, data, &mut action_sc);
+                }
+            }
+        })
+    }
+
+    /// Expect field `name`, if present, to be set to an event id.
+    /// The event is looked up and must exist.
+    /// If it would be useful, validate the event with the given `ScopeContext`.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    pub fn field_event(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
+        let sev = self.max_severity;
+        let data = &self.data;
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                self.data.verify_exists_max_sev(Item::Event, token, sev);
+                self.data.events.check_scope(token, sc);
+                if let Some(mut event_sc) = sc.root_for_event(token) {
+                    self.data.events.validate_call(token, data, &mut event_sc);
+                }
+            }
+        })
+    }
     /// Expect field `name`, if present, to be set to the key of an `itype` item the game database,
     /// or be the empty string.
     /// The item is looked up and must exist.

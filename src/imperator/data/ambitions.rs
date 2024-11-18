@@ -56,10 +56,10 @@ impl DbKind for Ambition {
         vd.field_bool("content");
         vd.field_bool("skip_initial_abort");
 
-        vd.field_item("on_monthly", Item::OnAction);
-        vd.field_item("on_start", Item::OnAction);
-        vd.field_item("on_finish", Item::OnAction);
-        vd.field_item("on_abort", Item::OnAction);
+        vd.field_action("on_monthly", &sc);
+        vd.field_action("on_start", &sc);
+        vd.field_action("on_finish", &sc);
+        vd.field_action("on_abort", &sc);
 
         vd.field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);
