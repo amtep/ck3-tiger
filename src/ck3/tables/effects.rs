@@ -698,6 +698,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::LandedTitle, "set_definitive_form", Boolean),
     (Scopes::LandedTitle, "set_delete_on_destroy", Boolean),
     (Scopes::Character, "set_designated_heir", Scope(Scopes::Character)),
+    (Scopes::Character, "set_designated_heir_unsafe", Scope(Scopes::Character)),
     (Scopes::GreatHolyWar, "set_designated_winner", Scope(Scopes::Character)),
     (Scopes::LandedTitle, "set_destroy_if_invalid_heir", Boolean),
     (Scopes::LandedTitle, "set_destroy_on_gain_same_tier", Boolean),
