@@ -36,6 +36,7 @@ impl DbKind for Country {
         vd.field_validated("color", validate_possibly_named_color);
         vd.field_item("country_type", Item::CountryType);
         vd.field_item("tier", Item::CountryTier);
+        vd.field_item("social_hierarchy", Item::SocialHierarchy);
         vd.field_list_items("cultures", Item::Culture);
         vd.field_item("religion", Item::Religion);
         vd.field_item("capital", Item::StateRegion);

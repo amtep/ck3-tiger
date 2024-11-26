@@ -1,8 +1,10 @@
-// LAST UPDATED VIC3 VERSION 1.7.1
-pub const DLC_VIC3: &[&str] =
-    &["dlc001", "dlc002", "dlc003", "dlc004", "dlc005", "dlc006", "dlc007", "dlc008", "dlc010"];
+// LAST UPDATED VIC3 VERSION 1.8.1
+pub const DLC_VIC3: &[&str] = &[
+    "dlc001", "dlc002", "dlc003", "dlc004", "dlc005", "dlc006", "dlc007", "dlc008", "dlc010",
+    "dlc011",
+];
 
-// LAST UPDATED VIC3 VERSION 1.7.1
+// LAST UPDATED VIC3 VERSION 1.8.1
 pub const DLC_FEATURES_VIC3: &[&str] = &[
     "voice_of_the_people_content",
     "voice_of_the_people_preorder",
@@ -14,6 +16,8 @@ pub const DLC_FEATURES_VIC3: &[&str] = &[
     "lobbies",
     "subject_and_bloc_actions",
     "ep1_cosmetics",
+    "ip2_content",
+    "ip2_cosmetics",
 ];
 
 /// A list of music provided by DLCs, for people who don't have them
@@ -69,10 +73,6 @@ pub const LOBBY_FORMATION_REASON: &[&str] = &[
 pub const LEVELS: &[&str] = &["very_low", "low", "medium", "high", "very_high"];
 
 // LAST UPDATED VIC3 VERSION 1.3.6
-pub const POLITICAL_MOVEMENTS: &[&str] =
-    &["movement_to_enact", "movement_to_preserve", "movement_to_restore"];
-
-// LAST UPDATED VIC3 VERSION 1.3.6
 // TODO: verify if "neutral" really exists. It doesn't make much sense.
 pub const RELATIONS: &[&str] =
     &["friendly", "amicable", "cordial", "neutral", "poor", "cold", "hostile"];
@@ -102,10 +102,10 @@ pub const STATE_TYPES: &[&str] = &["incorporated", "unincorporated", "treaty_por
 pub const TRANSFER_OF_POWER: &[&str] =
     &["hereditary", "presidential_elective", "dictatorial", "parliamentary_elective"];
 
-// LAST UPDATED VIC3 VERSION 1.3.6
-pub const STRATA: &[&str] = &["poor", "middle", "rich"];
+// LAST UPDATED VIC3 VERSION 1.8.1
+pub const STRATA: &[&str] = &["lower", "middle", "upper"];
 
-// LAST UPDATED VIC3 VERSION 1.7.1
+// LAST UPDATED VIC3 VERSION 1.8.1
 // Taken from `localization/english/diplomatic_plays_l_english.yml` entries
 // that start with `war_goal_`.
 pub const WARGOALS: &[&str] = &[
@@ -124,6 +124,7 @@ pub const WARGOALS: &[&str] = &[
     "leave_power_bloc",
     "liberate_country",
     "liberate_subject",
+    "make_dominion",
     "make_protectorate",
     "make_tributary",
     "open_market",
@@ -159,6 +160,7 @@ pub const TERRAIN_KEYS: &[&str] = &[
 
 // LAST UPDATED VIC3 VERSION 1.7.0
 pub const COMMON_DIRS: &[&str] = &[
+    "common/acceptance_statuses",
     "common/achievements",
     "common/ai_strategies",
     "common/alert_groups",
@@ -209,6 +211,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/genes",
     "common/goods",
     "common/government_types",
+    "common/harvest_condition_types",
     "common/history",
     "common/ideologies",
     "common/institutions",
@@ -238,6 +241,9 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/parties",
     "common/political_lobbies",
     "common/political_lobby_appeasement",
+    "common/political_movement_categories",
+    "common/political_movement_pop_support",
+    "common/political_movements",
     "common/pop_needs",
     "common/pop_types",
     "common/power_bloc_coa_pieces",
@@ -258,7 +264,10 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/scripted_modifiers",
     "common/scripted_progress_bars",
     "common/scripted_rules",
+    "common/scripted_tests",
     "common/scripted_triggers",
+    "common/social_classes",
+    "common/social_hierarchies",
     "common/state_traits",
     "common/static_modifiers",
     "common/strategic_regions",

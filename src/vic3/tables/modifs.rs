@@ -221,14 +221,6 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
-    // country_disallow_$Law$_bool
-    if let Some(part) = name_lc.strip_prefix_unchecked("country_disallow_") {
-        if let Some(part) = part.strip_suffix_unchecked("_bool") {
-            maybe_warn(Item::LawType, &part, name, data, warn);
-            return Some(ModifKinds::Country);
-        }
-    }
-
     // country_$PopType$_pol_str_mult
     // country_$PopType$_voting_power_add
     if let Some(part) = name_lc.strip_prefix_unchecked("country_") {
@@ -263,6 +255,96 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         if let Some(part) = part.strip_suffix_unchecked("_add") {
             maybe_warn(Item::LawType, &part, name, data, warn);
             return Some(ModifKinds::Country);
+        }
+    }
+
+    // country_allow_assimilation_$AcceptanceStatus$_bool
+    // country_allow_conversion_$AcceptanceStatus$_bool
+    // country_allow_voting_$AcceptanceStatus$_bool
+    // country_disallow_government_work_$AcceptanceStatus$_bool
+    // country_disallow_military_work_$AcceptanceStatus$_bool
+    for &pfx in &[
+        "country_allow_assimilation_",
+        "country_allow_conversion_",
+        "country_allow_voting_",
+        "country_disallow_government_work_",
+        "country_disallow_military_work_",
+    ] {
+        if let Some(part) = name_lc.strip_prefix_unchecked(pfx) {
+            if let Some(part) = part.strip_suffix_unchecked("_bool") {
+                maybe_warn(Item::AcceptanceStatus, &part, name, data, warn);
+                return Some(ModifKinds::Country);
+            }
+        }
+    }
+
+    // country_disallow_$Law$_bool
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_disallow_") {
+        if let Some(part) = part.strip_suffix_unchecked("_bool") {
+            maybe_warn(Item::LawType, &part, name, data, warn);
+            return Some(ModifKinds::Country);
+        }
+    }
+
+    // country_assimilation_$AcceptanceStatus$_mult
+    // country_loyalism_increases_$AcceptanceStatus$_mult
+    // country_political_strength_$AcceptanceStatus$_mult
+    // country_qualification_growth_$AcceptanceStatus$_mult
+    // country_radicalism_increases_$AcceptanceStatus$_mult
+    // country_voting_power_$AcceptanceStatus$_mult
+    // country_wage_$AcceptanceStatus$_mult
+    for &pfx in &[
+        "country_assimilation_",
+        "country_loyalism_increases_",
+        "country_political_strength_",
+        "country_qualification_growth_",
+        "country_radicalism_increases_",
+        "country_voting_power_",
+        "country_wage_",
+    ] {
+        if let Some(part) = name_lc.strip_prefix_unchecked(pfx) {
+            if let Some(part) = part.strip_suffix_unchecked("_mult") {
+                maybe_warn(Item::AcceptanceStatus, &part, name, data, warn);
+                return Some(ModifKinds::Country);
+            }
+        }
+    }
+
+    // country_standard_of_living_$AcceptanceStatus$_add
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_standard_of_living_") {
+        if let Some(part) = part.strip_suffix_unchecked("_add") {
+            maybe_warn(Item::AcceptanceStatus, &part, name, data, warn);
+            return Some(ModifKinds::Country);
+        }
+    }
+
+    // country_$SocialClass$_acceptance_max_add
+    // country_$SocialClass$_acceptance_min_add
+    // country_$SocialClass$_cultural_acceptance_add
+    // country_$SocialClass$_cultural_acceptance_mult
+    // country_$SocialClass$_education_access_add
+    // country_$SocialClass$_education_access_mult
+    // country_$SocialClass$_qualification_growth_add
+    // country_$SocialClass$_qualification_growth_mult
+    // country_$SocialClass$_qualification_growth_other_class
+    // country_$SocialClass$_qualification_growth_same_class
+    if let Some(part) = name_lc.strip_prefix_unchecked("country_") {
+        for &sfx in &[
+            "_acceptance_max_add",
+            "_acceptance_min_add",
+            "_cultural_acceptance_add",
+            "_cultural_acceptance_mult",
+            "_education_access_add",
+            "_education_access_mult",
+            "_qualification_growth_add",
+            "_qualification_growth_mult",
+            "_qualification_growth_other_class",
+            "_qualification_growth_same_class",
+        ] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::SocialClass, &part, name, data, warn);
+                return Some(ModifKinds::Country);
+            }
         }
     }
 
@@ -304,6 +386,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
+    // state_$PopType$_consumption_multiplier_add
     // state_$PopType$_dependent_wage_mult
     // state_$PopType$_internal_migration_disallowed_bool
     // state_$PopType$_investment_pool_contribution_add
@@ -312,6 +395,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // state_$PopType$_mortality_mult
     if let Some(part) = name_lc.strip_prefix_unchecked("state_") {
         for &sfx in &[
+            "_consumption_multiplier_add",
             "_dependent_wage_mult",
             "_internal_migration_disallowed_bool",
             "_investment_pool_contribution_add",
@@ -326,12 +410,19 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         }
     }
 
-    // state_pop_support_$Law$_add
-    // state_pop_support_$Law$_mult
+    // state_pop_support_$PoliticalMovement$_add
+    // state_pop_support_$PoliticalMovement$_mult
     if let Some(part) = name_lc.strip_prefix_unchecked("state_pop_support_") {
         for &sfx in &["_add", "_mult"] {
             if let Some(part) = part.strip_suffix_unchecked(sfx) {
-                maybe_warn(Item::LawType, &part, name, data, warn);
+                if data.item_exists_lc(Item::LawType, &part) {
+                    if let Some(sev) = warn {
+                        let msg = "support for law types has been replaced by support for political movements";
+                        report(ErrorKey::Removed, sev).msg(msg).loc(name).push();
+                    }
+                } else {
+                    maybe_warn(Item::PoliticalMovement, &part, name, data, warn);
+                }
                 return Some(ModifKinds::State);
             }
         }
@@ -357,6 +448,28 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
                 }
             }
             return Some(ModifKinds::State);
+        }
+    }
+
+    // state_harvest_condition_$HarvestConditionType$_duration_mult
+    // state_harvest_condition_$HarvestConditionType$_impact_mult
+    if let Some(part) = name_lc.strip_prefix_unchecked("state_harvest_condition_") {
+        for &sfx in &["_duration_mult", "_impact_mult"] {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
+                maybe_warn(Item::HarvestConditionType, &part, name, data, warn);
+                return Some(ModifKinds::State);
+            }
+        }
+    }
+
+    // state_loyalism_increases_$AcceptanceStatus$_mult
+    // state_radicalism_increases_$AcceptanceStatus$_mult
+    for &pfx in &["state_loyalism_increases_", "state_radicalism_increases_"] {
+        if let Some(part) = name_lc.strip_prefix_unchecked(pfx) {
+            if let Some(part) = part.strip_suffix_unchecked("_mult") {
+                maybe_warn(Item::AcceptanceStatus, &part, name, data, warn);
+                return Some(ModifKinds::State);
+            }
         }
     }
 
@@ -471,7 +584,7 @@ static MODIF_MAP: Lazy<TigerHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.7.6
+/// LAST UPDATED VIC3 VERSION 1.8.1
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 const MODIF_TABLE: &[(&str, ModifKinds)] = &[
@@ -504,20 +617,29 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("character_expedition_events_explorer_mult", ModifKinds::Character),
     ("character_health_add", ModifKinds::Character),
     ("character_interception_add", ModifKinds::Character),
-    ("character_morale_cap_add", ModifKinds::Character),
     ("character_popularity_add", ModifKinds::Character),
     ("character_supply_route_cost_mult", ModifKinds::Character),
+    ("country_acceptance_culture_base_add", ModifKinds::Country),
+    ("country_acceptance_primary_culture_add", ModifKinds::Country),
+    ("country_acceptance_religion_base_add", ModifKinds::Country),
+    ("country_acceptance_shared_cultural_trait_add", ModifKinds::Country),
+    ("country_acceptance_shared_heritage_and_cultural_trait_add", ModifKinds::Country),
+    ("country_acceptance_shared_heritage_trait_add", ModifKinds::Country),
+    ("country_acceptance_shared_religious_trait_add", ModifKinds::Country),
+    ("country_acceptance_state_religion_add", ModifKinds::Country),
     ("country_agitator_slots_add", ModifKinds::Country),
     ("country_ahead_of_time_research_penalty_mult", ModifKinds::Country),
     ("country_all_buildings_protected_bool", ModifKinds::Country),
     ("country_allow_enacting_decrees_in_subject_bool", ModifKinds::Country),
     ("country_allow_multiple_alliances_bool", ModifKinds::Country),
+    ("country_allow_national_collectivization_bool", ModifKinds::Country),
     ("country_allow_trade_routes_without_interest_bool", ModifKinds::Country),
+    ("country_assimilation_delta_threshold_add", ModifKinds::Country),
     ("country_authority_add", ModifKinds::Country),
     ("country_authority_mult", ModifKinds::Country),
     ("country_authority_per_subject_add", ModifKinds::Country),
+    ("country_bolster_attraction_mult", ModifKinds::Country),
     ("country_bolster_cost_mult", ModifKinds::Country),
-    ("country_bolster_ig_attraction_mult", ModifKinds::Country),
     ("country_bureaucracy_add", ModifKinds::Country),
     ("country_bureaucracy_investment_cost_factor_mult", ModifKinds::Country),
     ("country_bureaucracy_mult", ModifKinds::Country),
@@ -528,10 +650,12 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("country_cannot_enact_laws_bool", ModifKinds::Country),
     ("country_cannot_start_law_enactment_bool", ModifKinds::Country),
     ("country_company_construction_efficiency_bonus_add", ModifKinds::Country),
+    ("country_company_pay_to_establish_bool", ModifKinds::Country),
     ("country_company_throughput_bonus_add", ModifKinds::Country),
     ("country_construction_add", ModifKinds::Country),
     ("country_construction_goods_cost_mult", ModifKinds::Country),
     ("country_consumption_tax_cost_mult", ModifKinds::Country),
+    ("country_conversion_delta_threshold_add", ModifKinds::Country),
     ("country_convoy_contribution_to_market_owner_add", ModifKinds::Country),
     ("country_convoys_capacity_add", ModifKinds::Country),
     ("country_convoys_capacity_mult", ModifKinds::Country),
@@ -543,12 +667,11 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("country_disable_privatization_bool", ModifKinds::Country),
     ("country_disallow_aggressive_plays_bool", ModifKinds::Country),
     ("country_disallow_agitator_invites_bool", ModifKinds::Country),
-    ("country_disallow_discriminated_migration_bool", ModifKinds::Country),
-    ("country_disallow_migration_bool", ModifKinds::Country),
+    ("country_economic_dependence_on_overlord_add", ModifKinds::Country),
     ("country_expedition_events_explorer_mult", ModifKinds::Country),
     ("country_expenses_add", ModifKinds::Country),
-    ("country_force_collectivization_bool", ModifKinds::Country),
     ("country_force_privatization_bool", ModifKinds::Country),
+    ("country_foreign_collectivization_bool", ModifKinds::Country),
     ("country_free_trade_routes_add", ModifKinds::Country),
     ("country_gold_reserve_limit_mult", ModifKinds::Country),
     ("country_government_buildings_protected_bool", ModifKinds::Country),
@@ -600,6 +723,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("country_max_declared_interests_add", ModifKinds::Country),
     ("country_max_declared_interests_mult", ModifKinds::Country),
     ("country_max_weekly_construction_progress_add", ModifKinds::Country),
+    ("country_migration_restrictiveness_add", ModifKinds::Country),
     ("country_military_goods_cost_mult", ModifKinds::Country),
     ("country_military_tech_research_speed_mult", ModifKinds::Country),
     ("country_military_tech_spread_mult", ModifKinds::Country),
@@ -608,6 +732,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("country_minting_mult", ModifKinds::Country),
     ("country_must_have_movement_to_enact_laws_bool", ModifKinds::Country),
     ("country_nationalization_cost_non_members_mult", ModifKinds::Country),
+    ("country_non_state_religion_wages_mult", ModifKinds::Country),
     ("country_opposition_ig_approval_add", ModifKinds::Country),
     ("country_overlord_income_transfer_mult", ModifKinds::Country),
     ("country_pact_leverage_generation_add", ModifKinds::Country),
@@ -634,10 +759,11 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("country_secession_progress_mult", ModifKinds::Country),
     ("country_society_tech_research_speed_mult", ModifKinds::Country),
     ("country_society_tech_spread_mult", ModifKinds::Country),
+    ("country_state_religion_wages_mult", ModifKinds::Country),
     ("country_subject_income_transfer_heathen_mult", ModifKinds::Country),
     ("country_subject_income_transfer_mult", ModifKinds::Country),
+    ("country_suppression_attraction_mult", ModifKinds::Country),
     ("country_suppression_cost_mult", ModifKinds::Country),
-    ("country_suppression_ig_attraction_mult", ModifKinds::Country),
     ("country_tax_income_add", ModifKinds::Country),
     ("country_tech_group_research_speed_mult", ModifKinds::Country),
     ("country_tech_research_speed_mult", ModifKinds::Country),
@@ -674,13 +800,14 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("military_formation_movement_speed_mult", ModifKinds::MilitaryFormation),
     ("military_formation_organization_gain_add", ModifKinds::MilitaryFormation),
     ("military_formation_organization_gain_mult", ModifKinds::MilitaryFormation),
-    ("political_movement_enact_support_mult", ModifKinds::PoliticalMovement),
-    ("political_movement_preserve_support_mult", ModifKinds::PoliticalMovement),
+    ("political_movement_character_attraction_mult", ModifKinds::PoliticalMovement),
+    ("political_movement_pop_attraction_mult", ModifKinds::PoliticalMovement),
     ("political_movement_radicalism_add", ModifKinds::PoliticalMovement),
-    ("political_movement_radicalism_mult", ModifKinds::PoliticalMovement),
-    ("political_movement_restore_support_mult", ModifKinds::PoliticalMovement),
-    ("political_movement_support_add", ModifKinds::PoliticalMovement),
-    ("political_movement_support_mult", ModifKinds::PoliticalMovement),
+    ("political_movement_radicalism_from_enactment_approval_mult", ModifKinds::PoliticalMovement),
+    (
+        "political_movement_radicalism_from_enactment_disapproval_mult",
+        ModifKinds::PoliticalMovement,
+    ),
     ("power_bloc_allow_foreign_investment_lower_rank_bool", ModifKinds::PowerBloc),
     ("power_bloc_allow_wider_migration_area_bool", ModifKinds::PowerBloc),
     ("power_bloc_cohesion_add", ModifKinds::PowerBloc),
@@ -700,11 +827,10 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("power_bloc_religion_trade_route_competitiveness_mult", ModifKinds::PowerBloc),
     ("power_bloc_target_sway_cost_mult", ModifKinds::PowerBloc),
     ("power_bloc_trade_route_cost_mult", ModifKinds::PowerBloc),
-    ("state_accepted_birth_rate_mult", ModifKinds::State),
     ("state_assimilation_mult", ModifKinds::State),
     ("state_birth_rate_mult", ModifKinds::State),
     ("state_bureaucracy_population_base_cost_factor_mult", ModifKinds::State),
-    ("state_colony_growth_creation_mult", ModifKinds::State),
+    ("state_colony_growth_creation_factor", ModifKinds::State),
     ("state_colony_growth_speed_mult", ModifKinds::State),
     ("state_conscription_rate_add", ModifKinds::State),
     ("state_conscription_rate_mult", ModifKinds::State),
@@ -719,6 +845,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("state_education_access_wealth_add", ModifKinds::State),
     ("state_expected_sol_from_literacy", ModifKinds::State),
     ("state_expected_sol_mult", ModifKinds::State),
+    ("state_food_security_add", ModifKinds::State),
     ("state_infrastructure_add", ModifKinds::State),
     ("state_infrastructure_from_automobiles_consumption_add", ModifKinds::State),
     ("state_infrastructure_from_population_add", ModifKinds::State),
@@ -726,17 +853,16 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("state_infrastructure_from_population_max_mult", ModifKinds::State),
     ("state_infrastructure_from_population_mult", ModifKinds::State),
     ("state_infrastructure_mult", ModifKinds::State),
-    ("state_loyalists_from_sol_change_accepted_culture_mult", ModifKinds::State),
-    ("state_loyalists_from_sol_change_accepted_religion_mult", ModifKinds::State),
-    ("state_loyalists_from_sol_change_mult", ModifKinds::State),
-    ("state_middle_expected_sol", ModifKinds::State),
-    ("state_middle_standard_of_living_add", ModifKinds::State),
+    ("state_lower_strata_expected_sol_add", ModifKinds::State),
+    ("state_lower_strata_standard_of_living_add", ModifKinds::State),
+    ("state_loyalists_from_political_movements_mult", ModifKinds::State),
+    ("state_middle_strata_expected_sol_add", ModifKinds::State),
+    ("state_middle_strata_standard_of_living_add", ModifKinds::State),
     ("state_migration_pull_add", ModifKinds::State),
     ("state_migration_pull_mult", ModifKinds::State),
     ("state_migration_pull_unincorporated_mult", ModifKinds::State),
     ("state_migration_push_mult", ModifKinds::State),
     ("state_migration_quota_mult", ModifKinds::State),
-    ("state_minimum_wealth_add", ModifKinds::State),
     ("state_market_access_price_impact", ModifKinds::State),
     ("state_mortality_mult", ModifKinds::State),
     ("state_mortality_turmoil_mult", ModifKinds::State),
@@ -744,22 +870,15 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("state_non_homeland_colony_growth_speed_mult", ModifKinds::State),
     ("state_non_homeland_mortality_mult", ModifKinds::State),
     ("state_peasants_education_access_add", ModifKinds::State),
-    ("state_political_strength_from_discrimination_mult", ModifKinds::State),
     ("state_political_strength_from_wealth_mult", ModifKinds::State),
     ("state_political_strength_from_welfare_mult", ModifKinds::State),
     ("state_pollution_generation_add", ModifKinds::State),
     ("state_pollution_reduction_health_mult", ModifKinds::State),
-    ("state_poor_expected_sol", ModifKinds::State),
-    ("state_poor_standard_of_living_add", ModifKinds::State),
     ("state_pop_pol_str_add", ModifKinds::State),
     ("state_pop_pol_str_mult", ModifKinds::State),
     ("state_pop_qualifications_mult", ModifKinds::State),
-    ("state_radicals_from_discrimination_mult", ModifKinds::State),
-    ("state_radicals_from_sol_change_accepted_culture_mult", ModifKinds::State),
-    ("state_radicals_from_sol_change_accepted_religion_mult", ModifKinds::State),
-    ("state_radicals_from_sol_change_mult", ModifKinds::State),
-    ("state_rich_expected_sol", ModifKinds::State),
-    ("state_rich_standard_of_living_add", ModifKinds::State),
+    ("state_radicals_and_loyalists_from_sol_change_mult", ModifKinds::State),
+    ("state_radicals_from_political_movements_mult", ModifKinds::State),
     ("state_slave_import_mult", ModifKinds::State),
     ("state_standard_of_living_add", ModifKinds::State),
     ("state_tax_capacity_add", ModifKinds::State),
@@ -768,6 +887,8 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("state_tax_waste_add", ModifKinds::State),
     ("state_turmoil_effects_mult", ModifKinds::State),
     ("state_unincorporated_starting_wages_mult", ModifKinds::State),
+    ("state_upper_strata_expected_sol_add", ModifKinds::State),
+    ("state_upper_strata_standard_of_living_add", ModifKinds::State),
     ("state_urbanization_per_level_add", ModifKinds::State),
     ("state_urbanization_per_level_mult", ModifKinds::State),
     ("state_welfare_payments_add", ModifKinds::State),
@@ -930,4 +1051,36 @@ const MODIF_REMOVED_TABLE: &[(&str, &str)] = &[
     ("state_urbanization_mult", "removed in 1.7"),
     ("unit_mobilization_speed_mult", "removed in 1.7"),
     ("country_leverage_resistance_per_population_add", "removed in 1.7.1"),
+    ("character_morale_cap_add", "removed in 1.8"),
+    ("country_bolster_ig_attraction_mult", "removed in 1.8"),
+    ("country_disallow_discriminated_migration_bool", "removed in 1.8"),
+    ("country_disallow_migration_bool", "removed in 1.8"),
+    ("country_force_collectivization_bool", "removed in 1.8"),
+    ("country_suppression_ig_attraction_mult", "removed in 1.8"),
+    ("political_movement_enact_support_mult", "removed in 1.8"),
+    ("political_movement_preserve_support_mult", "removed in 1.8"),
+    ("political_movement_radicalism_mult", "removed in 1.8"),
+    ("political_movement_restore_support_mult", "removed in 1.8"),
+    ("political_movement_support_add", "removed in 1.8"),
+    ("political_movement_support_mult", "removed in 1.8"),
+    ("state_accepted_birth_rate_mult", "removed in 1.8"),
+    (
+        "state_colony_growth_creation_mult",
+        "replaced with state_colony_growth_creation_factor in 1.8",
+    ),
+    ("state_loyalists_from_sol_change_accepted_culture_mult", "removed in 1.8"),
+    ("state_loyalists_from_sol_change_accepted_religion_mult", "removed in 1.8"),
+    ("state_loyalists_from_sol_change_mult", "removed in 1.8"),
+    ("state_middle_expected_sol", "removed in 1.8"),
+    ("state_middle_standard_of_living_add", "removed in 1.8"),
+    ("state_minimum_wealth_add", "removed in 1.8"),
+    ("state_political_strength_from_discrimination_mult", "removed in 1.8"),
+    ("state_poor_expected_sol", "removed in 1.8"),
+    ("state_poor_standard_of_living_add", "removed in 1.8"),
+    ("state_radicals_from_discrimination_mult", "removed in 1.8"),
+    ("state_radicals_from_sol_change_accepted_culture_mult", "removed in 1.8"),
+    ("state_radicals_from_sol_change_accepted_religion_mult", "removed in 1.8"),
+    ("state_radicals_from_sol_change_mult", "removed in 1.8"),
+    ("state_rich_expected_sol", "removed in 1.8"),
+    ("state_rich_standard_of_living_add", "removed in 1.8"),
 ];

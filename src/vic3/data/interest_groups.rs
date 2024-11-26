@@ -43,6 +43,7 @@ impl DbKind for InterestGroup {
         vd.field_integer("index"); // TODO: do these have to be consecutive?
 
         vd.field_list_items("ideologies", Item::Ideology);
+        vd.field_list_items("character_ideologies", Item::Ideology);
         // deprecated
         vd.field_list_items("traits", Item::InterestGroupTrait);
         vd.advice_field("traits", "deprecated; use on_enable effect to assign traits instead");
@@ -89,6 +90,18 @@ impl DbKind for InterestGroup {
             let mut sc = ScopeContext::new(Scopes::None, key);
             sc.define_name("character", Scopes::Character, key);
             validate_script_value(bv, data, &mut sc);
+        });
+
+        vd.field_validated_block("priority_cultures", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.multi_field_validated_block("rule", |block, data| {
+                let mut vd = Validator::new(block, data);
+                vd.field_validated_key_block("trigger", |key, block, data| {
+                    let mut sc = ScopeContext::new(Scopes::Country, key);
+                    validate_trigger(block, data, &mut sc, Tooltipped::No);
+                });
+                vd.field_list_items("cultures", Item::Culture);
+            });
         });
     }
 }

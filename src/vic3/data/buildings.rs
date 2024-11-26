@@ -113,7 +113,8 @@ impl DbKind for BuildingType {
         }
 
         vd.field_item("building_group", Item::BuildingGroup);
-        vd.field_item("texture", Item::File);
+        vd.replaced_field("texture", "icon");
+        vd.field_item("icon", Item::File);
 
         vd.field_bool("buildable");
         vd.field_bool("expandable");
@@ -132,7 +133,15 @@ impl DbKind for BuildingType {
         vd.replaced_field("recruits_combat_unit", "recruits_combat_units = yes");
         vd.field_bool("recruits_combat_units");
 
+        vd.field_bool("company_headquarter");
+
         vd.field_list_items("unlocking_technologies", Item::Technology);
+        vd.field_validated_block("potential", |block, data| {
+            validate_trigger(block, data, &mut state_sc, Tooltipped::No);
+        });
+        vd.field_validated_block("possible", |block, data| {
+            validate_trigger(block, data, &mut state_sc, Tooltipped::No);
+        });
         vd.field_validated_block("can_build", |block, data| {
             validate_trigger(block, data, &mut state_sc, Tooltipped::Yes);
         });
@@ -206,10 +215,6 @@ impl DbKind for BuildingType {
 
         // undocumented
 
-        vd.field_validated_block("possible", |block, data| {
-            validate_trigger(block, data, &mut state_sc, Tooltipped::No);
-        });
-
         vd.field_validated_block("city_gfx_interactions", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_bool("clear_collision_mesh_area");
@@ -217,7 +222,8 @@ impl DbKind for BuildingType {
             vd.field_integer("size");
         });
 
-        vd.field_bool("cannot_switch_owner");
+        vd.replaced_field("cannot_switch_owner", "can_switch_owner");
+        vd.field_bool("can_switch_owner");
 
         vd.field_validated_block("investment_scores", |block, data| {
             let mut vd = Validator::new(block, data);

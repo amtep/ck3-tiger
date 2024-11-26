@@ -108,7 +108,7 @@ const SCRIPT_CONTEXTS: &[(&str, Scopes)] = &[
     ("player_diplomatic_relations", Scopes::DiplomaticRelations),
     ("player_interest_group", Scopes::InterestGroup),
     ("player_invaded_state", Scopes::State),
-    ("player_national_market", Scopes::Market),
+    ("player_market", Scopes::Market),
     ("player_naval_invasion", Scopes::NavalInvasion),
     ("player_involved_market", Scopes::Market),
     ("player_state", Scopes::State),
@@ -122,5 +122,5 @@ const SCRIPT_CONTEXTS: &[(&str, Scopes)] = &[
     ("player_front", Scopes::Front),
     ("player_war", Scopes::War),
     ("player_company", Scopes::Company),
-    ("player_state_goods", Scopes::StateGoods),
+    ("player_state_local_goods", Scopes::StateGoods),
 ];

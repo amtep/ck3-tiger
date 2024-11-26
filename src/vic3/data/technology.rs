@@ -36,6 +36,7 @@ impl DbKind for Technology {
         vd.field_choice("category", &["production", "military", "society"]);
 
         vd.field_bool("can_research");
+        vd.field_bool("should_update_map");
 
         vd.field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);

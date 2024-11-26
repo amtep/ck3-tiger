@@ -87,6 +87,8 @@ impl DbKind for AiStrategy {
 
         vd.field_list_items("pro_interest_groups", Item::InterestGroup);
         vd.field_list_items("anti_interest_groups", Item::InterestGroup);
+        vd.field_list_items("pro_movements", Item::PoliticalMovement);
+        vd.field_list_items("anti_movements", Item::PoliticalMovement);
         vd.field_validated_key_block("institution_scores", validate_institution_scores);
 
         vd.field_validated_key("obligation_value", |key, bv, data| {

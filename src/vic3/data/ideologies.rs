@@ -40,20 +40,38 @@ impl DbKind for Ideology {
 
         vd.field_bool("character_ideology");
         if block.field_value_is("character_ideology", "yes") {
-            vd.field_validated_key_block("possible", |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::Character, key);
-                sc.define_name("interest_group", Scopes::InterestGroup, key);
+            vd.field_validated_key_block("country_trigger", |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::Country, key);
                 validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
-            vd.field_validated_key("leader_weight", |key, bv, data| {
+            vd.field_validated_key_block("interest_group_leader_trigger", |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::Character, key);
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
+            });
+            vd.field_validated_key_block(
+                "non_interest_group_leader_trigger",
+                |key, block, data| {
+                    let mut sc = ScopeContext::new(Scopes::Character, key);
+                    validate_trigger(block, data, &mut sc, Tooltipped::No);
+                },
+            );
+            vd.field_validated_key("interest_group_leader_weight", |key, bv, data| {
+                let mut sc = ScopeContext::new(Scopes::Character, key);
+                sc.define_name("interest_group", Scopes::InterestGroup, key);
+                validate_script_value(bv, data, &mut sc);
+            });
+            vd.field_validated_key("non_interest_group_leader_weight", |key, bv, data| {
                 let mut sc = ScopeContext::new(Scopes::Character, key);
                 sc.define_name("interest_group", Scopes::InterestGroup, key);
                 validate_script_value(bv, data, &mut sc);
             });
             vd.ban_field("priority", || "character_ideology = no");
         } else {
-            vd.ban_field("possible", || "character_ideology = yes");
-            vd.ban_field("leader_weight", || "character_ideology = yes");
+            vd.ban_field("country_trigger", || "character_ideology = yes");
+            vd.ban_field("interest_group_leader_trigger", || "character_ideology = yes");
+            vd.ban_field("non_interest_group_leader_trigger", || "character_ideology = yes");
+            vd.ban_field("interest_group_leader_weight", || "character_ideology = yes");
+            vd.ban_field("non_interest_group_leader_weight", || "character_ideology = yes");
             vd.field_numeric("priority");
         }
 

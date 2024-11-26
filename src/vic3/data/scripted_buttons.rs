@@ -30,10 +30,11 @@ impl DbKind for ScriptedButton {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        // TODO: assuming that the scopes from the journalentry are available
         let mut sc = ScopeContext::new(Scopes::Country, key);
         sc.define_name("journal_entry", Scopes::JournalEntry, key);
         sc.define_name("target", Scopes::all(), key);
+        // TODO: check with strict scopes from the journal entry that uses this button
+        sc.set_strict_scopes(false);
 
         vd.req_field("name");
         vd.field_validated_sc("name", &mut sc, validate_desc);

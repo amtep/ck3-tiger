@@ -37,6 +37,11 @@ const SIMPLE_GAME_RULE_FLAGS: &[&str] = &[
     "moderate_pop_consolidation",
     "aggressive_pop_consolidation",
     "directly_controlled_investment",
+    "loyalties_grace_period_none",
+    "loyalties_grace_period_short",
+    "loyalties_grace_period_long",
+    "loyalties_grace_period_extra_long",
+    "no_fantastical_content",
 ];
 
 impl DbKind for GameRule {

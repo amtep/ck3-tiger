@@ -75,6 +75,12 @@ impl DbKind for DiplomaticPlay {
         vd.field_validated_block("on_war_end", |block, data| {
             validate_effect(block, data, &mut diplo_sc, Tooltipped::No);
         });
+        vd.field_validated_block("on_demand_accepted", |block, data| {
+            validate_effect(block, data, &mut diplo_sc, Tooltipped::No);
+        });
+        vd.field_validated_block("on_demand_rejected", |block, data| {
+            validate_effect(block, data, &mut diplo_sc, Tooltipped::No);
+        });
 
         // undocumented
 

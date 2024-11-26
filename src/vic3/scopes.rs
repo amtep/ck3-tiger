@@ -42,11 +42,10 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "diplomatic_catalyst" => Scopes::DiplomaticCatalyst,
         "diplomatic_catalyst_type" => Scopes::DiplomaticCatalystType,
         "diplomatic_catalyst_category" => Scopes::DiplomaticCatalystCategory,
-        "political_lobby" => Scopes::PoliticalLobby,
-        "political_lobby_type" => Scopes::PoliticalLobbyType,
-        "political_lobby_appeasement" => Scopes::PoliticalLobbyAppeasement,
         "front" => Scopes::Front,
         "goods" => Scopes::Goods,
+        "harvest_condition" => Scopes::HarvestCondition,
+        "harvest_condition_type" => Scopes::HarvestConditionType,
         "hq" => Scopes::Hq,
         "ideology" => Scopes::Ideology,
         "institution" => Scopes::Institution,
@@ -66,7 +65,11 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "new_combat_unit" => Scopes::NewCombatUnit,
         "objective" => Scopes::Objective,
         "party" => Scopes::Party,
+        "political_lobby" => Scopes::PoliticalLobby,
+        "political_lobby_type" => Scopes::PoliticalLobbyType,
+        "political_lobby_appeasement" => Scopes::PoliticalLobbyAppeasement,
         "political_movement" => Scopes::PoliticalMovement,
+        "political_movement_type" => Scopes::PoliticalMovementType,
         "pop" => Scopes::Pop,
         "pop_type" => Scopes::PopType,
         "power_bloc" => Scopes::PowerBloc,
@@ -211,6 +214,12 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::Goods) {
         vec.push("goods");
     }
+    if s.contains(Scopes::HarvestCondition) {
+        vec.push("harvest condition");
+    }
+    if s.contains(Scopes::HarvestConditionType) {
+        vec.push("harvest condition type");
+    }
     if s.contains(Scopes::Hq) {
         vec.push("hq");
     }
@@ -267,6 +276,9 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     }
     if s.contains(Scopes::PoliticalMovement) {
         vec.push("political movement");
+    }
+    if s.contains(Scopes::PoliticalMovementType) {
+        vec.push("political movement type");
     }
     if s.contains(Scopes::Pop) {
         vec.push("pop");
@@ -467,7 +479,14 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::MilitaryFormation, "country", Scopes::Country),
     (Scopes::Country, "country_definition", Scopes::CountryDefinition),
     (Scopes::Country, "credit", Scopes::Value),
-    (Scopes::Character.union(Scopes::NewCombatUnit).union(Scopes::Pop), "culture", Scopes::Culture),
+    (
+        Scopes::Character
+            .union(Scopes::NewCombatUnit)
+            .union(Scopes::PoliticalMovement)
+            .union(Scopes::Pop),
+        "culture",
+        Scopes::Culture,
+    ),
     (Scopes::MilitaryFormation, "current_hq", Scopes::Hq),
     (Scopes::Law, "currently_active_law_in_group", Scopes::Law),
     (Scopes::Country, "currently_enacting_law", Scopes::Law),
@@ -475,7 +494,6 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::War, "defender_warleader", Scopes::Country),
     (Scopes::NewCombatUnit, "defense", Scopes::Value),
     (Scopes::NewCombatUnit, "demoralized", Scopes::Value),
-    (Scopes::PoliticalMovement, "desired_law", Scopes::LawType),
     (Scopes::DiplomaticPact, "diplomatic_pact_other_country(", Scopes::Country),
     (Scopes::War, "diplomatic_play", Scopes::DiplomaticPlay),
     (Scopes::Country, "expenses", Scopes::Value),
@@ -545,6 +563,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::NewCombatUnit, "mobilization", Scopes::Value),
     (Scopes::Party, "momentum", Scopes::Value),
     (Scopes::NewCombatUnit, "morale", Scopes::Value),
+    (Scopes::PoliticalMovement, "most_desired_law", Scopes::LawType),
     (Scopes::Province, "naval_controller_hq", Scopes::Hq),
     (Scopes::Province, "naval_hq", Scopes::Hq),
     (Scopes::NavalInvasion, "naval_invasion_attacker", Scopes::Country),
@@ -614,7 +633,8 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
             .union(Scopes::Province)
             .union(Scopes::State)
             .union(Scopes::TradeRoute)
-            .union(Scopes::MilitaryFormation),
+            .union(Scopes::MilitaryFormation)
+            .union(Scopes::PoliticalMovement),
         "owner",
         Scopes::Country,
     ),
@@ -646,6 +666,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
         Scopes::Country
             .union(Scopes::Character)
             .union(Scopes::CountryDefinition)
+            .union(Scopes::PoliticalMovement)
             .union(Scopes::Pop),
         "religion",
         Scopes::Religion,
@@ -685,7 +706,9 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
             .union(Scopes::PoliticalLobby)
             .union(Scopes::Institution)
             .union(Scopes::InterestGroup)
-            .union(Scopes::Law),
+            .union(Scopes::Law)
+            .union(Scopes::PoliticalMovement)
+            .union(Scopes::HarvestCondition),
         "type",
         Scopes::BuildingType
             .union(Scopes::CompanyType)
@@ -694,7 +717,9 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
             .union(Scopes::PoliticalLobbyType)
             .union(Scopes::InstitutionType)
             .union(Scopes::InterestGroupType)
-            .union(Scopes::LawType),
+            .union(Scopes::LawType)
+            .union(Scopes::PoliticalMovementType)
+            .union(Scopes::HarvestConditionType),
     ),
     (Scopes::DiplomaticPlay, "war", Scopes::War),
     (Scopes::Company, "weekly_prosperity_change", Scopes::Value),
@@ -755,6 +780,12 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "g", Scopes::Goods, Item(Item::Goods)),
         (Scopes::Country, "get_ruler_for", Scopes::Character, Item(Item::TransferOfPower)),
         (Scopes::None, "global_var", Scopes::all(), UncheckedValue),
+        (
+            Scopes::None,
+            "harvest_condition_type",
+            Scopes::HarvestConditionType,
+            Item(Item::HarvestConditionType),
+        ),
         (Scopes::None, "i", Scopes::Ideology, Item(Item::Ideology)),
         (Scopes::None, "identity", Scopes::PowerBlocIdentity, Item(Item::PowerBlocIdentity)),
         (Scopes::None, "ideology", Scopes::Ideology, Item(Item::Ideology)), // TODO difference with i:
@@ -804,6 +835,12 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
             "modifier",
             Scopes::Value.union(Scopes::Bool),
             Modif,
+        ),
+        (
+            Scopes::None,
+            "movement_type",
+            Scopes::PoliticalMovementType,
+            Item(Item::PoliticalMovement),
         ),
         (Scopes::State, "nf", Scopes::Decree, Item(Item::Decree)),
         (
@@ -869,7 +906,7 @@ static SCOPE_ITERATOR_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes)>> = 
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.7.6
+/// LAST UPDATED VIC3 VERSION 1.8.1
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
@@ -896,12 +933,22 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "diplomatic_catalyst", Scopes::DiplomaticCatalyst),
     (Scopes::None, "diplomatic_play", Scopes::DiplomaticPlay),
     (Scopes::Country, "diplomatically_relevant_country", Scopes::Country),
+    (Scopes::Country, "direct_subject", Scopes::Country),
     (Scopes::Country, "enemy_in_diplo_play", Scopes::Country),
     (Scopes::Country, "enemy_in_war", Scopes::Country),
+    (
+        Scopes::Country
+            .union(Scopes::State)
+            .union(Scopes::StateRegion)
+            .union(Scopes::StrategicRegion),
+        "harvest_condition",
+        Scopes::HarvestConditionType,
+    ),
     (Scopes::None, "in_global_list", Scopes::all_but_none()),
     (Scopes::Country, "in_hierarchy", Scopes::Country),
     (Scopes::None, "in_list", Scopes::all_but_none()),
     (Scopes::None, "in_local_list", Scopes::all_but_none()),
+    (Scopes::PoliticalMovement, "influenced_interest_group", Scopes::InterestGroup),
     (Scopes::Country, "interest_group", Scopes::InterestGroup),
     (Scopes::Country, "law", Scopes::Law),
     (Scopes::PoliticalLobby, "lobby_member", Scopes::InterestGroup),
@@ -929,11 +976,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "power_bloc", Scopes::PowerBloc),
     (Scopes::PowerBloc, "power_bloc_member", Scopes::Country),
     (Scopes::InterestGroup, "preferred_law", Scopes::Law),
-    (
-        Scopes::Country.union(Scopes::CountryDefinition).union(Scopes::State),
-        "primary_culture",
-        Scopes::Culture,
-    ),
+    (Scopes::Country.union(Scopes::CountryDefinition), "primary_culture", Scopes::Culture),
     // TODO: verify. The docs have State and Province reversed.
     (Scopes::State, "province", Scopes::Province),
     (Scopes::Country, "rival_country", Scopes::Country),
@@ -1009,9 +1052,9 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "state", Scopes::State),
     (Scopes::None, "state_region", Scopes::StateRegion),
     (Scopes::Country, "strategic_objective", Scopes::State),
+    (Scopes::Country, "subject_of_subject", Scopes::Country),
     (Scopes::Country, "subject_or_below", Scopes::Country),
     (Scopes::PoliticalMovement, "supporting_character", Scopes::Character),
-    (Scopes::PoliticalMovement, "supporting_interest_group", Scopes::InterestGroup),
     (
         Scopes::Country.union(Scopes::Market).union(Scopes::MarketGoods),
         "trade_route",
@@ -1030,11 +1073,14 @@ pub fn scope_iterator_removed(name: &str) -> Option<(&'static str, &'static str)
     None
 }
 
-const SCOPE_ITERATOR_REMOVED: &[(&str, &str, &str)] = &[(
-    "scope_cobelligerent",
-    "1.4.0",
-    "replaced with _cobelligerent_in_diplo_play, _cobelligerent_in_war",
-)];
+const SCOPE_ITERATOR_REMOVED: &[(&str, &str, &str)] = &[
+    (
+        "scope_cobelligerent",
+        "1.4.0",
+        "replaced with _cobelligerent_in_diplo_play, _cobelligerent_in_war",
+    ),
+    ("supporting_interest_group", "1.8", "replaced with `_influenced_interest_group`"),
+];
 
 pub fn scope_to_scope_removed(name: &str) -> Option<(&'static str, &'static str)> {
     for (removed_name, version, explanation) in SCOPE_TO_SCOPE_REMOVED.iter().copied() {

@@ -1,3 +1,4 @@
+// LAST UPDATED VIC3 VERSION 1.8.1
 pub const ON_ACTION_SCOPES: &str = "
         on_monthly_pulse = {
             root = none
@@ -254,6 +255,8 @@ pub const ON_ACTION_SCOPES: &str = "
 	on_native_uprising = { root = country }
 
 	on_state_incorporation = { root = state }
+	on_state_owner_change = { root = state }
+	on_state_created = { root = state }
 
 	on_political_movement_formed = { root = political_movement }
 	on_political_movement_disbanded = { root = political_movement }
@@ -318,35 +321,51 @@ pub const ON_ACTION_SCOPES: &str = "
 		state = state
 	}
 
-    on_company_established = {
-        root = country
-        company = company
-    }
-    on_company_disbanded = on_company_established
+	on_company_established = {
+		root = country
+		company = company
+	}
+	on_company_disbanded = on_company_established
 
-    on_military_formation_created = { root = military_formation }
+	on_military_formation_created = { root = military_formation }
 
-    on_travel_deploy_to_sea_node_cancelled = {
-        root = military_formation
-        province = province
-        target = hq|province
-    }
+	on_travel_deploy_to_sea_node_cancelled = {
+		root = military_formation
+		province = province
+		target = hq|province
+	}
 
-    on_travel_track_formation_cancelled = {
-        root = military_formation
-        formation = military_formation
-        target = hq|province
-    }
+	on_travel_track_formation_cancelled = {
+		root = military_formation
+		formation = military_formation
+		target = hq|province
+	}
 
-    on_travel_station_in_hq_cancelled = {
-        root = military_formation
-        hq = hq
-        target = hq|province
-    }
+	on_travel_station_in_hq_cancelled = {
+		root = military_formation
+		hq = hq
+		target = hq|province
+	}
 
-    on_travel_to_front_cancelled = {
-        root = military_formation
-        front = front
-        target = hq|province
-    }
+	on_travel_to_front_cancelled = {
+		root = military_formation
+		front = front
+		target = hq|province
+	}
+
+	on_become_independent = {
+		root = country
+	}
+	on_become_subject = {
+		root = country
+	}
+
+	on_harvest_condition_started_in_country = {
+		root = country
+		area = harvest_condition
+		state = state
+		duration = value
+		num_states = value
+		intensity = value
+	}
 ";

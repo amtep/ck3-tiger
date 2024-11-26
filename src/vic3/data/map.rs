@@ -53,7 +53,7 @@ inventory::submit! {
     ItemLoader::Normal(GameFlags::Vic3, Item::MapMode, MapMode::add)
 }
 
-// LAST UPDATED VIC3 VERSION 1.7.1
+// LAST UPDATED VIC3 VERSION 1.8.1
 // Taken from gfx/map/map_modes/map_modes.txt
 const MAP_PAINTING_MODES: &[&str] = &[
     "clout_nationally",
@@ -67,9 +67,11 @@ const MAP_PAINTING_MODES: &[&str] = &[
     "gdp",
     "gdp_nationally",
     "gdp_ownership_ratio",
+    "global_starvation",
     "goods_consumption",
     "goods_local_prices",
     "goods_production",
+    "harvest_conditions",
     "ig_strength",
     "literacy",
     "loyalists",
@@ -131,8 +133,12 @@ impl DbKind for MapMode {
         vd.field_choice("map_painting_mode_alternate", MAP_PAINTING_MODES);
         vd.field_choice("map_names", MAP_NAMES);
         vd.field_list("map_markers"); // TODO widget names from gui/map_markers.gui
+        vd.field_list("map_mode_lists"); // unknown list items. panel name?
         vd.field_choice("map_tooltip_offset", &["state", "strategic_region", "theater"]);
-        vd.field_choice("map_texture_mode", &["occupation", "power_blocs", "power_blocs_leverage"]);
+        vd.field_choice(
+            "map_texture_mode",
+            &["harvest_conditions", "occupation", "power_blocs", "power_blocs_leverage"],
+        );
 
         vd.field_bool("has_fog_of_war");
         vd.field_bool("show_occupation");

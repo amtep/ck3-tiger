@@ -341,6 +341,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] VassalStance,
 
     // Items specific to vic3
+    #[cfg(feature = "vic3")] AcceptanceStatus,
     #[cfg(feature = "vic3")] AiStrategy,
     #[cfg(feature = "vic3")] Alert,
     #[cfg(feature = "vic3")] AlertGroup,
@@ -378,6 +379,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] FlagDefinition,
     #[cfg(feature = "vic3")] Goods,
     #[cfg(feature = "vic3")] GradientBorderSettings,
+    #[cfg(feature = "vic3")] HarvestConditionType,
     #[cfg(feature = "vic3")] Ideology,
     #[cfg(feature = "vic3")] InfamyThreshold,
     #[cfg(feature = "vic3")] Institution,
@@ -404,6 +406,8 @@ pub enum Item {
     #[cfg(feature = "vic3")] PoliticalLobby,
     #[cfg(feature = "vic3")] PoliticalLobbyAppeasement,
     #[cfg(feature = "vic3")] PoliticalMovement,
+    #[cfg(feature = "vic3")] PoliticalMovementCategory,
+    #[cfg(feature = "vic3")] PoliticalMovementPopSupport,
     #[cfg(feature = "vic3")] PopNeed,
     #[cfg(feature = "vic3")] PowerBlocCoaPiece,
     #[cfg(feature = "vic3")] PowerBlocIdentity,
@@ -417,7 +421,10 @@ pub enum Item {
     #[cfg(feature = "vic3")] RelationsThreshold,
     #[cfg(feature = "vic3")] ScriptedButton,
     #[cfg(feature = "vic3")] ScriptedProgressBar,
+    #[cfg(feature = "vic3")] ScriptedTest,
     #[cfg(feature = "vic3")] SecretGoal,
+    #[cfg(feature = "vic3")] SocialClass,
+    #[cfg(feature = "vic3")] SocialHierarchy,
     #[cfg(feature = "vic3")] StateRegion,
     #[cfg(feature = "vic3")] StateTrait,
     #[cfg(feature = "vic3")] Strata,
@@ -1076,6 +1083,8 @@ impl Item {
             Item::VassalStance => "common/vassal_stances/",
 
             #[cfg(feature = "vic3")]
+            Item::AcceptanceStatus => "common/acceptance_statuses/",
+            #[cfg(feature = "vic3")]
             Item::AiStrategy => "common/ai_strategies/",
             #[cfg(feature = "vic3")]
             Item::Alert => "common/alert_types",
@@ -1151,6 +1160,8 @@ impl Item {
             // TODO: find out if different filenames are acceptable in this dir
             Item::GradientBorderSettings => "gfx/map/gradient_border_settings/",
             #[cfg(feature = "vic3")]
+            Item::HarvestConditionType => "common/harvest_condition_types/",
+            #[cfg(feature = "vic3")]
             Item::Ideology => "common/ideologies/",
             #[cfg(feature = "vic3")]
             Item::InfamyThreshold => "",
@@ -1201,7 +1212,11 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::PoliticalLobbyAppeasement => "common/political_lobby_appeasement/",
             #[cfg(feature = "vic3")]
-            Item::PoliticalMovement => "",
+            Item::PoliticalMovement => "common/political_movements",
+            #[cfg(feature = "vic3")]
+            Item::PoliticalMovementCategory => "common/political_movement_categories",
+            #[cfg(feature = "vic3")]
+            Item::PoliticalMovementPopSupport => "common/political_movement_pop_support",
             #[cfg(feature = "vic3")]
             Item::PopNeed => "common/pop_needs/",
             #[cfg(feature = "vic3")]
@@ -1229,7 +1244,13 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::ScriptedProgressBar => "common/scripted_progress_bars/",
             #[cfg(feature = "vic3")]
+            Item::ScriptedTest => "common/scripted_tests/",
+            #[cfg(feature = "vic3")]
             Item::SecretGoal => "",
+            #[cfg(feature = "vic3")]
+            Item::SocialClass => "common/social_classes/",
+            #[cfg(feature = "vic3")]
+            Item::SocialHierarchy => "common/social_hierarchies/",
             #[cfg(feature = "vic3")]
             Item::StateRegion => "map_data/state_regions/",
             #[cfg(feature = "vic3")]

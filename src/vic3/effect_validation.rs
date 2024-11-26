@@ -121,7 +121,7 @@ pub fn validate_add_loyalists(
     vd.field_script_value("value", sc);
     vd.field_item_or_target("interest_group", sc, Item::InterestGroup, Scopes::InterestGroup);
     vd.field_item_or_target("pop_type", sc, Item::PopType, Scopes::PopType);
-    vd.field_choice("strata", &["poor", "middle", "rich"]);
+    vd.field_choice("strata", STRATA);
     vd.field_item_or_target("culture", sc, Item::Culture, Scopes::Culture);
     vd.field_item_or_target("religion", sc, Item::Religion, Scopes::Religion);
 }
@@ -310,6 +310,16 @@ pub fn validate_create_building(
             vd.req_field("region");
             vd.field_item("region", Item::StateRegion);
         });
+        // undocumented
+        vd.multi_field_validated_block("company", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("country");
+            vd.field_target("country", sc, Scopes::Country);
+            vd.req_field("type");
+            vd.field_item("type", Item::CompanyType);
+            vd.req_field("levels");
+            vd.field_integer("levels");
+        });
     });
 }
 
@@ -337,7 +347,10 @@ pub fn validate_create_character(
         warn(ErrorKey::Validation).msg(msg).loc(key).push();
     }
     // NOTE: docs say this is an Item, but vanilla files consistently pass a scope.
-    vd.field_target("culture", sc, Scopes::Culture);
+    vd.field_validated_value("culture", |_, mut vd| {
+        vd.maybe_is("primary_culture");
+        vd.target(sc, Scopes::Culture);
+    });
     // TODO: vanilla files pass religion as an item in several places. Figure out if that's a bug.
     vd.field_target("religion", sc, Scopes::Religion);
     vd.field_validated_value("female", |_, mut vd| {
@@ -439,6 +452,7 @@ pub fn validate_create_dynamic_country(
     vd.multi_field_target("culture", sc, Scopes::Culture);
     vd.field_target("religion", sc, Scopes::Religion);
     vd.field_target("capital", sc, Scopes::State);
+    vd.field_item("social_hierarchy", Item::SocialHierarchy);
     vd.field_validated_key_block("cede_state_trigger", |key, block, data| {
         let mut sc = ScopeContext::new(Scopes::State, key);
         validate_trigger(block, data, &mut sc, Tooltipped::No);
@@ -498,6 +512,7 @@ fn validate_war_goal(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_target("target_country", sc, Scopes::Country);
     vd.advice_field("region", "docs say `region` but it's `target_region`");
     vd.field_target("target_region", sc, Scopes::StrategicRegion);
+    vd.field_bool("primary_demand");
 }
 
 pub fn validate_create_mass_migration(
@@ -817,6 +832,21 @@ pub fn validate_create_lobby(
     vd.field_choice("lobby_formation_reason", LOBBY_FORMATION_REASON);
 }
 
+pub fn validate_create_movement(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("type");
+    vd.field_item("type", Item::PoliticalMovement);
+    vd.advice_field("movement_type", "docs say movement_type but it's just type");
+    vd.field_target("religion", sc, Scopes::Religion);
+    vd.field_target("culture", sc, Scopes::Culture);
+}
+
 pub fn validate_create_catalyst(
     _key: &Token,
     _block: &Block,
@@ -914,4 +944,51 @@ pub fn validate_pop_literacy(
     _tooltipped: Tooltipped,
 ) {
     vd.field_script_value("literacy_rate", sc);
+}
+
+pub fn validate_move_partial_pop(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("state");
+    vd.field_target("state", sc, Scopes::State);
+    // TODO: verify if these can be script values. Doc example just gives numbers.
+    vd.field_script_value("population", sc);
+    vd.field_script_value("population_ratio", sc);
+}
+
+pub fn validate_set_hub_name(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    _sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("type");
+    vd.req_field("name");
+    vd.field_choice("type", &["city", "farm", "mine", "port", "wood"]);
+    vd.field_item("name", Item::Localization);
+}
+
+pub fn validate_sort(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("name");
+    vd.req_field("order");
+    if let Some(name) = vd.field_value("name") {
+        // The "order" is evaluated in the scope of the variable list item, which is not known.
+        sc.open_scope(Scopes::all(), name.clone());
+        vd.field_script_value("order", sc);
+        sc.close();
+    }
 }

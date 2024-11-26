@@ -60,6 +60,7 @@ impl DbKind for CharacterTemplate {
 
         vd.field_validated_value("culture", |_, mut vd| {
             vd.maybe_is("primary_culture");
+            vd.maybe_is("ig_before_primary_culture");
             vd.target(&mut sc, Scopes::Culture);
         });
         vd.field_validated_value("religion", |_, mut vd| {

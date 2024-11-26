@@ -129,6 +129,7 @@ impl DbKind for JournalEntry {
 
         vd.field_integer("active_update_frequency");
         vd.field_bool("should_update_on_player_command");
+        vd.field_bool("display_progressbar_as_months");
     }
 }
 

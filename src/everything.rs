@@ -610,7 +610,7 @@ impl Everything {
     fn item_exists_vic3(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Approval => APPROVALS.contains(&key),
-            Item::Attitude => ATTITUDES.contains(&key),
+            Item::Attitude => ATTITUDES.contains(&&*key.to_lowercase()),
             Item::CharacterRole => CHARACTER_ROLES.contains(&key),
             Item::CountryTier => COUNTRY_TIERS.contains(&key),
             Item::Dlc => DLC_VIC3.contains(&key),
@@ -618,7 +618,6 @@ impl Everything {
             Item::EventCategory => EVENT_CATEGORIES.contains(&key),
             Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
             Item::Level => LEVELS.contains(&key),
-            Item::PoliticalMovement => POLITICAL_MOVEMENTS.contains(&key),
             Item::RelationsThreshold => RELATIONS.contains(&key),
             Item::SecretGoal => SECRET_GOALS.contains(&key),
             Item::Sound => self.valid_sound(key),

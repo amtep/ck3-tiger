@@ -42,6 +42,8 @@ impl DbKind for ModifierTypeDefinition {
             let mut vd = Validator::new(block, data);
             vd.field_integer("ai_value");
             vd.field_item("translate", Item::ModifierTypeDefinition);
+            vd.field_list("tags");
+            vd.advice_field("type_set", "docs say type_set but it's tags");
         });
 
         vd.field_item("prefix", Item::Localization);

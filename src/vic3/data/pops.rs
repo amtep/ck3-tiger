@@ -38,7 +38,7 @@ impl DbKind for PopType {
 
         vd.field_item("texture", Item::File);
         vd.field_validated("color", validate_possibly_named_color);
-        vd.field_choice("strata", &["poor", "middle", "rich"]);
+        vd.replaced_field("strata", "social class definitions");
 
         vd.field_integer("start_quality_of_life");
         vd.field_numeric("wage_weight");
@@ -72,5 +72,6 @@ impl DbKind for PopType {
         vd.field_bool("subsistence_income");
         vd.field_bool("ignores_employment_proportionality");
         vd.field_bool("is_slave");
+        vd.field_bool("military");
     }
 }

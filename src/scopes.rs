@@ -24,7 +24,7 @@ bitflags! {
     /// The available scope types depend on the game.
     /// They are listed in `event_scopes.log` from the game data dumps.
     // LAST UPDATED CK3 VERSION 1.14.0.2
-    // LAST UPDATED VIC3 VERSION 1.7.0
+    // LAST UPDATED VIC3 VERSION 1.8.1
     // LAST UPDATED IR VERSION 2.0.4
     //
     // Each scope type gets one bitflag. In order to keep the bit count down, scope types from
@@ -176,6 +176,9 @@ bitflags! {
         #[cfg(feature = "vic3")] const PowerBloc = 0x0000_0000_0002_0000_0000_0000_0000_0000;
         #[cfg(feature = "vic3")] const PowerBlocIdentity = 0x0000_0000_0004_0000_0000_0000_0000_0000;
         #[cfg(feature = "vic3")] const PowerBlocPrinciple = 0x0000_0000_0008_0000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const HarvestCondition = 0x0000_0000_0010_0000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const PoliticalMovementType = 0x0000_0000_0020_0000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const HarvestConditionType = 0x0000_0000_0040_0000_0000_0000_0000_0000;
 
         #[cfg(feature = "imperator")] const Area = 0x0001_0000;
         #[cfg(feature = "imperator")] const CountryCulture = 0x0002_0000;
@@ -352,6 +355,12 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
             }
             if inscopes.contains(Scopes::Law) {
                 outscopes |= Scopes::LawType;
+            }
+            if inscopes.contains(Scopes::PoliticalMovement) {
+                outscopes |= Scopes::PoliticalMovementType;
+            }
+            if inscopes.contains(Scopes::HarvestCondition) {
+                outscopes |= Scopes::HarvestConditionType;
             }
             if !outscopes.is_empty() {
                 return Some((from, outscopes));

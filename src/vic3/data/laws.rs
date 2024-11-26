@@ -44,6 +44,10 @@ impl DbKind for LawType {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::all(), vd);
         });
+        vd.field_validated_block("acceptance_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::all(), vd);
+        });
 
         vd.field_validated_block_rooted("is_visible", Scopes::Country, |block, data, sc| {
             validate_trigger(block, data, sc, Tooltipped::Yes);
@@ -180,5 +184,6 @@ impl DbKind for LawGroup {
         // undocumented
 
         vd.field_bool("affected_by_regime_change");
+        vd.field_item("linked_social_hierarchy", Item::SocialHierarchy);
     }
 }

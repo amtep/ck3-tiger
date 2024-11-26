@@ -210,6 +210,7 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_bool("is_guarantee_independence"); // undocumented
     vd.field_bool("exempt_from_service"); // undocumented
     vd.field_bool("is_foreign_investment_rights"); // undocumented
+    vd.field_bool("junior_support_only_against_overlord"); // undocumented
 
     vd.field_item("subject_type", Item::SubjectType); // undocumented
 
@@ -226,12 +227,14 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_bool("income_transfer_based_on_second_country");
     vd.field_validated_block("income_transfer_to_pops", |block, data| {
         let mut vd = Validator::new(block, data);
-        vd.field_bool("allow_discriminated");
+        vd.replaced_field("allow_discriminated", "allow_non_fully_accepted");
+        vd.field_bool("allow_non_fully_accepted");
         for field in &["upper_strata_pops", "middle_strata_pops", "lower_strata_pops"] {
             vd.field_script_value(field, sc);
         }
     });
     vd.field_numeric_range("income_transfer", 0.0..=1.0);
+    vd.field_numeric_range("max_paying_country_income_to_transfer", 0.0..=1.0);
 
     vd.field_numeric("relations_progress_per_day"); // undocumented
     vd.field_numeric("relations_improvement_max"); // undocumented
@@ -313,7 +316,7 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
 fn validate_ai(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 
-    vd.field_script_value("evaluation_chance", sc);
+    vd.field_script_value_rooted("evaluation_chance", Scopes::Country);
 
     for field in &["will_select_as_first_state", "will_select_as_second_state"] {
         vd.field_validated_key_block(field, |key, block, data| {

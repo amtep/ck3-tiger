@@ -674,5 +674,6 @@ impl GuiLayer {
     pub fn validate(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
         vd.field_value("priority");
+        vd.field_value("raycast_layer");
     }
 }

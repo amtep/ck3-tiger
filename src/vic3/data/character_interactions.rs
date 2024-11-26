@@ -50,5 +50,13 @@ impl DbKind for CharacterInteraction {
         vd.field_bool("show_requirements");
         vd.field_bool("show_confirmation_box");
         vd.field_script_value("ai_chance", &mut sc);
+
+        // undocumented
+
+        vd.field_validated_key_block("should_ai_evaluate", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+        vd.field_bool("ai_considers_exiles");
     }
 }

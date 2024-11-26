@@ -23,7 +23,7 @@ static TRIGGER_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Trigger)>> = Lazy::
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.7.6
+/// LAST UPDATED VIC3 VERSION 1.8.1
 /// See `triggers.log` from the game data dumps
 /// A key ends with '(' if it is the version that takes a parenthesized argument in script.
 const TRIGGER: &[(Scopes, &str, Trigger)] = &[
@@ -55,7 +55,18 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::State, "available_jobs", CompareValue),
     (Scopes::Country, "average_country_infrastructure", CompareValue),
     (Scopes::Country, "average_incorporated_country_infrastructure", CompareValue),
-    (Scopes::Front, "average_offense(", CompareValue),
+    (
+        Scopes::Country,
+        "average_sol_for_culture",
+        Block(&[("target", Scope(Scopes::Culture)), ("value", CompareValue)]),
+    ),
+    (Scopes::Country, "average_sol_for_primary_cultures", CompareValue),
+    (
+        Scopes::Country,
+        "average_sol_for_religion",
+        Block(&[("target", Scope(Scopes::Religion)), ("value", CompareValue)]),
+    ),
+    (Scopes::Country, "average_sol_for_slaves", CompareValue),
     (Scopes::Country, "battalion_manpower", Removed("1.6", "")),
     (Scopes::Battle, "battle_side_pm_usage", Removed("1.6", "")),
     (Scopes::Building, "building_has_goods_shortage", Boolean),
@@ -87,6 +98,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             ("?second_state", Scope(Scopes::State)),
         ]),
     ),
+    (Scopes::State, "can_construct_building", Item(Item::BuildingType)),
     (
         Scopes::Country,
         "can_create_diplomatic_pact",
@@ -109,7 +121,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::StrategicRegion, "can_have_declared_interest_here", Scope(Scopes::Country)),
     (Scopes::Country, "can_have_mass_migration_to", Scope(Scopes::Country)),
-    (Scopes::Country, "can_have_political_movement", Scope(Scopes::LawType)),
+    (Scopes::Country, "can_have_political_movement", Removed("1.8", "")),
     (Scopes::Country, "can_have_subjects", Boolean),
     (Scopes::Country, "can_increase_autonomy", Boolean),
     (Scopes::PowerBloc, "can_invite_any_country", Boolean),
@@ -137,7 +149,16 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "can_trigger_event", Item(Item::Event)),
     (Scopes::Building, "cash_reserves_available", CompareValue),
     (Scopes::Building, "cash_reserves_ratio", CompareValue),
-    (Scopes::Character, "character_is_discriminated", Boolean),
+    (
+        Scopes::Character,
+        "character_acceptance",
+        Block(&[("target", Scope(Scopes::Country)), ("value", CompareValue)]),
+    ),
+    (
+        Scopes::Character,
+        "character_is_discriminated",
+        Removed("1.8", "replaced with character_acceptance"),
+    ),
     (Scopes::Character, "character_supports_political_movement", Boolean),
     (
         Scopes::Country
@@ -173,10 +194,21 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "construction_queue_num_queued_private_levels", CompareValue),
     (Scopes::Country, "construction_queue_private_duration", CompareValue),
     (Scopes::StateRegion, "contains_capital_of", ScopeOrItem(Scopes::Country, Item::Country)),
+    (Scopes::Character, "could_support_political_movement", Scope(Scopes::PoliticalMovement)),
     (
         Scopes::Country,
         "country_army_unit_type_fraction",
         Block(&[("target", Scope(Scopes::CombatUnitType)), ("value", CompareValue)]),
+    ),
+    (
+        Scopes::Country,
+        "country_average_cultural_acceptance",
+        Block(&[("target", Scope(Scopes::Culture)), ("value", CompareValue)]),
+    ),
+    (
+        Scopes::Country,
+        "country_average_religious_acceptance",
+        Block(&[("target", Scope(Scopes::Religion)), ("value", CompareValue)]),
     ),
     (Scopes::Country, "country_can_have_mass_migration_to", Scope(Scopes::Country)), // undocumented
     (Scopes::CountryDefinition, "country_definition_has_culture", Scope(Scopes::Culture)),
@@ -189,7 +221,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::Country,
         "country_has_building_type_levels",
-        Block(&[("type", Item(Item::BuildingType)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Scopes::BuildingType)), ("value", CompareValue)]),
     ),
     (Scopes::MarketGoods, "country_has_local_shortage", Scope(Scopes::Country)),
     (Scopes::Country, "country_has_primary_culture", Scope(Scopes::Culture)),
@@ -206,7 +238,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "country_rank", CompareValue),
     (Scopes::Country, "country_tier", ItemOrCompareValue(Item::CountryTier)),
     (Scopes::Country, "country_turmoil", CompareValue),
-    (Scopes::Pop, "culture_accepted", Boolean),
+    (Scopes::Pop, "culture_accepted", Removed("1.8", "")),
+    (
+        Scopes::Country,
+        "cultural_acceptance_base",
+        Block(&[("target", Scope(Scopes::Culture)), ("value", CompareValue)]),
+    ),
+    (
+        Scopes::Country,
+        "cultural_acceptance_delta",
+        Block(&[("target", Scope(Scopes::Culture)), ("value", CompareValue)]),
+    ),
     (
         Scopes::Culture,
         "culture_can_have_mass_migration_to",
@@ -214,7 +256,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::Culture, "culture_can_have_mass_migration_to_country", Scope(Scopes::Country)),
     (Scopes::Culture, "culture_has_community_in_state", Scope(Scopes::State)),
-    (Scopes::Culture, "culture_is_discriminated_in", Scope(Scopes::Country)),
+    (Scopes::Culture, "culture_is_discriminated_in", Removed("1.8", "")),
     (
         Scopes::Country,
         "culture_percent_country",
@@ -240,6 +282,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "daynight_value", CompareValue),
     (Scopes::None, "debug_log", UncheckedValue),
     (Scopes::None, "debug_log_details", Boolean),
+    (Scopes::Pop, "dependents", CompareValue),
     (Scopes::State, "devastation", CompareValue),
     (Scopes::DiplomaticPlay, "diplomatic_play_pm_usage", Removed("1.6", "")),
     (Scopes::Country, "discriminates_religion", ScopeOrItem(Scopes::Religion, Item::Religion)),
@@ -282,6 +325,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::Character, "experience_level", CompareValue),
     (Scopes::Country, "flotilla_manpower", Removed("1.6", "")),
+    (Scopes::Pop, "food_security", CompareValue),
     (
         Scopes::MilitaryFormation,
         "formation_army_unit_type_fraction",
@@ -325,12 +369,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "government_transfer_of_power", Item(Item::TransferOfPower)),
     (Scopes::Country, "government_wage_level", CompareChoice(LEVELS)),
     (Scopes::Country, "government_wage_level_value", CompareValue),
+    (
+        Scopes::HarvestCondition,
+        "harvest_condition_intensity",
+        Block(&[("target", Scope(Scopes::Country)), ("value", CompareValue)]),
+    ),
     (Scopes::Market.union(Scopes::State), "has_active_building", Item(Item::BuildingType)),
     (Scopes::Country, "has_active_peace_deal", Boolean),
     (Scopes::Building, "has_active_production_method", Item(Item::ProductionMethod)),
     (Scopes::Country, "has_any_secessionists_broken_out", Boolean),
     (Scopes::Country, "has_any_secessionists_growing", Boolean),
-    (Scopes::Country, "has_any_secessionists_possible", Boolean),
+    (Scopes::Country, "has_any_secessionists_possible", Removed("1.8", "")),
     (Scopes::State, "has_assimilating_pops", Boolean),
     (
         Scopes::Country,
@@ -343,6 +392,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "has_building",
         Item(Item::BuildingType),
     ),
+    (Scopes::PoliticalMovement, "has_character_ideology", Item(Item::Ideology)),
+    (Scopes::Country, "has_civil_war_from_movement_type", Scope(Scopes::PoliticalMovementType)),
     (
         Scopes::Country,
         "has_claim",
@@ -359,6 +410,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "has_consumption_tax", Scope(Scopes::Goods)),
     (Scopes::State, "has_converting_pops", Boolean),
     (Scopes::Country, "has_convoys_being_sunk", Boolean),
+    (Scopes::PoliticalMovement, "has_core_ideology", Boolean),
     (Scopes::None, "has_cosmetic_dlc", UncheckedValue),
     (Scopes::State, "has_cultural_community", Scope(Scopes::Culture)),
     (Scopes::Culture, "has_cultural_obsession", Item(Item::Goods)),
@@ -393,6 +445,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::Country, "has_export_priority_tariffs", ScopeOrItem(Scopes::Goods, Item::Goods)),
     (Scopes::Building, "has_failed_hires", Boolean),
+    (Scopes::Country.union(Scopes::State), "has_famine", Boolean),
     (Scopes::Country, "has_free_government_reform", Boolean),
     (Scopes::None, "has_game_rule", Item(Item::GameRuleSetting)),
     (Scopes::None, "has_game_started", Boolean),
@@ -403,12 +456,13 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "has_global_variable_list", UncheckedValue),
     (Scopes::Country, "has_government_clout", CompareValue),
     (Scopes::Country, "has_government_type", Item(Item::GovernmentType)),
+    (Scopes::StateRegion, "has_harvest_condition", Item(Item::HarvestConditionType)),
     (Scopes::Country, "has_healthy_economy", Boolean),
     (Scopes::MilitaryFormation, "has_high_attrition", Boolean),
     (Scopes::Culture, "has_homeland", Scope(Scopes::State.union(Scopes::StateRegion))),
     (Scopes::PowerBloc, "has_identity", Scope(Scopes::PowerBlocIdentity)),
     (
-        Scopes::Character.union(Scopes::InterestGroup),
+        Scopes::Character.union(Scopes::InterestGroup).union(Scopes::PoliticalMovement),
         "has_ideology",
         ScopeOrItem(Scopes::Ideology, Item::Ideology),
     ),
@@ -459,7 +513,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::InterestGroup, "has_party", Boolean),
     (Scopes::Party, "has_party_member", Scope(Scopes::InterestGroup)),
     (Scopes::DiplomaticPlay, "has_play_goal", Item(Item::Wargoal)),
-    (Scopes::Country, "has_political_movement", Scope(Scopes::LawType)),
+    (Scopes::Country, "has_political_movement", Removed("1.8", "")),
     (Scopes::Pop, "has_pop_culture", Item(Item::Culture)),
     (Scopes::Pop, "has_pop_religion", Item(Item::Religion)),
     (Scopes::Country.union(Scopes::Market).union(Scopes::State), "has_port", Boolean),
@@ -471,9 +525,10 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::PowerBloc, "has_principle_group", Scope(Scopes::PowerBlocPrincipleGroup)),
     (Scopes::None, "has_reached_end_date", Boolean),
     (Scopes::Character, "has_religion", Scope(Scopes::Religion)),
+    (Scopes::Religion, "has_religious_taboo", Item(Item::Goods)),
     (Scopes::Country, "has_researchable_technology", Boolean),
     (Scopes::Country, "has_revolution", Boolean),
-    (Scopes::Country, "has_revolution_over_law_type", Scope(Scopes::LawType)),
+    (Scopes::Country, "has_revolution_over_law_type", Removed("1.8", "")),
     (Scopes::Character, "has_role", Item(Item::CharacterRole)),
     (Scopes::Country, "has_ruling_interest_group", Item(Item::InterestGroup)),
     (Scopes::Country, "has_ruling_interest_group_count", CompareValue),
@@ -482,6 +537,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "has_secret_goal",
         Block(&[("who", Scope(Scopes::Country)), ("secret_goal", Item(Item::SecretGoal))]),
     ),
+    (Scopes::Pop, "has_social_class", Item(Item::SocialClass)),
+    (Scopes::Country, "has_social_hierarchy", Item(Item::SocialHierarchy)),
     (Scopes::Country, "has_state_in_state_region", Item(Item::StateRegion)),
     (Scopes::Pop, "has_state_religion", Boolean),
     (Scopes::State, "has_state_trait", Item(Item::StateTrait)),
@@ -614,6 +671,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "is_home_country_for", Scope(Scopes::Country)),
     (Scopes::StateRegion, "is_homeland", ScopeOrItem(Scopes::Culture, Item::Culture)),
     (Scopes::State, "is_homeland_of_country_cultures", Scope(Scopes::Country)),
+    (Scopes::Character, "is_immortal", Boolean),
     (Scopes::Country, "is_immune_to_revolutions", Boolean),
     (Scopes::Character, "is_in_battle", Boolean),
     (Scopes::Country, "is_in_customs_union", Boolean),
@@ -621,14 +679,21 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "is_in_exile_pool", Boolean),
     (Scopes::InterestGroup, "is_in_government", Boolean),
     (Scopes::None, "is_in_list", Special),
+    (Scopes::Pop, "is_in_mild_starvation", Boolean),
     (Scopes::Country, "is_in_power_bloc", Boolean),
     (Scopes::State, "is_in_revolt", Boolean),
     (Scopes::Country, "is_in_same_power_bloc", Scope(Scopes::Country)),
+    (Scopes::Pop, "is_in_severe_starvation", Boolean),
+    (Scopes::Pop, "is_in_starvation", Boolean),
     (Scopes::Character, "is_in_void", Boolean),
     (Scopes::Country, "is_in_war_together", Scope(Scopes::Country)),
     (Scopes::State, "is_incorporated", Boolean),
     (Scopes::Country, "is_indirect_subject_of", Scope(Scopes::Country)),
-    (Scopes::InterestGroup, "is_insurrectionary", Boolean),
+    (
+        Scopes::Country.union(Scopes::InterestGroup).union(Scopes::PoliticalMovement),
+        "is_insurrectionary",
+        Boolean,
+    ),
     (Scopes::InterestMarker, "is_interest_active", Boolean),
     (
         Scopes::Character.union(Scopes::InterestGroup),
@@ -651,6 +716,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "is_mass_migration_origin", Boolean),
     (Scopes::Country, "is_mass_migration_origin_of_culture", Scope(Scopes::Culture)),
     (Scopes::State, "is_mass_migration_target", Boolean),
+    (Scopes::State, "is_mass_migration_target_for_culture", Scope(Scopes::Culture)),
     (Scopes::InterestGroup, "is_member_of_any_lobby", Boolean),
     (Scopes::InterestGroup, "is_member_of_lobby", Scope(Scopes::PoliticalLobbyType)),
     (Scopes::InterestGroup, "is_member_of_party", Scope(Scopes::Party)),
@@ -689,18 +755,31 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::JournalEntry, "is_progressing", Boolean),
     (Scopes::Province, "is_province_land", Boolean),
+    (Scopes::Law, "is_reasonable_law_for_petition", Boolean),
     (Scopes::Character, "is_repairing", Removed("1.6", "")),
     (Scopes::Country, "is_researching_technology", Special), // also accepts "any"
     (Scopes::Country, "is_researching_technology_category", UncheckedValue), // No examples in vanilla
-    (Scopes::Country.union(Scopes::InterestGroup), "is_revolutionary", Boolean),
-    (Scopes::PoliticalMovement, "is_revolutionary_movement", Boolean),
+    (
+        Scopes::Country.union(Scopes::InterestGroup).union(Scopes::PoliticalMovement),
+        "is_revolutionary",
+        Boolean,
+    ),
+    (
+        Scopes::PoliticalMovement,
+        "is_revolutionary_movement",
+        Removed("1.8", "replaced with is_revolutionary"),
+    ),
     (Scopes::None, "is_rightclick_menu_open", UncheckedValue),
     (Scopes::Character, "is_ruler", Boolean),
     (Scopes::InterestGroup, "is_same_interest_group_type", Scope(Scopes::InterestGroup)),
     (Scopes::LawType, "is_same_law_group_as", Scope(Scopes::LawType)),
     (Scopes::Party, "is_same_party_type", Scope(Scopes::Party)),
     (Scopes::State, "is_sea_adjacent", Boolean),
-    (Scopes::Country, "is_secessionist", Boolean),
+    (
+        Scopes::Country.union(Scopes::InterestGroup).union(Scopes::PoliticalMovement),
+        "is_secessionist",
+        Boolean,
+    ),
     (Scopes::None, "is_set", Special),
     (Scopes::State, "is_slave_state", Boolean),
     (Scopes::State, "is_split_state", Boolean),
@@ -738,6 +817,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::State, "is_target_of_wargoal", Scope(Scopes::Country)),
     (Scopes::Country, "is_taxing_goods", ScopeOrItem(Scopes::Goods, Item::Goods)),
+    (Scopes::None, "is_template_used", Item(Item::CharacterTemplate)),
     (Scopes::TradeRoute, "is_trade_route_active", Boolean),
     (Scopes::TradeRoute, "is_trade_route_productive", Boolean),
     (Scopes::Goods.union(Scopes::MarketGoods), "is_tradeable", Boolean),
@@ -760,12 +840,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::JournalEntry, "journal_entry_age", CompareValue),
     (Scopes::Law, "law_approved_by", Scope(Scopes::InterestGroup)),
     (
+        Scopes::Character.union(Scopes::InterestGroup).union(Scopes::PoliticalMovement),
+        "law_enactment_stance",
+        Block(&[("law", Scope(Scopes::LawType)), ("value", CompareChoice(STANCES))]),
+    ),
+    (
         Scopes::LawType,
         "law_progressiveness_difference",
         Block(&[("target_law", Scope(Scopes::LawType)), ("value", CompareValue)]), // TODO verify
     ),
     (
-        Scopes::Character.union(Scopes::InterestGroup),
+        Scopes::Character.union(Scopes::InterestGroup).union(Scopes::PoliticalMovement),
         "law_stance",
         Block(&[("law", Scope(Scopes::LawType)), ("value", CompareChoice(STANCES))]),
     ),
@@ -834,6 +919,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::Country, "max_law_enactment_setbacks", CompareValue),
     (Scopes::MilitaryFormation, "max_organization", CompareValue),
+    (Scopes::Country, "max_num_companies", CompareValue),
     (Scopes::Country, "max_num_declared_interests", CompareValue),
     (Scopes::Country, "military_wage_level", CompareChoice(LEVELS)),
     (Scopes::Country, "military_wage_level_value", CompareValue),
@@ -856,6 +942,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "nor", Control),
     (Scopes::None, "not", Control),
     (Scopes::War, "num_casualties", CompareValue),
+    (Scopes::Country, "num_companies", CompareValue),
     (
         Scopes::War,
         "num_country_casualties",
@@ -875,6 +962,12 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::War, "num_dead", CompareValue),
     (Scopes::Country, "num_declared_interests", CompareValue),
     (Scopes::Front, "num_defending_battalions(", CompareValue),
+    // TODO: check that the DiplomaticAction has a pact.
+    (
+        Scopes::Country,
+        "num_diplomatic_pacts",
+        Block(&[("type", Item(Item::DiplomaticAction)), ("value", CompareValue)]),
+    ),
     (Scopes::Front, "num_enemy_units(", CompareValue),
     (
         Scopes::Country,
@@ -890,6 +983,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "num_subjects", CompareValue),
     (Scopes::Country, "num_taxed_goods", CompareValue),
     (Scopes::War, "num_wounded", CompareValue),
+    (Scopes::Country, "number_of_claims", CompareValue),
     (Scopes::Country, "number_of_possible_decisions", CompareValue),
     (Scopes::Building, "occupancy", CompareValue),
     (Scopes::None, "or", Control),
@@ -912,15 +1006,20 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "play_side_has_war_goal_of_type_against",
         Block(&[("type", Item(Item::Wargoal)), ("target", Scope(Scopes::Country))]),
     ),
+    (Scopes::PoliticalMovement, "political_movement_identity_support", CompareValue),
+    (Scopes::PoliticalMovement, "political_movement_military_support", CompareValue),
+    (Scopes::PoliticalMovement, "political_movement_popular_support", CompareValue),
     (Scopes::PoliticalMovement, "political_movement_radicalism", CompareValue),
     (Scopes::PoliticalMovement, "political_movement_support", CompareValue),
+    (Scopes::PoliticalMovement, "political_movement_wealth_support", CompareValue),
     (Scopes::Country, "politically_involved_ratio", CompareValue),
     (Scopes::StateRegion, "pollution_amount", CompareValue),
     (Scopes::State, "pollution_generation", CompareValue),
+    (Scopes::Pop, "pop_acceptance", CompareValue),
     (Scopes::Pop, "pop_employment_building", Item(Item::BuildingType)),
     (Scopes::Pop, "pop_employment_building_group", Item(Item::BuildingGroup)),
     (Scopes::Pop, "pop_has_primary_culture", Boolean),
-    (Scopes::Pop, "pop_is_discriminated", Boolean),
+    (Scopes::Pop, "pop_is_discriminated", Removed("1.8", "replaced with pop_acceptance")),
     (Scopes::Pop, "pop_loyalist_fraction", CompareValue),
     (Scopes::Pop, "pop_neutral_fraction", CompareValue),
     (Scopes::Pop, "pop_radical_fraction", CompareValue),
@@ -933,6 +1032,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Scopes::State,
         "pop_type_percent_state",
         Block(&[("target", Scope(Scopes::PopType)), ("value", CompareValue)]),
+    ),
+    (
+        Scopes::State,
+        "population_by_culture",
+        Block(&[("target", Scope(Scopes::Culture)), ("value", CompareValue)]),
     ),
     (
         Scopes::Country,
@@ -1087,8 +1191,10 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             ("?religion", ScopeOrItem(Scopes::Religion, Item::Religion)),
         ]),
     ),
+    (Scopes::Country, "radical_population_fraction", CompareValue),
+    (Scopes::None, "real_month", CompareValue),
     (Scopes::State, "relative_infrastructure", CompareValue),
-    (Scopes::Pop, "religion_accepted", Boolean),
+    (Scopes::Pop, "religion_accepted", Removed("1.8", "")),
     (
         Scopes::Country,
         "religion_percent_country",
@@ -1136,6 +1242,16 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "sol_ranking", CompareValue),
     (Scopes::Pop, "standard_of_living", CompareValue),
     (Scopes::BattleSide, "starting_manpower", CompareValue),
+    (
+        Scopes::State,
+        "state_cultural_acceptance",
+        Block(&[("target", Scope(Scopes::Culture)), ("value", CompareValue)]),
+    ),
+    (
+        Scopes::State,
+        "state_religious_acceptance",
+        Block(&[("target", Scope(Scopes::Religion)), ("value", CompareValue)]),
+    ),
     (Scopes::StateGoods, "state_goods_cheaper", CompareValue),
     (Scopes::StateGoods, "state_goods_consumption", CompareValue),
     (Scopes::StateGoods, "state_goods_delta", CompareValue),
@@ -1157,7 +1273,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::State, "state_is_eligible_as_mass_migration_target", Boolean),
     (Scopes::State, "state_population", CompareValue),
     (Scopes::State, "state_unemployment_rate", CompareValue),
-    (Scopes::Pop, "strata", CompareValue),
+    (Scopes::Pop, "strata", CompareChoice(STRATA)),
     (Scopes::Country, "subject_can_increase_autonomy", Boolean),
     (Scopes::Country, "supply_network_strength", CompareValue),
     (Scopes::None, "switch", Special),
@@ -1178,6 +1294,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "total_population_including_subjects", CompareValue),
     (Scopes::Country, "total_population_including_subjects_share", CompareValue),
     (Scopes::Country, "total_population_share", CompareValue),
+    (Scopes::Pop, "total_size", CompareValue),
     (Scopes::State, "total_urbanization", CompareValue),
     (Scopes::PowerBloc, "total_used_principle_levels", CompareValue),
     (Scopes::TradeRoute, "trade_route_needs_convoys_to_grow", Boolean),
@@ -1192,6 +1309,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Scopes::None,
         "variable_list_size",
         Block(&[("name", UncheckedValue), ("value", CompareValue)]),
+    ),
+    (
+        Scopes::War,
+        "war_exhaustion_from_acceptance_of_dead",
+        Block(&[("target", Scope(Scopes::Country)), ("value", CompareValue)]),
     ),
     (Scopes::War, "war_has_active_peace_deal", Boolean),
     (
@@ -1210,6 +1332,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "weekly_net_fixed_income", CompareValue),
     (Scopes::Building, "weekly_profit", CompareValue),
     (Scopes::None, "weighted_calc_true_if", Special),
+    (Scopes::Pop, "workforce", CompareValue),
     (
         Scopes::Country,
         "would_accept_diplomatic_action",
@@ -1222,6 +1345,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         ]),
     ),
     (Scopes::None, "year", CompareValue),
+    (Scopes::Character, "years_of_service", CompareValue),
 ];
 
 #[inline]
@@ -1238,7 +1362,7 @@ static TRIGGER_COMPLEX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, ArgumentVal
         hash
     });
 
-/// LAST UPDATED VIC3 VERSION 1.7.6
+/// LAST UPDATED VIC3 VERSION 1.8.1
 /// See `triggers.log` from the game data dumps
 /// `(inscopes, trigger name, argtype, outscopes)`
 /// Currently only works with single argument triggers
@@ -1253,8 +1377,28 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
             Scope(Scopes::DiplomaticPlay),
             Scopes::Value,
         ),
-        (Scopes::Country, "army_mobilization_option_fraction", UncheckedValue, Scopes::Value), // TODO Item(Item::MobilizationOption)
+        (
+            Scopes::Country,
+            "army_mobilization_option_fraction",
+            Item(Item::MobilizationOption),
+            Scopes::Value,
+        ),
+        (Scopes::Country, "average_sol_for_culture", Scope(Scopes::Culture), Scopes::Value),
+        (Scopes::Country, "average_sol_for_religion", Scope(Scopes::Religion), Scopes::Value),
+        (Scopes::Character, "character_acceptance", Scope(Scopes::Country), Scopes::Value),
         (Scopes::Country, "country_army_unit_type_fraction", UncheckedValue, Scopes::Value), // TODO Item(Item::UnitType))
+        (
+            Scopes::Country,
+            "country_average_cultural_acceptance",
+            Scope(Scopes::Culture),
+            Scopes::Value,
+        ),
+        (
+            Scopes::Country,
+            "country_average_religious_acceptance",
+            Scope(Scopes::Religion),
+            Scopes::Value,
+        ),
         (
             Scopes::Country,
             "country_has_building_group_levels",
@@ -1268,6 +1412,8 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
             Scopes::Value,
         ),
         (Scopes::Country, "country_navy_unity_type_fraction", UncheckedValue, Scopes::Value), // TODO Item(Item::UnitType)
+        (Scopes::Country, "cultural_acceptance_base", Scope(Scopes::Culture), Scopes::Value),
+        (Scopes::Country, "cultural_acceptance_delta", Scope(Scopes::Culture), Scopes::Value),
         (Scopes::Country, "culture_percent_country", Item(Item::Culture), Scopes::Value),
         (Scopes::State, "culture_percent_state", Item(Item::Culture), Scopes::Value),
         (Scopes::Culture, "culture_secession_progress", Scope(Scopes::Country), Scopes::Value),
@@ -1296,6 +1442,12 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
         ),
         (Scopes::Country, "gdp_ownership_ratio", Scope(Scopes::Country), Scopes::Value),
         (Scopes::Country, "goods_production_rank", Scope(Scopes::Goods), Scopes::Value),
+        (
+            Scopes::HarvestCondition,
+            "harvest_condition_intensity",
+            Scope(Scopes::Country),
+            Scopes::Value,
+        ),
         (Scopes::Country, "has_technology_progress", Item(Item::Technology), Scopes::Value),
         (Scopes::War, "has_war_exhaustion", Item(Item::Country), Scopes::Value),
         (Scopes::War, "has_war_support", Item(Item::Country), Scopes::Value),
@@ -1320,8 +1472,11 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
         (Scopes::War, "num_country_casualties", Scope(Scopes::Country), Scopes::Value),
         (Scopes::War, "num_country_dead", Scope(Scopes::Country), Scopes::Value),
         (Scopes::War, "num_country_wounded", Scope(Scopes::Country), Scopes::Value),
+        // TODO: check that the DiplomaticAction has a pact
+        (Scopes::Country, "num_diplomatic_pacts", Item(Item::DiplomaticAction), Scopes::Value),
         (Scopes::Country, "pop_type_percent_country", Item(Item::PopType), Scopes::Value),
         (Scopes::State, "pop_type_percent_state", Item(Item::PopType), Scopes::Value),
+        (Scopes::State, "population_by_culture", Scope(Scopes::Culture), Scopes::Value),
         (
             Scopes::Country,
             "potential_diplomatic_play_power_ratio",
@@ -1450,6 +1605,14 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
             Scopes::JournalEntry,
             "scripted_bar_progress",
             Item(Item::ScriptedProgressBar),
+            Scopes::Value,
+        ),
+        (Scopes::State, "state_cultural_acceptance", Scope(Scopes::Culture), Scopes::Value),
+        (Scopes::State, "state_religious_acceptance", Scope(Scopes::Religion), Scopes::Value),
+        (
+            Scopes::War,
+            "war_exhaustion_from_acceptance_of_dead",
+            Scope(Scopes::Country),
             Scopes::Value,
         ),
     ]

@@ -44,7 +44,13 @@ impl DbKind for Decree {
         vd.field_script_value("cost", &mut sc); // TODO: verify if a script value is allowed here
         vd.field_script_value("ai_weight", &mut sc);
 
-        vd.field_validated_block("valid", |block, data| {
+        vd.replaced_field("valid", "country_trigger and state_trigger");
+        vd.field_validated_block("country_trigger", |block, data| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
+        vd.field_validated_block("state_trigger", |block, data| {
+            let mut sc = ScopeContext::new(Scopes::State, key);
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
     }
