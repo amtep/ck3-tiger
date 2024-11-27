@@ -46,6 +46,9 @@ pub const DLC_CK3: &[&str] = &[
     "Legends of the Dead",
     "North African Attire",
     "Couture of the Capets",
+    "Roads to Power",
+    "Wandering Nobles",
+    "West Slavic Attire",
 ];
 
 /// LAST UPDATED CK3 VERSION 1.13.0.1
@@ -76,6 +79,7 @@ pub const DLC_FEATURES_CK3: &[&str] = &[
     "roads_to_power",
     "court_room_view",
     "wandering_nobles",
+    "west_slavic_attire",
 ];
 
 /// A list of music provided by DLCs, for people who don't have them

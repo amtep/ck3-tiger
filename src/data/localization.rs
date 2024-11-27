@@ -62,7 +62,7 @@ pub const KNOWN_LANGUAGES: &[&str] = &[
     "braz_por",
     #[cfg(feature = "vic3")]
     "japanese",
-    #[cfg(feature = "vic3")]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     "polish",
     #[cfg(feature = "vic3")]
     "turkish",
