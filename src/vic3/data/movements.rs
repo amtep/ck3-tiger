@@ -82,6 +82,11 @@ impl DbKind for PoliticalMovement {
             validate_script_value(bv, data, &mut sc);
         });
 
+        vd.field_validated_key_block("can_pressure_interest_group", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::InterestGroup, key);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+
         vd.field_validated_key_block("pop_support_trigger", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Pop, key);
             sc.define_name("culture", Scopes::Culture, key);
@@ -184,6 +189,10 @@ impl DbKind for PoliticalMovementCategory {
         vd.field_bool("minimum_support_is_within_identity");
         vd.field_numeric("minimum_support_to_create");
         vd.field_numeric("minimum_support_to_maintain");
+
+        // undocumented
+
+        vd.field_numeric("sorting_order");
     }
 }
 

@@ -36,6 +36,8 @@ impl DbKind for ScriptedProgressBar {
         vd.field_validated_sc("desc", &mut sc, validate_desc);
         vd.field_validated_sc("second_desc", &mut sc, validate_desc);
 
+        vd.field_bool("is_inverted");
+
         vd.field_numeric("start_value");
         vd.field_numeric("min_value");
         vd.field_numeric("max_value");
@@ -46,7 +48,7 @@ impl DbKind for ScriptedProgressBar {
         }
 
         for field in &["weekly_progress", "monthly_progress", "yearly_progress"] {
-            vd.field_script_value_full(field, Scopes::JournalEntry, true);
+            vd.field_script_value_full(field, Scopes::Country, true);
         }
     }
 }
