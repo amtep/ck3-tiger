@@ -121,7 +121,7 @@ impl DbKind for LawType {
         });
         vd.field_validated_key("ai_enact_weight_modifier", |key, bv, data| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
-            sc.define_name("law", Scopes::Law, key);
+            sc.define_name("law", Scopes::LawType, key);
             validate_script_value(bv, data, &mut sc);
         });
 
