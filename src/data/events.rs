@@ -70,7 +70,7 @@ impl Events {
         self.effects.get(&index)
     }
 
-    fn get_event<'a>(&'a self, key: &'a str) -> Option<&Event> {
+    fn get_event<'a>(&'a self, key: &'a str) -> Option<&'a Event> {
         if let Some((namespace, id)) = key.split_once('.') {
             if let Ok(id) = u16::from_str(id) {
                 return self.events.get(&(namespace, id));

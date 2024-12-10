@@ -73,7 +73,7 @@ enum Choices<'a> {
     AndChoices(&'a [&'a str]),
 }
 
-impl<'a> Display for Choices<'a> {
+impl Display for Choices<'_> {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         match self {
             Choices::OrChoices(cs) => display_choices(f, cs, "or"),

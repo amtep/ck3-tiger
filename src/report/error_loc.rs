@@ -12,7 +12,7 @@ pub trait ErrorLoc {
     fn into_loc(self) -> Loc;
 }
 
-impl<'a> ErrorLoc for ValueValidator<'a> {
+impl ErrorLoc for ValueValidator<'_> {
     fn loc_length(&self) -> usize {
         self.value().loc_length()
     }
@@ -22,7 +22,7 @@ impl<'a> ErrorLoc for ValueValidator<'a> {
     }
 }
 
-impl<'a> ErrorLoc for &ValueValidator<'a> {
+impl ErrorLoc for &ValueValidator<'_> {
     fn loc_length(&self) -> usize {
         self.value().loc_length()
     }
@@ -32,7 +32,7 @@ impl<'a> ErrorLoc for &ValueValidator<'a> {
     }
 }
 
-impl<'a> ErrorLoc for &mut ValueValidator<'a> {
+impl ErrorLoc for &mut ValueValidator<'_> {
     fn loc_length(&self) -> usize {
         self.value().loc_length()
     }

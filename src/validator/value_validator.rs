@@ -37,7 +37,7 @@ pub struct ValueValidator<'a> {
     max_severity: Severity,
 }
 
-impl<'a> Debug for ValueValidator<'a> {
+impl Debug for ValueValidator<'_> {
     /// Roll our own `Debug` implementation in order to leave out the `data` field.
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         f.debug_struct("ValueValidator")
@@ -402,13 +402,13 @@ impl<'a> ValueValidator<'a> {
     }
 }
 
-impl<'a> Drop for ValueValidator<'a> {
+impl Drop for ValueValidator<'_> {
     fn drop(&mut self) {
         self.warn_unvalidated();
     }
 }
 
-impl<'a> Display for ValueValidator<'a> {
+impl Display for ValueValidator<'_> {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         Display::fmt(&self.value, f)
     }

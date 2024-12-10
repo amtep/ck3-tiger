@@ -338,7 +338,6 @@ static SCOPE_PREFIX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes, Argume
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
-
 // Basically just search the log for "Requires Data: yes" and put all that here.
 const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
     use crate::item::Item;

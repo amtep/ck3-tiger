@@ -332,7 +332,7 @@ pub struct Adjacency {
     comment: Token,
 }
 
-fn _verify<T: FromStr>(v: &Token, msg: &str) -> Option<T> {
+fn verify<T: FromStr>(v: &Token, msg: &str) -> Option<T> {
     let r = v.as_str().parse().ok();
     if r.is_none() {
         err(ErrorKey::ParseError).msg(msg).loc(v).push();
@@ -354,13 +354,13 @@ impl Adjacency {
             return None;
         }
 
-        let from = _verify(&csv[0], "expected province id");
-        let to = _verify(&csv[1], "expected province id");
-        let through = _verify(&csv[3], "expected province id");
-        let start_x = _verify(&csv[4], "expected x coordinate");
-        let start_y = _verify(&csv[5], "expected y coordinate");
-        let stop_x = _verify(&csv[6], "expected x coordinate");
-        let stop_y = _verify(&csv[7], "expected y coordinate");
+        let from = verify(&csv[0], "expected province id");
+        let to = verify(&csv[1], "expected province id");
+        let through = verify(&csv[3], "expected province id");
+        let start_x = verify(&csv[4], "expected x coordinate");
+        let start_y = verify(&csv[5], "expected y coordinate");
+        let stop_x = verify(&csv[6], "expected x coordinate");
+        let stop_y = verify(&csv[7], "expected y coordinate");
 
         Some(Adjacency {
             line,
@@ -404,10 +404,10 @@ impl Province {
             return None;
         }
 
-        let id = _verify(&csv[0], "expected province id")?;
-        let r = _verify(&csv[1], "expected red value")?;
-        let g = _verify(&csv[2], "expected green value")?;
-        let b = _verify(&csv[3], "expected blue value")?;
+        let id = verify(&csv[0], "expected province id")?;
+        let r = verify(&csv[1], "expected red value")?;
+        let g = verify(&csv[2], "expected green value")?;
+        let b = verify(&csv[3], "expected blue value")?;
         let color = Rgb::from([r, g, b]);
         Some(Province { key: csv[0].clone(), id, color, comment: csv[4].clone() })
     }

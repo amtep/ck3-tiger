@@ -922,7 +922,7 @@ impl Everything {
     }
 
     #[cfg(feature = "ck3")]
-    pub fn iter_keys_ck3<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
+    pub fn iter_keys_ck3<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &'a Token> + 'a> {
         match itype {
             Item::Character => Box::new(self.characters.iter_keys()),
             Item::CharacterInteractionCategory => Box::new(self.interaction_cats.iter_keys()),
@@ -944,12 +944,12 @@ impl Everything {
     }
 
     #[cfg(feature = "vic3")]
-    fn iter_keys_vic3<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
+    fn iter_keys_vic3<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &'a Token> + 'a> {
         Box::new(self.database.iter_keys(itype))
     }
 
     #[cfg(feature = "imperator")]
-    fn iter_keys_imperator<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
+    fn iter_keys_imperator<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &'a Token> + 'a> {
         match itype {
             Item::Decision => Box::new(self.decisions_imperator.iter_keys()),
             Item::Province => Box::new(self.provinces_imperator.iter_keys()),
@@ -957,7 +957,7 @@ impl Everything {
         }
     }
 
-    pub fn iter_keys<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &Token> + 'a> {
+    pub fn iter_keys<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &'a Token> + 'a> {
         match itype {
             Item::Asset => Box::new(self.assets.iter_asset_keys()),
             Item::BlendShape => Box::new(self.assets.iter_blend_shape_keys()),

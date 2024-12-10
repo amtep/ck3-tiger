@@ -80,7 +80,7 @@ impl<'a> Lowercase<'a> {
     }
 }
 
-impl<'a> Display for Lowercase<'a> {
+impl Display for Lowercase<'_> {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "{}", self.0)
     }
@@ -92,7 +92,7 @@ impl<'a> Borrow<Cow<'a, str>> for Lowercase<'a> {
     }
 }
 
-impl<'a> Borrow<str> for Lowercase<'a> {
+impl Borrow<str> for Lowercase<'_> {
     fn borrow(&self) -> &str {
         &self.0
     }

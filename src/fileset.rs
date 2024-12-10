@@ -447,7 +447,7 @@ impl Fileset {
         }
     }
 
-    pub fn get_files_under<'a>(&'a self, subpath: &'a Path) -> &[FileEntry] {
+    pub fn get_files_under<'a>(&'a self, subpath: &'a Path) -> &'a [FileEntry] {
         let start = self.ordered_files.partition_point(|entry| entry.path < subpath);
         let end = start
             + self.ordered_files[start..].partition_point(|entry| entry.path.starts_with(subpath));

@@ -106,7 +106,7 @@ pub struct CsvReader<'a> {
     parser: CsvParser<'a>,
 }
 
-impl<'a> Iterator for CsvReader<'a> {
+impl Iterator for CsvReader<'_> {
     type Item = Vec<Token>;
 
     fn next(&mut self) -> Option<Self::Item> {

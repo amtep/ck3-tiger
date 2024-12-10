@@ -573,7 +573,7 @@ pub fn modif_loc(name: &Token, data: &Everything) -> (Cow<'static, str>, Cow<'st
     }
     // TODO: should the loca key be lowercased?
     let desc_loc = format!("{name}_desc");
-    return (Cow::Borrowed(name.as_str()), Cow::Owned(desc_loc));
+    (Cow::Borrowed(name.as_str()), Cow::Owned(desc_loc))
 }
 
 static MODIF_MAP: Lazy<TigerHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new(|| {

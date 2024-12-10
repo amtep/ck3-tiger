@@ -218,7 +218,7 @@ impl<'input> Lexer<'input> {
     }
 }
 
-impl<'input> Iterator for Lexer<'input> {
+impl Iterator for Lexer<'_> {
     type Item = Result<(usize, Lexeme, usize), LexError>;
 
     fn next(&mut self) -> Option<Self::Item> {

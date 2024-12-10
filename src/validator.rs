@@ -42,7 +42,7 @@ impl<'a> From<&'a mut ScopeContext> for FieldScopeContext<'a> {
     }
 }
 
-impl<'a> From<Scopes> for FieldScopeContext<'a> {
+impl From<Scopes> for FieldScopeContext<'_> {
     fn from(scopes: Scopes) -> Self {
         Self::Rooted(scopes)
     }
@@ -54,7 +54,7 @@ impl<'a> From<&'a Builder> for FieldScopeContext<'a> {
     }
 }
 
-impl<'a> FieldScopeContext<'a> {
+impl FieldScopeContext<'_> {
     fn validate<R, F>(&mut self, key: &Token, validate_fn: F) -> R
     where
         F: FnOnce(&mut ScopeContext) -> R,
@@ -109,7 +109,7 @@ pub struct Validator<'a> {
     max_severity: Severity,
 }
 
-impl<'a> Debug for Validator<'a> {
+impl Debug for Validator<'_> {
     /// Roll our own `Debug` implementation in order to leave out the `data` field.
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         f.debug_struct("Validator")
@@ -1784,7 +1784,7 @@ impl<'a> Validator<'a> {
     }
 }
 
-impl<'a> Drop for Validator<'a> {
+impl Drop for Validator<'_> {
     fn drop(&mut self) {
         self.warn_remaining();
     }
