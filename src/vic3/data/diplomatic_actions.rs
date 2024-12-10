@@ -233,8 +233,8 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
             vd.field_script_value(field, sc);
         }
     });
-    vd.field_numeric_range("income_transfer", 0.0..=1.0);
-    vd.field_numeric_range("max_paying_country_income_to_transfer", 0.0..=1.0);
+    vd.field_numeric("income_transfer"); // may be negative
+    vd.field_numeric("max_paying_country_income_to_transfer");
 
     vd.field_numeric("relations_progress_per_day"); // undocumented
     vd.field_numeric("relations_improvement_max"); // undocumented
