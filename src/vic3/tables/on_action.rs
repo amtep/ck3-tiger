@@ -296,7 +296,10 @@ pub const ON_ACTION_SCOPES: &str = "
         }
 	on_our_convoys_raided = on_enemy_convoys_raided
 
-	on_repudiate_obligation = { root = country }
+	on_repudiate_obligation = {
+		root = country
+		target_country = country
+	}
 
 	on_character_recruitment = { root = character }
 

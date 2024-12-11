@@ -34,7 +34,7 @@ impl DbKind for HarvestConditionType {
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         vd.field_validated_key_block("trigger", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::State, key);
+            let mut sc = ScopeContext::new(Scopes::StateRegion, key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_key_block("time", |key, block, data| {
@@ -45,7 +45,7 @@ impl DbKind for HarvestConditionType {
 
         vd.multi_field_item("incompatible_with", Item::HarvestConditionType);
 
-        let mut sc = ScopeContext::new(Scopes::State, key);
+        let mut sc = ScopeContext::new(Scopes::StateRegion, key);
         vd.field_script_value("range", &mut sc);
         vd.field_script_value("duration", &mut sc);
 
@@ -73,6 +73,9 @@ impl DbKind for HarvestConditionType {
                 "hail",
                 "extreme_winds",
                 "torrential_rains",
+                "locust_swarm",
+                "heatwave",
+                "disease_outbreak",
             ],
         );
 

@@ -1491,8 +1491,6 @@ pub enum Trigger {
 
 /// This function checks if the trigger is one that can be used at the end of a scope chain on the
 /// right-hand side of a comparator.
-///
-/// Only triggers that take `Scopes::Value` types can be used this way.
 pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
     match scope_trigger(name, data) {
         #[cfg(feature = "ck3")]
@@ -1502,12 +1500,16 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
             | Trigger::CompareValueWarnEq
             | Trigger::CompareDate
             | Trigger::SetValue
-            | Trigger::CompareValueOrBlock(_),
+            | Trigger::CompareValueOrBlock(_)
+            | Trigger::CompareChoice(_),
         )) => Some(s),
         #[cfg(feature = "vic3")]
         Some((
             s,
-            Trigger::CompareValue | Trigger::CompareDate | Trigger::ItemOrCompareValue(_),
+            Trigger::CompareValue
+            | Trigger::CompareDate
+            | Trigger::ItemOrCompareValue(_)
+            | Trigger::CompareChoice(_),
         )) => Some(s),
         #[cfg(feature = "imperator")]
         Some((s, Trigger::CompareValue | Trigger::CompareDate)) => Some(s),
