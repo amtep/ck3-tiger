@@ -584,7 +584,7 @@ static MODIF_MAP: Lazy<TigerHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new
     hash
 });
 
-/// LAST UPDATED VIC3 VERSION 1.8.1
+/// LAST UPDATED VIC3 VERSION 1.8.4
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 const MODIF_TABLE: &[(&str, ModifKinds)] = &[
@@ -632,7 +632,6 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("country_all_buildings_protected_bool", ModifKinds::Country),
     ("country_allow_enacting_decrees_in_subject_bool", ModifKinds::Country),
     ("country_allow_multiple_alliances_bool", ModifKinds::Country),
-    ("country_allow_national_collectivization_bool", ModifKinds::Country),
     ("country_allow_trade_routes_without_interest_bool", ModifKinds::Country),
     ("country_assimilation_delta_threshold_add", ModifKinds::Country),
     ("country_authority_add", ModifKinds::Country),
@@ -1083,4 +1082,5 @@ const MODIF_REMOVED_TABLE: &[(&str, &str)] = &[
     ("state_radicals_from_sol_change_mult", "removed in 1.8"),
     ("state_rich_expected_sol", "removed in 1.8"),
     ("state_rich_standard_of_living_add", "removed in 1.8"),
+    ("country_allow_national_collectivization_bool", "removed in 1.8.4"),
 ];

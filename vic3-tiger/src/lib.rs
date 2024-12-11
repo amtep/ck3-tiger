@@ -4,7 +4,7 @@ use tiger_bin_shared::GameConsts;
 pub const GAME_CONSTS: &GameConsts = &GameConsts {
     name: "Victoria 3",
     name_short: "Vic3",
-    version: "1.8.2 (Masala Chai)",
+    version: "1.8.4 (Masala Chai)",
     app_id: 529_340,
     signature_file: "game/events/titanic_events.txt",
     paradox_dir: "Victoria 3",

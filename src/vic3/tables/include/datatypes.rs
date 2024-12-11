@@ -208,6 +208,7 @@ pub enum Vic3Datatype {
     GeneCategory,
     GeneItem,
     GeneTemplate,
+    GeneralInformationWindow,
     GenerationItem,
     GfxSkin,
     Goods,

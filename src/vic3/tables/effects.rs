@@ -26,7 +26,7 @@ static SCOPE_EFFECT_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Effect)>> = La
     hash
 });
 
-// LAST UPDATED VIC3 VERSION 1.8.1
+// LAST UPDATED VIC3 VERSION 1.8.4
 // See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::InterestGroup, "abandon_revolution", Boolean),
@@ -334,6 +334,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
         "set_institution_investment_level",
         Vb(validate_set_institution_investment_level),
     ),
+    (Scopes::Character, "set_interest_group", Scope(Scopes::InterestGroup)),
     (Scopes::InterestGroup, "set_interest_group_name", Item(Item::Localization)),
     (Scopes::DiplomaticPlay, "set_key", Item(Item::Localization)),
     (Scopes::None, "set_local_variable", Vbv(validate_set_variable)),

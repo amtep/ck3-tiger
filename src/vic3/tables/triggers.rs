@@ -1174,6 +1174,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[("law", Scope(Scopes::LawType)), ("comparison_law", Scope(Scopes::LawType))]),
     ),
     (Scopes::Country, "prestige", CompareValue),
+    (Scopes::Country, "primary_cultures_percent_country", CompareValue),
+    (Scopes::State, "primary_cultures_percent_state", CompareValue),
     (Scopes::Building, "private_ownership_fraction", CompareValue),
     (Scopes::Country, "produced_authority", CompareValue),
     (Scopes::Country, "produced_bureaucracy", CompareValue),
@@ -1362,7 +1364,7 @@ static TRIGGER_COMPLEX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, ArgumentVal
         hash
     });
 
-/// LAST UPDATED VIC3 VERSION 1.8.1
+/// LAST UPDATED VIC3 VERSION 1.8.4
 /// See `triggers.log` from the game data dumps
 /// `(inscopes, trigger name, argtype, outscopes)`
 /// Currently only works with single argument triggers
