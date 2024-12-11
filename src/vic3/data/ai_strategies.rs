@@ -200,7 +200,7 @@ fn validate_building_group_weights(_key: &Token, block: &Block, data: &Everythin
 }
 
 // TODO what other options?
-const SUBSIDIES_TYPES: &[&str] = &["should_have", "wants_to_have"];
+const SUBSIDIES_TYPES: &[&str] = &["should_have", "wants_to_have", "must_have"];
 fn validate_subsidies(_key: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.unknown_value_fields(|key, token| {
