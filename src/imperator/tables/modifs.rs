@@ -50,7 +50,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // culture_$PopType$_happiness
     if let Some(part) = name_lc.strip_prefix_unchecked("culture_") {
         for &sfx in &["_output", "_happiness"] {
-            if let Some(part) = part.strip_prefix_unchecked(sfx) {
+            if let Some(part) = part.strip_suffix_unchecked(sfx) {
                 maybe_warn(Item::PopType, &part, name, data, warn);
                 return Some(ModifKinds::Country);
             }
@@ -415,14 +415,4 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("global_settlement_building_slot", ModifKinds::Country),
     ("max_research_efficiency", ModifKinds::Country),
     ("max_mercenary_stacks", ModifKinds::Country),
-    ("culture_nobles_happiness", ModifKinds::Country),
-    ("culture_citizen_happiness", ModifKinds::Country),
-    ("culture_freemen_happiness", ModifKinds::Country),
-    ("culture_tribesmen_happiness", ModifKinds::Country),
-    ("culture_slaves_happiness", ModifKinds::Country),
-    ("culture_nobles_output", ModifKinds::Country),
-    ("culture_citizen_output", ModifKinds::Country),
-    ("culture_freemen_output", ModifKinds::Country),
-    ("culture_tribesmen_output", ModifKinds::Country),
-    ("culture_slaves_output", ModifKinds::Country),
 ];
