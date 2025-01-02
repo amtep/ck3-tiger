@@ -2658,7 +2658,7 @@
 	("GetPortraitContext", Imperator(Portrait3dView), Args::Args(&[]), Unknown),
 	("GetPortraitEntity", Imperator(Portrait3dView), Args::Args(&[]), Unknown),
 	("GetPortraitFrameFrame", Imperator(Character), Args::Args(&[]), Unknown),
-	("GetPortraitTexture", Imperator(PortraitEditorWindow), Args::Args(&[]), Unknown),
+	("GetPortraitTexture", Imperator(PortraitEditorWindow), Args::Args(&[DType(Unknown)]), Unknown),
 	("GetPortraitTooltip", Imperator(Character), Args::Args(&[]), CString),
 	("GetPortraitTooltipNoClick", Imperator(Character), Args::Args(&[]), CString),
 	("GetPosition", Imperator(BonusLineItem), Args::Args(&[]), CVector2f),
