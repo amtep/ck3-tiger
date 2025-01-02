@@ -160,7 +160,7 @@ static MODIF_MAP: Lazy<TigerHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new
 /// See `modifiers.log` from the game data dumps.
 /// A `modif` is my name for the things that modifiers modify.
 const MODIF_TABLE: &[(&str, ModifKinds)] = &[
-    ("happiness_for_wrong_religion_modifier", ModifKinds::Province),
+    ("happiness_for_wrong_religion_modifier", ModifKinds::Province.union(ModifKinds::Country)),
     ("local_happiness_for_wrong_religion_modifier", ModifKinds::Province),
     ("cultural_assimilation_speed_modifier", ModifKinds::Country),
     ("build_cost", ModifKinds::Country),
