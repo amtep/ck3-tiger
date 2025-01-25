@@ -61,6 +61,7 @@ ahash = { version = "0.8", features = [
     "std",
     "compile-time-rng",
 ], default-features = false }
+murmur3 = "0.5.2"
 
 [profile.bench]
 debug = true
