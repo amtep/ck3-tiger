@@ -4,10 +4,14 @@ use std::borrow::Borrow;
 use std::cmp::Ordering;
 use std::ffi::OsStr;
 use std::fs::read_to_string;
+#[cfg(any(feature = "ck3", feature = "vic3"))]
+use std::io::Cursor;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering::Relaxed;
 
+#[cfg(any(feature = "ck3", feature = "vic3"))]
+use murmur3::murmur3_32;
 use rayon::scope;
 
 use crate::block::Block;
@@ -235,6 +239,21 @@ impl Localization {
             }
         }
         true
+    }
+
+    // Undocumented; the hash algorithm was revealed by inspecting error.log and reverse
+    // engineering of CK3 binary through magic numbers. CK3 and VIC3 are supported.
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
+    fn all_collision_keys(&self, lang: &str) -> TigerHashMap<u32, Vec<&LocaEntry>> {
+        let mut result: TigerHashMap<u32, Vec<&LocaEntry>> = TigerHashMap::default();
+        for loca in self.locas[lang].values() {
+            result
+                .entry(murmur3_32(&mut Cursor::new(loca.key.as_str()), 0).unwrap())
+                .or_default()
+                .push(loca);
+        }
+        result.retain(|_, locas| locas.len() > 1);
+        result
     }
 
     pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
@@ -497,10 +516,32 @@ impl Localization {
         }
     }
 
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
+    fn check_collisions(&self, lang: &str) {
+        for (k, v) in self.all_collision_keys(lang) {
+            let mut rep = report(ErrorKey::LocalizationKeyCollision, Severity::Error)
+                .strong()
+                .msg(format!(
+                    "localization keys '{}' have same MURMUR3A hash '0x{k:08X}'",
+                    stringify_list(&v.iter().map(|loca| loca.key.as_str()).collect::<Vec<&str>>())
+                ))
+                .info("localization keys hash collision will cause some of them fail to load")
+                .loc(&v[0].key);
+            for loc in v.iter().skip(1) {
+                rep = rep.loc_msg(&loc.key, "here");
+            }
+            rep.push();
+        }
+    }
+
     // This is in pass2 to make sure all `validated` entries have been marked.
     pub fn validate_pass2(&self, data: &Everything) {
         scope(|s| {
             for (lang, hash) in &self.locas {
+                // Check localization key collisions
+                #[cfg(any(feature = "ck3", feature = "vic3"))]
+                s.spawn(|_| self.check_collisions(lang));
+
                 // Collect and sort the entries before looping, to create more stable output
                 let mut unvalidated_entries: Vec<&LocaEntry> =
                     hash.values().filter(|e| !e.validated.load(Relaxed)).collect();
