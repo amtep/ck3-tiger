@@ -95,10 +95,17 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     vd.field_validated_block_sc("cooldown", sc, validate_duration);
 
     vd.field_target("placement", sc, Scopes::Country | Scopes::State | Scopes::StateRegion);
-    vd.field_target("left_icon", sc, Scopes::Character);
-    vd.field_target("right_icon", sc, Scopes::Character);
-    vd.field_target("minor_left_icon", sc, Scopes::Country);
-    vd.field_target("minor_right_icon", sc, Scopes::Country);
+
+    vd.field_item_or_target("minor_left_icon", sc, Item::File, Scopes::Country | Scopes::Character);
+    vd.field_item_or_target(
+        "minor_right_icon",
+        sc,
+        Item::File,
+        Scopes::Country | Scopes::Character,
+    );
+    vd.field_item_or_target("left_icon", sc, Item::File, Scopes::Country | Scopes::Character);
+    vd.field_item_or_target("right_icon", sc, Item::File, Scopes::Country | Scopes::Character);
+    vd.field_item_or_target("center_icon", sc, Item::File, Scopes::Country | Scopes::Character);
 
     if !hidden {
         vd.req_field("option");

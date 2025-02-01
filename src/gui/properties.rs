@@ -278,6 +278,7 @@ pub enum WidgetProperty {
     onchangefinish,
     onchangestart,
     onclick,
+    onctrl,
     oncolorchanged,
     oncoloredited,
     oncreate,
@@ -416,6 +417,7 @@ pub enum WidgetProperty {
     widgetanchor,
     widgetid,
     width,
+    wrap_count,
     zoom,
     zoom_max,
     zoom_min,
@@ -631,6 +633,7 @@ impl GuiValidation {
             onchangefinish => DatatypeExpr,
             onchangestart => DatatypeExpr,
             onclick => DatatypeExpr,
+            onctrl => DatatypeExpr,
             oncolorchanged => DatatypeExpr,
             oncoloredited => DatatypeExpr,
             oncreate => DatatypeExpr,
@@ -769,6 +772,7 @@ impl GuiValidation {
             widgetanchor => Align,
             widgetid => UncheckedValue,
             width => Number,
+            wrap_count => Number,
             zoom => Number,
             zoom_max => Number,
             zoom_min => Number,
@@ -841,6 +845,9 @@ impl WidgetProperty {
             tooltip_enabled => GameFlags::Vic3 | GameFlags::Imperator,
             tooltip_visible | tooltip_when_disabled => GameFlags::Ck3,
             video => GameFlags::Ck3 | GameFlags::Vic3,
+
+            onctrl => GameFlags::Vic3,
+            wrap_count => GameFlags::Vic3,
 
             frame_tier | ondatacontextchanged | dragdropid | dragdropargs | forcedown | url
             | bottomtotop | onleave_signal | onenter_signal => GameFlags::Imperator,

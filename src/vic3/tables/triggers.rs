@@ -553,7 +553,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "has_technology_progress",
         Block(&[("technology", UncheckedValue), ("progress", CompareValue)]),
     ),
-    (Scopes::Country, "has_technology_researched", Item(Item::Technology)),
+    (
+        Scopes::Country,
+        "has_technology_researched",
+        ScopeOrItem(Scopes::Technology, Item::Technology),
+    ),
     (Scopes::Character, "has_template", Item(Item::CharacterTemplate)),
     (Scopes::Province, "has_terrain", Item(Item::Terrain)),
     (Scopes::Character, "has_trait", Item(Item::CharacterTrait)),
