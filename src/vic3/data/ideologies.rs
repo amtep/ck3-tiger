@@ -56,13 +56,11 @@ impl DbKind for Ideology {
                 },
             );
             vd.field_validated_key("interest_group_leader_weight", |key, bv, data| {
-                let mut sc = ScopeContext::new(Scopes::Character, key);
-                sc.define_name("interest_group", Scopes::InterestGroup, key);
+                let mut sc = ScopeContext::new(Scopes::InterestGroup, key);
                 validate_script_value(bv, data, &mut sc);
             });
             vd.field_validated_key("non_interest_group_leader_weight", |key, bv, data| {
                 let mut sc = ScopeContext::new(Scopes::Character, key);
-                sc.define_name("interest_group", Scopes::InterestGroup, key);
                 validate_script_value(bv, data, &mut sc);
             });
             vd.ban_field("priority", || "character_ideology = no");
