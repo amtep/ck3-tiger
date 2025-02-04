@@ -54,6 +54,7 @@ pub enum ErrorKey {
     TitleTier,
     Colors,
     UnusedLocalization,
+    LocalizationKeyCollision,
     UnusedFile,
     UnknownList,
     Choice,
