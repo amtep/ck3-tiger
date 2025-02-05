@@ -387,7 +387,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("local_monthly_food_modifier", ModifKinds::Province.union(ModifKinds::State)),
     ("local_hostile_food_multiplier", ModifKinds::Province.union(ModifKinds::State)),
     ("pop_food_consumption", ModifKinds::Province.union(ModifKinds::State)),
-    ("monthly_character_experience", ModifKinds::Character),
+    ("monthly_character_experience", ModifKinds::Character.union(ModifKinds::Country)),
     ("monthly_character_experience_decay", ModifKinds::Character),
     ("monthly_conviction_for_head_of_family_party", ModifKinds::Character),
     ("local_base_trade_routes", ModifKinds::Province.union(ModifKinds::State)),
