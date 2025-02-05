@@ -191,7 +191,7 @@ pub const ON_ACTION_SCOPES: &str = "
 	on_law_enactment_pass = { root = country }
 	on_law_enactment_fail = { root = country }
 	on_law_enactment_ended = { root = country }
-	on_law_activated = { root = country }
+	on_law_activated = { root = law }
 
 	on_revolution_start = {
 		root = country
