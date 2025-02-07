@@ -538,8 +538,8 @@ pub fn validate_datatypes(
             && is_last
             && data.item_exists(Item::GameConcept, code.name.as_str())
         {
-            let game_concept_formatting = format
-                .map_or(false, |fmt| fmt.as_str().contains('E') || fmt.as_str().contains('e'));
+            let game_concept_formatting =
+                format.is_some_and(|fmt| fmt.as_str().contains('E') || fmt.as_str().contains('e'));
             // In ck3, allow unadorned game concepts as long as they end with _i
             // (which means they are just an icon). This is a heuristic.
             // TODO: should also allow unadorned game concepts if inside another format

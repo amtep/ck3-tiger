@@ -77,7 +77,7 @@ impl Doctrines {
     }
 
     pub fn unreformed(&self, key: &str) -> bool {
-        self.doctrines.get(key).map_or(false, Doctrine::unreformed)
+        self.doctrines.get(key).is_some_and(Doctrine::unreformed)
     }
 }
 

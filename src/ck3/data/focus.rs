@@ -44,7 +44,7 @@ impl DbKind for Focus {
         vd.advice_field("education", "replaced with `type`");
         vd.field_choice("type", &["education", "lifestyle"]);
 
-        let education = block.get_field_value("type").map_or(false, |token| token.is("education"));
+        let education = block.get_field_value("type").is_some_and(|token| token.is("education"));
         if education {
             vd.ban_field("lifestyle", || "type = lifestyle");
             vd.field_validated_block("is_good_for", |block, data| {

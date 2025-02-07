@@ -184,7 +184,7 @@ impl DbKind for TutorialLessonStep {
             validate_effect(block, data, &mut sc, Tooltipped::No);
         });
 
-        if self.chain.as_ref().map_or(false, |t| {
+        if self.chain.as_ref().is_some_and(|t| {
             data.item_has_property(Item::TutorialLessonChain, t.as_str(), "gamestate_tutorial")
         }) {
             vd.field_bool("pause_game");

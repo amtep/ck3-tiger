@@ -641,7 +641,7 @@ impl Fileset {
         let mut vec = Vec::new();
         for entry in &self.ordered_files {
             let pathname = entry.path.to_string_lossy();
-            if entry.path.extension().map_or(false, |ext| ext.eq_ignore_ascii_case("dds"))
+            if entry.path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case("dds"))
                 && !entry.path.starts_with("gfx/interface/illustrations/loading_screens")
                 && !self.used.read().unwrap().contains(pathname.as_ref())
             {
