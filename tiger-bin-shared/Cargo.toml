@@ -16,7 +16,8 @@ anyhow = "1"
 cfg-if = "1"
 clap = { version = "4.5", features = ["derive"] }
 console = "0.15"
-home = "0.5"
+# held back because of msrv
+home = "=0.5.9"
 regex = "1.10"
 steamlocate = "2.0.0-beta.2"
 thiserror = "1"
