@@ -346,13 +346,11 @@ pub fn validate_create_character(
         let msg = "character has `last_name` but no `first_name`";
         warn(ErrorKey::Validation).msg(msg).loc(key).push();
     }
-    // NOTE: docs say this is an Item, but vanilla files consistently pass a scope.
     vd.field_validated_value("culture", |_, mut vd| {
         vd.maybe_is("primary_culture");
-        vd.target(sc, Scopes::Culture);
+        vd.item_or_target(sc, Item::Culture, Scopes::Culture);
     });
-    // TODO: vanilla files pass religion as an item in several places. Figure out if that's a bug.
-    vd.field_target("religion", sc, Scopes::Religion);
+    vd.field_item_or_target("religion", sc, Item::Religion, Scopes::Religion);
     vd.field_validated_value("female", |_, mut vd| {
         vd.maybe_bool();
         vd.target(sc, Scopes::Character);
