@@ -290,9 +290,16 @@ impl Iterator for Lexer<'_> {
                     let start_i = i;
                     let start_loc = self.loc;
                     self.consume();
+                    let mut warn_linebreaks = true;
                     let mut id = self.start_cob();
                     while let Some((i, c)) = self.peek() {
-                        if c == '\n' {
+                        if c == '[' && i == start_i + 1 {
+                            // A string that starts with `"[` is a datatype expression which might
+                            // be broken into multiple lines for readability.
+                            warn_linebreaks = false;
+                        }
+
+                        if c == '\n' && warn_linebreaks {
                             // Warn, but continue parsing the string.
                             id.add_char(c);
                             let msg = "quoted string not closed";
