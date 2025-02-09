@@ -413,7 +413,9 @@ impl Localization {
             }
             LocaValue::Tooltip(token) => {
                 // TODO: should this be validated with validate_localization_sc ? (remember to avoid infinite loops)
-                data.localization.verify_exists_lang(token, lang);
+                if !(Game::is_vic3() && token.is("BREAKDOWN_TAG")) {
+                    data.localization.verify_exists_lang(token, lang);
+                }
             }
             #[allow(unused_variables)] // tag only used by ck3
             LocaValue::ComplexTooltip(tag, token) => {
