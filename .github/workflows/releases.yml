@@ -98,21 +98,21 @@ jobs:
       - name: Upload Archive ck3
         uses: actions/upload-artifact@v4
         with:
-          name: archives
+          name: archives-ck3
           path: ${{ steps.version.outputs.ck3_pkgdir }}.${{ matrix.archive }}
           if-no-files-found: error
 
       - name: Upload Archive vic3
         uses: actions/upload-artifact@v4
         with:
-          name: archives
+          name: archives-vic3
           path: ${{ steps.version.outputs.vic3_pkgdir }}.${{ matrix.archive }}
           if-no-files-found: error
 
       - name: Upload Archive imperator
         uses: actions/upload-artifact@v4
         with:
-          name: archives
+          name: archives-imperator
           path: ${{ steps.version.outputs.imperator_pkgdir }}.${{ matrix.archive }}
           if-no-files-found: error
 
@@ -122,9 +122,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Archives
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: archives
+          pattern: archives-*
+          merge-multiple: true
 
       - name: Create Release
         uses: ncipollo/release-action@v1
