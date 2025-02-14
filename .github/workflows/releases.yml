@@ -98,21 +98,21 @@ jobs:
       - name: Upload Archive ck3
         uses: actions/upload-artifact@v4
         with:
-          name: archives-ck3-{{ matrix.name }}
+          name: archives-ck3-${{ matrix.name }}
           path: ${{ steps.version.outputs.ck3_pkgdir }}.${{ matrix.archive }}
           if-no-files-found: error
 
       - name: Upload Archive vic3
         uses: actions/upload-artifact@v4
         with:
-          name: archives-vic3-{{ matrix.name }}
+          name: archives-vic3-${{ matrix.name }}
           path: ${{ steps.version.outputs.vic3_pkgdir }}.${{ matrix.archive }}
           if-no-files-found: error
 
       - name: Upload Archive imperator
         uses: actions/upload-artifact@v4
         with:
-          name: archives-imperator-{{ matrix.name }}
+          name: archives-imperator-${{ matrix.name }}
           path: ${{ steps.version.outputs.imperator_pkgdir }}.${{ matrix.archive }}
           if-no-files-found: error
 
