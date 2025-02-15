@@ -26,6 +26,12 @@ impl DbKind for Culture {
 
         data.verify_exists(Item::Localization, key);
 
+        // The game will log errors if these are not defined.
+        let modif = format!("{key}_standard_of_living_modifier_positive");
+        data.verify_exists_implied(Item::Modifier, &modif, key);
+        let modif = format!("{key}_standard_of_living_modifier_negative");
+        data.verify_exists_implied(Item::Modifier, &modif, key);
+
         vd.field_validated("color", validate_possibly_named_color);
         vd.field_item("religion", Item::Religion);
         vd.field_list("traits"); // TODO

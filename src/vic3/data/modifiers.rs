@@ -24,7 +24,12 @@ impl DbKind for Modifier {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        data.verify_exists(Item::Localization, key);
+        // The standard of living defines for cultures are required but don't need localizations
+        if !key.as_str().ends_with("_standard_of_living_modifier_positive")
+            && !key.as_str().ends_with("standard_of_living_modifier_negative")
+        {
+            data.verify_exists(Item::Localization, key);
+        }
         vd.field_item("icon", Item::File);
 
         validate_modifs(block, data, ModifKinds::all(), vd);
