@@ -30,27 +30,6 @@ pub const ARTIFACT_HISTORY: &[&str] = &[
     "reforged",
 ];
 
-// LAST UPDATED CK3 VERSION 1.12.1
-// TODO: parse it from dlc_metadata/
-pub const DLC_CK3: &[&str] = &[
-    "Garments of the Holy Roman Empire",
-    "Fashion of the Abbasid Court",
-    "The Northern Lords",
-    "The Royal Court",
-    "The Fate of Iberia",
-    "Friends and Foes",
-    "Tours and Tournaments",
-    "Elegance of the Empire",
-    "Wards and Wardens",
-    "Legacy of Persia",
-    "Legends of the Dead",
-    "North African Attire",
-    "Couture of the Capets",
-    "Roads to Power",
-    "Wandering Nobles",
-    "West Slavic Attire",
-];
-
 /// LAST UPDATED CK3 VERSION 1.13.0.1
 /// Taken from `has_dlc_feature` in triggers.log
 pub const DLC_FEATURES_CK3: &[&str] = &[

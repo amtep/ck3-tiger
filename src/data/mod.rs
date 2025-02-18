@@ -11,6 +11,7 @@ pub mod customloca;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 pub mod data_binding;
 pub mod defines;
+pub mod dlc;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 pub mod dna;
 pub mod effect_localization;

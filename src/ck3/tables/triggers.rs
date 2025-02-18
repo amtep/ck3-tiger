@@ -572,7 +572,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_diarchy_type", Item(Item::DiarchyType)),
     (Scopes::LandedTitle, "has_disabled_building", Boolean),
     (Scopes::Character, "has_divorce_reason", Scope(Scopes::Character)),
-    (Scopes::None, "has_dlc", Item(Item::Dlc)),
+    (Scopes::None, "has_dlc", Item(Item::DlcName)),
     (Scopes::None, "has_dlc_feature", Item(Item::DlcFeature)),
     (Scopes::Faith, "has_doctrine", ScopeOrItem(Scopes::Doctrine, Item::Doctrine)),
     (Scopes::Faith, "has_doctrine_parameter", Item(Item::DoctrineParameter)),

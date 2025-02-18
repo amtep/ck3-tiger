@@ -1,5 +1,5 @@
 // LAST UPDATED IMPERATOR VERSION 2.0.4
-pub const DLC_IMPERATOR: &[&str] = &[
+pub const DLC_NAME_IMPERATOR: &[&str] = &[
     "Heirs of Alexander",
     "Epirus Flavor Pack",
     "Magna Graecia",

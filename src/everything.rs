@@ -580,7 +580,6 @@ impl Everything {
             Item::Character => self.characters.exists(key),
             Item::CharacterInteractionCategory => self.interaction_cats.exists(key),
             Item::DangerType => DANGER_TYPES.contains(&key),
-            Item::Dlc => DLC_CK3.contains(&key),
             Item::DlcFeature => DLC_FEATURES_CK3.contains(&key),
             Item::Doctrine => self.doctrines.exists(key),
             Item::DoctrineCategory => self.doctrines.category_exists(key),
@@ -613,7 +612,6 @@ impl Everything {
             Item::Attitude => ATTITUDES.contains(&&*key.to_lowercase()),
             Item::CharacterRole => CHARACTER_ROLES.contains(&key),
             Item::CountryTier => COUNTRY_TIERS.contains(&key),
-            Item::Dlc => DLC_VIC3.contains(&key),
             Item::DlcFeature => DLC_FEATURES_VIC3.contains(&key),
             Item::EventCategory => EVENT_CATEGORIES.contains(&key),
             Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
@@ -632,7 +630,7 @@ impl Everything {
     #[cfg(feature = "imperator")]
     fn item_exists_imperator(&self, itype: Item, key: &str) -> bool {
         match itype {
-            Item::Dlc => DLC_IMPERATOR.contains(&key),
+            Item::DlcName => DLC_NAME_IMPERATOR.contains(&key),
             Item::Decision => self.decisions_imperator.exists(key),
             Item::Province => self.provinces_imperator.exists(key),
             Item::Sound => self.valid_sound(key),

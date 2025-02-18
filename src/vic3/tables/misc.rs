@@ -1,10 +1,4 @@
 // LAST UPDATED VIC3 VERSION 1.8.1
-pub const DLC_VIC3: &[&str] = &[
-    "dlc001", "dlc002", "dlc003", "dlc004", "dlc005", "dlc006", "dlc007", "dlc008", "dlc010",
-    "dlc011",
-];
-
-// LAST UPDATED VIC3 VERSION 1.8.1
 pub const DLC_FEATURES_VIC3: &[&str] = &[
     "voice_of_the_people_content",
     "voice_of_the_people_preorder",

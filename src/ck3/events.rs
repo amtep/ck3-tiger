@@ -68,7 +68,7 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     }
 
     // "dlc or mod this event comes from"
-    vd.field_item("content_source", Item::Localization);
+    vd.field_item("content_source", Item::Dlc);
 
     vd.field_bool("hidden");
     vd.field_bool("major");
