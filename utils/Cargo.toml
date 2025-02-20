@@ -7,7 +7,7 @@ description = "Utilities for maintaining tiger-lib"
 homepage = "https://github.com/amtep/ck3-tiger"
 repository = "https://github.com/amtep/ck3-tiger"
 readme = "../README.md"
-rust-version = "1.75"
+rust-version = "1.80"
 publish = false
 
 [dependencies]
