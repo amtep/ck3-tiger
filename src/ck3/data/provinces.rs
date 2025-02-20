@@ -36,7 +36,7 @@ impl Default for ColorBitArray {
 impl ColorBitArray {
     fn get_index(color: Rgb<u8>) -> usize {
         let Rgb([r, g, b]) = color;
-        (r as usize) << 16 | (g as usize) << 8 | b as usize
+        ((r as usize) << 16) | ((g as usize) << 8) | b as usize
     }
 
     #[allow(clippy::cast_possible_truncation)]
