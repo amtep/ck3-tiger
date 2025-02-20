@@ -22,8 +22,6 @@ regex = "1.10"
 steamlocate = "2.0"
 thiserror = "2.0"
 
-native-tls = "<0.2.14"
-
 [target.'cfg(windows)'.dependencies]
 ansiterm = "0.12.2"
 
