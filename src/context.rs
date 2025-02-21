@@ -688,7 +688,7 @@ impl ScopeContext {
     #[doc(hidden)]
     fn expect_check(e: &mut ScopeEntry, scopes: Scopes, reason: &Reason) {
         match e {
-            ScopeEntry::Scope(ref mut s, ref mut r) => {
+            ScopeEntry::Scope(s, r) => {
                 if s.intersects(scopes) {
                     // if s is narrowed by the scopes info, remember why
                     if (*s & scopes) != *s {
@@ -715,7 +715,7 @@ impl ScopeContext {
         report: &str,
     ) {
         match e {
-            ScopeEntry::Scope(ref mut s, ref mut r) => {
+            ScopeEntry::Scope(s, r) => {
                 if s.intersects(scopes) {
                     // if s is narrowed by the scopes info, remember its token
                     if (*s & scopes) != *s {

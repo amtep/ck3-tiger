@@ -144,7 +144,7 @@ impl LocaEntry {
         if let LocaValue::Macro(v) = &self.value {
             for macrovalue in v {
                 match macrovalue {
-                    MacroValue::Text(ref token) => vec.push(token.clone().linked(link)),
+                    MacroValue::Text(token) => vec.push(token.clone().linked(link)),
                     MacroValue::Keyword(keyword) => {
                         if let Some(entry) = from.get(keyword.as_str()) {
                             entry.used.store(true, Relaxed);
@@ -387,7 +387,7 @@ impl Localization {
                 // |E is the formatting used for game concepts in ck3
                 #[cfg(feature = "ck3")]
                 if Game::is_ck3() {
-                    if let Some(ref format) = format {
+                    if let Some(format) = format {
                         if format.as_str().contains('E') || format.as_str().contains('e') {
                             if let Some(name) = chain.as_gameconcept() {
                                 if !is_builtin_macro(name) {

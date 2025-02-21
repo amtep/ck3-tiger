@@ -2522,7 +2522,6 @@ dependencies = [
  "clap",
  "console",
  "home",
- "native-tls",
  "regex",
  "self_update",
  "steamlocate",

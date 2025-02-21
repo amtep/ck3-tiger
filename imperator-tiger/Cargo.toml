@@ -1,7 +1,7 @@
 [package]
 name = "imperator-tiger"
 version = "1.5.0"
-edition = "2021"
+edition = "2024"
 license = "GPL-3.0-or-later"
 default-run = "imperator-tiger"
 description = "Validator that checks Imperator: Rome user mod files for mistakes and warns about them. For example: missing localizations, or using a country trigger on a character. Imperator: Rome is a grand strategy game made by Paradox Interactive, and user mods are made by the players to enhance or change their game experience. This tool is for the people who make the mods."
@@ -10,7 +10,7 @@ repository = "https://github.com/amtep/ck3-tiger"
 readme = "../README.md"
 keywords = ["imperator", "rome", "mods", "validator", "paradox"]
 categories = ["command-line-utilities", "development-tools", "game-development"]
-rust-version = "1.80"
+rust-version = "1.85"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
