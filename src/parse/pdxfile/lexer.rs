@@ -6,7 +6,7 @@ use crate::block::Comparator;
 use crate::block::Eq::Single;
 use crate::game::Game;
 use crate::parse::pdxfile::{CharExt, Cob};
-use crate::report::{err, untidy, warn, ErrorKey};
+use crate::report::{ErrorKey, err, untidy, warn};
 use crate::token::{Loc, Token};
 
 /// ^Z is by convention an end-of-text marker, and the game engine treats it as such.

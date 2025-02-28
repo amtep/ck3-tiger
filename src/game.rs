@@ -2,7 +2,7 @@
 
 use std::fmt::{Display, Formatter};
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use bitflags::bitflags;
 use once_cell::sync::OnceCell;
 

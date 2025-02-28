@@ -9,7 +9,7 @@ use crate::helpers::TigerHashMap;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::modif::ModifKinds;
-use crate::report::{report, ErrorKey, Severity};
+use crate::report::{ErrorKey, Severity, report};
 use crate::token::Token;
 
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
@@ -1033,12 +1033,30 @@ static MODIF_REMOVED_MAP: Lazy<TigerHashMap<Lowercase<'static>, &'static str>> =
 });
 
 const MODIF_REMOVED_TABLE: &[(&str, &str)] = &[
-    ("monthly_county_control_change_add_even_if_baron", "replaced with monthly_county_control_decline_add_even_if_baron and monthly_county_control_growth_add_even_if_baron"),
-    ("monthly_county_control_change_factor_even_if_baron", "replaced with monthly_county_control_decline_factor_even_if_baron and monthly_county_control_growth_factor_even_if_baron"),
-    ("monthly_county_control_change_add", "replaced with monthly_county_control_decline_add and monthly_county_control_growth_add"),
-    ("monthly_county_control_change_factor", "replaced with monthly_county_control_decline_factor and monthly_county_control_growth_factor"),
-    ("monthly_county_control_change_at_war_add", "replaced with monthly_county_control_decline_at_war_add and monthly_county_control_growth_at_war_add"),
-    ("monthly_county_control_change_at_war_mult", "replaced with monthly_county_control_decline_at_war_factor and monthly_county_control_growth_at_war_factor"),
+    (
+        "monthly_county_control_change_add_even_if_baron",
+        "replaced with monthly_county_control_decline_add_even_if_baron and monthly_county_control_growth_add_even_if_baron",
+    ),
+    (
+        "monthly_county_control_change_factor_even_if_baron",
+        "replaced with monthly_county_control_decline_factor_even_if_baron and monthly_county_control_growth_factor_even_if_baron",
+    ),
+    (
+        "monthly_county_control_change_add",
+        "replaced with monthly_county_control_decline_add and monthly_county_control_growth_add",
+    ),
+    (
+        "monthly_county_control_change_factor",
+        "replaced with monthly_county_control_decline_factor and monthly_county_control_growth_factor",
+    ),
+    (
+        "monthly_county_control_change_at_war_add",
+        "replaced with monthly_county_control_decline_at_war_add and monthly_county_control_growth_at_war_add",
+    ),
+    (
+        "monthly_county_control_change_at_war_mult",
+        "replaced with monthly_county_control_decline_at_war_factor and monthly_county_control_growth_at_war_factor",
+    ),
     ("diplomacy_scheme_power", "replaced with diplomacy_scheme_phase_duration"),
     ("intrigue_scheme_power", "replaced with intrigue_scheme_phase_duration"),
     ("learning_scheme_power", "replaced with learning_scheme_phase_duration"),

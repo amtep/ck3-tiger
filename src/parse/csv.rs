@@ -3,7 +3,7 @@ use std::iter::Peekable;
 use std::path::Path;
 use std::str::Chars;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use encoding_rs::WINDOWS_1252;
 
 use crate::fileset::FileEntry;

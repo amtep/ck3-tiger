@@ -19,7 +19,7 @@ use crate::helpers::BiTigerHashMap;
 use crate::item::Item;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::report::err;
-use crate::report::{warn, ErrorKey};
+use crate::report::{ErrorKey, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 
@@ -554,7 +554,10 @@ pub fn validate_datatypes(
             // Real life example: [ROOT.Char.Custom2('RelationToMeShort', schemer)]
             if sc.is_name_defined(code.name.as_str()).is_some() && !game_concept_formatting {
                 let msg = format!("`{}` is both a named scope and a game concept here", &code.name);
-                let info = format!("The game concept will take precedence. Do `{}.Self` if you want the named scope.", &code.name);
+                let info = format!(
+                    "The game concept will take precedence. Do `{}.Self` if you want the named scope.",
+                    &code.name
+                );
                 warn(ErrorKey::Datafunctions).msg(msg).info(info).loc(&code.name).push();
             }
 

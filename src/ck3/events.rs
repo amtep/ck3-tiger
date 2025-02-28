@@ -1,4 +1,4 @@
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::ck3::validate::{
     validate_theme_background, validate_theme_effect_2d, validate_theme_header_background,
     validate_theme_icon, validate_theme_sound, validate_theme_transition,
@@ -10,13 +10,13 @@ use crate::effect::{validate_effect, validate_effect_internal};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, warn, ErrorKey, Severity};
+use crate::report::{ErrorKey, Severity, err, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_trigger};
 use crate::validate::{
-    validate_ai_chance, validate_duration, validate_modifiers_with_base, ListType,
+    ListType, validate_ai_chance, validate_duration, validate_modifiers_with_base,
 };
 use crate::validator::Validator;
 

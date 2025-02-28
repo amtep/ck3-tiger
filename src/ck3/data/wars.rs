@@ -6,7 +6,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::item::Item;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, warn, ErrorKey};
+use crate::report::{ErrorKey, err, warn};
 use crate::token::Token;
 use crate::validator::Validator;
 

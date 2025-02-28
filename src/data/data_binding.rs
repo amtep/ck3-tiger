@@ -6,11 +6,11 @@ use crate::data::localization::LocaValue;
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_error, TigerHashMap};
-use crate::parse::localization::ValueParser;
+use crate::helpers::{TigerHashMap, dup_error};
 use crate::parse::ParserMemory;
+use crate::parse::localization::ValueParser;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, warn, ErrorKey};
+use crate::report::{ErrorKey, err, warn};
 use crate::token::Token;
 use crate::validator::Validator;
 

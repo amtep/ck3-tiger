@@ -4,7 +4,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::PdxEncoding;
-use crate::report::{untidy, warn, ErrorKey, Severity};
+use crate::report::{ErrorKey, Severity, untidy, warn};
 use crate::token::Token;
 use crate::validator::Validator;
 

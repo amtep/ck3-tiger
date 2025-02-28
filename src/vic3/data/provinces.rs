@@ -7,7 +7,7 @@ use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::TigerHashSet;
 use crate::item::Item;
 use crate::parse::ParserMemory;
-use crate::report::{err, report, ErrorKey, Severity};
+use crate::report::{ErrorKey, Severity, err, report};
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]

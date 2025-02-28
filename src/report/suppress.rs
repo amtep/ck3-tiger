@@ -5,8 +5,8 @@ use anyhow::Result;
 use serde::Deserialize;
 
 use crate::helpers::TigerHashMap;
-use crate::report::errors::Errors;
 use crate::report::ErrorKey;
+use crate::report::errors::Errors;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SuppressionKey {

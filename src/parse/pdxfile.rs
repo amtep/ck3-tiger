@@ -4,17 +4,17 @@
 
 use std::path::PathBuf;
 
-use lalrpop_util::{lalrpop_mod, ParseError};
+use lalrpop_util::{ParseError, lalrpop_mod};
 
 use crate::block::{Block, Comparator, Eq};
 use crate::fileset::{FileEntry, FileKind};
+use crate::parse::ParserMemory;
 use crate::parse::cob::Cob;
 use crate::parse::pdxfile::lexer::{LexError, Lexeme, Lexer};
 use crate::parse::pdxfile::memory::CombinedMemory;
 pub use crate::parse::pdxfile::memory::PdxfileMemory;
-use crate::parse::ParserMemory;
-use crate::report::{err, store_source_file, ErrorKey};
-use crate::token::{leak, Loc, Token};
+use crate::report::{ErrorKey, err, store_source_file};
+use crate::token::{Loc, Token, leak};
 
 mod lexer;
 pub mod memory;

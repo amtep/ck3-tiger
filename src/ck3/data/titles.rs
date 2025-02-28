@@ -7,11 +7,11 @@ use crate::ck3::data::provinces::ProvId;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_error, TigerHashMap};
+use crate::helpers::{TigerHashMap, dup_error};
 use crate::item::Item;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, warn, ErrorKey};
+use crate::report::{ErrorKey, err, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -278,10 +278,6 @@ impl Title {
     }
 
     fn capital_of(&self) -> Option<&str> {
-        if self.is_county_capital {
-            self.parent
-        } else {
-            None
-        }
+        if self.is_county_capital { self.parent } else { None }
     }
 }

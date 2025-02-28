@@ -8,7 +8,7 @@ use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
-use crate::report::{err, ErrorKey};
+use crate::report::{ErrorKey, err};
 use crate::token::Token;
 
 /// vic3 needs more than 64 bits, but the others don't.

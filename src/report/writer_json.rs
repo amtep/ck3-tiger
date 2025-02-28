@@ -1,8 +1,8 @@
 use serde_json::json;
 
+use crate::report::LogReport;
 use crate::report::errors::Errors;
 use crate::report::writer::kind_tag;
-use crate::report::LogReport;
 
 /// Log the report in JSON format.
 pub fn log_report_json(errors: &mut Errors, report: &LogReport) {

@@ -1,19 +1,19 @@
 use std::{mem::forget, path::PathBuf};
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use clap::{Args, Parser, Subcommand};
 #[cfg(any(feature = "ck3", feature = "imperator"))]
 use tiger_lib::ModFile;
 #[cfg(feature = "vic3")]
 use tiger_lib::ModMetadata;
 use tiger_lib::{
-    disable_ansi_colors, emit_reports, set_show_loaded_mods, set_show_vanilla, suppress_from_json,
-    validate_config_file, Everything,
+    Everything, disable_ansi_colors, emit_reports, set_show_loaded_mods, set_show_vanilla,
+    suppress_from_json, validate_config_file,
 };
 
+use crate::GameConsts;
 use crate::gamedir::find_game_directory_steam;
 use crate::update::update;
-use crate::GameConsts;
 
 #[derive(Parser)]
 #[command(version)]
@@ -121,7 +121,9 @@ pub fn run(game_consts: &GameConsts, current_version: &str) -> Result<()> {
                     if sig.is_file() {
                         eprintln!("Ok.");
                     } else {
-                        bail!("Cannot find {name_short} directory. Please supply it as the --game option.");
+                        bail!(
+                            "Cannot find {name_short} directory. Please supply it as the --game option."
+                        );
                     }
                 }
             } else {
@@ -136,7 +138,9 @@ pub fn run(game_consts: &GameConsts, current_version: &str) -> Result<()> {
             }
 
             if args.show_vanilla {
-                eprintln!("Showing warnings for base game files too. There will be many false positives in those.");
+                eprintln!(
+                    "Showing warnings for base game files too. There will be many false positives in those."
+                );
             }
 
             if args.show_mods {

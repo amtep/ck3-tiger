@@ -102,11 +102,7 @@ impl Severity {
     /// Reduce the severity to at most `max_sev`, unless severity is `Fatal`, then stays `Fatal`.
     #[must_use]
     pub fn at_most(self, max_sev: Severity) -> Severity {
-        if self == Severity::Fatal {
-            Severity::Fatal
-        } else {
-            self.min(max_sev)
-        }
+        if self == Severity::Fatal { Severity::Fatal } else { self.min(max_sev) }
     }
 }
 

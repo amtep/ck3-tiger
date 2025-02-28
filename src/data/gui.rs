@@ -4,16 +4,16 @@ use std::mem::drop;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
-use crate::block::{Block, BlockItem, Field, BV};
+use crate::block::{BV, Block, BlockItem, Field};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::gui::{BuiltinWidget, GuiBlock, GuiBlockFrom};
-use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
+use crate::helpers::{TigerHashMap, TigerHashSet, dup_error};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, fatal, untidy, warn, ErrorKey, Severity};
+use crate::report::{ErrorKey, Severity, err, fatal, untidy, warn};
 use crate::token::Token;
 use crate::validator::Validator;
 

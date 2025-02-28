@@ -12,7 +12,7 @@ use crate::on_action::on_action_scopecontext;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 #[cfg(feature = "ck3")]
-use crate::report::{err, warn, ErrorKey};
+use crate::report::{ErrorKey, err, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;

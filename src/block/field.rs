@@ -1,5 +1,5 @@
-use crate::block::{Block, Comparator, Eq::*, BV};
-use crate::report::{err, ErrorKey};
+use crate::block::{BV, Block, Comparator, Eq::*};
+use crate::report::{ErrorKey, err};
 use crate::token::Token;
 
 #[derive(Debug, Clone)]
@@ -65,7 +65,7 @@ impl Field {
         #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {
             Field(key, Comparator::Equals(Single | Question), BV::Block(block)) => {
-                return Some((key, block))
+                return Some((key, block));
             }
             _ => {
                 let msg = format!("expected definition, found {}", self.describe());
@@ -79,7 +79,7 @@ impl Field {
         #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {
             Field(key, Comparator::Equals(Single | Question), BV::Block(block)) => {
-                return Some((key, block))
+                return Some((key, block));
             }
             _ => {
                 let msg = format!("expected definition, found {}", self.describe());
@@ -124,7 +124,7 @@ impl Field {
         #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {
             Field(key, Comparator::Equals(Single | Question), BV::Value(token)) => {
-                return Some((key, token))
+                return Some((key, token));
             }
             _ => {
                 let msg = format!("expected assignment, found {}", self.describe());
@@ -139,7 +139,7 @@ impl Field {
         #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {
             Field(key, Comparator::Equals(Single | Question), BV::Value(token)) => {
-                return Some((key, token))
+                return Some((key, token));
             }
             _ => {
                 let msg = format!("expected assignment, found {}", self.describe());

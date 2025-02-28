@@ -8,7 +8,7 @@ use crate::game::{Game, GameFlags};
 use crate::helpers::TigerHashMap;
 use crate::item::{Item, ItemLoader};
 use crate::parse::pdxfile::parse_pdx_internal;
-use crate::report::{err, ErrorKey};
+use crate::report::{ErrorKey, err};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;

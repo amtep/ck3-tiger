@@ -1,14 +1,14 @@
 use std::path::PathBuf;
 
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::game::Game;
-use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
+use crate::helpers::{TigerHashMap, TigerHashSet, dup_error};
 use crate::item::Item;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, Confidence, ErrorKey, Severity};
+use crate::report::{Confidence, ErrorKey, Severity, warn};
 use crate::token::Token;
 use crate::util::SmartJoin;
 use crate::validate::validate_numeric_range;
@@ -44,11 +44,7 @@ impl Assets {
     }
 
     pub fn mesh_exists(&self, key: &str) -> bool {
-        if let Some(asset) = self.assets.get(key) {
-            asset.key.is("pdxmesh")
-        } else {
-            false
-        }
+        if let Some(asset) = self.assets.get(key) { asset.key.is("pdxmesh") } else { false }
     }
 
     pub fn iter_mesh_keys(&self) -> impl Iterator<Item = &Token> {
@@ -56,11 +52,7 @@ impl Assets {
     }
 
     pub fn entity_exists(&self, key: &str) -> bool {
-        if let Some(asset) = self.assets.get(key) {
-            asset.key.is("entity")
-        } else {
-            false
-        }
+        if let Some(asset) = self.assets.get(key) { asset.key.is("entity") } else { false }
     }
 
     pub fn iter_entity_keys(&self) -> impl Iterator<Item = &Token> {

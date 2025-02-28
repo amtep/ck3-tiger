@@ -1,16 +1,16 @@
 use std::path::PathBuf;
 
+use crate::Severity;
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_error, TigerHashMap};
+use crate::helpers::{TigerHashMap, dup_error};
 use crate::item::Item;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, ErrorKey};
+use crate::report::{ErrorKey, warn};
 use crate::token::{Loc, Token};
 use crate::validator::Validator;
-use crate::Severity;
 
 use super::provinces::ProvId;
 

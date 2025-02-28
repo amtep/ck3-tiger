@@ -1,16 +1,16 @@
 use std::path::PathBuf;
 
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::game::{Game, GameFlags};
-use crate::helpers::{dup_error, exact_dup_advice, TigerHashMap};
+use crate::helpers::{TigerHashMap, dup_error, exact_dup_advice};
 use crate::item::{Item, ItemLoader};
 use crate::parse::ParserMemory;
 use crate::pdxfile::{PdxEncoding, PdxFile};
-use crate::report::{untidy, warn, ErrorKey, Severity};
+use crate::report::{ErrorKey, Severity, untidy, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;

@@ -4,20 +4,20 @@
 //! Scriptvalues can also be non-dynamic, in the sense of being just a literal or the name of
 //! another script value.
 
-use crate::block::{Block, BlockItem, Comparator, Eq::*, BV};
+use crate::block::{BV, Block, BlockItem, Comparator, Eq::*};
 use crate::context::{Reason, ScopeContext};
 use crate::everything::Everything;
 use crate::helpers::TriBool;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, tips, untidy, warn, ErrorKey, Severity};
-use crate::scopes::{scope_iterator, Scopes};
+use crate::report::{ErrorKey, Severity, err, tips, untidy, warn};
+use crate::scopes::{Scopes, scope_iterator};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target_ok_this, validate_trigger, validate_trigger_key_bv};
 use crate::validate::{
-    precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
-    validate_iterator_fields, validate_scope_chain, ListType,
+    ListType, precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
+    validate_iterator_fields, validate_scope_chain,
 };
 use crate::validator::Validator;
 

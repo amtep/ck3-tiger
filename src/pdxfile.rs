@@ -11,11 +11,11 @@ use encoding_rs::{UTF_8, WINDOWS_1252};
 
 use crate::block::Block;
 use crate::fileset::FileEntry;
+use crate::parse::ParserMemory;
 use crate::parse::pdxfile::parse_pdx_file;
 #[cfg(feature = "ck3")]
-use crate::parse::pdxfile::{parse_reader_export, PdxfileMemory};
-use crate::parse::ParserMemory;
-use crate::report::{err, warn, ErrorKey};
+use crate::parse::pdxfile::{PdxfileMemory, parse_reader_export};
+use crate::report::{ErrorKey, err, warn};
 
 const BOM_UTF8_BYTES: &[u8] = b"\xef\xbb\xbf";
 const BOM_UTF8_LEN: usize = BOM_UTF8_BYTES.len();

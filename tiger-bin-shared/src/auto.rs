@@ -1,17 +1,17 @@
-use std::fs::{read_dir, DirEntry};
+use std::fs::{DirEntry, read_dir};
 use std::mem::forget;
 use std::path::{Path, PathBuf};
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use console::Term;
 #[cfg(any(feature = "ck3", feature = "imperator"))]
 use tiger_lib::ModFile;
 #[cfg(feature = "vic3")]
 use tiger_lib::ModMetadata;
-use tiger_lib::{emit_reports, set_output_file, Everything};
+use tiger_lib::{Everything, emit_reports, set_output_file};
 
-use crate::gamedir::{find_game_directory_steam, find_paradox_directory};
 use crate::GameConsts;
+use crate::gamedir::{find_game_directory_steam, find_paradox_directory};
 
 /// Run the automatic version of the tiger application.
 ///

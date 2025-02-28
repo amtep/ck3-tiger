@@ -1,4 +1,5 @@
-use crate::block::{Block, BV};
+use crate::Everything;
+use crate::block::{BV, Block};
 use crate::ck3::tables::misc::OUTBREAK_INTENSITIES;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
@@ -6,8 +7,8 @@ use crate::desc::validate_desc;
 use crate::effect::validate_effect;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{warn, ErrorKey};
+use crate::modif::{ModifKinds, validate_modifs};
+use crate::report::{ErrorKey, warn};
 use crate::scopes::Scopes;
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
@@ -15,7 +16,6 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_possibly_named_color};
 use crate::validator::Validator;
-use crate::Everything;
 
 #[derive(Clone, Debug)]
 pub struct EpidemicType {}

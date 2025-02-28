@@ -2,7 +2,7 @@
 
 use crate::date::Date;
 use crate::macros::MACRO_MAP;
-use crate::parse::pdxfile::{parse_pdx_macro, MacroComponent, MacroComponentKind, PdxfileMemory};
+use crate::parse::pdxfile::{MacroComponent, MacroComponentKind, PdxfileMemory, parse_pdx_macro};
 use crate::token::{Loc, Token};
 
 mod blockitem;
@@ -129,11 +129,7 @@ impl Block {
 
     /// Check if `name` is a field that has the literal string `value` as its value.
     pub fn field_value_is(&self, name: &str, value: &str) -> bool {
-        if let Some(token) = self.get_field_value(name) {
-            token.is(value)
-        } else {
-            false
-        }
+        if let Some(token) = self.get_field_value(name) { token.is(value) } else { false }
     }
 
     /// Get the value of a literal boolean field

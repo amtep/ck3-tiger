@@ -6,14 +6,14 @@ use std::fs::File;
 use std::ops::{RangeInclusive, RangeToInclusive};
 use std::path::{Path, PathBuf};
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use png::{ColorType, Decoder};
 
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::parse::ParserMemory;
-use crate::report::{err, warn, will_maybe_log, ErrorKey};
+use crate::report::{ErrorKey, err, warn, will_maybe_log};
 
 /// The `rivers.png` has an indexed palette where the colors don't matter, only the index values
 /// used in the pixels matter. Pixels that are not among the values defined here are ignored when

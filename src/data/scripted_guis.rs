@@ -5,7 +5,7 @@ use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{warn, ErrorKey};
+use crate::report::{ErrorKey, warn};
 use crate::scopes::Scopes;
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;

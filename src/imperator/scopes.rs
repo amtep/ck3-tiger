@@ -5,7 +5,7 @@ use std::fmt::Formatter;
 use once_cell::sync::Lazy;
 
 use crate::everything::Everything;
-use crate::helpers::{display_choices, TigerHashMap};
+use crate::helpers::{TigerHashMap, display_choices};
 use crate::item::Item;
 use crate::scopes::{ArgumentValue, Scopes};
 

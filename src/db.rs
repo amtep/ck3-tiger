@@ -13,7 +13,7 @@ use strum::IntoEnumIterator;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
-use crate::helpers::{dup_error, exact_dup_advice, exact_dup_error, TigerHashMap, TigerHashSet};
+use crate::helpers::{TigerHashMap, TigerHashSet, dup_error, exact_dup_advice, exact_dup_error};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::token::Token;

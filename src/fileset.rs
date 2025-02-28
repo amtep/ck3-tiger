@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use std::string::ToString;
 use std::sync::RwLock;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use rayon::prelude::*;
 use walkdir::WalkDir;
 
@@ -23,8 +23,8 @@ use crate::modfile::ModFile;
 use crate::parse::ParserMemory;
 use crate::pathtable::{PathTable, PathTableIndex};
 use crate::report::{
-    add_loaded_dlc_root, add_loaded_mod_root, err, fatal, report, warn_abbreviated, warn_header,
-    will_maybe_log, ErrorKey, Severity,
+    ErrorKey, Severity, add_loaded_dlc_root, add_loaded_mod_root, err, fatal, report,
+    warn_abbreviated, warn_header, will_maybe_log,
 };
 use crate::token::Token;
 
@@ -130,11 +130,7 @@ impl Ord for FileEntry {
         };
 
         // For same paths, the later [`FileKind`] wins.
-        if path_ord == Ordering::Equal {
-            self.kind.cmp(&other.kind)
-        } else {
-            path_ord
-        }
+        if path_ord == Ordering::Equal { self.kind.cmp(&other.kind) } else { path_ord }
     }
 }
 

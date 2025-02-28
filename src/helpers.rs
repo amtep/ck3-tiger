@@ -5,7 +5,7 @@ use bimap::BiHashMap;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-use crate::report::{tips, warn, ErrorKey};
+use crate::report::{ErrorKey, tips, warn};
 use crate::token::Token;
 
 pub type TigerHashMap<K, V> = HashMap<K, V>;

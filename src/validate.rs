@@ -2,7 +2,7 @@
 
 use std::fmt::{Display, Formatter};
 
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 #[cfg(feature = "ck3")]
 use crate::ck3::validate::{
     validate_activity_modifier, validate_ai_value_modifier, validate_compare_modifier,
@@ -14,7 +14,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, fatal, report, warn, Confidence, ErrorKey, Severity};
+use crate::report::{Confidence, ErrorKey, Severity, err, fatal, report, warn};
 #[cfg(feature = "ck3")]
 use crate::scopes::Scopes;
 use crate::scopes::{scope_prefix, scope_to_scope};
@@ -24,8 +24,8 @@ use crate::tooltipped::Tooltipped;
 #[cfg(feature = "ck3")]
 use crate::trigger::validate_target_ok_this;
 use crate::trigger::{
-    partition, validate_argument, validate_argument_scope, validate_inscopes, validate_trigger,
-    validate_trigger_internal, warn_not_first, Part, PartFlags,
+    Part, PartFlags, partition, validate_argument, validate_argument_scope, validate_inscopes,
+    validate_trigger, validate_trigger_internal, warn_not_first,
 };
 use crate::validator::Validator;
 

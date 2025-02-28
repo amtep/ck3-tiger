@@ -13,10 +13,10 @@ use crate::game::GameFlags;
 use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::item::ItemLoader;
-use crate::parse::csv::{parse_csv, read_csv};
 use crate::parse::ParserMemory;
+use crate::parse::csv::{parse_csv, read_csv};
 use crate::pdxfile::{PdxEncoding, PdxFile};
-use crate::report::{err, fatal, report, untidy, warn, ErrorKey, Severity};
+use crate::report::{ErrorKey, Severity, err, fatal, report, untidy, warn};
 use crate::token::{Loc, Token};
 use crate::validator::Validator;
 

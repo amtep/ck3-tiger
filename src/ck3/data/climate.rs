@@ -5,7 +5,7 @@ use crate::game::GameFlags;
 use crate::helpers::TigerHashSet;
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::PdxEncoding;
-use crate::report::{untidy, warn, ErrorKey};
+use crate::report::{ErrorKey, untidy, warn};
 use crate::token::Token;
 use crate::validator::Validator;
 

@@ -1,12 +1,12 @@
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::modif::{validate_modifs, ModifKinds};
+use crate::modif::{ModifKinds, validate_modifs};
 use crate::pdxfile::PdxEncoding;
-use crate::report::{untidy, warn, ErrorKey};
+use crate::report::{ErrorKey, untidy, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::util::SmartJoin;

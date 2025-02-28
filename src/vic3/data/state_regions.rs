@@ -27,7 +27,7 @@ impl DbKind for StateRegion {
 
         vd.req_field("id");
         vd.field_integer("id"); // TODO: verify unique?
-                                // TODO: check that it's actually a subsistence building
+        // TODO: check that it's actually a subsistence building
         vd.field_item("subsistence_building", Item::BuildingType);
         vd.req_field("provinces");
         vd.field_list_items("provinces", Item::Province);

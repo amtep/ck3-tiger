@@ -7,9 +7,9 @@ use std::fs::read_to_string;
 use std::mem::{swap, take};
 
 use crate::block::Eq::Single;
-use crate::block::{Block, Comparator, BV};
+use crate::block::{BV, Block, Comparator};
 use crate::fileset::FileEntry;
-use crate::report::{err, warn, ErrorKey};
+use crate::report::{ErrorKey, err, warn};
 use crate::token::{Loc, Token};
 
 #[derive(Copy, Clone, Debug)]

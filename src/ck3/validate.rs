@@ -1,11 +1,11 @@
 //! Validation functions that are useful for more than one data module in ck3.
 
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{err, fatal, warn, ErrorKey};
+use crate::report::{ErrorKey, err, fatal, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;

@@ -1,9 +1,9 @@
 use std::collections::{HashMap, HashSet};
-use std::fs::{read_dir, read_to_string, File};
+use std::fs::{File, read_dir, read_to_string};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use clap::{Parser, ValueEnum};
 use strum_macros::Display;
 

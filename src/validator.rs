@@ -3,17 +3,17 @@ use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Bound, RangeBounds};
 use std::str::FromStr;
 
-use crate::block::{Block, BlockItem, Comparator, Eq::*, Field, BV};
+use crate::block::{BV, Block, BlockItem, Comparator, Eq::*, Field};
 use crate::context::ScopeContext;
 use crate::date::Date;
 use crate::effect::validate_effect_internal;
 use crate::everything::Everything;
-use crate::helpers::{dup_assign_error, TigerHashSet};
+use crate::helpers::{TigerHashSet, dup_assign_error};
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 #[cfg(feature = "ck3")]
 use crate::report::fatal;
-use crate::report::{report, ErrorKey, Severity};
+use crate::report::{ErrorKey, Severity, report};
 use crate::scopes::Scopes;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::script_value::validate_script_value_no_breakdown;
@@ -322,11 +322,7 @@ impl<'a> Validator<'a> {
                 found = Some((key, bv));
             }
         }
-        if let Some((_, bv)) = found {
-            Some(bv)
-        } else {
-            None
-        }
+        if let Some((_, bv)) = found { Some(bv) } else { None }
     }
 
     /// Expect field `name`, if present, to be an assignment (`name = value`).

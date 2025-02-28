@@ -1,12 +1,12 @@
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::{Game, GameFlags};
-use crate::helpers::{dup_error, TigerHashSet};
+use crate::helpers::{TigerHashSet, dup_error};
 use crate::item::{Item, ItemLoader};
-use crate::report::{err, fatal, warn, ErrorKey};
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::report::{Confidence, Severity};
+use crate::report::{ErrorKey, err, fatal, warn};
 use crate::token::Token;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::validate::validate_numeric_range;

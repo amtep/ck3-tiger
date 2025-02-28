@@ -1,4 +1,5 @@
-use crate::block::{Block, BV};
+use crate::Everything;
+use crate::block::{BV, Block};
 use crate::ck3::scopes::scope_from_snake_case;
 use crate::ck3::tables::misc::LEGEND_QUALITY;
 use crate::ck3::validate::validate_cost;
@@ -9,8 +10,8 @@ use crate::effect::validate_effect;
 use crate::game::GameFlags;
 use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::item::{Item, ItemLoader};
-use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{err, ErrorKey};
+use crate::modif::{ModifKinds, validate_modifs};
+use crate::report::{ErrorKey, err};
 use crate::scopes::Scopes;
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value_no_breakdown};
 use crate::token::Token;
@@ -18,7 +19,6 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_trigger};
 use crate::validate::{validate_duration, validate_possibly_named_color};
 use crate::validator::Validator;
-use crate::Everything;
 
 #[derive(Clone, Debug)]
 pub struct LegendType {}

@@ -1,5 +1,5 @@
 use crate::block::Block;
-use crate::report::{err, ErrorKey};
+use crate::report::{ErrorKey, err};
 use crate::token::Token;
 
 /// `BV` is an component a `Field`, which represents keyed items in `Block`.

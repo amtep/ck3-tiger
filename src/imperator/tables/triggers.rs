@@ -3,7 +3,7 @@ use once_cell::sync::Lazy;
 use crate::everything::Everything;
 use crate::helpers::TigerHashMap;
 use crate::item::Item;
-use crate::report::{warn, ErrorKey};
+use crate::report::{ErrorKey, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::trigger::Trigger;

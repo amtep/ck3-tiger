@@ -1,4 +1,4 @@
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::ck3::data::legends::LegendChronicle;
 use crate::ck3::tables::misc::{LEGEND_QUALITY, OUTBREAK_INTENSITIES, TITLE_HISTORY_TYPES};
 use crate::ck3::validate::{
@@ -12,15 +12,15 @@ use crate::everything::Everything;
 use crate::helpers::TigerHashSet;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, warn, ErrorKey};
+use crate::report::{ErrorKey, err, warn};
 use crate::scopes::Scopes;
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_target_ok_this, validate_trigger};
 use crate::validate::{
-    validate_duration, validate_mandatory_duration, validate_optional_duration,
-    validate_optional_duration_int, ListType,
+    ListType, validate_duration, validate_mandatory_duration, validate_optional_duration,
+    validate_optional_duration_int,
 };
 use crate::validator::{Builder, Validator, ValueValidator};
 

@@ -10,7 +10,7 @@ use crate::block::Block;
 use crate::fileset::{FileEntry, FileKind};
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-use crate::report::{untidy, warn, ErrorKey};
+use crate::report::{ErrorKey, untidy, warn};
 use crate::token::Token;
 use crate::util::fix_slashes_for_target_platform;
 

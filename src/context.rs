@@ -3,8 +3,8 @@
 use std::borrow::Cow;
 
 use crate::game::Game;
-use crate::helpers::{stringify_choices, ActionOrEvent, TigerHashMap};
-use crate::report::{err, warn, ErrorKey, ReportBuilderStage3};
+use crate::helpers::{ActionOrEvent, TigerHashMap, stringify_choices};
+use crate::report::{ErrorKey, ReportBuilderStage3, err, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 

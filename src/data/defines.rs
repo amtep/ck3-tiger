@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_error, TigerHashMap};
+use crate::helpers::{TigerHashMap, dup_error};
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::token::Token;

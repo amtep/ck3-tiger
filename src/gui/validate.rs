@@ -1,7 +1,7 @@
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::context::ScopeContext;
 use crate::data::localization::LocaValue;
-use crate::datatype::{validate_datatypes, Datatype};
+use crate::datatype::{Datatype, validate_datatypes};
 use crate::everything::Everything;
 #[cfg(feature = "ck3")]
 use crate::game::Game;
@@ -11,7 +11,7 @@ use crate::gui::{GuiCategories, GuiValidation, PropertyContainer, WidgetProperty
 use crate::helpers::stringify_choices;
 use crate::item::Item;
 use crate::parse::localization::ValueParser;
-use crate::report::{err, warn, ErrorKey, Severity};
+use crate::report::{ErrorKey, Severity, err, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::validator::Validator;

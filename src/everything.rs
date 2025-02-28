@@ -10,13 +10,13 @@ use std::path::{Path, PathBuf};
 use std::sync::RwLock;
 
 use anyhow::Result;
-use rayon::{scope, Scope};
+use rayon::{Scope, scope};
 use strum::IntoEnumIterator;
 use thiserror::Error;
 
-use crate::block::Block;
 #[cfg(feature = "ck3")]
 use crate::block::BV;
+use crate::block::Block;
 #[cfg(feature = "ck3")]
 use crate::ck3::data::{
     characters::Characters,
@@ -67,13 +67,13 @@ use crate::imperator::tables::misc::*;
 use crate::item::{Item, ItemLoader};
 use crate::lowercase::Lowercase;
 use crate::macros::MACRO_MAP;
+use crate::parse::ParserMemory;
 #[cfg(feature = "vic3")]
 use crate::parse::json::parse_json_file;
-use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 #[cfg(feature = "ck3")]
 use crate::report::err;
-use crate::report::{report, set_output_style, ErrorKey, OutputStyle, Severity};
+use crate::report::{ErrorKey, OutputStyle, Severity, report, set_output_style};
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
 #[cfg(feature = "vic3")]

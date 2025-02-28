@@ -18,19 +18,19 @@ use crate::block::Block;
 #[cfg(feature = "ck3")]
 use crate::ck3::tables::localization::{BUILTIN_MACROS_CK3, COMPLEX_TOOLTIPS_CK3};
 use crate::context::ScopeContext;
-use crate::datatype::{validate_datatypes, CodeChain, Datatype};
+use crate::datatype::{CodeChain, Datatype, validate_datatypes};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::game::Game;
-use crate::helpers::{dup_error, stringify_list, TigerHashMap};
+use crate::helpers::{TigerHashMap, dup_error, stringify_list};
 #[cfg(feature = "imperator")]
 use crate::imperator::tables::localization::BUILTIN_MACROS_IMPERATOR;
 use crate::item::Item;
-use crate::macros::{MacroMapIndex, MACRO_MAP};
-use crate::parse::localization::{parse_loca, ValueParser};
+use crate::macros::{MACRO_MAP, MacroMapIndex};
 use crate::parse::ParserMemory;
+use crate::parse::localization::{ValueParser, parse_loca};
 use crate::report::{
-    err, report, warn, warn_abbreviated, warn_header, will_maybe_log, ErrorKey, Severity,
+    ErrorKey, Severity, err, report, warn, warn_abbreviated, warn_header, will_maybe_log,
 };
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -167,11 +167,15 @@ impl LocaEntry {
                                 // same as above... we can't know what value it really has
                                 vec.push(keyword.clone().linked(link));
                             } else {
-                                let msg = &format!("The substitution parameter ${keyword}$ is not defined anywhere as a key.");
+                                let msg = &format!(
+                                    "The substitution parameter ${keyword}$ is not defined anywhere as a key."
+                                );
                                 warn(ErrorKey::Localization).msg(msg).loc(keyword).push();
                             }
                         } else {
-                            let msg = &format!("The substitution parameter ${keyword}$ is not defined anywhere as a key.");
+                            let msg = &format!(
+                                "The substitution parameter ${keyword}$ is not defined anywhere as a key."
+                            );
                             warn(ErrorKey::Localization).msg(msg).loc(keyword).push();
                         }
                     }

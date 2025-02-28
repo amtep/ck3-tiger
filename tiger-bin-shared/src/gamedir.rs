@@ -1,9 +1,9 @@
 //! Helper functions for finding the base and mod directories of the game being validated.
 
-use std::path::{Path, PathBuf};
 use std::env::home_dir;
+use std::path::{Path, PathBuf};
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use steamlocate::SteamDir;
 
 // How to find the paradox local files dir on different systems

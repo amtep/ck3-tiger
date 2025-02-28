@@ -1,6 +1,6 @@
 //! Validators for effects that are generic across multiple games.
 
-use crate::block::{Block, Comparator, Eq::Single, BV};
+use crate::block::{BV, Block, Comparator, Eq::Single};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_effect_control};
@@ -9,7 +9,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, warn, ErrorKey, Severity};
+use crate::report::{ErrorKey, Severity, err, warn};
 use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
 use crate::token::Token;

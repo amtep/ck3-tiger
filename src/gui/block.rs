@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use crate::block::{Block, BlockItem, Comparator, Eq::Single, Field, BV};
+use crate::block::{BV, Block, BlockItem, Comparator, Eq::Single, Field};
 use crate::data::gui::{GuiTemplate, GuiType};
 use crate::everything::Everything;
 use crate::gui::validate::validate_property;
 use crate::gui::{BuiltinWidget, GuiValidation, PropertyContainer, WidgetProperty};
 use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::lowercase::Lowercase;
-use crate::report::{err, untidy, warn, ErrorKey};
+use crate::report::{ErrorKey, err, untidy, warn};
 use crate::token::Token;
 
 /// An element of a [`GuiBlock`]

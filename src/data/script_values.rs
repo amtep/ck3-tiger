@@ -1,14 +1,14 @@
 use std::path::PathBuf;
 use std::sync::RwLock;
 
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::helpers::{dup_error, exact_dup_error, TigerHashMap, BANNED_NAMES};
+use crate::helpers::{BANNED_NAMES, TigerHashMap, dup_error, exact_dup_error};
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, warn, ErrorKey};
+use crate::report::{ErrorKey, err, warn};
 use crate::scopes::Scopes;
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::{Loc, Token};

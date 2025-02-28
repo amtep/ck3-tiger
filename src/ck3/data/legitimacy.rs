@@ -1,15 +1,15 @@
+use crate::Everything;
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::modif::{validate_modifs, ModifKinds};
+use crate::modif::{ModifKinds, validate_modifs};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validator::Validator;
-use crate::Everything;
 
 #[derive(Clone, Debug)]
 pub struct LegitimacyType {}

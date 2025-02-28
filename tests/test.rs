@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
-use tiger_lib::{take_reports, Everything, LogReport};
+use tiger_lib::{Everything, LogReport, take_reports};
 
 lazy_static! {
     static ref TEST_MUTEX: Mutex<()> = Mutex::new(());

@@ -7,11 +7,11 @@ use std::path::PathBuf;
 
 use strum::IntoEnumIterator;
 
-use crate::block::{Block, BlockItem, Comparator, Eq::*, Field, BV};
+use crate::block::{BV, Block, BlockItem, Comparator, Eq::*, Field};
 use crate::helpers::stringify_list;
 use crate::report::{
-    err, set_predicate, set_show_loaded_mods, set_show_vanilla, Confidence, ErrorKey, ErrorLoc,
-    FilterRule, PointedMessage, Severity,
+    Confidence, ErrorKey, ErrorLoc, FilterRule, PointedMessage, Severity, err, set_predicate,
+    set_show_loaded_mods, set_show_vanilla,
 };
 
 /// Checks for legacy ignore blocks (that no longer work) and report an error if they are present.
@@ -271,22 +271,14 @@ fn load_keys_array(array_block: &Block) -> Option<FilterRule> {
                 None
             }
         }).collect();
-    if keys.is_empty() {
-        None
-    } else {
-        Some(FilterRule::Disjunction(keys))
-    }
+    if keys.is_empty() { None } else { Some(FilterRule::Disjunction(keys)) }
 }
 fn load_files_array(array_block: &Block) -> Option<FilterRule> {
     let files: Vec<_> = array_block
         .iter_values_warn()
         .map(|token| FilterRule::File(PathBuf::from(token.as_str())))
         .collect();
-    if files.is_empty() {
-        None
-    } else {
-        Some(FilterRule::Disjunction(files))
-    }
+    if files.is_empty() { None } else { Some(FilterRule::Disjunction(files)) }
 }
 
 fn load_rule_severity(comparator: Comparator, value: &BV) -> Option<FilterRule> {

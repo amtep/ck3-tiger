@@ -1,5 +1,5 @@
-use crate::block::Block;
 use crate::block::BV;
+use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;

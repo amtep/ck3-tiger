@@ -1,13 +1,13 @@
 //! Validator for the `.dds` (picture) files that are used in the game.
 
-use std::fs::{metadata, File};
+use std::fs::{File, metadata};
 use std::io::{Read, Result};
 use std::path::PathBuf;
 
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::TigerHashMap;
 use crate::parse::ParserMemory;
-use crate::report::{err, tips, warn, ErrorKey};
+use crate::report::{ErrorKey, err, tips, warn};
 #[cfg(feature = "ck3")]
 use crate::token::Token;
 

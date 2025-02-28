@@ -1,4 +1,4 @@
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::context::ScopeContext;
 use crate::data::events::Event;
 use crate::desc::validate_desc;
@@ -10,7 +10,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validate::{validate_ai_chance, validate_duration, ListType};
+use crate::validate::{ListType, validate_ai_chance, validate_duration};
 use crate::validator::Validator;
 use crate::vic3::tables::misc::EVENT_CATEGORIES;
 

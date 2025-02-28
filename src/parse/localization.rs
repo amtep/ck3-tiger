@@ -6,8 +6,8 @@ use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
 use crate::parse::cob::Cob;
-use crate::report::{untidy, warn, ErrorKey};
-use crate::token::{leak, Loc, Token};
+use crate::report::{ErrorKey, untidy, warn};
+use crate::token::{Loc, Token, leak};
 
 fn is_key_char(c: char) -> bool {
     c.is_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '\''
@@ -787,11 +787,7 @@ impl<'a> ValueParser<'a> {
 
     pub fn parse(self) -> LocaValue {
         let mut value = self.parse_vec();
-        if value.len() == 1 {
-            value.remove(0)
-        } else {
-            LocaValue::Concat(value)
-        }
+        if value.len() == 1 { value.remove(0) } else { LocaValue::Concat(value) }
     }
 }
 

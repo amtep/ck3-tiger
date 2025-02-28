@@ -8,12 +8,12 @@ use crate::data::scripted_triggers::Trigger;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::game::Game;
-use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
+use crate::helpers::{TigerHashMap, TigerHashSet, dup_error};
 use crate::item::Item;
 use crate::parse::ParserMemory;
 use crate::pathtable::PathTableIndex;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, warn, ErrorKey};
+use crate::report::{ErrorKey, err, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 

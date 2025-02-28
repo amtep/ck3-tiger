@@ -4,7 +4,7 @@
 //! - The user is forced to add at least one pointer, making it impossible to create a report
 //!     without pointers, which would lead to panics.
 
-use crate::report::{log, Confidence, ErrorKey, ErrorLoc, LogReport, PointedMessage, Severity};
+use crate::report::{Confidence, ErrorKey, ErrorLoc, LogReport, PointedMessage, Severity, log};
 
 // =================================================================================================
 // =============== Starting points:

@@ -2,8 +2,8 @@
 
 use std::cell::RefCell;
 use std::cmp::Ordering;
-use std::fs::{read, File};
-use std::io::{stdout, Write};
+use std::fs::{File, read};
+use std::io::{Write, stdout};
 use std::mem::take;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
@@ -20,7 +20,7 @@ use crate::report::suppress::{Suppression, SuppressionKey};
 use crate::report::writer::log_report;
 use crate::report::writer_json::log_report_json;
 use crate::report::{ErrorKey, FilterRule, LogReport, OutputStyle, PointedMessage};
-use crate::token::{leak, Loc};
+use crate::token::{Loc, leak};
 
 static ERRORS: Lazy<Mutex<Errors>> = Lazy::new(|| Mutex::new(Errors::default()));
 

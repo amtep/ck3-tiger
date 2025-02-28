@@ -1,4 +1,4 @@
-use crate::block::{Block, BlockItem, Field, BV};
+use crate::block::{BV, Block, BlockItem, Field};
 use crate::fileset::FileEntry;
 use crate::token::{Loc, Token};
 use crate::trigger::Part;

@@ -99,7 +99,9 @@ impl OutputStyle {
             self.map.insert(Styled::Tag(severity, true), color.bold());
             self.map.insert(Styled::Tag(severity, false), color.normal());
         } else {
-            eprintln!("Tried to set ErrorLevel::{severity} to color {color_str}, but that color was not recognised! Defaulting to regular color instead.\nSupported colors are Black, Red, Green, Yellow, Blue, Purple, Cyan, White.");
+            eprintln!(
+                "Tried to set ErrorLevel::{severity} to color {color_str}, but that color was not recognised! Defaulting to regular color instead.\nSupported colors are Black, Red, Green, Yellow, Blue, Purple, Cyan, White."
+            );
         }
     }
 }

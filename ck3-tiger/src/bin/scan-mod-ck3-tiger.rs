@@ -5,9 +5,9 @@ use std::fs::write;
 use std::mem::forget;
 use std::path::PathBuf;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use clap::Parser;
-use serde_json::{json, to_string_pretty, Value};
+use serde_json::{Value, json, to_string_pretty};
 use strum::IntoEnumIterator;
 
 use tiger_lib::{Everything, FileKind, Game, Item, ModFile};

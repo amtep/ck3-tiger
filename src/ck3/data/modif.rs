@@ -4,7 +4,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::modif::{verify_modif_exists, ModifKinds};
+use crate::modif::{ModifKinds, verify_modif_exists};
 use crate::report::Severity;
 use crate::token::Token;
 use crate::validator::Validator;

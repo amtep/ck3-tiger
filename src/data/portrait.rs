@@ -1,4 +1,4 @@
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::context::ScopeContext;
 use crate::data::genes::{AccessoryGene, Gene};
 use crate::db::{Db, DbKind};
@@ -6,7 +6,7 @@ use crate::everything::Everything;
 use crate::game::{Game, GameFlags};
 use crate::item::{Item, ItemLoader};
 use crate::pdxfile::PdxEncoding;
-use crate::report::{err, warn, Confidence, ErrorKey, Severity};
+use crate::report::{Confidence, ErrorKey, Severity, err, warn};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;

@@ -11,7 +11,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::item::Item;
-use crate::report::{err, ErrorKey, Severity};
+use crate::report::{ErrorKey, Severity, err};
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::validator::Validator;

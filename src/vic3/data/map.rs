@@ -3,7 +3,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{untidy, ErrorKey};
+use crate::report::{ErrorKey, untidy};
 use crate::token::Token;
 use crate::validator::Validator;
 

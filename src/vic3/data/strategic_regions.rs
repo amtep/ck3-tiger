@@ -4,7 +4,7 @@ use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::helpers::TigerHashMap;
 use crate::item::{Item, ItemLoader};
-use crate::report::{err, ErrorKey};
+use crate::report::{ErrorKey, err};
 use crate::token::Token;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;

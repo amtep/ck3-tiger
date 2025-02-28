@@ -1,6 +1,6 @@
 //! Validate effects, which are parts of the script that change the game state.
 
-use crate::block::{Block, Comparator, Eq::*, BV};
+use crate::block::{BV, Block, Comparator, Eq::*};
 use crate::context::{Reason, ScopeContext};
 use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
@@ -8,8 +8,8 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, fatal, tips, warn, ErrorKey};
-use crate::scopes::{scope_iterator, Scopes};
+use crate::report::{ErrorKey, err, fatal, tips, warn};
+use crate::scopes::{Scopes, scope_iterator};
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -23,8 +23,8 @@ use crate::validate::validate_modifiers;
 #[cfg(feature = "vic3")]
 use crate::validate::validate_vic3_modifiers;
 use crate::validate::{
-    precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
-    validate_iterator_fields, validate_scope_chain, validate_scripted_modifier_call, ListType,
+    ListType, precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
+    validate_iterator_fields, validate_scope_chain, validate_scripted_modifier_call,
 };
 use crate::validator::{Validator, ValueValidator};
 

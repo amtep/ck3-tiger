@@ -1,4 +1,4 @@
-use crate::block::{Block, BV};
+use crate::block::{BV, Block};
 use crate::ck3::validate::validate_camera_color;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;

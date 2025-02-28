@@ -3,7 +3,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{err, fatal, ErrorKey};
+use crate::report::{ErrorKey, err, fatal};
 use crate::token::Token;
 use crate::validate::validate_color;
 use crate::validator::Validator;
@@ -33,11 +33,7 @@ impl DbKind for Region {
         property: &str,
         _data: &Everything,
     ) -> bool {
-        if property == "generates_modifiers" {
-            self.generates_modifiers
-        } else {
-            false
-        }
+        if property == "generates_modifiers" { self.generates_modifiers } else { false }
     }
 
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
