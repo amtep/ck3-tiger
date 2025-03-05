@@ -268,6 +268,7 @@ impl Fileset {
     }
 
     pub fn config(&mut self, config: Block) -> Result<()> {
+        let config_path = config.loc.fullpath();
         for block in config.get_field_blocks("load_mod") {
             let mod_idx;
             if let Ok(idx) = u8::try_from(self.loaded_mods.len()) {
@@ -282,7 +283,10 @@ impl Fileset {
             if Game::is_ck3() || Game::is_imperator() {
                 #[cfg(any(feature = "ck3", feature = "imperator"))]
                 if let Some(path) = block.get_field_value("modfile") {
-                    let path = PathBuf::from(path.as_str());
+                    let path = config_path
+                        .parent()
+                        .unwrap() // SAFETY: known to be for a file in a directory
+                        .join(path.as_str());
                     let modfile = ModFile::read(&path)?;
                     eprintln!(
                         "Loading secondary mod {label} from: {}{}",
@@ -306,7 +310,10 @@ impl Fileset {
             } else if Game::is_vic3() {
                 #[cfg(feature = "vic3")]
                 if let Some(path) = block.get_field_value("mod") {
-                    let pathdir = PathBuf::from(path.as_str());
+                    let pathdir = config_path
+                        .parent()
+                        .unwrap() // SAFETY: known to be for a file in a directory
+                        .join(path.as_str());
                     if let Ok(metadata) = ModMetadata::read(&pathdir) {
                         eprintln!(
                             "Loading secondary mod {label} from: {}{}",
