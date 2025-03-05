@@ -1,5 +1,5 @@
 //! Helper functions for finding the base and mod directories of the game being validated.
-
+#[allow(deprecated)]
 use std::env::home_dir;
 use std::path::{Path, PathBuf};
 
@@ -24,6 +24,7 @@ pub fn find_game_directory_steam(steam_app_id: u32) -> Result<PathBuf> {
 }
 
 pub fn find_paradox_directory(dir_under: &Path) -> Option<PathBuf> {
+    #[allow(deprecated)]
     if let Some(home) = home_dir() {
         for try_dir in &[PDX_LINUX, PDX_MAC, PDX_WINDOWS] {
             let full_try_dir = home.join(try_dir).join(dir_under);
