@@ -1,27 +1,35 @@
-default_job = "build_ck3"
+default_job = "build_lib"
+
+[jobs.build_lib]
+command = ["cargo", "build", "--color", "always", "-p", "tiger-lib"]
+need_stdout = false
 
 [jobs.build_ck3]
-command = ["cargo", "build", "--color", "always", "-p", "ck3-tiger", "--release"]
+command = ["cargo", "build", "--color", "always", "-p", "ck3-tiger"]
 need_stdout = false
 
 [jobs.build_vic3]
-command = ["cargo", "build", "--color", "always", "-p", "vic3-tiger", "--release"]
+command = ["cargo", "build", "--color", "always", "-p", "vic3-tiger"]
 need_stdout = false
 
 [jobs.build_imperator]
-command = ["cargo", "build", "--color", "always", "-p", "imperator-tiger", "--release"]
+command = ["cargo", "build", "--color", "always", "-p", "imperator-tiger"]
+need_stdout = false
+
+[jobs.clippy_lib]
+command = ["cargo", "clippy", "--color", "always", "-p", "tiger-lib"]
 need_stdout = false
 
 [jobs.clippy_ck3]
-command = ["cargo", "clippy", "--color", "always", "-p", "ck3-tiger", "--release"]
+command = ["cargo", "clippy", "--color", "always", "-p", "ck3-tiger"]
 need_stdout = false
 
 [jobs.clippy_vic3]
-command = ["cargo", "clippy", "--color", "always", "-p", "vic3-tiger", "--release"]
+command = ["cargo", "clippy", "--color", "always", "-p", "vic3-tiger"]
 need_stdout = false
 
 [jobs.clippy_imperator]
-command = ["cargo", "clippy", "--color", "always", "-p", "imperator-tiger", "--release"]
+command = ["cargo", "clippy", "--color", "always", "-p", "imperator-tiger"]
 need_stdout = false
 
 [jobs.test]
@@ -33,9 +41,11 @@ command = ["cargo", "doc", "--color", "always", "--features", "ck3 vic3 imperato
 need_stdout = false
 
 [keybindings]
+"`" = "job:build_lib"
 1 = "job:build_ck3"
 2 = "job:build_vic3"
 3 = "job:build_imperator"
+"~" = "job:clippy_lib"
 "!" = "job:clippy_ck3"
 "@" = "job:clippy_vic3"
 "#" = "job:clippy_imperator"
