@@ -1,4 +1,4 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::ck3::effect_validation::*;
 use crate::ck3::tables::misc::{LEGEND_QUALITY, OUTBREAK_INTENSITIES};
@@ -43,13 +43,14 @@ pub fn scope_effect(name: &Token, data: &Everything) -> Option<(Scopes, Effect)>
 }
 
 /// A hashed version of [`SCOPE_EFFECT`], for quick lookup by effect name.
-static SCOPE_EFFECT_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Effect)>> = Lazy::new(|| {
-    let mut hash = TigerHashMap::default();
-    for (from, s, effect) in SCOPE_EFFECT.iter().copied() {
-        hash.insert(s, (from, effect));
-    }
-    hash
-});
+static SCOPE_EFFECT_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Effect)>> =
+    LazyLock::new(|| {
+        let mut hash = TigerHashMap::default();
+        for (from, s, effect) in SCOPE_EFFECT.iter().copied() {
+            hash.insert(s, (from, effect));
+        }
+        hash
+    });
 
 // LAST UPDATED CK3 VERSION 1.14.0.2
 // See `effects.log` from the game data dumps

@@ -4,8 +4,8 @@
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
+use std::sync::LazyLock;
 
-use once_cell::sync::Lazy;
 use phf::phf_map;
 use strum_macros::{Display, EnumString};
 
@@ -853,7 +853,7 @@ fn lookup_alternative(lookup_name: &'static str) -> Option<&'static str> {
     lowercase_datatype_set.get(&CaseInsensitiveStr(lookup_name)).map(|x| x.0)
 }
 
-fn datatype_and_scope_map() -> &'static Lazy<BiTigerHashMap<Datatype, Scopes>> {
+fn datatype_and_scope_map() -> &'static LazyLock<BiTigerHashMap<Datatype, Scopes>> {
     match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => &crate::ck3::tables::datafunctions::DATATYPE_AND_SCOPE_MAP,

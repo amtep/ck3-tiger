@@ -1,12 +1,9 @@
-use lazy_static::lazy_static;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 
 use tiger_lib::{take_reports, Everything, LogReport};
 
-lazy_static! {
-    static ref TEST_MUTEX: Mutex<()> = Mutex::new(());
-}
+static TEST_MUTEX: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
 fn check_mod_helper(modname: &str) -> Vec<LogReport> {
     let _guard = TEST_MUTEX.lock().unwrap();

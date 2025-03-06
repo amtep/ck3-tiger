@@ -1,8 +1,7 @@
 #![allow(non_upper_case_globals)]
 
 use std::borrow::Cow;
-
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::everything::Everything;
 use crate::helpers::TigerHashMap;
@@ -576,7 +575,7 @@ pub fn modif_loc(name: &Token, data: &Everything) -> (Cow<'static, str>, Cow<'st
     (Cow::Borrowed(name.as_str()), Cow::Owned(desc_loc))
 }
 
-static MODIF_MAP: Lazy<TigerHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new(|| {
+static MODIF_MAP: LazyLock<TigerHashMap<Lowercase<'static>, ModifKinds>> = LazyLock::new(|| {
     let mut hash = TigerHashMap::default();
     for (s, kind) in MODIF_TABLE.iter().copied() {
         hash.insert(Lowercase::new_unchecked(s), kind);
@@ -939,13 +938,14 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("unit_supply_consumption_mult", ModifKinds::Unit),
 ];
 
-static MODIF_REMOVED_MAP: Lazy<TigerHashMap<Lowercase<'static>, &'static str>> = Lazy::new(|| {
-    let mut hash = TigerHashMap::default();
-    for (s, info) in MODIF_REMOVED_TABLE.iter().copied() {
-        hash.insert(Lowercase::new_unchecked(s), info);
-    }
-    hash
-});
+static MODIF_REMOVED_MAP: LazyLock<TigerHashMap<Lowercase<'static>, &'static str>> =
+    LazyLock::new(|| {
+        let mut hash = TigerHashMap::default();
+        for (s, info) in MODIF_REMOVED_TABLE.iter().copied() {
+            hash.insert(Lowercase::new_unchecked(s), info);
+        }
+        hash
+    });
 
 const MODIF_REMOVED_TABLE: &[(&str, &str)] = &[
     ("building_input_mult", "replaced in 1.5 with building_goods_input_mult"),

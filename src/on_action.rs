@@ -3,7 +3,7 @@
 //! On-actions are script items that are called by the game engine, either at scheduled intervals
 //! or when certain things happen.
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::block::BV;
 use crate::context::ScopeContext;
@@ -23,16 +23,17 @@ struct OnActionScopeContext {
     lists: Vec<(String, Scopes)>,
 }
 
-static ON_ACTION_SCOPES_MAP: Lazy<TigerHashMap<String, OnActionScopeContext>> = Lazy::new(|| {
-    build_on_action_hashmap(match Game::game() {
-        #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::tables::on_action::ON_ACTION_SCOPES,
-        #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::tables::on_action::ON_ACTION_SCOPES,
-        #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::tables::on_action::ON_ACTION_SCOPES,
-    })
-});
+static ON_ACTION_SCOPES_MAP: LazyLock<TigerHashMap<String, OnActionScopeContext>> =
+    LazyLock::new(|| {
+        build_on_action_hashmap(match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => crate::ck3::tables::on_action::ON_ACTION_SCOPES,
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => crate::vic3::tables::on_action::ON_ACTION_SCOPES,
+            #[cfg(feature = "imperator")]
+            Game::Imperator => crate::imperator::tables::on_action::ON_ACTION_SCOPES,
+        })
+    });
 
 #[allow(unused_variables)] // only ck3 uses `data`
 pub fn on_action_scopecontext(key: &Token, data: &Everything) -> Option<ScopeContext> {

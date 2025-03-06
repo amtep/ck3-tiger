@@ -1,9 +1,9 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::helpers::TigerHashSet;
 
-pub(crate) static BUILTIN_MACROS_IMPERATOR: Lazy<TigerHashSet<&'static str>> =
-    Lazy::new(|| BUILTIN_MACROS.iter().copied().collect());
+pub(crate) static BUILTIN_MACROS_IMPERATOR: LazyLock<TigerHashSet<&'static str>> =
+    LazyLock::new(|| BUILTIN_MACROS.iter().copied().collect());
 
 // LAST UPDATED IMPERATOR VERSION 2.0.4
 // The table entries were collected by analyzing tiger's own output.

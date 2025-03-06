@@ -1,9 +1,9 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::helpers::TigerHashSet;
 
-pub(crate) static BUILTIN_MACROS_VIC3: Lazy<TigerHashSet<&'static str>> =
-    Lazy::new(|| BUILTIN_MACROS.iter().copied().collect());
+pub(crate) static BUILTIN_MACROS_VIC3: LazyLock<TigerHashSet<&'static str>> =
+    LazyLock::new(|| BUILTIN_MACROS.iter().copied().collect());
 
 // LAST UPDATED VIC3 VERSION 1.6.2
 // The table entries were collected by analyzing tiger's own output.

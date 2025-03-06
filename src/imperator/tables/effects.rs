@@ -1,4 +1,4 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::effect::Effect;
 use crate::effect_validation::*;
@@ -16,13 +16,14 @@ pub fn scope_effect(name: &Token, _data: &Everything) -> Option<(Scopes, Effect)
 }
 
 /// A hashed version of [`SCOPE_EFFECT`], for quick lookup by effect name.
-static SCOPE_EFFECT_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Effect)>> = Lazy::new(|| {
-    let mut hash = TigerHashMap::default();
-    for (from, s, effect) in SCOPE_EFFECT.iter().copied() {
-        hash.insert(s, (from, effect));
-    }
-    hash
-});
+static SCOPE_EFFECT_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Effect)>> =
+    LazyLock::new(|| {
+        let mut hash = TigerHashMap::default();
+        for (from, s, effect) in SCOPE_EFFECT.iter().copied() {
+            hash.insert(s, (from, effect));
+        }
+        hash
+    });
 
 // LAST UPDATED VERSION 2.0.4
 // See `effects.log` from the game data dumps

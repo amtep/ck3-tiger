@@ -1,8 +1,7 @@
 #![allow(non_upper_case_globals)]
 
 use std::fmt::Formatter;
-
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::everything::Everything;
 use crate::helpers::{display_choices, TigerHashMap};
@@ -437,13 +436,14 @@ pub fn scope_to_scope(name: &str) -> Option<(Scopes, Scopes)> {
     SCOPE_TO_SCOPE_MAP.get(name).copied()
 }
 
-static SCOPE_TO_SCOPE_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes)>> = Lazy::new(|| {
-    let mut hash = TigerHashMap::default();
-    for (from, s, to) in SCOPE_TO_SCOPE.iter().copied() {
-        hash.insert(s, (from, to));
-    }
-    hash
-});
+static SCOPE_TO_SCOPE_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>> =
+    LazyLock::new(|| {
+        let mut hash = TigerHashMap::default();
+        for (from, s, to) in SCOPE_TO_SCOPE.iter().copied() {
+            hash.insert(s, (from, to));
+        }
+        hash
+    });
 
 /// LAST UPDATED VIC3 VERSION 1.7.6
 /// See `event_targets.log` from the game data dumps
@@ -733,8 +733,8 @@ pub fn scope_prefix(name: &str) -> Option<(Scopes, Scopes, ArgumentValue)> {
     SCOPE_PREFIX_MAP.get(name).copied()
 }
 
-static SCOPE_PREFIX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes, ArgumentValue)>> =
-    Lazy::new(|| {
+static SCOPE_PREFIX_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes, ArgumentValue)>> =
+    LazyLock::new(|| {
         let mut hash = TigerHashMap::default();
         for (from, s, to, argument) in SCOPE_PREFIX.iter().copied() {
             hash.insert(s, (from, to, argument));
@@ -898,13 +898,14 @@ pub fn scope_iterator(name: &str) -> Option<(Scopes, Scopes)> {
     SCOPE_ITERATOR_MAP.get(name).copied()
 }
 
-static SCOPE_ITERATOR_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Scopes)>> = Lazy::new(|| {
-    let mut hash = TigerHashMap::default();
-    for (from, s, to) in SCOPE_ITERATOR.iter().copied() {
-        hash.insert(s, (from, to));
-    }
-    hash
-});
+static SCOPE_ITERATOR_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>> =
+    LazyLock::new(|| {
+        let mut hash = TigerHashMap::default();
+        for (from, s, to) in SCOPE_ITERATOR.iter().copied() {
+            hash.insert(s, (from, to));
+        }
+        hash
+    });
 
 /// LAST UPDATED VIC3 VERSION 1.8.1
 /// See `effects.log` from the game data dumps

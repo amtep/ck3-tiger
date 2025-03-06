@@ -1,4 +1,4 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::ck3::tables::misc::{
     AGENT_SLOT_CONTRIBUTION_TYPE, GOVERNMENT_RULES, LEGEND_QUALITY, OUTBREAK_INTENSITIES,
@@ -68,7 +68,7 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
     std::option::Option::None
 }
 
-static TRIGGER_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
+static TRIGGER_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Trigger)>> = LazyLock::new(|| {
     let mut hash = TigerHashMap::default();
     for (from, s, trigger) in TRIGGER.iter().copied() {
         hash.insert(s, (from, trigger));
@@ -1815,8 +1815,8 @@ pub fn scope_trigger_complex(name: &str) -> Option<(Scopes, ArgumentValue, Scope
     TRIGGER_COMPLEX_MAP.get(name).copied()
 }
 
-static TRIGGER_COMPLEX_MAP: Lazy<TigerHashMap<&'static str, (Scopes, ArgumentValue, Scopes)>> =
-    Lazy::new(|| {
+static TRIGGER_COMPLEX_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, ArgumentValue, Scopes)>> =
+    LazyLock::new(|| {
         let mut hash = TigerHashMap::default();
         for (from, s, trigger, outscopes) in TRIGGER_COMPLEX.iter().copied() {
             hash.insert(s, (from, trigger, outscopes));

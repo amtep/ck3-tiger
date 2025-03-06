@@ -1,6 +1,6 @@
 #![allow(non_upper_case_globals)]
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::everything::Everything;
 use crate::helpers::TigerHashMap;
@@ -148,7 +148,7 @@ fn maybe_warn(itype: Item, s: &Lowercase, name: &Token, data: &Everything, warn:
     }
 }
 
-static MODIF_MAP: Lazy<TigerHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new(|| {
+static MODIF_MAP: LazyLock<TigerHashMap<Lowercase<'static>, ModifKinds>> = LazyLock::new(|| {
     let mut hash = TigerHashMap::default();
     for (s, kind) in MODIF_TABLE.iter().copied() {
         hash.insert(Lowercase::new_unchecked(s), kind);

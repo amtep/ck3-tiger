@@ -1,4 +1,4 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::block::Block;
 use crate::context::ScopeContext;
@@ -57,8 +57,8 @@ struct ScriptedRuleScopeContext {
 }
 
 /// Processed version of game-specific `SCRIPTED_RULES`.
-static SCRIPTED_RULE_SCOPES_MAP: Lazy<TigerHashMap<&'static str, ScriptedRuleScopeContext>> =
-    Lazy::new(|| {
+static SCRIPTED_RULE_SCOPES_MAP: LazyLock<TigerHashMap<&'static str, ScriptedRuleScopeContext>> =
+    LazyLock::new(|| {
         let rules = match Game::game() {
             #[cfg(feature = "ck3")]
             Game::Ck3 => crate::ck3::tables::rules::SCRIPTED_RULES,
