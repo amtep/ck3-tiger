@@ -6,11 +6,10 @@ use std::fs::{read, File};
 use std::io::{stdout, Write};
 use std::mem::take;
 use std::path::{Path, PathBuf};
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{LazyLock, Mutex, MutexGuard};
 
 use anyhow::Result;
 use encoding_rs::{UTF_8, WINDOWS_1252};
-use once_cell::sync::Lazy;
 
 use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::macros::MACRO_MAP;
@@ -22,7 +21,7 @@ use crate::report::writer_json::log_report_json;
 use crate::report::{ErrorKey, FilterRule, LogReport, OutputStyle, PointedMessage};
 use crate::token::{leak, Loc};
 
-static ERRORS: Lazy<Mutex<Errors>> = Lazy::new(|| Mutex::new(Errors::default()));
+static ERRORS: LazyLock<Mutex<Errors>> = LazyLock::new(|| Mutex::new(Errors::default()));
 
 #[allow(missing_debug_implementations)]
 pub struct Errors {

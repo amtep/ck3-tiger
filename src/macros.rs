@@ -2,9 +2,7 @@
 
 use std::hash::Hash;
 use std::num::NonZeroU32;
-use std::sync::RwLock;
-
-use once_cell::sync::Lazy;
+use std::sync::{LazyLock, RwLock};
 
 use crate::helpers::{BiTigerHashMap, TigerHashMap};
 use crate::token::{Loc, Token};
@@ -82,7 +80,7 @@ impl<T> Default for MacroCache<T> {
 }
 
 /// Global macro map
-pub(crate) static MACRO_MAP: Lazy<MacroMap> = Lazy::new(MacroMap::default);
+pub(crate) static MACRO_MAP: LazyLock<MacroMap> = LazyLock::new(MacroMap::default);
 
 #[derive(Default)]
 pub struct MacroMap(RwLock<MacroMapInner>);

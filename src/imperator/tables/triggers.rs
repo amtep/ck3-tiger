@@ -1,4 +1,4 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::everything::Everything;
 use crate::helpers::TigerHashMap;
@@ -49,7 +49,7 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
     None
 }
 
-static TRIGGER_MAP: Lazy<TigerHashMap<&'static str, (Scopes, Trigger)>> = Lazy::new(|| {
+static TRIGGER_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Trigger)>> = LazyLock::new(|| {
     let mut hash = TigerHashMap::default();
     for (from, s, trigger) in TRIGGER {
         hash.insert(*s, (*from, *trigger));

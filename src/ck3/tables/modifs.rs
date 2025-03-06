@@ -1,8 +1,7 @@
 #![allow(non_upper_case_globals)]
 
 use std::borrow::Cow;
-
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::everything::Everything;
 use crate::helpers::TigerHashMap;
@@ -364,7 +363,7 @@ pub fn modif_loc(name: &Token) -> Cow<'static, str> {
     }
 }
 
-static MODIF_MAP: Lazy<TigerHashMap<Lowercase<'static>, ModifKinds>> = Lazy::new(|| {
+static MODIF_MAP: LazyLock<TigerHashMap<Lowercase<'static>, ModifKinds>> = LazyLock::new(|| {
     let mut hash = TigerHashMap::default();
     for (s, kind) in MODIF_TABLE.iter().copied() {
         hash.insert(Lowercase::new_unchecked(s), kind);
@@ -929,8 +928,8 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("years_of_fertility", ModifKinds::Character),
 ];
 
-static SPECIAL_MODIF_LOC_MAP: Lazy<TigerHashMap<Lowercase<'static>, &'static str>> =
-    Lazy::new(|| {
+static SPECIAL_MODIF_LOC_MAP: LazyLock<TigerHashMap<Lowercase<'static>, &'static str>> =
+    LazyLock::new(|| {
         let mut hash = TigerHashMap::default();
         for (s, loc) in SPECIAL_MODIF_LOC_TABLE.iter().copied() {
             hash.insert(Lowercase::new_unchecked(s), loc);
@@ -1024,13 +1023,14 @@ const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[
     ("tax_slot_add", "MOD_NUM_TAX_SLOTS"),
 ];
 
-static MODIF_REMOVED_MAP: Lazy<TigerHashMap<Lowercase<'static>, &'static str>> = Lazy::new(|| {
-    let mut hash = TigerHashMap::default();
-    for (s, info) in MODIF_REMOVED_TABLE.iter().copied() {
-        hash.insert(Lowercase::new_unchecked(s), info);
-    }
-    hash
-});
+static MODIF_REMOVED_MAP: LazyLock<TigerHashMap<Lowercase<'static>, &'static str>> =
+    LazyLock::new(|| {
+        let mut hash = TigerHashMap::default();
+        for (s, info) in MODIF_REMOVED_TABLE.iter().copied() {
+            hash.insert(Lowercase::new_unchecked(s), info);
+        }
+        hash
+    });
 
 const MODIF_REMOVED_TABLE: &[(&str, &str)] = &[
     ("monthly_county_control_change_add_even_if_baron", "replaced with monthly_county_control_decline_add_even_if_baron and monthly_county_control_growth_add_even_if_baron"),

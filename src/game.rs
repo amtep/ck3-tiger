@@ -1,15 +1,15 @@
 //! Dealing with which game we are validating
 
 use std::fmt::{Display, Formatter};
+use std::sync::OnceLock;
 
 use anyhow::{anyhow, Result};
 use bitflags::bitflags;
-use once_cell::sync::OnceCell;
 
 use crate::helpers::display_choices;
 
 /// Records at runtime which game we are validating, in case there are multiple feature flags set.
-static GAME: OnceCell<Game> = OnceCell::new();
+static GAME: OnceLock<Game> = OnceLock::new();
 
 /// Enum specifying which game we are validating.
 ///

@@ -1,10 +1,10 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::item::Item;
 
-pub(crate) static BUILTIN_MACROS_CK3: Lazy<TigerHashSet<&'static str>> =
-    Lazy::new(|| BUILTIN_MACROS.iter().copied().collect());
+pub(crate) static BUILTIN_MACROS_CK3: LazyLock<TigerHashSet<&'static str>> =
+    LazyLock::new(|| BUILTIN_MACROS.iter().copied().collect());
 
 // LAST UPDATED CK3 VERSION 1.12.3
 // The table entries were collected by analyzing tiger's own output.
@@ -437,8 +437,8 @@ const BUILTIN_MACROS: &[&str] = &[
     "YEARS",
 ];
 
-pub(crate) static COMPLEX_TOOLTIPS_CK3: Lazy<TigerHashMap<&'static str, Option<Item>>> =
-    Lazy::new(|| COMPLEX_TOOLTIPS.iter().copied().collect());
+pub(crate) static COMPLEX_TOOLTIPS_CK3: LazyLock<TigerHashMap<&'static str, Option<Item>>> =
+    LazyLock::new(|| COMPLEX_TOOLTIPS.iter().copied().collect());
 
 /// Handling of `#TOOLTIP:tag:value` formatting in localization. The table contains the tag strings
 /// and the corresponding item type of the value. If the item type is `None`, it means the value is
