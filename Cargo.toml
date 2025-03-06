@@ -66,6 +66,11 @@ murmur3 = "0.5.2"
 [profile.bench]
 debug = true
 
+[profile.release-lto]
+inherits = "release"
+lto = true
+codegen-units = 1
+
 # Specifying the lints in the Cargo.toml is a new feature in Rust 1.74,
 # but it won't do harm on older Rust versions.
 [workspace.lints.clippy]
