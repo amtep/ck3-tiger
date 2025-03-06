@@ -121,6 +121,13 @@ For `imperator-tiger`, run `cargo build --release -p imperator-tiger` in the pro
 User unLomTrois has made a [VS Code extension](https://github.com/unLomTrois/ck3tiger-for-vscode) for `ck3-tiger`.
 It enables you to view the reports directly in the Problems tab.
 
+### GitHub Action
+
+User Bahmut has made a [GitHub Action](https://github.com/kaiser-chris/tiger-action-public) for `ck3-tiger`.
+It allows running ck3-tiger validation in GitHub Workflows.
+
+> **NOTE:** Because of copyright issues, you will need to set up the action yourself. The repository linked above contains a guide on how to set it up for yourself.
+
 ### Showing only new reports
 
 You can tell `tiger` to suppress reports that were shown in a previous run.
