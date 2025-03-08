@@ -269,7 +269,8 @@ fn get_file_lang(filename: &OsStr) -> Option<Language> {
 }
 
 impl Localization {
-    fn iter_lang_idx(&self) -> impl Iterator<Item = usize> + use<'_> {
+    // TODO: Remove `+ '_` in edition 2024
+    fn iter_lang_idx(&self) -> impl Iterator<Item = usize> + '_ {
         (0..Language::COUNT).filter(|i| self.mod_langs[*i])
     }
 
