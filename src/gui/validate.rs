@@ -366,7 +366,7 @@ pub fn validate_datatype_field(
                         data,
                         &mut sc,
                         dtype,
-                        "",
+                        None,
                         format.as_ref(),
                         allow_promote,
                     );
@@ -411,7 +411,7 @@ fn validate_gui_loca(key: &Token, loca_value: LocaValue, data: &Everything) {
                 data,
                 &mut sc,
                 Datatype::Unknown,
-                "",
+                None,
                 format.as_ref(),
                 false,
             );

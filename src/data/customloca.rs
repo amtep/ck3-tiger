@@ -1,5 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
+use crate::data::localization::Language;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
@@ -83,7 +84,7 @@ impl CustomLocalization {
         data: &Everything,
         caller: &Token,
         scopes: Scopes,
-        lang: &'static str,
+        lang: Option<Language>,
         suffix_str: &str,
         suffix_token: Option<&Token>,
     ) {

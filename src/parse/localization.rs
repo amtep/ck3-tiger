@@ -2,7 +2,7 @@ use std::iter::Peekable;
 use std::mem::take;
 use std::str::Chars;
 
-use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
+use crate::data::localization::{Language, LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
 use crate::parse::cob::Cob;
@@ -25,14 +25,14 @@ struct LocaParser {
     offset: usize,
     content: &'static str,
     chars: Peekable<Chars<'static>>,
-    language: &'static str,
+    language: Language,
     expecting_language: bool,
     loca_end: usize,
     value: Vec<LocaValue>,
 }
 
 impl LocaParser {
-    fn new(mut loc: Loc, content: &'static str, lang: &'static str) -> Self {
+    fn new(mut loc: Loc, content: &'static str, lang: Language) -> Self {
         let mut chars = content.chars().peekable();
         let mut offset = 0;
         if chars.peek() == Some(&'\u{feff}') {
@@ -807,7 +807,7 @@ impl Iterator for LocaReader {
     }
 }
 
-pub fn parse_loca(entry: &FileEntry, content: String, lang: &'static str) -> LocaReader {
+pub fn parse_loca(entry: &FileEntry, content: String, lang: Language) -> LocaReader {
     let mut loc = Loc::from(entry);
     loc.line = 1;
     loc.column = 1;
