@@ -167,7 +167,7 @@ impl DataBinding {
                 });
             }
         }
-        Some(CodeArg::Chain(CodeChain { codes: result }))
+        Some(CodeArg::Chain(CodeChain { codes: result.into_boxed_slice() }))
     }
 
     fn replace_arg(&self, body_arg: &CodeArg, call: &Code) -> Option<CodeArg> {

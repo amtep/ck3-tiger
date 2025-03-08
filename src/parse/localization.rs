@@ -543,7 +543,7 @@ impl<'a> ValueParser<'a> {
             }
             self.next_char(); // Eat the '.'
         }
-        CodeChain { codes: v }
+        CodeChain { codes: v.into_boxed_slice() }
     }
 
     fn parse_code(&mut self) {
@@ -584,7 +584,8 @@ impl<'a> ValueParser<'a> {
             // Separate out the tooltip.
             let value = Token::new(value, loc);
             let values: Vec<_> = value.split(',');
-            self.value.push(LocaValue::ComplexTooltip(values[0].clone(), values[1].clone()));
+            self.value
+                .push(LocaValue::ComplexTooltip(Box::new(values[0].clone()), values[1].clone()));
             return;
         }
 

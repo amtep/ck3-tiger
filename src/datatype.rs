@@ -191,7 +191,7 @@ impl Display for Datatype {
 /// global function because it both starts and ends the chain.
 #[derive(Clone, Debug, Default)]
 pub struct CodeChain {
-    pub codes: Vec<Code>,
+    pub codes: Box<[Code]>,
 }
 
 /// Most codes are just a name followed by another dot or by the end of the code chain.

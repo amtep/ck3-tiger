@@ -243,7 +243,7 @@ pub enum LocaValue {
     // The value is not stored in the enum because we don't validate it.
     // TODO: instead of Token here, maybe need Box<LocaValue> or a Vec<LocaValue>, or maybe a type
     // that's specifically "Token or CodeChain"
-    ComplexTooltip(Token, Token),
+    ComplexTooltip(Box<Token>, Token),
     // The optional token is the formatting
     Code(CodeChain, Option<Token>),
     Icon(Token),
