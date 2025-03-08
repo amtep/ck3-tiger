@@ -13,6 +13,7 @@ use strum_macros::{Display, EnumString};
 use crate::ck3::data::religions::CUSTOM_RELIGION_LOCAS;
 use crate::context::ScopeContext;
 use crate::data::customloca::CustomLocalization;
+use crate::data::localization::Language;
 use crate::everything::Everything;
 use crate::game::Game;
 use crate::helpers::BiTigerHashMap;
@@ -190,7 +191,7 @@ impl Display for Datatype {
 /// global function because it both starts and ends the chain.
 #[derive(Clone, Debug, Default)]
 pub struct CodeChain {
-    pub codes: Vec<Code>,
+    pub codes: Box<[Code]>,
 }
 
 /// Most codes are just a name followed by another dot or by the end of the code chain.
@@ -271,10 +272,10 @@ enum LookupResult {
 ///
 /// * `token`: The name of the localization.
 /// * `scopes`: The scope type of the value being passed in to the custom localization.
-/// * `lang`: The language being validated, can be "" when not applicable (such as in gui files).
+/// * `lang`: The language being validated, can be `None` when not applicable (such as in gui files).
 ///   Many custom localizations are only meant for one language, and the keys they use only need
 ///   to exist in that language.
-fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: &'static str) {
+fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: Option<Language>) {
     data.verify_exists(Item::CustomLocalization, token);
     if let Some((key, block)) = data.get_key_block(Item::CustomLocalization, token.as_str()) {
         CustomLocalization::validate_custom_call(key, block, data, token, scopes, lang, "", None);
@@ -294,7 +295,7 @@ fn validate_argument(
     data: &Everything,
     sc: &mut ScopeContext,
     expect_arg: Arg,
-    lang: &'static str,
+    lang: Option<Language>,
     format: Option<&Token>,
 ) {
     match expect_arg {
@@ -346,7 +347,7 @@ fn validate_argument(
 ///   If nothing is known about the scope, just pass an empty `ScopeContext` with `set_strict_types(false)`.
 /// * `expect_type` is the datatype that should be returned by this chain, can be `Datatype::Unknown` in many cases.
 /// * `lang` is set to a specific language if `Custom` references in this chain only need to be defined for one language.
-///   It can just be "" otherwise.
+///   It can just be `None` otherwise.
 /// * `format` is the formatting code given after `|` in the datatype expression. It's used for
 ///   checking that game concepts in ck3 have `|E` formats.
 /// * `expect_promote` is true iff the chain is expected to end on a promote rather than on a function.
@@ -357,7 +358,7 @@ pub fn validate_datatypes(
     data: &Everything,
     sc: &mut ScopeContext,
     expect_type: Datatype,
-    lang: &'static str,
+    lang: Option<Language>,
     format: Option<&Token>,
     expect_promote: bool,
 ) {

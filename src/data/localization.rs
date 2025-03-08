@@ -9,10 +9,15 @@ use std::io::Cursor;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering::Relaxed;
+use std::sync::LazyLock;
 
+use bitvec::order::Lsb0;
+use bitvec::{bitarr, BitArr};
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use murmur3::murmur3_32;
 use rayon::scope;
+use strum::{EnumCount, IntoEnumIterator};
+use strum_macros::{Display, EnumCount, EnumIter, EnumString, FromRepr, IntoStaticStr};
 
 use crate::block::Block;
 #[cfg(feature = "ck3")]
@@ -41,36 +46,69 @@ use crate::vic3::tables::localization::BUILTIN_MACROS_VIC3;
 #[derive(Debug)]
 pub struct Localization {
     /// Which languages to check, according to the config file.
-    check_langs: Vec<&'static str>,
+    check_langs: BitArr!(for Language::COUNT, in u16),
     /// Which languages also actually exist in the mod.
     /// This is used to not warn about missing loca when a mod doesn't have the language at all.
     /// (This saves them the effort of configuring `check_langs`).
-    mod_langs: Vec<&'static str>,
+    mod_langs: BitArr!(for Language::COUNT, in u16),
     /// Database of all localizations, indexed first by language and then by localization key.
-    locas: TigerHashMap<&'static str, TigerHashMap<String, LocaEntry>>,
+    locas: Box<[TigerHashMap<String, LocaEntry>; Language::COUNT]>,
 }
 
 /// List of languages that are supported by the game engine.
 // LAST UPDATED CK3 VERSION 1.14.0.2
 // LAST UPDATED VIC3 VERSION 1.7.6
-pub const KNOWN_LANGUAGES: &[&str] = &[
-    "english",
-    "spanish",
-    "french",
-    "german",
-    "russian",
+#[derive(
+    Debug,
+    PartialEq,
+    Eq,
+    Clone,
+    Copy,
+    EnumString,
+    EnumCount,
+    EnumIter,
+    FromRepr,
+    IntoStaticStr,
+    Display,
+)]
+#[strum(serialize_all = "snake_case")]
+#[repr(u8)]
+pub enum Language {
+    English,
+    Spanish,
+    French,
+    German,
+    Russian,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
-    "korean",
-    "simp_chinese",
+    Korean,
+    SimpChinese,
     #[cfg(feature = "vic3")]
-    "braz_por",
+    BrazPor,
     #[cfg(feature = "vic3")]
-    "japanese",
+    Japanese,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
-    "polish",
+    Polish,
     #[cfg(feature = "vic3")]
-    "turkish",
-];
+    Turkish,
+}
+
+static L_LANGS: LazyLock<Box<[Box<str>]>> =
+    LazyLock::new(|| Language::iter().map(|l| format!("l_{l}").into_boxed_str()).collect());
+
+static LANG_LIST: LazyLock<Box<str>> = LazyLock::new(|| {
+    Language::iter().map(|l| l.to_string()).collect::<Vec<String>>().join(",").into_boxed_str()
+});
+
+impl Language {
+    fn from_idx(idx: usize) -> Self {
+        // SAFETY: This is safe to call assuming all indices were obtained from `to_idx`.
+        #[allow(clippy::cast_possible_truncation)]
+        Self::from_repr(idx as u8).unwrap()
+    }
+    fn to_idx(self) -> usize {
+        self as usize
+    }
+}
 
 /// List of known built-in keys used between `$...$` in any localization.
 /// This list is used to avoid reporting false positives.
@@ -205,7 +243,7 @@ pub enum LocaValue {
     // The value is not stored in the enum because we don't validate it.
     // TODO: instead of Token here, maybe need Box<LocaValue> or a Vec<LocaValue>, or maybe a type
     // that's specifically "Token or CodeChain"
-    ComplexTooltip(Token, Token),
+    ComplexTooltip(Box<Token>, Token),
     // The optional token is the formatting
     Code(CodeChain, Option<Token>),
     Icon(Token),
@@ -220,21 +258,25 @@ pub enum MacroValue {
     Keyword(Token),
 }
 
-fn get_file_lang(filename: &OsStr) -> Option<&'static str> {
+fn get_file_lang(filename: &OsStr) -> Option<Language> {
     // Deliberate discrepancy here between the check and the error msg below.
     // `l_{}` anywhere in the filename works, but `_l_{}.yml` is still recommended.
     //
     // Using to_string_lossy is ok here because non-unicode sequences will
     // never match the suffix anyway.
     let filename = filename.to_string_lossy();
-    KNOWN_LANGUAGES.iter().find(|&lang| filename.contains(&format!("l_{lang}"))).copied()
+    L_LANGS.iter().position(|l| filename.contains(l.as_ref())).map(Language::from_idx)
 }
 
 impl Localization {
+    // TODO: Remove `+ '_` in edition 2024
+    fn iter_lang_idx(&self) -> impl Iterator<Item = usize> + '_ {
+        (0..Language::COUNT).filter(|i| self.mod_langs[*i])
+    }
+
     pub fn exists(&self, key: &str) -> bool {
-        for lang in &self.mod_langs {
-            let hash = self.locas.get(lang);
-            if hash.is_none() || !hash.unwrap().contains_key(key) {
+        for lang in self.iter_lang_idx() {
+            if !self.locas[lang].contains_key(key) {
                 return false;
             }
         }
@@ -244,9 +286,9 @@ impl Localization {
     // Undocumented; the hash algorithm was revealed by inspecting error.log and reverse
     // engineering of CK3 binary through magic numbers. CK3 and VIC3 are supported.
     #[cfg(any(feature = "ck3", feature = "vic3"))]
-    fn all_collision_keys(&self, lang: &str) -> TigerHashMap<u32, Vec<&LocaEntry>> {
+    fn all_collision_keys(&self, lang: Language) -> TigerHashMap<u32, Vec<&LocaEntry>> {
         let mut result: TigerHashMap<u32, Vec<&LocaEntry>> = TigerHashMap::default();
-        for loca in self.locas[lang].values() {
+        for loca in self.locas[lang.to_idx()].values() {
             result
                 .entry(murmur3_32(&mut Cursor::new(loca.key.as_str()), 0).unwrap())
                 .or_default()
@@ -257,9 +299,8 @@ impl Localization {
     }
 
     pub fn iter_keys(&self) -> impl Iterator<Item = &Token> {
-        self.mod_langs
-            .iter()
-            .filter_map(|lang| self.locas.get(lang))
+        self.iter_lang_idx()
+            .map(|i| &self.locas[i])
             .flat_map(|hash| hash.values().map(|item| &item.key))
     }
 
@@ -268,11 +309,10 @@ impl Localization {
             return;
         }
         self.mark_used(key);
-        let mut langs_missing: Vec<&str> = Vec::new();
-        for lang in &self.mod_langs {
-            let hash = self.locas.get(lang);
-            if hash.is_none() || !hash.unwrap().contains_key(key) {
-                langs_missing.push(lang);
+        let mut langs_missing = Vec::new();
+        for lang in self.iter_lang_idx() {
+            if !self.locas[lang].contains_key(key) {
+                langs_missing.push(Language::from_idx(lang).into());
             }
         }
         if !langs_missing.is_empty() {
@@ -295,11 +335,10 @@ impl Localization {
             return;
         }
         self.mark_used(name.as_str());
-        let mut langs_missing: Vec<&str> = Vec::new();
-        for lang in &self.mod_langs {
-            let hash = self.locas.get(lang);
-            if hash.is_none() || !hash.unwrap().contains_key(name.as_str()) {
-                langs_missing.push(lang);
+        let mut langs_missing = Vec::new();
+        for lang in self.iter_lang_idx() {
+            if !self.locas[lang].contains_key(name.as_str()) {
+                langs_missing.push(Language::from_idx(lang).into());
             }
         }
         if !langs_missing.is_empty() {
@@ -328,40 +367,36 @@ impl Localization {
         }
     }
 
-    pub fn exists_lang(&self, key: &str, lang: &'static str) -> bool {
-        if lang.is_empty() {
-            return self.exists(key);
-        }
-        let hash = self.locas.get(lang);
-        if hash.is_none() || !hash.unwrap().contains_key(key) {
+    pub fn exists_lang(&self, key: &str, lang: Language) -> bool {
+        if !self.locas[lang.to_idx()].contains_key(key) {
             return false;
         }
         true
     }
 
-    pub fn verify_exists_lang(&self, token: &Token, lang: &'static str) {
+    pub fn verify_exists_lang(&self, token: &Token, lang: Option<Language>) {
         self.verify_exists_implied_lang(token.as_str(), token, lang);
     }
 
-    pub fn verify_exists_implied_lang(&self, key: &str, token: &Token, lang: &'static str) {
+    pub fn verify_exists_implied_lang(&self, key: &str, token: &Token, lang: Option<Language>) {
         if key.is_empty() {
             return;
         }
-        if lang.is_empty() {
+        if let Some(lang) = lang {
+            self.mark_used(key);
+            if !self.exists_lang(key, lang) {
+                let msg = format!("missing {lang} localization key {key}");
+                // TODO: get confidence level from caller
+                warn(ErrorKey::MissingLocalization).msg(msg).loc(token).push();
+            }
+        } else {
             self.verify_exists_implied(key, token, Severity::Warning);
-            return;
-        }
-        self.mark_used(key);
-        if !self.exists_lang(key, lang) {
-            let msg = format!("missing {lang} localization key {key}");
-            // TODO: get confidence level from caller
-            warn(ErrorKey::MissingLocalization).msg(msg).loc(token).push();
         }
     }
 
     pub fn mark_used(&self, key: &str) {
-        for lang in &self.mod_langs {
-            if let Some(entry) = self.locas.get(lang).and_then(|hash| hash.get(key)) {
+        for lang in self.iter_lang_idx() {
+            if let Some(entry) = self.locas[lang].get(key) {
                 entry.used.store(true, Relaxed);
             }
         }
@@ -374,7 +409,7 @@ impl Localization {
         value: &LocaValue,
         data: &Everything,
         sc: &mut ScopeContext,
-        lang: &'static str,
+        lang: Language,
     ) {
         match value {
             LocaValue::Concat(v) => {
@@ -406,7 +441,7 @@ impl Localization {
                     data,
                     sc,
                     Datatype::Unknown,
-                    lang,
+                    Some(lang),
                     format.as_ref(),
                     false,
                 );
@@ -414,7 +449,7 @@ impl Localization {
             LocaValue::Tooltip(token) => {
                 // TODO: should this be validated with validate_localization_sc ? (remember to avoid infinite loops)
                 if !(Game::is_vic3() && token.is("BREAKDOWN_TAG")) {
-                    data.localization.verify_exists_lang(token, lang);
+                    data.localization.verify_exists_lang(token, Some(lang));
                 }
             }
             #[allow(unused_variables)] // tag only used by ck3
@@ -425,7 +460,7 @@ impl Localization {
                     match COMPLEX_TOOLTIPS_CK3.get(&*tag.as_str().to_lowercase()).copied() {
                         None => {
                             // TODO: should this be validated with validate_localization_sc ? (remember to avoid infinite loops)
-                            data.localization.verify_exists_lang(token, lang);
+                            data.localization.verify_exists_lang(token, Some(lang));
                         }
                         Some(None) => (), // token is a runtime id
                         Some(Some(itype)) => data.verify_exists(itype, token),
@@ -433,7 +468,7 @@ impl Localization {
                 }
                 #[cfg(feature = "vic3")]
                 if Game::is_vic3() && !token.starts_with("[") && !is_builtin_macro(token) {
-                    data.localization.verify_exists_lang(token, lang);
+                    data.localization.verify_exists_lang(token, Some(lang));
                 }
                 // TODO: - imperator -
             }
@@ -448,38 +483,32 @@ impl Localization {
 
     #[cfg(feature = "ck3")]
     pub fn verify_key_has_options(&self, loca: &str, key: &Token, n: i64, prefix: &str) {
-        for lang in &self.mod_langs {
-            if let Some(hash) = self.locas.get(lang) {
-                if let Some(entry) = hash.get(loca) {
-                    if let Some(ref orig) = entry.orig {
-                        for i in 1..=n {
-                            let find = format!("${prefix}{i}$");
-                            let find2 = format!("${prefix}{i}|");
-                            if !orig.as_str().contains(&find) && !orig.as_str().contains(&find2) {
-                                warn(ErrorKey::Validation)
-                                    .msg(format!("localization is missing {find}"))
-                                    .loc(key)
-                                    .loc_msg(&entry.key, "here")
-                                    .push();
-                            }
-                        }
-                        let find = format!("${prefix}{}$", n + 1);
-                        let find2 = format!("${prefix}{}|", n + 1);
-                        if orig.as_str().contains(&find) && !orig.as_str().contains(&find2) {
+        for lang in self.iter_lang_idx() {
+            if let Some(entry) = self.locas[lang].get(loca) {
+                if let Some(ref orig) = entry.orig {
+                    for i in 1..=n {
+                        let find = format!("${prefix}{i}$");
+                        let find2 = format!("${prefix}{i}|");
+                        if !orig.as_str().contains(&find) && !orig.as_str().contains(&find2) {
                             warn(ErrorKey::Validation)
-                                .msg("localization has too many options")
+                                .msg(format!("localization is missing {find}"))
                                 .loc(key)
                                 .loc_msg(&entry.key, "here")
                                 .push();
                         }
-                    } else if n > 0 {
-                        let msg = format!("localization is missing ${prefix}1$");
+                    }
+                    let find = format!("${prefix}{}$", n + 1);
+                    let find2 = format!("${prefix}{}|", n + 1);
+                    if orig.as_str().contains(&find) && !orig.as_str().contains(&find2) {
                         warn(ErrorKey::Validation)
-                            .msg(msg)
+                            .msg("localization has too many options")
                             .loc(key)
                             .loc_msg(&entry.key, "here")
                             .push();
                     }
+                } else if n > 0 {
+                    let msg = format!("localization is missing ${prefix}1$");
+                    warn(ErrorKey::Validation).msg(msg).loc(key).loc_msg(&entry.key, "here").push();
                 }
             }
         }
@@ -490,7 +519,7 @@ impl Localization {
         from: &TigerHashMap<String, LocaEntry>,
         data: &Everything,
         sc: &mut ScopeContext,
-        lang: &'static str,
+        lang: Language,
     ) {
         if matches!(entry.value, LocaValue::Macro(_)) {
             let mut new_line = Vec::new();
@@ -507,19 +536,18 @@ impl Localization {
     }
 
     pub fn validate_use(&self, key: &str, data: &Everything, sc: &mut ScopeContext) {
-        for lang in &self.mod_langs {
-            if let Some(hash) = self.locas.get(lang) {
-                if let Some(entry) = hash.get(key) {
-                    entry.used.store(true, Relaxed);
-                    entry.validated.store(true, Relaxed);
-                    Self::validate_loca(entry, hash, data, sc, lang);
-                }
+        for lang in self.iter_lang_idx() {
+            let loca = &self.locas[lang];
+            if let Some(entry) = loca.get(key) {
+                entry.used.store(true, Relaxed);
+                entry.validated.store(true, Relaxed);
+                Self::validate_loca(entry, loca, data, sc, Language::from_idx(lang));
             }
         }
     }
 
     #[cfg(any(feature = "ck3", feature = "vic3"))]
-    fn check_collisions(&self, lang: &str) {
+    fn check_collisions(&self, lang: Language) {
         for (k, v) in self.all_collision_keys(lang) {
             let mut rep = report(ErrorKey::LocalizationKeyCollision, Severity::Error)
                 .strong()
@@ -539,22 +567,24 @@ impl Localization {
     // This is in pass2 to make sure all `validated` entries have been marked.
     pub fn validate_pass2(&self, data: &Everything) {
         scope(|s| {
-            for (lang, hash) in &self.locas {
+            for lang in self.iter_lang_idx() {
+                let loca = &self.locas[lang];
+                let lang = Language::from_idx(lang);
                 // Check localization key collisions
                 #[cfg(any(feature = "ck3", feature = "vic3"))]
-                s.spawn(|_| self.check_collisions(lang));
+                s.spawn(move |_| self.check_collisions(lang));
 
                 // Collect and sort the entries before looping, to create more stable output
                 let mut unvalidated_entries: Vec<&LocaEntry> =
-                    hash.values().filter(|e| !e.validated.load(Relaxed)).collect();
+                    loca.values().filter(|e| !e.validated.load(Relaxed)).collect();
                 unvalidated_entries.sort_unstable();
                 for entry in unvalidated_entries {
                     // Technically we can now store true in entry.validated,
                     // but the value is not needed anymore after this.
-                    s.spawn(|_| {
+                    s.spawn(move |_| {
                         let mut sc = ScopeContext::new_unrooted(Scopes::all(), &entry.key);
                         sc.set_strict_scopes(false);
-                        Self::validate_loca(entry, hash, data, &mut sc, lang);
+                        Self::validate_loca(entry, loca, data, &mut sc, lang);
                     });
                 }
             }
@@ -579,70 +609,68 @@ impl Localization {
         self.mark_category_used("HYBRID_NAME_FORMAT_");
         self.mark_category_used("DIVERGE_NAME_FORMAT_");
 
-        for lang in &self.mod_langs {
-            if let Some(hash) = self.locas.get(lang) {
-                let mut vec = Vec::new();
-                for entry in hash.values() {
-                    if !entry.used.load(Relaxed) {
-                        vec.push(entry);
-                    }
+        for lang in self.iter_lang_idx() {
+            let mut vec = Vec::new();
+            for entry in self.locas[lang].values() {
+                if !entry.used.load(Relaxed) {
+                    vec.push(entry);
                 }
-                vec.sort_unstable_by_key(|entry| &entry.key.loc);
-                let mut printed_header = false;
-                for entry in vec {
-                    if !printed_header && will_maybe_log(&entry.key, ErrorKey::UnusedLocalization) {
-                        warn_header(
-                            ErrorKey::UnusedLocalization,
-                            &format!("Unused localization - {lang}:\n"),
-                        );
-                        printed_header = true;
-                    }
-                    warn_abbreviated(&entry.key, ErrorKey::UnusedLocalization);
+            }
+            vec.sort_unstable_by_key(|entry| &entry.key.loc);
+            let mut printed_header = false;
+            for entry in vec {
+                if !printed_header && will_maybe_log(&entry.key, ErrorKey::UnusedLocalization) {
+                    warn_header(
+                        ErrorKey::UnusedLocalization,
+                        &format!("Unused localization - {lang}:\n"),
+                    );
+                    printed_header = true;
                 }
-                if printed_header {
-                    warn_header(ErrorKey::UnusedLocalization, "\n");
-                }
+                warn_abbreviated(&entry.key, ErrorKey::UnusedLocalization);
+            }
+            if printed_header {
+                warn_header(ErrorKey::UnusedLocalization, "\n");
             }
         }
     }
 
     #[cfg(feature = "ck3")]
     pub fn check_pod_loca(&self, data: &Everything) {
-        for lang in &self.mod_langs {
-            if let Some(hash) = self.locas.get(lang) {
-                for key in data.database.iter_keys(Item::PerkTree) {
-                    let loca = format!("{key}_name");
-                    if let Some(entry) = hash.get(&loca) {
-                        if let LocaValue::Text(token) = &entry.value {
-                            if token.as_str().ends_with("_visible") {
-                                data.verify_exists(Item::ScriptedGui, token);
-                                data.verify_exists(Item::Localization, token);
-                            }
-                            continue;
+        for lang in self.iter_lang_idx() {
+            for key in data.database.iter_keys(Item::PerkTree) {
+                let loca = format!("{key}_name");
+                if let Some(entry) = self.locas[lang].get(&loca) {
+                    if let LocaValue::Text(token) = &entry.value {
+                        if token.as_str().ends_with("_visible") {
+                            data.verify_exists(Item::ScriptedGui, token);
+                            data.verify_exists(Item::Localization, token);
                         }
+                        continue;
                     }
-                    let msg = format!("missing loca `{key}_name: \"{key}_visible\"`");
-                    let info = "this is needed for the `window_character_lifestyle.gui` code";
-                    err(ErrorKey::PrincesOfDarkness).msg(msg).info(info).loc(key).push();
                 }
+                let msg = format!("missing loca `{key}_name: \"{key}_visible\"`");
+                let info = "this is needed for the `window_character_lifestyle.gui` code";
+                err(ErrorKey::PrincesOfDarkness).msg(msg).info(info).loc(key).push();
             }
         }
     }
 }
 
-impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
+impl FileHandler<(Language, Vec<LocaEntry>)> for Localization {
     fn config(&mut self, config: &Block) {
-        let mut langs: Vec<&str> = Vec::new();
+        let mut langs = bitarr![u16, Lsb0; 0; Language::COUNT];
 
         if let Some(block) = config.get_field_block("languages") {
             // TODO: warn if there are unknown languages in check or skip?
             let check = block.get_field_values("check");
             let skip = block.get_field_values("skip");
-            for lang in KNOWN_LANGUAGES {
-                if check.iter().any(|t| t.is(lang))
-                    || (check.is_empty() && skip.iter().all(|t| !t.is(lang)))
+
+            for lang in Language::iter() {
+                let lang_str = lang.into();
+                if check.iter().any(|t| t.is(lang_str))
+                    || (check.is_empty() && skip.iter().all(|t| !t.is(lang_str)))
                 {
-                    langs.push(lang);
+                    langs.set(lang.to_idx(), true);
                 }
             }
             self.check_langs = langs;
@@ -657,7 +685,7 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
         &self,
         entry: &FileEntry,
         _parser: &ParserMemory,
-    ) -> Option<(&'static str, Vec<LocaEntry>)> {
+    ) -> Option<(Language, Vec<LocaEntry>)> {
         let depth = entry.path().components().count();
         assert!(depth >= 2);
         assert!(entry.path().starts_with("localization"));
@@ -667,24 +695,26 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
 
         // unwrap is safe here because we're only handed files under localization/
         // to_string_lossy is ok because we compare lang against a set of known strings.
-        let lang = entry.path().components().nth(1).unwrap().as_os_str().to_string_lossy();
+        let lang_str = entry.path().components().nth(1).unwrap().as_os_str().to_string_lossy();
 
         // special case for this file
-        if lang == "languages.yml" {
+        if lang_str == "languages.yml" {
             return None;
         }
 
         if let Some(filelang) = get_file_lang(entry.filename()) {
-            if !self.check_langs.contains(&filelang) {
+            if !self.check_langs[filelang.to_idx()] {
                 return None;
             }
             // Localization files don't have to be in a subdirectory corresponding to their language.
             // However, if there's one in a subdirectory for a *different* language than the one in its name,
             // then something is probably wrong.
-            if filelang != lang && KNOWN_LANGUAGES.contains(&&*lang) {
-                let msg = "localization file with wrong name or in wrong directory";
-                let info = "A localization file should be in a subdirectory corresponding to its language.";
-                warn(ErrorKey::Filename).msg(msg).info(info).loc(entry).push();
+            if let Ok(lang) = Language::try_from(lang_str.as_ref()) {
+                if filelang != lang {
+                    let msg = "localization file with wrong name or in wrong directory";
+                    let info = "A localization file should be in a subdirectory corresponding to its language.";
+                    warn(ErrorKey::Filename).msg(msg).info(info).loc(entry).push();
+                }
             }
             match read_to_string(entry.fullpath()) {
                 Ok(content) => {
@@ -701,25 +731,22 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
             let msg = "could not determine language from filename";
             let info = format!(
                 "Localization filenames should end in _l_language.yml, where language is one of {}",
-                KNOWN_LANGUAGES.join(", ")
+                *LANG_LIST
             );
             err(ErrorKey::Filename).msg(msg).info(info).loc(entry).push();
         }
         None
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, loaded: (&'static str, Vec<LocaEntry>)) {
+    fn handle_file(&mut self, entry: &FileEntry, loaded: (Language, Vec<LocaEntry>)) {
         let (filelang, mut vec) = loaded;
-        if entry.kind() == FileKind::Mod && !self.mod_langs.contains(&filelang) {
-            for &known in KNOWN_LANGUAGES {
-                if known == filelang {
-                    self.mod_langs.push(known);
-                }
-            }
+        let hash = &mut self.locas[filelang.to_idx()];
+
+        if entry.kind() == FileKind::Mod {
+            self.mod_langs.set(filelang.to_idx(), true);
         }
 
         for loca in vec.drain(..) {
-            let hash = self.locas.entry(filelang).or_default();
             if !is_replace_path(entry.path()) {
                 if let Some(other) = hash.get(loca.key.as_str()) {
                     // other.key and loca.key are in the other order than usual here,
@@ -738,9 +765,9 @@ impl FileHandler<(&'static str, Vec<LocaEntry>)> for Localization {
 impl Default for Localization {
     fn default() -> Self {
         Localization {
-            check_langs: Vec::from(KNOWN_LANGUAGES),
-            locas: TigerHashMap::default(),
-            mod_langs: Vec::default(),
+            check_langs: bitarr![u16, Lsb0; 1; Language::COUNT],
+            mod_langs: bitarr![u16, Lsb0; 0; Language::COUNT],
+            locas: Box::new(std::array::from_fn(|_| TigerHashMap::default())),
         }
     }
 }

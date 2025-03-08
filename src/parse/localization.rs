@@ -2,7 +2,7 @@ use std::iter::Peekable;
 use std::mem::take;
 use std::str::Chars;
 
-use crate::data::localization::{LocaEntry, LocaValue, MacroValue};
+use crate::data::localization::{Language, LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
 use crate::parse::cob::Cob;
@@ -25,14 +25,14 @@ struct LocaParser {
     offset: usize,
     content: &'static str,
     chars: Peekable<Chars<'static>>,
-    language: &'static str,
+    language: Language,
     expecting_language: bool,
     loca_end: usize,
     value: Vec<LocaValue>,
 }
 
 impl LocaParser {
-    fn new(mut loc: Loc, content: &'static str, lang: &'static str) -> Self {
+    fn new(mut loc: Loc, content: &'static str, lang: Language) -> Self {
         let mut chars = content.chars().peekable();
         let mut offset = 0;
         if chars.peek() == Some(&'\u{feff}') {
@@ -543,7 +543,7 @@ impl<'a> ValueParser<'a> {
             }
             self.next_char(); // Eat the '.'
         }
-        CodeChain { codes: v }
+        CodeChain { codes: v.into_boxed_slice() }
     }
 
     fn parse_code(&mut self) {
@@ -584,7 +584,8 @@ impl<'a> ValueParser<'a> {
             // Separate out the tooltip.
             let value = Token::new(value, loc);
             let values: Vec<_> = value.split(',');
-            self.value.push(LocaValue::ComplexTooltip(values[0].clone(), values[1].clone()));
+            self.value
+                .push(LocaValue::ComplexTooltip(Box::new(values[0].clone()), values[1].clone()));
             return;
         }
 
@@ -807,7 +808,7 @@ impl Iterator for LocaReader {
     }
 }
 
-pub fn parse_loca(entry: &FileEntry, content: String, lang: &'static str) -> LocaReader {
+pub fn parse_loca(entry: &FileEntry, content: String, lang: Language) -> LocaReader {
     let mut loc = Loc::from(entry);
     loc.line = 1;
     loc.column = 1;
