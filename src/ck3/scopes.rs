@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::helpers::{display_choices, TigerHashMap};
 use crate::scopes::{ArgumentValue, Scopes};
 
-// LAST UPDATED CK3 VERSION 1.14.0.2
+// LAST UPDATED CK3 VERSION 1.15.0
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
         "none" => Scopes::None,
@@ -66,11 +66,13 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "task_contract_type" => Scopes::TaskContractType,
         "regiment" => Scopes::Regiment,
         "casus_belli_type" => Scopes::CasusBelliType,
+        "court_position" => Scopes::CourtPosition,
+        "court_position_type" => Scopes::CourtPositionType,
         _ => return std::option::Option::None,
     })
 }
 
-// LAST UPDATED CK3 VERSION 1.14.0.2
+// LAST UPDATED CK3 VERSION 1.15.0
 pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
     let mut vec = Vec::new();
     if s.contains(Scopes::None) {
@@ -241,10 +243,16 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::CasusBelliType) {
         vec.push("casus belli type");
     }
+    if s.contains(Scopes::CourtPosition) {
+        vec.push("court position");
+    }
+    if s.contains(Scopes::CourtPositionType) {
+        vec.push("court position type");
+    }
     display_choices(f, &vec, "or")
 }
 
-// LAST UPDATED CK3 VERSION 1.14.0.2
+// LAST UPDATED CK3 VERSION 1.15.0
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
     use crate::item::Item;
     if scopes == Scopes::AccoladeType && data.item_exists(Item::AccoladeType, arg) {
@@ -330,7 +338,7 @@ static SCOPE_TO_SCOPE_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.14.0.2
+/// LAST UPDATED CK3 VERSION 1.15.0
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
@@ -562,7 +570,7 @@ static SCOPE_PREFIX_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes, Ar
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.14.0.2
+/// LAST UPDATED CK3 VERSION 1.15.0
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
@@ -579,6 +587,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "character", Scopes::Character, Item(Item::Character)),
         (Scopes::Character, "council_task", Scopes::CouncilTask, Item(Item::CouncilPosition)),
         (Scopes::Character, "court_position", Scopes::Character, Item(Item::CourtPosition)),
+        (Scopes::None, "court_position_type", Scopes::CourtPositionType, Item(Item::CourtPosition)),
         (Scopes::Character, "cp", Scopes::Character, Item(Item::CouncilPosition)), // councillor
         (Scopes::None, "culture", Scopes::Culture, Item(Item::Culture)),
         (Scopes::None, "culture_pillar", Scopes::CulturePillar, Item(Item::CulturePillar)),
@@ -678,7 +687,7 @@ static SCOPE_ITERATOR_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.14.0.2
+/// LAST UPDATED CK3 VERSION 1.15.0
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
@@ -758,8 +767,10 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "county_in_region", Scopes::LandedTitle),
     (Scopes::LandedTitle, "county_province", Scopes::Province),
     (Scopes::LandedTitle, "county_struggle", Scopes::Struggle),
+    (Scopes::Character, "court_position_candidate", Scopes::Character),
     (Scopes::Character, "court_position_employer", Scopes::Character),
     (Scopes::Character, "court_position_holder", Scopes::Character), // TODO find out how court position is supplied
+    (Scopes::None, "court_position_type", Scopes::CourtPositionType),
     (Scopes::Character, "courtier", Scopes::Character),
     (Scopes::Character, "courtier_away", Scopes::Character),
     (Scopes::Character, "courtier_or_guest", Scopes::Character),

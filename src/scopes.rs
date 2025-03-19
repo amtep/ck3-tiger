@@ -23,7 +23,7 @@ bitflags! {
     ///
     /// The available scope types depend on the game.
     /// They are listed in `event_scopes.log` from the game data dumps.
-    // LAST UPDATED CK3 VERSION 1.14.0.2
+    // LAST UPDATED CK3 VERSION 1.15.0
     // LAST UPDATED VIC3 VERSION 1.8.1
     // LAST UPDATED IR VERSION 2.0.4
     //
@@ -56,6 +56,7 @@ bitflags! {
         #[cfg(any(feature = "vic3", feature = "imperator"))]
         const State = 0x0000_1000;
         const War = 0x0000_2000;
+        // 0x0000_8000 is allocated for ck3
 
         // Scope types for CK3
         #[cfg(feature = "ck3")] const Accolade = 0x0001_0000;
@@ -108,6 +109,9 @@ bitflags! {
         #[cfg(feature = "ck3")] const TaskContractType = 0x1000_0000_0000_0000;
         #[cfg(feature = "ck3")] const Regiment = 0x2000_0000_0000_0000;
         #[cfg(feature = "ck3")] const CasusBelliType = 0x4000_0000_0000_0000;
+        // CK3 1.15
+        #[cfg(feature = "ck3")] const CourtPosition = 0x8000_0000_0000_0000;
+        #[cfg(feature = "ck3")] const CourtPositionType = 0x0000_8000; // avoid going to 128 bits
 
         #[cfg(feature = "vic3")] const Battle = 0x0001_0000;
         #[cfg(feature = "vic3")] const BattleSide = 0x0002_0000;

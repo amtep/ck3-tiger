@@ -9,6 +9,7 @@ use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
+use crate::validate::validate_color;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
@@ -104,5 +105,7 @@ impl Category {
         vd.field_integer("index");
         vd.field_item("desc", Item::Localization);
         vd.field_bool("default");
+        vd.field_bool("favorite_interactions");
+        vd.field_validated_block("color", validate_color);
     }
 }

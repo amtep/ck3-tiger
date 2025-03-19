@@ -158,6 +158,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] AccoladeName,
     #[cfg(feature = "ck3")] AccoladeParameter,
     #[cfg(feature = "ck3")] AccoladeType,
+    #[cfg(feature = "ck3")] ActivityGroupType,
     #[cfg(feature = "ck3")] ActivityIntent,
     #[cfg(feature = "ck3")] ActivityLocale,
     #[cfg(feature = "ck3")] ActivityOption,
@@ -203,7 +204,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] Countermeasure,
     #[cfg(feature = "ck3")] CountermeasureParameter,
     #[cfg(feature = "ck3")] CourtPosition,
-    #[cfg(feature = "ck3")] CourtPositionCategory,
+    #[cfg(feature = "ck3")] CourtPositionTask,
     #[cfg(feature = "ck3")] CourtSceneCulture,
     #[cfg(feature = "ck3")] CourtSceneGroup,
     #[cfg(feature = "ck3")] CourtSceneRole,
@@ -720,6 +721,8 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::AccoladeType => "common/accolade_types/",
             #[cfg(feature = "ck3")]
+            Item::ActivityGroupType => "common/activities/activity_group_types/",
+            #[cfg(feature = "ck3")]
             Item::ActivityIntent => "common/activities/intents/",
             #[cfg(feature = "ck3")]
             Item::ActivityLocale => "common/activities/activity_locales/",
@@ -810,7 +813,7 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::CourtPosition => "common/court_positions/types/",
             #[cfg(feature = "ck3")]
-            Item::CourtPositionCategory => "common/court_positions/categories/",
+            Item::CourtPositionTask => "common/court_positions/tasks/",
             #[cfg(feature = "ck3")]
             Item::CourtSceneCulture => "gfx/court_scene/scene_cultures/",
             #[cfg(feature = "ck3")]

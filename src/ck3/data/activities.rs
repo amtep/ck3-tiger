@@ -104,6 +104,9 @@ impl DbKind for ActivityType {
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
 
+        vd.field_integer("sort_order");
+        vd.field_item("activity_group_type", Item::ActivityGroupType);
+
         // undocumented
         if block.has_key("guest_description") {
             let mut sc = ScopeContext::new(Scopes::Character, key);
@@ -166,6 +169,9 @@ impl DbKind for ActivityType {
         vd.field_validated_block("is_shown", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
+        vd.field_validated_block("can_plan", |block, data| {
+            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+        });
         // TODO: cryptic comment in docs
         // "any saved scope targets that are added to the creation data will also be available here
         // when validating if an activity can start"
@@ -185,7 +191,7 @@ impl DbKind for ActivityType {
 
         vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
 
-        vd.field_bool("is_grand_activity");
+        vd.replaced_field("is_grand_activity", "activity_group_type");
         vd.field_bool("is_single_location");
         vd.field_choice("planner_type", &["province", "holder"]);
 
@@ -869,4 +875,26 @@ fn validate_option(
     vd.field_validated_key_block("travel_entourage_selection", |key, block, data| {
         validate_tes(key, block, data, has_special_option);
     });
+}
+
+#[derive(Clone, Debug)]
+pub struct ActivityGroupType {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::ActivityGroupType, ActivityGroupType::add)
+}
+
+impl ActivityGroupType {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::ActivityGroupType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for ActivityGroupType {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        vd.field_integer("sort_order");
+        vd.field_list("gui_tags");
+    }
 }

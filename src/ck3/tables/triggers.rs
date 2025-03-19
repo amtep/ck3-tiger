@@ -13,7 +13,7 @@ use crate::trigger::Trigger;
 
 use Trigger::*;
 
-/// LAST UPDATED CK3 VERSION 1.14.0.2
+/// LAST UPDATED CK3 VERSION 1.15.0
 pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger)> {
     let name_lc = name.as_str().to_ascii_lowercase();
 
@@ -76,7 +76,7 @@ static TRIGGER_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Trigger)>> = La
     hash
 });
 
-/// LAST UPDATED CK3 VERSION 1.14.0.2
+/// LAST UPDATED CK3 VERSION 1.15.0
 /// See `triggers.log` from the game data dumps
 /// special:
 ///    `<legacy>_track_perks`
@@ -316,6 +316,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "current_day", CompareValue),
     (Scopes::Character, "current_military_strength", CompareValue),
     (Scopes::None, "current_month", CompareValue),
+    (Scopes::Character, "current_raised_military_strength", CompareValue),
     (Scopes::None, "current_tooltip_depth", CompareValue),
     (Scopes::Character, "current_weight", CompareValue),
     (Scopes::Character, "current_weight_for_portrait", CompareValue),
@@ -737,6 +738,10 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             &[("?type", Item(Item::ActivityPhase)), ("?location", Scope(Scopes::Province))],
         ),
     ),
+    (Scopes::Character, "has_player_court_position_automation_assign_best", Scope(Scopes::CourtPositionType)),
+    (Scopes::Character, "has_player_court_position_automation_assign_best_or_event", Scope(Scopes::CourtPositionType)),
+    (Scopes::Character, "has_player_court_position_automation_event", Scope(Scopes::CourtPositionType)),
+    (Scopes::Character, "has_player_court_position_automation_none", Scope(Scopes::CourtPositionType)),
     (Scopes::GreatHolyWar, "has_pledged_attacker", Scope(Scopes::Character)),
     (Scopes::GreatHolyWar, "has_pledged_defender", Scope(Scopes::Character)),
     (Scopes::Character, "has_potential_acclaimed_knights", Boolean),
@@ -1317,6 +1322,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::LandedTitle, "monthly_county_control_growth_factor", CompareValue),
     (Scopes::Province, "monthly_income", CompareValueWarnEq),
     (Scopes::Character, "months_as_ruler", CompareValueWarnEq),
+    (Scopes::None, "months_from_game_start", CompareValue),
     (Scopes::Faction, "months_until_max_discontent", CompareValueWarnEq),
     (
         Scopes::Character,
@@ -1364,6 +1370,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Activity, "num_past_phases", CompareValue),
     (Scopes::Character, "num_personal_legend_seeds", CompareValue),
     (Scopes::Activity, "num_phases", CompareValue),
+    (Scopes::Character, "num_scripted_legend_seeds", CompareValue),
     (
         Scopes::Character,
         "num_sinful_traits",
@@ -1468,6 +1475,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "owns_a_story", Boolean),
     (Scopes::Character, "owns_story_of_type", Item(Item::Story)),
     (Scopes::Character, "parent_relatedness", CompareValue),
+    (Scopes::Character, "participated_wars", CompareValue),
     (Scopes::Character, "patrilinear_betrothal", Boolean),
     (Scopes::Character, "patrilinear_marriage", Boolean),
     (Scopes::CombatSide, "percent_enemies_killed", CompareValue),
@@ -1824,7 +1832,7 @@ static TRIGGER_COMPLEX_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Argumen
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.14.0.2
+/// LAST UPDATED CK3 VERSION 1.15.0
 /// See `triggers.log` from the game data dumps
 /// `(inscopes, trigger name, argtype, outscopes)`
 /// Currently only works with single argument triggers

@@ -1,10 +1,14 @@
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::report::{err, ErrorKey};
+use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
+use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 // LAST UPDATED CK3 VERSION 1.11.5
@@ -30,10 +34,9 @@ const AI_WAR_OBJECTIVES: &[&str] = &[
     "enemy_capital_province",
     "capital_province",
     "enemy_province",
+    "enemy_ally_province",
     "province",
     "defend_wargoal_province",
-    // Undocumented
-    "enemy_ally_province",
 ];
 
 // LAST UPDATED CK3 VERSION 1.11.5
@@ -68,10 +71,26 @@ impl DbKind for AiWarStance {
             err(ErrorKey::Validation).msg(msg).loc(key).push();
         }
 
+        vd.field_choice("side", &["attacker", "defender"]);
         vd.field_integer_range("enemy_unit_priority", 1..=1000);
+
+        vd.field_validated_block("behaviour_attributes", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_bool("stronger");
+            vd.field_bool("weaker");
+            vd.field_bool("desperate");
+        });
+
+        vd.field_validated_key_block("can_be_picked", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::War, key);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+
+        vd.field_script_value_full("ai_will_do", Scopes::War, false);
 
         vd.multi_field_validated_block("objectives", |block, data| {
             let mut vd = Validator::new(block, data);
+            // TODO: "enemy_unit_province areas may not overlap"
             vd.multi_field_validated_block("enemy_unit_province", |block, data| {
                 let mut vd = Validator::new(block, data);
                 vd.field_integer_range("priority", 1..=1000);

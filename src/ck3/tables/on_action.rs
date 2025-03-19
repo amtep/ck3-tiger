@@ -1,4 +1,4 @@
-// LAST UPDATED CK3 VERSION 1.14.0.2
+// LAST UPDATED CK3 VERSION 1.15.0
 pub const ON_ACTION_SCOPES: &str = "
 	on_accolade_rank_change = {
 		root = accolade
@@ -551,6 +551,12 @@ pub const ON_ACTION_SCOPES: &str = "
 	}
 	on_scheme_discovered = {
 		root = scheme
+	}
+	on_scheme_opportunity_changed = {
+		root = scheme
+		old_value = value
+		new_value = value
+		scheme = scheme
 	}
 
 	on_influence_level_gain = {

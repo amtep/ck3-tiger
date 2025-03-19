@@ -56,7 +56,7 @@ pub struct Localization {
 }
 
 /// List of languages that are supported by the game engine.
-// LAST UPDATED CK3 VERSION 1.14.0.2
+// LAST UPDATED CK3 VERSION 1.15.0
 // LAST UPDATED VIC3 VERSION 1.7.6
 #[derive(
     Debug,

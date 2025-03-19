@@ -52,7 +52,7 @@ static SCOPE_EFFECT_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Effect)>> 
         hash
     });
 
-// LAST UPDATED CK3 VERSION 1.14.0.2
+// LAST UPDATED CK3 VERSION 1.15.0
 // See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::TravelPlan, "abort_travel_plan", Boolean),
@@ -214,11 +214,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "allow_in_scheme", Scope(Scopes::Scheme)),
     (Scopes::Character, "apply_ai_vassal_obligation_liege_most_desired", Yes),
     (Scopes::Character, "apply_ai_vassal_obligation_vassal_most_desired", Yes),
-    (
-        Scopes::Character,
-        "appoint_court_position",
-        ItemTarget("court_position", Item::CourtPosition, "recipient", Scopes::Character),
-    ),
+    (Scopes::Character, "appoint_court_position", Vb(validate_appoint_court_position)),
     (Scopes::None, "assert_if", Unchecked),
     (Scopes::Army, "assign_commander", Scope(Scopes::Character)),
     (Scopes::Character, "assign_council_task", Vb(validate_assign_council_task)),
@@ -614,7 +610,11 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "remove_variable", Unchecked),
     (Scopes::Character, "remove_war_chest_gold", NonNegativeValue),
     (Scopes::Character, "replace_court_position", Vb(validate_replace_court_position)),
-    (Scopes::TravelPlan, "reroute_to_home", Boolean),
+    (
+        Scopes::TravelPlan,
+        "reroute_to_home",
+        Removed("1.15", "replaced with return_home character effect"),
+    ),
     (Scopes::Character, "reset_beneficiary", Yes),
     (Scopes::LandedTitle.union(Scopes::Dynasty).union(Scopes::DynastyHouse), "reset_coa", Yes),
     (Scopes::Culture, "reset_culture_creation_date", Yes),
@@ -625,6 +625,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "resolve_title_and_vassal_change", Scope(Scopes::TitleAndVassalChange)),
     (Scopes::TravelPlan, "resume_travel_plan", Boolean),
     (Scopes::TravelPlan, "resume_travel_plan_mp", Boolean),
+    (Scopes::Character, "return_home", Boolean),
     (Scopes::Character, "return_hostage", Yes),
     (Scopes::Character, "return_to_court", Yes),
     (Scopes::Secret, "reveal_to", Scope(Scopes::Character)),

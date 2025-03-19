@@ -403,7 +403,15 @@ pub fn validate_inside_iterator(
 
     #[cfg(feature = "ck3")]
     if Game::is_ck3() {
-        if name == "court_position_holder" {
+        if name == "court_position_candidate" {
+            vd.req_field("court_position_type");
+            vd.field_item_or_target(
+                "court_position_type",
+                sc,
+                Item::CourtPosition,
+                Scopes::CourtPositionType,
+            );
+        } else if name == "court_position_holder" {
             vd.field_item("type", Item::CourtPosition);
         } else if name == "relation" {
             if !block.has_key("type") {

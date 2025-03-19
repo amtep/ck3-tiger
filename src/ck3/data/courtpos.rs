@@ -13,28 +13,7 @@ use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validator::Validator;
-
-#[derive(Clone, Debug)]
-pub struct CourtPositionCategory {}
-
-inventory::submit! {
-    ItemLoader::Normal(GameFlags::Ck3, Item::CourtPositionCategory, CourtPositionCategory::add)
-}
-
-impl CourtPositionCategory {
-    pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::CourtPositionCategory, key, block, Box::new(Self {}));
-    }
-}
-
-impl DbKind for CourtPositionCategory {
-    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
-        let mut vd = Validator::new(block, data);
-        vd.req_field("name");
-        vd.field_item("name", Item::Localization);
-    }
-}
+use crate::validator::{Builder, Validator};
 
 #[derive(Clone, Debug)]
 pub struct CourtPosition {}
@@ -58,9 +37,20 @@ impl DbKind for CourtPosition {
         let mut vd = Validator::new(block, data);
         vd.field_item("skill", Item::Skill);
         vd.field_integer("max_available_positions");
-        vd.field_item("category", Item::CourtPositionCategory);
+        vd.advice_field("category", "removed in 1.15");
         vd.field_choice("minimum_rank", &["county", "duchy", "kingdom", "empire"]);
         vd.field_bool("is_travel_related");
+
+        vd.multi_field_validated_block("court_position_asset", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_key_block("trigger", |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::Character, key);
+                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            });
+            vd.field_item("animation", Item::PortraitAnimation);
+            vd.field_item("background", Item::File);
+            vd.field_item("localization_key", Item::Localization);
+        });
 
         let mut sc = ScopeContext::new(Scopes::None, key);
         sc.define_name("liege", Scopes::Character, key);
@@ -96,6 +86,16 @@ impl DbKind for CourtPosition {
 
         vd.field_validated_block("base_employer_modifier", |block, data| {
             let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+        vd.field_validated_block("culture_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("parameter", Item::CultureParameter);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+        vd.field_validated_block("faith_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("parameter", Item::DoctrineParameter);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
 
@@ -138,6 +138,7 @@ impl DbKind for CourtPosition {
             "on_court_position_received",
             "on_court_position_revoked",
             "on_court_position_invalidated",
+            "on_court_position_vacated",
         ] {
             vd.field_validated_block(field, |block, data| {
                 validate_effect(block, data, &mut sc, Tooltipped::No);
@@ -171,7 +172,9 @@ impl DbKind for CourtPosition {
 
         vd.field_script_value("sort_order", &mut sc);
 
-        vd.field_bool("is_powerful_agent"); // undocumented
+        // undocumented
+
+        vd.field_bool("is_powerful_agent");
     }
 }
 
@@ -200,5 +203,93 @@ fn validate_scaling_employer_modifiers(block: &Block, data: &Everything) {
         if let Some(key) = block.get_key(field) {
             err(ErrorKey::Removed).msg("the aptitude_level_N fields have been replaced in 1.11 with terrible, poor, average, good, and excellent").loc(key).push();
         }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct CourtPositionTask {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::CourtPositionTask, CourtPositionTask::add)
+}
+
+impl CourtPositionTask {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CourtPositionTask, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for CourtPositionTask {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        data.verify_exists(Item::Localization, key);
+        let loca = format!("{key}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        let mut vd = Validator::new(block, data);
+        vd.advice_field("position_types", "docs say position_types but it's court_position_types");
+        vd.field_list_items("court_position_types", Item::CourtPosition);
+
+        vd.multi_field_validated_block("court_position_asset", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_key_block("trigger", |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::Character, key);
+                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            });
+            vd.field_item("animation", Item::PortraitAnimation);
+            vd.field_item("background", Item::File);
+        });
+
+        vd.field_validated_key_block("cost", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::None, key);
+            sc.define_name("liege", Scopes::Character, key);
+            validate_cost(block, data, &mut sc);
+        });
+
+        vd.field_validated_block("employee_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+        vd.field_validated_block("base_employer_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+        vd.field_validated_block("scaling_employer_modifiers", |block, data| {
+            validate_scaling_employer_modifiers(block, data);
+        });
+        vd.field_validated_block("base_employer_court_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+        vd.field_validated_block("scaling_employer_court_modifiers", |block, data| {
+            validate_scaling_employer_modifiers(block, data);
+        });
+
+        vd.field_validated_key_block("is_shown", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        });
+        vd.field_validated_key_block("is_valid_showing_failures_only", |key, block, data| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.define_name("liege", Scopes::Character, key);
+            validate_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
+        });
+
+        for field in &["on_start", "on_end", "on_monthly", "on_yearly"] {
+            vd.field_validated_key_block(field, |key, block, data| {
+                let mut sc = ScopeContext::new(Scopes::Character, key);
+                sc.define_name("liege", Scopes::Character, key);
+                // TODO: see if on_start is tooltipped
+                validate_effect(block, data, &mut sc, Tooltipped::No);
+            });
+        }
+
+        let sc_ai_will_do: &Builder = &|key: &Token| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.define_name("liege", Scopes::Character, key);
+            sc.define_name("employee", Scopes::Character, key);
+            sc.define_name("monthly_character_expenses", Scopes::Value, key);
+            sc
+        };
+        vd.field_script_value_full("ai_will_do", sc_ai_will_do, false);
     }
 }

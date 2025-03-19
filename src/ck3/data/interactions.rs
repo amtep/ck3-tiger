@@ -102,6 +102,9 @@ impl DbKind for CharacterInteraction {
 
         vd.field_numeric("interface_priority");
         vd.field_bool("common_interaction");
+        if !block.get_field_bool("hidden").unwrap_or(false) {
+            vd.req_field("category");
+        }
         vd.field_item("category", Item::CharacterInteractionCategory);
 
         if !vd.multi_field_validated_sc("icon", &mut sc, validate_icon) {
@@ -356,7 +359,10 @@ impl DbKind for CharacterInteraction {
         vd.field_bool("diarch_interaction");
         vd.field_validated_sc("auto_accept", &mut sc.clone(), validate_bool_or_trigger);
 
-        vd.field_choice("target_type", &["artifact", "title", "men_at_arms", "count"]);
+        vd.field_choice(
+            "target_type",
+            &["artifact", "title", "men_at_arms", "court_position_type", "count"],
+        );
         vd.field_value("target_filter"); // TODO
 
         // root is the character being picked
@@ -380,6 +386,8 @@ impl DbKind for CharacterInteraction {
 
         // Experimentation showed that even the cost block has scope none
         vd.field_validated_block_rerooted("cost", &sc, Scopes::None, validate_cost_with_renown);
+
+        vd.field_list("filter_tags");
     }
 }
 

@@ -684,6 +684,8 @@ pub fn validate_create_holy_order(
     vd.req_field("capital");
     vd.field_target("leader", sc, Scopes::Character);
     vd.field_target("capital", sc, Scopes::LandedTitle);
+    vd.field_item("name", Item::Localization);
+    vd.field_item("coat_of_arms", Item::Coa);
     if let Some(name) = vd.field_value("save_scope_as") {
         sc.define_name_token(name.as_str(), Scopes::HolyOrder, name);
     }
@@ -748,6 +750,15 @@ pub fn validate_duel(
     vd.field_target("target", sc, Scopes::Character);
     vd.field_script_value("value", sc);
     vd.field_item("localization", Item::EffectLocalization);
+    vd.field_validated_value("challenge_variable", |_, mut vd| {
+        let loca = format!("{}_name", vd.value());
+        data.verify_exists_implied(Item::Localization, &loca, vd.value());
+        vd.accept();
+    });
+    vd.field_validated_list("challenge_variables", |token, data| {
+        let loca = format!("{token}_name");
+        data.verify_exists_implied(Item::Localization, &loca, token);
+    });
     sc.define_name("duel_value", Scopes::Value, key);
     validate_random_list(key, block, data, sc, vd, tooltipped);
 }
@@ -1197,6 +1208,7 @@ pub fn validate_start_travel_plan(
         validate_target(token, data, sc, Scopes::Character);
     }
     vd.field_bool("travel_with_domicile");
+    vd.field_bool("can_cancel_planning");
     vd.field_bool("players_use_planner");
     vd.field_bool("return_trip");
     vd.field_event("on_arrival_event", sc);
@@ -2009,4 +2021,18 @@ pub fn validate_set_important_location(
     vd.field_action("enter_realm_on_action", &sc);
     vd.field_event("leave_realm_event", &mut sc);
     vd.field_action("leave_realm_on_action", &sc);
+}
+
+pub fn validate_appoint_court_position(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("court_position");
+    vd.req_field("recipient");
+    vd.field_item_or_target("court_position", sc, Item::CourtPosition, Scopes::CourtPositionType);
+    vd.field_target("recipient", sc, Scopes::Character);
 }

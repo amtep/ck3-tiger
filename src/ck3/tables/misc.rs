@@ -59,6 +59,9 @@ pub const DLC_FEATURES_CK3: &[&str] = &[
     "court_room_view",
     "wandering_nobles",
     "west_slavic_attire",
+    "medieval_monuments",
+    "arctic_attire",
+    "crowns_of_the_world",
 ];
 
 /// A list of music provided by DLCs, for people who don't have them
@@ -273,12 +276,13 @@ pub const ARTIFACT_RARITIES: &[&str] = &["common", "masterwork", "famed", "illus
 // LAST UPDATED CK3 VERSION 1.12.1
 pub const OUTBREAK_INTENSITIES: &[&str] = &["minor", "major", "apocalyptic"];
 
-// LAST UPDATED CK3 VERSION 1.14.0.2
+// LAST UPDATED CK3 VERSION 1.15.0
 pub const COMMON_DIRS: &[&str] = &[
     "common/accolade_icons",
     "common/accolade_names",
     "common/accolade_types",
     "common/achievements",
+    "common/activities/activity_group_types",
     "common/activities/activity_locales",
     "common/activities/activity_types",
     "common/activities/guest_invite_rules",
@@ -314,7 +318,6 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/council_positions",
     "common/council_tasks",
     "common/court_amenities",
-    "common/court_positions/categories",
     "common/court_positions/tasks",
     "common/court_positions/types",
     "common/court_types",
