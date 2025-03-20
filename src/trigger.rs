@@ -144,6 +144,17 @@ pub fn validate_trigger_internal(
         warn(ErrorKey::Tooltip).msg(msg).info(info).loc(block).push();
     }
 
+    if block.num_items() == 1 {
+        if caller == "and" {
+            let msg = "AND with only one item inside is useless";
+            let info = "you can remove the AND and just have the item there";
+            tips(ErrorKey::Performance).msg(msg).info(info).loc(block).push();
+        } else if caller == "or" {
+            let msg = "OR with only one item inside is probably not what you intended";
+            warn(ErrorKey::Logic).weak().msg(msg).loc(block).push();
+        }
+    }
+
     if caller == "trigger_if" || caller == "trigger_else_if" || caller == "trigger_else" {
         if caller != "trigger_else" {
             vd.req_field_warn("limit");

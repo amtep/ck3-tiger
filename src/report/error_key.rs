@@ -64,6 +64,7 @@ pub enum ErrorKey {
     Bookmarks,
     WrongGame,
     Gui,
+    Performance,
 
     PrincesOfDarkness,
 

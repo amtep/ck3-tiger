@@ -307,6 +307,11 @@ impl Block {
         count
     }
 
+    /// Return the number of items in this block.
+    pub fn num_items(&self) -> usize {
+        self.v.len()
+    }
+
     /// Return an iterator over the contents of this block.
     pub fn iter_items(&self) -> std::slice::Iter<BlockItem> {
         self.v.iter()
