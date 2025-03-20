@@ -299,11 +299,13 @@ impl Iterator for Lexer<'_> {
                             warn_linebreaks = false;
                         }
 
-                        if c == '\n' && warn_linebreaks {
-                            // Warn, but continue parsing the string.
+                        if c == '\n' {
                             id.add_char(c);
-                            let msg = "quoted string not closed";
-                            warn(ErrorKey::ParseError).weak().msg(msg).loc(self.loc).push();
+                            if warn_linebreaks {
+                                // Warn, but continue parsing the string.
+                                let msg = "quoted string not closed";
+                                warn(ErrorKey::ParseError).weak().msg(msg).loc(self.loc).push();
+                            }
                             self.consume();
                         } else if c == '"' {
                             let token = id.take_to_token();

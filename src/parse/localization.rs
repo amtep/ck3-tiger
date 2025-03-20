@@ -538,6 +538,12 @@ impl<'a> ValueParser<'a> {
         let mut v = Vec::new();
         loop {
             v.push(self.parse_code_code());
+            // Newlines followed by whitespace are allowed in code sequences,
+            // but not random whitespace.
+            if matches!(self.peek(), Some('\r' | '\n')) {
+                self.next_char();
+                self.skip_whitespace();
+            }
             if self.peek() != Some('.') {
                 break;
             }
