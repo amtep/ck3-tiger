@@ -98,13 +98,13 @@ If you want the output in a file, you can redirect it like this:
 imperator-tiger <i>path/to/your/mod</i> ><i>filename</i>
 </pre>
 
-### How to configure
+## How to configure
 
 You can place a file `ck3-tiger.conf` (or `vic3-tiger.conf` or `imperator.conf`) in your mod directory. You can use it to select which languages to check localizations for, and to suppress messages about things you don't want to fix.
 
 There is a sample [`ck3-tiger.conf`](ck3-tiger.conf) file, [`vic3-tiger.conf`](vic3-tiger.conf) file, and [`imperator-tiger.conf`](imperator-tiger.conf) file in the release, with an explanation of what goes in it. There is also a [guide](filter.md).
 
-### How to build
+## How to build
 
 If you want to build it yourself, you will have to [install the Rust programming language](https://www.rust-lang.org/tools/install). You can either get the source archive from one of the releases (preferably the [latest](https://github.com/amtep/ck3-tiger/releases/latest)) or clone the git repository.
 
@@ -112,19 +112,19 @@ For `ck3-tiger`, run `cargo build --release -p ck3-tiger` in the project's direc
 For `vic3-tiger`, run `cargo build --release -p vic3-tiger` in the project's directory, then run the program as `cargo run --release -p vic3-tiger`.  
 For `imperator-tiger`, run `cargo build --release -p imperator-tiger` in the project's directory, then run the program as `cargo run --release -p imperator-tiger`.
 
-### Visual Studio Code extension
+## Visual Studio Code extension
 
 User unLomTrois has made a [VS Code extension](https://github.com/unLomTrois/ck3tiger-for-vscode) for `ck3-tiger`.
 It enables you to view the reports directly in the Problems tab.
 
-### GitHub Action
+## GitHub Action
 
 User Bahmut has made a [GitHub Action](https://github.com/kaiser-chris/tiger-action-public) for `ck3-tiger`.
 It allows running ck3-tiger validation in GitHub Workflows.
 
 > **NOTE:** Because of copyright issues, you will need to set up the action yourself. The repository linked above contains a guide on how to set it up for yourself.
 
-### Showing only new reports
+## Showing only new reports
 
 You can tell `tiger` to suppress reports that were shown in a previous run.
 This can be helpful when you only want to see what changed, for example after updating your mod.
@@ -134,6 +134,20 @@ You can use any filename in place of `baseline.json`.
 Then when you run tiger again, you can tell it to exclude reports from the baseline:
 <pre>ck3-tiger --suppress baseline.json <i>path/to/your/mod</i></pre>
 It works with `vic3-tiger` and `imperator-tiger` too.
+
+## Command-line options
+
+* `--game` *PATH* Path to the game main directory
+* `--config` *PATH* Path to the custom `.conf` file
+* `--show-vanilla` Show errors in the base game script code as well as the mod's
+* `--show-mods` Show errors in secondary loaded mods as well as the main mod
+* `--json` Output the reports in JSON format
+* `--unused` Warn about items that are defined but unused (not yet accurate)
+* `--no-color` Omit color from the output
+* `--suppress` *PATH* Load a JSON file of reports to remove from the output (see section above)
+* `--pod` Do checks specific to the Princes of Darkness mod
+* `--help` Print help.
+* `--version` Print version
 
 ## Contributions
 
