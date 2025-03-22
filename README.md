@@ -7,7 +7,7 @@
 
 Tiger pounces on bugs. Checks Crusader Kings 3, Victoria 3, or Imperator: Rome user mod files for mistakes and warns about them. For example: missing localizations, or using a faith trigger on a character.
 
-These games are a grand strategy games made by Paradox Interactive, and user mods are made by the players to enhance or change their game experience. This tool is for the people who make the mods.
+These games are grand strategy games made by Paradox Interactive, and user mods are made by the players to enhance or change their game experience. This tool is for the people who make the mods.
 
 ## Status
 
