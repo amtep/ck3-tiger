@@ -668,22 +668,3 @@ impl Fileset {
         }
     }
 }
-
-#[derive(Clone, Debug)]
-pub struct Files<'a> {
-    iter: std::iter::Skip<std::slice::Iter<'a, FileEntry>>,
-    subpath: &'a Path,
-}
-
-impl<'a> Iterator for Files<'a> {
-    type Item = &'a FileEntry;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some(entry) = self.iter.next() {
-            if entry.path.starts_with(self.subpath) {
-                return Some(entry);
-            }
-        }
-        None
-    }
-}
