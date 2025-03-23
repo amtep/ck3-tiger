@@ -16,8 +16,6 @@ use crate::update::update;
 use crate::GameConsts;
 
 #[derive(Parser)]
-#[command(version)]
-#[command(propagate_version = true)]
 #[clap(args_conflicts_with_subcommands = true)]
 struct Cli {
     #[command(subcommand)]
@@ -83,9 +81,17 @@ struct ValidateArgs {
 ///
 /// It provides a number of command line arguments, as well as self-updating capability with the `update` subcommand.
 #[allow(clippy::missing_panics_doc)] // it thinks we can panic on cli.validate_args.unwrap()
-pub fn run(game_consts: &GameConsts, current_version: &str) -> Result<()> {
+pub fn run(
+    game_consts: &GameConsts,
+    current_version: &'static str,
+    bin_name: &'static str,
+) -> Result<()> {
+    use clap::{CommandFactory, FromArgMatches};
+
     let &GameConsts { name, name_short, version, app_id, signature_file, .. } = game_consts;
-    let cli = Cli::parse();
+
+    let matches = Cli::command().version(current_version).name(bin_name).get_matches();
+    let cli = Cli::from_arg_matches(&matches).map_err(|err| err.exit()).unwrap();
 
     #[allow(clippy::single_match_else)]
     match cli.command {
