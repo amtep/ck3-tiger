@@ -166,3 +166,9 @@ impl PartialEq for ActionOrEvent {
 }
 
 impl Eq for ActionOrEvent {}
+
+impl Display for ActionOrEvent {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        write!(f, "{}", self.token())
+    }
+}
