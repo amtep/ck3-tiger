@@ -1,6 +1,8 @@
 //! [`ScopeContext`] tracks our knowledge of the scope types used in script and validates its consistency.
 
 use std::borrow::Cow;
+#[cfg(any(feature = "ck3", feature = "vic3"))]
+use std::mem::take;
 
 use crate::game::Game;
 use crate::helpers::{stringify_choices, ActionOrEvent, TigerHashMap};
@@ -78,7 +80,7 @@ struct ScopeHistory {
     this: ScopeEntry,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 /// `ScopeEntry` is a description of what we know of a scope's type and its connection to other
 /// scopes.
 ///
@@ -96,6 +98,7 @@ enum ScopeEntry {
 
     /// A Rootref is for when the current scope is made with `root`. Most of the time,
     /// we also start with `this` being a Rootref.
+    #[default]
     Rootref,
 
     /// `Token` is the token that's the reason why we think the `Scopes` value is what it is.
@@ -121,6 +124,16 @@ pub enum Reason {
     /// The scope was supplied by the game engine. The `Token` points at a key explaining this, for
     /// example the key of an `Item` or the field key of a trigger or effect in an item.
     Builtin(Token),
+}
+
+/// Information about a temporarily suspended scope-building operation.
+/// This is used in constructs like `squared_distance(prev.capital_province)`,
+/// where the builder scope opened by `squared_distance` needs to be preserved
+/// while `prev.capital_province` is evaluated in the original scope.
+#[repr(transparent)]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
+pub struct StashedBuilder {
+    this: ScopeEntry,
 }
 
 impl Reason {
@@ -451,6 +464,19 @@ impl ScopeContext {
             Some(Box::new(ScopeHistory { prev: self.prev.take(), this: self.this.clone() }));
         self.this = ScopeEntry::Backref(0);
         self.is_builder = true;
+    }
+
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
+    pub fn stash_builder(&mut self) -> StashedBuilder {
+        let stash = StashedBuilder { this: take(&mut self.this) };
+        self.close();
+        stash
+    }
+
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
+    pub fn unstash_builder(&mut self, stash: StashedBuilder) {
+        self.open_builder();
+        self.this = stash.this;
     }
 
     /// Declare that the temporary scope level opened with [`Self::open_builder()`] is a real scope level.

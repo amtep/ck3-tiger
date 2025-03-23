@@ -1336,12 +1336,16 @@ fn validate_argument_internal(
         ArgumentValue::Item(item) => data.verify_exists(item, arg),
         #[cfg(any(feature = "ck3", feature = "vic3"))]
         ArgumentValue::Scope(scope) => {
+            let stash = sc.stash_builder();
             validate_target(arg, data, sc, scope);
+            sc.unstash_builder(stash);
         }
         #[cfg(feature = "ck3")]
         ArgumentValue::ScopeOrItem(scope, item) => {
             if !data.item_exists(item, arg.as_str()) {
+                let stash = sc.stash_builder();
                 validate_target(arg, data, sc, scope);
+                sc.unstash_builder(stash);
             }
         }
         #[cfg(feature = "ck3")]
