@@ -136,6 +136,16 @@ pub struct StashedBuilder {
     this: ScopeEntry,
 }
 
+/// The essential characteristics of a `ScopeContext` for the purpose of deciding whether an event
+/// has already been evaluated with a similar-enough `ScopeContext`.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Signature {
+    root: Scopes,
+    // named_scopes and lists are both sorted
+    named_scopes: Vec<(&'static str, Scopes)>,
+    lists: Vec<(&'static str, Scopes)>,
+}
+
 impl Reason {
     pub fn token(&self) -> &Token {
         match self {
@@ -495,6 +505,22 @@ impl ScopeContext {
         self.this = prev.this.clone();
         self.prev = prev.prev.take();
         self.is_builder = false;
+    }
+
+    /// Return an object that captures the essentials of this `ScopeContext`, to be used for
+    /// hashing.
+    pub fn signature(&self) -> Signature {
+        let root = self.resolve_root().0;
+
+        let mut named_scopes: Vec<(&'static str, Scopes)> =
+            self.names.iter().map(|(&name, &i)| (name, self.resolve_named(i).0)).collect();
+        named_scopes.sort_by(|(name1, _), (name2, _)| name1.cmp(name2));
+
+        let mut lists: Vec<(&'static str, Scopes)> =
+            self.list_names.iter().map(|(&name, &i)| (name, self.resolve_named(i).0)).collect();
+        lists.sort_by(|(name1, _), (name2, _)| name1.cmp(name2));
+
+        Signature { root, named_scopes, lists }
     }
 
     /// Replace the `this` in a temporary scope level with the given `scopes` type and record

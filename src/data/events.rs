@@ -1,8 +1,9 @@
 use std::path::PathBuf;
 use std::str::FromStr;
+use std::sync::Mutex;
 
 use crate::block::{Block, BlockItem, Field};
-use crate::context::{Reason, ScopeContext};
+use crate::context::{Reason, ScopeContext, Signature};
 use crate::data::scripted_effects::Effect;
 use crate::data::scripted_triggers::Trigger;
 use crate::everything::Everything;
@@ -204,12 +205,13 @@ impl FileHandler<Block> for Events {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Event {
     pub key: Token,
     pub block: Block,
     expects_scope: Scopes,
     expects_from_token: Token,
+    visited: Mutex<TigerHashSet<Signature>>,
 }
 
 impl Event {
@@ -222,7 +224,8 @@ impl Event {
             #[cfg(feature = "imperator")]
             Game::Imperator => crate::imperator::events::get_event_scope(&key, &block),
         };
-        Self { key, block, expects_scope, expects_from_token }
+        let visited = Mutex::new(TigerHashSet::default());
+        Self { key, block, expects_scope, expects_from_token, visited }
     }
 
     pub fn validate(&self, data: &Everything) {
@@ -249,6 +252,10 @@ impl Event {
     }
 
     pub fn validate_call(&self, data: &Everything, sc: &mut ScopeContext) {
+        if !self.visited.lock().unwrap().insert(sc.signature()) {
+            // The event was already visited with an equivalent sc
+            return;
+        }
         match Game::game() {
             #[cfg(feature = "ck3")]
             Game::Ck3 => crate::ck3::events::validate_event(self, data, sc),
