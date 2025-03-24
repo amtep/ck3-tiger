@@ -31,8 +31,8 @@ pub struct ScopeContext {
     /// Names should only be added, never removed, and indices should stay consistent.
     /// This is because the indices are also used by `ScopeEntry::Named` values throughout this `ScopeContext`.
     /// `names` and `list_names` occupy separate namespaces, but index into the same `named` array.
-    names: TigerHashMap<String, usize>,
-    list_names: TigerHashMap<String, usize>,
+    names: TigerHashMap<&'static str, usize>,
+    list_names: TigerHashMap<&'static str, usize>,
 
     /// Named scope values are `ScopeEntry::Scope` or `ScopeEntry::Named` or `ScopeEntry::Rootref`.
     /// Invariant: there are no cycles in the array via `ScopeEntry::Named` entries.
@@ -290,12 +290,12 @@ impl ScopeContext {
     }
 
     #[doc(hidden)]
-    fn define_name_internal(&mut self, name: &str, scopes: Scopes, reason: Reason) {
+    fn define_name_internal(&mut self, name: &'static str, scopes: Scopes, reason: Reason) {
         if let Some(&idx) = self.names.get(name) {
             self.break_chains_to(idx);
             self.named[idx] = ScopeEntry::Scope(scopes, reason);
         } else {
-            self.names.insert(name.to_string(), self.named.len());
+            self.names.insert(name, self.named.len());
             self.named.push(ScopeEntry::Scope(scopes, reason));
             self.is_input.push(None);
         }
@@ -305,7 +305,7 @@ impl ScopeContext {
     /// supplied by the game engine.
     ///
     /// The associated `token` will be used in error reports related to this named scope.
-    pub fn define_name<T: Into<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
+    pub fn define_name<T: Into<Token>>(&mut self, name: &'static str, scopes: Scopes, token: T) {
         self.define_name_internal(name, scopes, Reason::Builtin(token.into()));
     }
 
@@ -314,7 +314,12 @@ impl ScopeContext {
     ///
     /// The associated `token` will be used in error reports related to this named scope.
     /// The token should reflect why we think the named scope has the scope type it has.
-    pub fn define_name_token<T: Into<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
+    pub fn define_name_token<T: Into<Token>>(
+        &mut self,
+        name: &'static str,
+        scopes: Scopes,
+        token: T,
+    ) {
         self.define_name_internal(name, scopes, Reason::Token(token.into()));
     }
 
@@ -343,22 +348,22 @@ impl ScopeContext {
     /// The `ScopeContext` is not smart enough to track optionally existing scopes. It assumes
     /// that if you do `exists` on a scope, then from that point on it exists. Improving this would
     /// be a big project.
-    pub fn exists_scope<T: Into<Token>>(&mut self, name: &str, token: T) {
+    pub fn exists_scope<T: Into<Token>>(&mut self, name: &'static str, token: T) {
         if !self.names.contains_key(name) {
             let idx = self.named.len();
-            self.names.insert(name.to_string(), idx);
+            self.names.insert(name, idx);
             self.named.push(ScopeEntry::deduce(token));
             self.is_input.push(None);
         }
     }
 
     #[doc(hidden)]
-    fn define_list_internal(&mut self, name: &str, scopes: Scopes, reason: Reason) {
+    fn define_list_internal(&mut self, name: &'static str, scopes: Scopes, reason: Reason) {
         if let Some(&idx) = self.list_names.get(name) {
             self.break_chains_to(idx);
             self.named[idx] = ScopeEntry::Scope(scopes, reason);
         } else {
-            self.list_names.insert(name.to_string(), self.named.len());
+            self.list_names.insert(name, self.named.len());
             self.named.push(ScopeEntry::Scope(scopes, reason));
             self.is_input.push(None);
         }
@@ -372,12 +377,12 @@ impl ScopeContext {
     /// Lists and named scopes exist in different namespaces, but under the hood
     /// `ScopeContext` treats them the same. This means that lists are expected to
     /// contain items of a single scope type, which sometimes leads to false positives.
-    pub fn define_list<T: Into<Token>>(&mut self, name: &str, scopes: Scopes, token: T) {
+    pub fn define_list<T: Into<Token>>(&mut self, name: &'static str, scopes: Scopes, token: T) {
         self.define_list_internal(name, scopes, Reason::Builtin(token.into()));
     }
 
     /// This is like [`Self::define_name()`], but `scope:name` is declared equal to the current `this`.
-    pub fn save_current_scope(&mut self, name: &str) {
+    pub fn save_current_scope(&mut self, name: &'static str) {
         if let Some(&idx) = self.names.get(name) {
             self.break_chains_to(idx);
             let entry = self.resolve_backrefs();
@@ -390,7 +395,7 @@ impl ScopeContext {
             }
             self.named[idx] = entry.clone();
         } else {
-            self.names.insert(name.to_string(), self.named.len());
+            self.names.insert(name, self.named.len());
             self.named.push(self.resolve_backrefs().clone());
             self.is_input.push(None);
         }
@@ -409,7 +414,7 @@ impl ScopeContext {
             // list is being built here, and isn't an input list.
             self.is_input[idx] = None;
         } else {
-            self.list_names.insert(name.to_string(), self.named.len());
+            self.list_names.insert(name.as_str(), self.named.len());
             self.named.push(self.resolve_backrefs().clone());
             self.is_input.push(None);
         }
@@ -531,7 +536,7 @@ impl ScopeContext {
     ///
     /// This is used when a scope chain starts with `scope:name`. The `token` is expected to be the
     /// `scope:name` token.
-    pub fn replace_named_scope(&mut self, name: &str, token: Token) {
+    pub fn replace_named_scope(&mut self, name: &'static str, token: Token) {
         self.this = ScopeEntry::Named(self.named_index(name, &token), Reason::Token(token));
     }
 
@@ -540,7 +545,7 @@ impl ScopeContext {
     ///
     /// This is used in list iterators. The `token` is expected to be the token for the name of the
     /// list.
-    pub fn replace_list_entry(&mut self, name: &str, token: &Token) {
+    pub fn replace_list_entry(&mut self, name: &'static str, token: &Token) {
         self.this =
             ScopeEntry::Named(self.named_list_index(name, token), Reason::Token(token.clone()));
     }
@@ -550,7 +555,7 @@ impl ScopeContext {
     ///
     /// If a new index has to be created, and `strict_scopes` is on, then a warning will be emitted.
     #[doc(hidden)]
-    fn named_index(&mut self, name: &str, token: &Token) -> usize {
+    fn named_index(&mut self, name: &'static str, token: &Token) -> usize {
         if let Some(&idx) = self.names.get(name) {
             idx
         } else {
@@ -561,7 +566,7 @@ impl ScopeContext {
                     let msg = format!("scope:{name} might not be available here");
                     let mut builder = err(ErrorKey::StrictScopes).weak().msg(msg);
                     if self.names.len() <= MAX_SCOPE_NAME_LIST && !self.names.is_empty() {
-                        let mut names: Vec<_> = self.names.keys().map(String::as_str).collect();
+                        let mut names: Vec<_> = self.names.keys().copied().collect();
                         names.sort_unstable();
                         let info = format!("available names are {}", stringify_choices(&names));
                         builder = builder.info(info);
@@ -574,19 +579,19 @@ impl ScopeContext {
                 self.is_input.push(Some(token.clone()));
             }
             // do this after the warnings above, so that it's not listed as available
-            self.names.insert(name.to_string(), idx);
+            self.names.insert(name, idx);
             idx
         }
     }
 
     /// Same as [`Self::named_index()`], but for lists. No warning is emitted if a new list is created.
     #[doc(hidden)]
-    fn named_list_index(&mut self, name: &str, token: &Token) -> usize {
+    fn named_list_index(&mut self, name: &'static str, token: &Token) -> usize {
         if let Some(&idx) = self.list_names.get(name) {
             idx
         } else {
             let idx = self.named.len();
-            self.list_names.insert(name.to_string(), idx);
+            self.list_names.insert(name, idx);
             self.named.push(ScopeEntry::Scope(Scopes::all(), Reason::Token(token.clone())));
             self.is_input.push(Some(token.clone()));
             idx
@@ -976,7 +981,7 @@ impl ScopeContext {
             } else {
                 // Their scopes now become our scopes.
                 let (s, reason) = other.resolve_named(oidx);
-                self.names.insert(name.to_string(), self.named.len());
+                self.names.insert(name, self.named.len());
                 self.named.push(ScopeEntry::Scope(s, reason.clone()));
                 self.is_input.push(other.is_input[oidx].clone());
             }
@@ -1005,7 +1010,7 @@ impl ScopeContext {
             } else {
                 // Their lists now become our lists.
                 let (s, reason) = other.resolve_named(oidx);
-                self.list_names.insert(name.to_string(), self.named.len());
+                self.list_names.insert(name, self.named.len());
                 self.named.push(ScopeEntry::Scope(s, reason.clone()));
                 self.is_input.push(other.is_input[oidx].clone());
             }
