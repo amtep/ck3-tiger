@@ -6,6 +6,7 @@ use crate::effect::{validate_effect, validate_effect_internal};
 use crate::everything::Everything;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -57,9 +58,6 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     vd.field_validated_block("immediate", |block, data| {
         validate_effect(block, data, sc, tooltipped_immediate);
     });
-    vd.field_validated_block("after", |block, data| {
-        validate_effect(block, data, sc, tooltipped);
-    });
 
     vd.multi_field_validated_block("event_image", |block, data| {
         let mut vd = Validator::new(block, data);
@@ -110,8 +108,18 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     if !hidden {
         vd.req_field("option");
     }
+    let mut has_options = false;
     vd.multi_field_validated_block("option", |block, data| {
+        has_options = true;
         validate_event_option(block, data, sc, tooltipped);
+    });
+    vd.field_validated_key_block("after", |key, block, data| {
+        if !has_options {
+            let msg = "`after` effect will not run if there are no `option` blocks";
+            let info = "you can put it in `immediate` instead";
+            err(ErrorKey::Logic).msg(msg).info(info).loc(key).push();
+        }
+        validate_effect(block, data, sc, tooltipped);
     });
 }
 

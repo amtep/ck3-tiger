@@ -147,12 +147,19 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     if !event.block.get_field_bool("hidden").unwrap_or(false) {
         vd.req_field("option");
     }
+    let mut has_options = false;
     vd.multi_field_validated_block("option", |block, data| {
+        has_options = true;
         validate_event_option(block, data, sc, tooltipped);
     });
 
-    vd.field_validated_block("after", |b, data| {
-        validate_effect(b, data, sc, tooltipped);
+    vd.field_validated_key_block("after", |key, block, data| {
+        if !has_options {
+            let msg = "`after` effect will not run if there are no `option` blocks";
+            let info = "you can put it in `immediate` instead";
+            err(ErrorKey::Logic).msg(msg).info(info).loc(key).push();
+        }
+        validate_effect(block, data, sc, tooltipped);
     });
     vd.field_validated_block_sc("cooldown", sc, validate_duration);
     vd.field_value("soundeffect"); // TODO
