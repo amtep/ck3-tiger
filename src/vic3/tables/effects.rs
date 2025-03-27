@@ -161,11 +161,11 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "clamp_variable", Vb(validate_clamp_variable)),
     (Scopes::Country, "clear_debt", Boolean),
     (Scopes::Country, "clear_enactment_modifier", Yes),
-    (Scopes::None, "clear_global_variable_list", Unchecked),
-    (Scopes::None, "clear_local_variable_list", Unchecked),
-    (Scopes::None, "clear_saved_scope", Unchecked),
+    (Scopes::None, "clear_global_variable_list", Identifier("list name")),
+    (Scopes::None, "clear_local_variable_list", Identifier("list name")),
+    (Scopes::None, "clear_saved_scope", Identifier("scope name")),
     (Scopes::Country, "clear_scaled_debt", ScriptValue),
-    (Scopes::None, "clear_variable_list", Unchecked),
+    (Scopes::None, "clear_variable_list", Identifier("list name")),
     (Scopes::Country, "complete_objective_subgoal", Item(Item::ObjectiveSubgoal)),
     (Scopes::State, "convert_population", TargetValue("target", Scopes::Religion, "value")),
     (Scopes::Country, "copy_laws", Scope(Scopes::Country)),
@@ -254,7 +254,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "remove_diplomatic_pact", Vb(validate_diplomatic_pact)),
     (Scopes::Country, "remove_enactment_modifier", UncheckedTodo), // No examples in vanilla
     (Scopes::all_but_none(), "remove_from_list", Vv(validate_remove_from_list)),
-    (Scopes::None, "remove_global_variable", Unchecked),
+    (Scopes::None, "remove_global_variable", Identifier("variable name")),
     (Scopes::StateRegion, "remove_homeland", Scope(Scopes::Culture)),
     (Scopes::InterestGroup, "remove_ideology", Item(Item::Ideology)),
     (Scopes::Party, "remove_ig_from_party", Scope(Scopes::InterestGroup)),
@@ -263,7 +263,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "remove_list_local_variable", Vb(validate_add_to_variable_list)),
     (Scopes::None, "remove_list_variable", Vb(validate_add_to_variable_list)),
     (Scopes::PoliticalLobby, "remove_lobby_member", Scope(Scopes::InterestGroup)),
-    (Scopes::None, "remove_local_variable", Unchecked),
+    (Scopes::None, "remove_local_variable", Identifier("variable name")),
     (
         Scopes::Country
             .union(Scopes::Building)
@@ -284,7 +284,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::DiplomaticPlay, "remove_target_backers", Vb(validate_addremove_backers)),
     (Scopes::Country, "remove_taxed_goods", Scope(Scopes::Goods)),
     (Scopes::Character, "remove_trait", Item(Item::CharacterTrait)),
-    (Scopes::None, "remove_variable", Unchecked),
+    (Scopes::None, "remove_variable", Identifier("variable name")),
     (Scopes::DiplomaticPlay, "remove_war_goal", Vb(validate_remove_war_goal)),
     (Scopes::State, "reset_hub_names", Yes),
     (Scopes::State, "reset_state_name", Yes),

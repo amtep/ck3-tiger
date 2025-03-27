@@ -8,7 +8,7 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, fatal, tips, warn, ErrorKey};
+use crate::report::{err, fatal, tips, warn, ErrorKey, Severity};
 use crate::scopes::{scope_iterator, Scopes};
 use crate::script_value::validate_script_value;
 use crate::token::Token;
@@ -23,8 +23,9 @@ use crate::validate::validate_modifiers;
 #[cfg(feature = "vic3")]
 use crate::validate::validate_vic3_modifiers;
 use crate::validate::{
-    precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
-    validate_iterator_fields, validate_scope_chain, validate_scripted_modifier_call, ListType,
+    precheck_iterator_fields, validate_identifier, validate_ifelse_sequence,
+    validate_inside_iterator, validate_iterator_fields, validate_scope_chain,
+    validate_scripted_modifier_call, ListType,
 };
 use crate::validator::{Validator, ValueValidator};
 
@@ -340,6 +341,11 @@ pub fn validate_effect_field(
                         sc,
                         tooltipped,
                     );
+                }
+            }
+            Effect::Identifier(kind) => {
+                if let Some(token) = bv.expect_value() {
+                    validate_identifier(token, kind, Severity::Error);
                 }
             }
             Effect::Removed(version, explanation) => {
@@ -667,4 +673,6 @@ pub enum Effect {
     Vbv(fn(&Token, &BV, &Everything, &mut ScopeContext, Tooltipped)),
     /// The effect takes a value that will be validated by this function
     Vv(fn(&Token, ValueValidator, &mut ScopeContext, Tooltipped)),
+    /// The effect takes a single word
+    Identifier(&'static str),
 }

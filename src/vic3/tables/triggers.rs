@@ -361,7 +361,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::None,
         "global_variable_list_size",
-        Block(&[("name", UncheckedValue), ("value", CompareValue)]),
+        Block(&[("name", Identifier("list name")), ("value", CompareValue)]),
     ),
     (Scopes::Country, "gold_reserves", CompareValue),
     (Scopes::Country, "gold_reserves_limit", CompareValue),
@@ -452,8 +452,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::None, "has_gameplay_dlc", UncheckedValue),
     (Scopes::Country, "has_global_highest_gdp", Boolean),
     (Scopes::Country, "has_global_highest_innovation", Boolean),
-    (Scopes::None, "has_global_variable", UncheckedValue),
-    (Scopes::None, "has_global_variable_list", UncheckedValue),
+    (Scopes::None, "has_global_variable", Identifier("variable name")),
+    (Scopes::None, "has_global_variable_list", Identifier("list name")),
     (Scopes::Country, "has_government_clout", CompareValue),
     (Scopes::Country, "has_government_type", Item(Item::GovernmentType)),
     (Scopes::StateRegion, "has_harvest_condition", Item(Item::HarvestConditionType)),
@@ -483,8 +483,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "has_law_imposition_rights",
         Block(&[("target_country", Scope(Scopes::Country)), ("law_type", Scope(Scopes::LawType))]),
     ),
-    (Scopes::None, "has_local_variable", UncheckedValue),
-    (Scopes::None, "has_local_variable_list", UncheckedValue),
+    (Scopes::None, "has_local_variable", Identifier("variable name")),
+    (Scopes::None, "has_local_variable_list", Identifier("list name")),
     (Scopes::None, "has_map_interaction", UncheckedValue), // TODO
     (Scopes::None, "has_map_interaction_diplomatic_action", UncheckedValue), // TODO
     (Scopes::None, "has_map_interaction_export_goods", UncheckedValue), // TODO
@@ -565,8 +565,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "has_truce_with", Scope(Scopes::Country)),
     (Scopes::None, "has_unification_candidate", UncheckedValue), // No examples in vanilla
     (Scopes::NewCombatUnit, "has_unit_type", Scope(Scopes::CombatUnitType)),
-    (Scopes::None, "has_variable", UncheckedValue),
-    (Scopes::None, "has_variable_list", UncheckedValue),
+    (Scopes::None, "has_variable", Identifier("variable name")),
+    (Scopes::None, "has_variable_list", Identifier("list name")),
     (
         Scopes::War,
         "has_war_exhaustion",
@@ -807,17 +807,26 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::None,
         "is_target_in_global_variable_list",
-        Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(Scopes::all_but_none()))]),
+        Block(&[
+            ("name", Identifier("list name")),
+            ("*target", ScopeOkThis(Scopes::all_but_none())),
+        ]),
     ),
     (
         Scopes::None,
         "is_target_in_local_variable_list",
-        Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(Scopes::all_but_none()))]),
+        Block(&[
+            ("name", Identifier("list name")),
+            ("*target", ScopeOkThis(Scopes::all_but_none())),
+        ]),
     ),
     (
         Scopes::None,
         "is_target_in_variable_list",
-        Block(&[("name", UncheckedValue), ("*target", ScopeOkThis(Scopes::all_but_none()))]),
+        Block(&[
+            ("name", Identifier("list name")),
+            ("*target", ScopeOkThis(Scopes::all_but_none())),
+        ]),
     ),
     (Scopes::State, "is_target_of_wargoal", Scope(Scopes::Country)),
     (Scopes::Country, "is_taxing_goods", ScopeOrItem(Scopes::Goods, Item::Goods)),
@@ -872,7 +881,11 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::Country, "liberty_desire", CompareValue),
     (Scopes::Country, "liberty_desire_weekly_progress", CompareValue),
-    (Scopes::None, "list_size", Block(&[("name", UncheckedValue), ("value", CompareValue)])),
+    (
+        Scopes::None,
+        "list_size",
+        Block(&[("name", Identifier("list name")), ("value", CompareValue)]),
+    ),
     (Scopes::Country.union(Scopes::Pop).union(Scopes::State), "literacy_rate", CompareValue),
     (Scopes::PoliticalLobby, "lobby_clout", CompareValue),
     (
@@ -883,7 +896,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::None,
         "local_variable_list_size",
-        Block(&[("name", UncheckedValue), ("value", CompareValue)]),
+        Block(&[("name", Identifier("list name")), ("value", CompareValue)]),
     ),
     (
         Scopes::Country.union(Scopes::State),
@@ -1314,7 +1327,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::None,
         "variable_list_size",
-        Block(&[("name", UncheckedValue), ("value", CompareValue)]),
+        Block(&[("name", Identifier("list name")), ("value", CompareValue)]),
     ),
     (
         Scopes::War,
@@ -1460,7 +1473,7 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
         (Scopes::State, "ig_state_pol_strength_share", Scope(Scopes::InterestGroup), Scopes::Value),
         (Scopes::Country, "institution_investment_level", Item(Item::Institution), Scopes::Value),
         (Scopes::PowerBloc, "leverage_advantage", Scope(Scopes::Country), Scopes::Value),
-        (Scopes::None, "list_size", UncheckedValue, Scopes::Value),
+        (Scopes::None, "list_size", Identifier("list name"), Scopes::Value),
         // loyalist_fraction
         (
             Scopes::Market,

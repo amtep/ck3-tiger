@@ -21,7 +21,7 @@ use crate::script_value::{validate_bv, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_target_ok_this, validate_trigger_internal};
-use crate::validate::ListType;
+use crate::validate::{validate_identifier, ListType};
 
 pub use self::value_validator::ValueValidator;
 
@@ -353,6 +353,31 @@ impl<'a> Validator<'a> {
         result
     }
 
+    /// Expect field `name`, if present, to be set to a single word.
+    /// Expect no more than one `name` field in the block.
+    /// `kind` is the kind of identifier expected here (for display to the user).
+    /// Returns the field's value if the field is present.
+    pub fn field_identifier(&mut self, name: &str, kind: &str) -> Option<&Token> {
+        let mut found = None;
+        let mut result = None;
+        for Field(key, cmp, bv) in self.block.iter_fields() {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
+                self.known_fields.push(key.as_str());
+                if let Some(other) = found {
+                    dup_assign_error(key, other);
+                }
+                self.expect_eq_qeq(key, *cmp);
+                if let Some(token) = bv.expect_value() {
+                    validate_identifier(token, kind, self.max_severity);
+                    result = Some(token);
+                }
+                found = Some(key);
+            }
+        }
+        result
+    }
     /// Expect field `name`, if present, to be an assignment (`name = value`).
     /// Expect no more than one `name` field in the block.
     /// Runs the validation closure `f(key, vd)` for every matching field.

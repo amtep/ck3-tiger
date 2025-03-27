@@ -297,6 +297,9 @@ pub enum ArgumentValue {
     /// The value must be the name of a modif
     #[cfg(feature = "vic3")]
     Modif,
+    /// The value must be a single word
+    #[cfg(any(feature = "vic3", feature = "ck3"))]
+    Identifier(&'static str),
     /// The value can be anything
     UncheckedValue,
 }

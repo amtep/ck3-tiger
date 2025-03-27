@@ -384,7 +384,7 @@ pub fn validate_create_character(
         let mut sc = ScopeContext::new(Scopes::Character, key);
         validate_effect(block, data, &mut sc, Tooltipped::No);
     });
-    if let Some(name) = vd.field_value("save_scope_as") {
+    if let Some(name) = vd.field_identifier("save_scope_as", "scope name") {
         sc.define_name_token(name.as_str(), Scopes::Character, name);
     }
     vd.field_validated_key_block("trait_generation", |key, block, data| {
@@ -562,7 +562,7 @@ pub fn validate_create_military_formation(
 
     // undocumented
 
-    if let Some(name) = vd.field_value("save_scope_as") {
+    if let Some(name) = vd.field_identifier("save_scope_as", "scope name") {
         sc.define_name_token(name.as_str(), Scopes::MilitaryFormation, name);
     }
 }
@@ -983,7 +983,7 @@ pub fn validate_sort(
 ) {
     vd.req_field("name");
     vd.req_field("order");
-    if let Some(name) = vd.field_value("name") {
+    if let Some(name) = vd.field_identifier("name", "list name") {
         // The "order" is evaluated in the scope of the variable list item, which is not known.
         sc.open_scope(Scopes::all(), name.clone());
         vd.field_script_value("order", sc);

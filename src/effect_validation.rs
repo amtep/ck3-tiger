@@ -15,7 +15,7 @@ use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target_ok_this, validate_trigger_key_bv};
-use crate::validate::validate_optional_duration;
+use crate::validate::{validate_identifier, validate_optional_duration};
 use crate::validator::{Validator, ValueValidator};
 
 #[allow(dead_code)] // No longer used by CK3
@@ -25,6 +25,7 @@ pub fn validate_add_to_list(
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
+    vd.identifier("list name");
     sc.define_or_expect_list(vd.value());
     vd.accept();
 }
@@ -40,7 +41,7 @@ pub fn validate_add_to_variable_list(
 ) {
     vd.req_field("name");
     vd.req_field("target");
-    vd.field_value("name");
+    vd.field_identifier("name", "list name");
     vd.field_target_ok_this("target", sc, Scopes::all_but_none());
     #[cfg(feature = "ck3")]
     validate_optional_duration(&mut vd, sc);
@@ -56,7 +57,7 @@ pub fn validate_change_variable(
     _tooltipped: Tooltipped,
 ) {
     vd.req_field("name");
-    vd.field_value("name");
+    vd.field_identifier("name", "list name");
     vd.field_script_value("add", sc);
     vd.field_script_value("subtract", sc);
     vd.field_script_value("multiply", sc);
@@ -76,7 +77,7 @@ pub fn validate_clamp_variable(
     _tooltipped: Tooltipped,
 ) {
     vd.req_field("name");
-    vd.field_value("name");
+    vd.field_identifier("name", "list name");
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
 }
@@ -117,6 +118,7 @@ pub fn validate_remove_from_list(
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
+    vd.identifier("list name");
     sc.expect_list(vd.value());
     vd.accept();
 }
@@ -132,7 +134,7 @@ pub fn validate_round_variable(
 ) {
     vd.req_field("name");
     vd.req_field("nearest");
-    vd.field_value("name");
+    vd.field_identifier("name", "variable name");
     vd.field_script_value("nearest", sc);
 }
 
@@ -142,6 +144,7 @@ pub fn validate_save_scope(
     sc: &mut ScopeContext,
     _tooltipped: Tooltipped,
 ) {
+    vd.identifier("scope name");
     sc.save_current_scope(vd.value().as_str());
     vd.accept();
 }
@@ -158,7 +161,7 @@ pub fn validate_save_scope_value(
 ) {
     vd.req_field("name");
     vd.req_field("value");
-    if let Some(name) = vd.field_value("name") {
+    if let Some(name) = vd.field_identifier("name", "scope name") {
         // TODO: examine `value` field to check its real scope type
         sc.define_name_token(name.as_str(), Scopes::primitive(), name);
     }
@@ -174,12 +177,14 @@ pub fn validate_set_variable(
     _tooltipped: Tooltipped,
 ) {
     match bv {
-        BV::Value(_token) => (),
+        BV::Value(token) => {
+            validate_identifier(token, "variable name", Severity::Error);
+        }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.set_case_sensitive(false);
             vd.req_field("name");
-            vd.field_value("name");
+            vd.field_identifier("name", "variable name");
             vd.field_validated("value", |bv, data| match bv {
                 BV::Value(token) => {
                     validate_target_ok_this(token, data, sc, Scopes::all_but_none());

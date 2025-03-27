@@ -14,6 +14,7 @@ use crate::token::Token;
 use crate::trigger::validate_target;
 #[cfg(feature = "imperator")]
 use crate::trigger::validate_target_ok_this;
+use crate::validate::validate_identifier;
 
 /// A validator for one `Token`.
 /// The intended usage is that the block-level [`Validator`](crate::validator::Validator) wraps the `Token`
@@ -81,6 +82,14 @@ impl<'a> ValueValidator<'a> {
     /// Mark this value as valid, without placing any restrictions on it.
     pub fn accept(&mut self) {
         self.validated = true;
+    }
+
+    pub fn identifier(&mut self, kind: &'static str) {
+        if self.validated {
+            return;
+        }
+        self.validated = true;
+        validate_identifier(&self.value, kind, self.max_severity);
     }
 
     /// Expect the value to be the key of an `itype` item in the game database.

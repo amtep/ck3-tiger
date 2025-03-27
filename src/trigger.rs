@@ -25,8 +25,8 @@ use crate::script_value::validate_script_value;
 use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
 use crate::validate::{
-    precheck_iterator_fields, validate_ifelse_sequence, validate_inside_iterator,
-    validate_iterator_fields, ListType,
+    precheck_iterator_fields, validate_identifier, validate_ifelse_sequence,
+    validate_inside_iterator, validate_iterator_fields, ListType,
 };
 use crate::validator::Validator;
 
@@ -973,6 +973,11 @@ fn match_trigger_bv(
             }
             // TODO: time_of_year
         }
+        Trigger::Identifier(kind) => {
+            if let Some(token) = bv.expect_value() {
+                validate_identifier(token, kind, Severity::Error);
+            }
+        }
         #[cfg(any(feature = "ck3", feature = "vic3"))]
         Trigger::Removed(msg, info) => {
             err(ErrorKey::Removed).msg(*msg).info(*info).loc(name).push();
@@ -1363,6 +1368,10 @@ fn validate_argument_internal(
             // TODO: deduce the ModifKinds from the `this` scope
             verify_modif_exists(arg, data, ModifKinds::all(), Severity::Warning);
         }
+        #[cfg(any(feature = "vic3", feature = "ck3"))]
+        ArgumentValue::Identifier(kind) => {
+            validate_identifier(arg, kind, Severity::Error);
+        }
         ArgumentValue::UncheckedValue => (),
     }
 }
@@ -1492,6 +1501,8 @@ pub enum Trigger {
     /// this is for inside a Block, where a key is compared to a scope object
     #[cfg(feature = "ck3")]
     CompareToScope(Scopes),
+    /// trigger takes a single word
+    Identifier(&'static str),
 
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     Removed(&'static str, &'static str),

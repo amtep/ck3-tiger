@@ -788,3 +788,10 @@ pub fn validate_numeric_range(
         }
     }
 }
+
+pub fn validate_identifier(token: &Token, kind: &str, sev: Severity) {
+    if token.as_str().contains('.') || token.as_str().contains(':') {
+        let msg = format!("expected a {kind} here");
+        report(ErrorKey::Validation, sev).msg(msg).loc(token).push();
+    }
+}
