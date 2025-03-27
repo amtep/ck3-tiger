@@ -494,7 +494,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         "has_cb_on",
         Block(&[("target", Scope(Scopes::Character)), ("?cb", Item(Item::CasusBelli)), ("?casus_belli", Item(Item::CasusBelli))]),
     ),
-    (Scopes::Character, "has_character_flag", Identifier("flag name")),
+    (Scopes::Character, "has_character_flag", UncheckedValue),
     (Scopes::Character, "has_character_modifier", Item(Item::Modifier)),
     // TODO for all the duration_remaining items: verify if multiple comparators work. Verify if
     // "weeks" works. If multiple comparators work, warn if they can never be satisfied.
