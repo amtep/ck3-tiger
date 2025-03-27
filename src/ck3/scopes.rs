@@ -660,6 +660,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
             Scopes::TaskContractType,
             Item(Item::TaskContractType),
         ),
+        (Scopes::Character, "tax_collector_aptitude", Scopes::Value, Item(Item::TaxSlotType)),
         (Scopes::None, "title", Scopes::LandedTitle, Item(Item::Title)),
         (Scopes::None, "trait", Scopes::Trait, Item(Item::Trait)),
         (Scopes::all(), "var", Scopes::all(), UncheckedValue),
