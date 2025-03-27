@@ -52,12 +52,12 @@ impl Debug for ValueValidator<'_> {
 impl<'a> ValueValidator<'a> {
     /// Construct a new `ValueValidator` for a `&Token`.
     pub fn new(value: &'a Token, data: &'a Everything) -> Self {
-        Self { value: Cow::Borrowed(value), data, validated: false, max_severity: Severity::Error }
+        Self { value: Cow::Borrowed(value), data, validated: false, max_severity: Severity::Fatal }
     }
 
     /// Construct a new `ValueValidator` for an owned `Token`.
     pub fn new_owned(value: Token, data: &'a Everything) -> Self {
-        Self { value: Cow::Owned(value), data, validated: false, max_severity: Severity::Error }
+        Self { value: Cow::Owned(value), data, validated: false, max_severity: Severity::Fatal }
     }
 
     /// Maximum severity of problems reported by this `ValueValidator`. Defaults to `Error`.
@@ -89,7 +89,7 @@ impl<'a> ValueValidator<'a> {
             return;
         }
         self.validated = true;
-        validate_identifier(&self.value, kind, self.max_severity);
+        validate_identifier(&self.value, kind, Severity::Error.at_most(self.max_severity));
     }
 
     /// Expect the value to be the key of an `itype` item in the game database.

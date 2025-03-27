@@ -370,7 +370,7 @@ impl<'a> Validator<'a> {
                 }
                 self.expect_eq_qeq(key, *cmp);
                 if let Some(token) = bv.expect_value() {
-                    validate_identifier(token, kind, self.max_severity);
+                    validate_identifier(token, kind, Severity::Error.at_most(self.max_severity));
                     result = Some(token);
                 }
                 found = Some(key);
