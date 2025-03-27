@@ -161,7 +161,7 @@ pub fn validate_save_scope_value(
 ) {
     vd.req_field("name");
     vd.req_field("value");
-    if let Some(name) = vd.field_identifier("name", "scope name") {
+    if let Some(name) = vd.field_identifier_or_flag("name", sc) {
         // TODO: examine `value` field to check its real scope type
         sc.define_name_token(name.as_str(), Scopes::primitive(), name);
     }

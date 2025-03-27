@@ -525,7 +525,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Artifact, "remove_artifact_modifier", Item(Item::Modifier)),
     (Scopes::Province, "remove_building", Item(Item::Building)),
     (Scopes::TravelPlan, "remove_character", Scope(Scopes::Character)),
-    (Scopes::Character, "remove_character_flag", Identifier("flag name")),
+    (Scopes::Character, "remove_character_flag", Unchecked),
     (Scopes::Character, "remove_character_modifier", Item(Item::Modifier)),
     (Scopes::Character, "remove_character_secret_faith", Yes),
     (Scopes::Character, "remove_claim", Scope(Scopes::LandedTitle)),
