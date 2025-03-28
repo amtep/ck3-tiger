@@ -79,7 +79,7 @@ impl DbKind for Religion {
         validate_doctrines("religion", data, &mut vd);
 
         vd.field_icon("doctrine_background_icon", "NGameIcons|FAITH_DOCTRINE_BACKGROUND_PATH", "");
-        vd.field_value("piety_icon_group"); // TODO
+        validate_piety_icon_group(vd.field_value("piety_icon_group"), data);
         vd.field_value("graphical_faith");
         vd.field_bool("pagan_roots");
         vd.field_validated_block("traits", validate_traits);
@@ -262,7 +262,7 @@ impl DbKind for Faith {
         }
         vd.field_icon("reformed_icon", "NGameIcons|FAITH_ICON_PATH", ".dds");
         vd.field_value("graphical_faith");
-        vd.field_value("piety_icon_group"); // TODO
+        validate_piety_icon_group(vd.field_value("piety_icon_group"), data);
 
         vd.field_icon("doctrine_background_icon", "NGameIcons|FAITH_DOCTRINE_BACKGROUND_PATH", "");
 
@@ -327,7 +327,7 @@ impl DbKind for ReligionFamily {
 
         vd.field_bool("is_pagan");
         vd.field_value("graphical_faith");
-        vd.field_value("piety_icon_group"); // TODO
+        validate_piety_icon_group(vd.field_value("piety_icon_group"), data);
         vd.field_icon("doctrine_background_icon", "NGameIcons|FAITH_DOCTRINE_BACKGROUND_PATH", "");
         vd.field_item("hostility_doctrine", Item::Doctrine);
     }
@@ -354,6 +354,20 @@ impl DbKind for FervorModifier {
         vd.field_validated_block("trigger", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
+    }
+}
+
+fn validate_piety_icon_group(group: Option<&Token>, data: &Everything) {
+    if let Some(group) = group {
+        if let Some(valid) = data.get_defined_array_warn(group, "NGameIcons|PIETY_GROUPS") {
+            for valid_group in valid.iter_values() {
+                if group == valid_group {
+                    return;
+                }
+            }
+        }
+        let msg = "piety icon group not listed in PIETY_GROUPS define";
+        warn(ErrorKey::Choice).msg(msg).loc(group).push();
     }
 }
 

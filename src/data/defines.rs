@@ -4,8 +4,12 @@ use crate::block::{Block, BV};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, TigerHashMap};
+#[cfg(feature = "ck3")]
+use crate::item::Item;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
+#[cfg(feature = "ck3")]
+use crate::report::Severity;
 use crate::token::Token;
 
 #[derive(Clone, Debug, Default)]
@@ -81,8 +85,30 @@ impl Define {
     }
 
     #[allow(clippy::unused_self)]
-    pub fn validate(&self, _data: &Everything) {
+    #[allow(unused_variables)] // because only ck3 uses `data`
+    pub fn validate(&self, data: &Everything) {
         // TODO: validate that each define is the right 'type',
         // such as a path, a number, or a block of numeric values
+
+        #[cfg(feature = "ck3")]
+        if self.group.is("NGameIcons") && self.name.is("PIETY_GROUPS") {
+            if let Some(icon_path) =
+                data.get_defined_string_warn(&self.name, "NGameIcons|PIETY_LEVEL_PATH")
+            {
+                if let Some(groups) = self.bv.expect_block() {
+                    for icon_group in groups.iter_values_warn() {
+                        for nr in &["00", "01", "02", "03", "04", "05"] {
+                            let pathname = format!("{icon_path}/icon_piety_{icon_group}_{nr}.dds");
+                            data.verify_exists_implied_max_sev(
+                                Item::File,
+                                &pathname,
+                                icon_group,
+                                Severity::Warning,
+                            );
+                        }
+                    }
+                }
+            }
+        }
     }
 }
