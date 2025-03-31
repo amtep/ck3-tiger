@@ -43,7 +43,7 @@ impl Defines {
         }
     }
 
-    #[cfg(feature = "ck3")] // vic3 happens not to use
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub fn get_bv(&self, key: &str) -> Option<&BV> {
         self.defines.get(key).map(|d| &d.bv)
     }

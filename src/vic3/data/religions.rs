@@ -33,7 +33,7 @@ impl DbKind for Religion {
         data.verify_exists_implied(Item::Modifier, &modif, key);
 
         vd.field_item("texture", Item::File);
-        vd.field_list("traits"); // TODO
+        vd.field_list_items("traits", Item::DiscriminationTrait);
         vd.field_validated("color", validate_possibly_named_color);
         vd.field_list_items("taboos", Item::Goods);
     }

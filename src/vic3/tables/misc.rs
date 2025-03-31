@@ -278,9 +278,4 @@ pub const COMMON_DIRS: &[&str] = &[
 ];
 
 // LAST UPDATED VIC3 VERSION 1.7.6
-pub const COMMON_SUBDIRS_OK: &[&str] = &[
-    "common/decisions", // TODO: verify
-    "common/defines",
-    "common/history",
-    "common/on_actions", // TODO: verify
-];
+pub const COMMON_SUBDIRS_OK: &[&str] = &["common/defines", "common/history"];

@@ -1461,8 +1461,18 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
             Scopes::Value,
         ),
         (Scopes::Country, "enemy_contested_wargoals", Scope(Scopes::War), Scopes::Value),
-        // TODO (Scopes::MilitaryFormation, "formation_army_unit_type_fraction", Item(Item::UnitType), Scopes::Value),
-        // TODO (Scopes::MilitaryFormation, "formation_navy_unit_type_fraction", Item(Item::UnitType), Scopes::Value),
+        (
+            Scopes::MilitaryFormation,
+            "formation_army_unit_type_fraction",
+            Scope(Scopes::CombatUnitType),
+            Scopes::Value,
+        ),
+        (
+            Scopes::MilitaryFormation,
+            "formation_navy_unit_type_fraction",
+            Scope(Scopes::CombatUnitType),
+            Scopes::Value,
+        ),
         (
             Scopes::Building,
             "fraction_of_levels_owned_by_country",

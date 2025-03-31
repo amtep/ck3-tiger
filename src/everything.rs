@@ -6,7 +6,7 @@
 use std::borrow::Cow;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
-#[cfg(feature = "ck3")]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 use std::sync::RwLock;
 
 use anyhow::Result;
@@ -15,7 +15,7 @@ use strum::IntoEnumIterator;
 use thiserror::Error;
 
 use crate::block::Block;
-#[cfg(feature = "ck3")]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::block::BV;
 #[cfg(feature = "ck3")]
 use crate::ck3::data::{
@@ -58,7 +58,7 @@ use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
 use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::game::Game;
-#[cfg(feature = "ck3")]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::helpers::TigerHashSet;
 #[cfg(feature = "imperator")]
 use crate::imperator::data::{decisions::Decisions, provinces::ImperatorProvinces};
@@ -71,7 +71,7 @@ use crate::macros::MACRO_MAP;
 use crate::parse::json::parse_json_file;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-#[cfg(feature = "ck3")]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::report::err;
 use crate::report::{report, set_output_style, ErrorKey, OutputStyle, Severity};
 use crate::rivers::Rivers;
@@ -116,7 +116,7 @@ pub struct Everything {
 
     /// A cache of define values (from common/defines) that are missing and that have already been
     /// warned about as missing. This is to avoid duplicate warnings.
-    #[cfg(feature = "ck3")] // happens not to be used by vic3
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     warned_defines: RwLock<TigerHashSet<String>>,
 
     /// Tracks all the files (vanilla and mods) that are relevant to the current validation.
@@ -250,7 +250,7 @@ impl Everything {
             fileset,
             dds: DdsFiles::default(),
             config,
-            #[cfg(feature = "ck3")]
+            #[cfg(any(feature = "ck3", feature = "vic3"))]
             warned_defines: RwLock::new(TigerHashSet::default()),
             database: Db::default(),
             localization: Localization::default(),
@@ -888,7 +888,7 @@ impl Everything {
         self.defines.get_bv(key).and_then(BV::get_value)
     }
 
-    #[cfg(feature = "ck3")] // happens not to be used by vic3
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub(crate) fn get_defined_array(&self, key: &str) -> Option<&Block> {
         self.defines.get_bv(key).and_then(BV::get_block)
     }
@@ -907,7 +907,7 @@ impl Everything {
     }
 
     #[allow(clippy::missing_panics_doc)] // only panics on poisoned mutex
-    #[cfg(feature = "ck3")] // happens not to be used by vic3
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub(crate) fn get_defined_array_warn(&self, token: &Token, key: &str) -> Option<&Block> {
         let result = self.get_defined_array(key);
         let mut cache = self.warned_defines.write().unwrap();

@@ -129,18 +129,14 @@ impl DbKind for TerrainManipulator {
         vd.field_choice("city_type", &["none", "city", "farm", "mine", "port", "wood"]);
         vd.field_bool("coastal");
 
-        vd.field_validated_block("toggle_map_object_layers", |block, data| {
+        vd.field_validated_key_block("toggle_map_object_layers", |key, block, data| {
             let mut vd = Validator::new(block, data);
-            // TODO: this list comes from the define NGraphics|DYNAMIC_MAP_OBJECT_LAYERS
-            for layer in &[
-                "semidynamic",
-                "semidynamic_medium",
-                "semidynamic_high",
-                "mines_dynamic",
-                "farms_dynamic",
-                "forestry_dynamic",
-            ] {
-                vd.field_validated(layer, validate_layer);
+            if let Some(array) =
+                data.get_defined_array_warn(key, "NGraphics|DYNAMIC_MAP_OBJECT_LAYERS")
+            {
+                for layer in array.iter_values_warn() {
+                    vd.field_validated(layer.as_str(), validate_layer);
+                }
             }
         });
     }
