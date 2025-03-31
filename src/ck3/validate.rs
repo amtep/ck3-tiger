@@ -1,6 +1,7 @@
 //! Validation functions that are useful for more than one data module in ck3.
 
 use crate::block::{Block, BV};
+use crate::ck3::tables::misc::AI_TARGETS;
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
@@ -339,4 +340,22 @@ pub fn validate_portrait_modifier_overrides(block: &Block, data: &Everything) {
             err(ErrorKey::MissingItem).msg(msg).loc(value).push();
         }
     });
+}
+
+pub fn validate_quick_trigger(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+
+    vd.field_bool("adult");
+    vd.field_bool("attracted_to_owner");
+    vd.field_bool("owner_attracted");
+    vd.field_bool("prison");
+}
+
+pub fn validate_ai_targets(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+
+    vd.req_field("ai_recipients");
+    vd.multi_field_choice("ai_recipients", AI_TARGETS);
+    vd.field_integer_range("max", 0..);
+    vd.field_numeric_range("chance", 0.0..=1.0);
 }

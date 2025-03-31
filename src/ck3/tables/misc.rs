@@ -1,5 +1,45 @@
 //! Miscellaneous tables used to back `Item` variants.
 
+// LAST UPDATED CK3 VERSION 1.15
+// Taken from common/character_interactions/_character_interactions.info
+pub const AI_TARGETS: &[&str] = &[
+    "known_secrets",
+    "scheme_targets",
+    "hooked_characters",
+    "neighboring_rulers",
+    "peer_vassals",
+    "guests",
+    "dynasty",
+    "courtiers",
+    "councillors",
+    "prisoners",
+    "sub_realm_characters",
+    "realm_characters",
+    "vassals",
+    "liege",
+    "self",
+    "head_of_faith",
+    "spouses",
+    "family",
+    "children",
+    "primary_war_enemies",
+    "war_enemies",
+    "war_allies",
+    "scripted_relations",
+    "activity_host",
+    "activity_guests",
+    "contacts",
+    "domicile_location_top_ruler",
+    "domicile_location_top_realm_vassals",
+    "domicile_location_neighboring_top_rulers",
+    "domicile_location_neighboring_top_realm_vassals",
+    "top_realm_domicile_owners",
+    "sub_realm_domicile_owners",
+    "nearby_domicile_owners",
+    // undocumented
+    "diarch",
+];
+
 // LAST UPDATED CK3 VERSION 1.11.3
 pub const ACTIVITY_STATES: &[&str] = &["passive", "travel", "active"];
 

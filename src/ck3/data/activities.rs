@@ -1,6 +1,8 @@
 use crate::block::{Block, BV};
 use crate::ck3::data::scripted_animations::validate_scripted_animation;
-use crate::ck3::validate::validate_cost_with_renown;
+use crate::ck3::validate::{
+    validate_ai_targets, validate_cost_with_renown, validate_quick_trigger,
+};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -804,8 +806,8 @@ impl DbKind for ActivityIntent {
         sc.define_name("activity", Scopes::Activity, key);
         vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
 
-        vd.multi_field_block("ai_targets"); // TODO, see also interactions
-        vd.multi_field_block("ai_target_quick_trigger"); // TODO, see also interactions
+        vd.multi_field_validated_block("ai_targets", validate_ai_targets);
+        vd.field_validated_block("ai_target_quick_trigger", validate_quick_trigger);
 
         let mut sc = ScopeContext::new(Scopes::Character, key);
         sc.define_name("target", Scopes::Character, key);

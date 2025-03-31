@@ -1,5 +1,8 @@
 use crate::block::{Block, BV};
-use crate::ck3::validate::{validate_cost_with_renown, validate_theme_background};
+use crate::ck3::validate::{
+    validate_ai_targets, validate_cost_with_renown, validate_quick_trigger,
+    validate_theme_background,
+};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -97,8 +100,8 @@ impl DbKind for CharacterInteraction {
         vd.field_validated_block("ai_set_target", |b, data| {
             validate_effect(b, data, &mut sc, Tooltipped::No);
         });
-        vd.multi_field_block("ai_targets"); // TODO
-        vd.field_block("ai_target_quick_trigger"); // TODO
+        vd.multi_field_validated_block("ai_targets", validate_ai_targets);
+        vd.field_validated_block("ai_target_quick_trigger", validate_quick_trigger);
 
         vd.field_numeric("interface_priority");
         vd.field_bool("common_interaction");
