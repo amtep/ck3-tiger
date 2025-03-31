@@ -485,10 +485,10 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     ),
     (Scopes::None, "has_local_variable", Identifier("variable name")),
     (Scopes::None, "has_local_variable_list", Identifier("list name")),
-    (Scopes::None, "has_map_interaction", UncheckedValue), // TODO
-    (Scopes::None, "has_map_interaction_diplomatic_action", UncheckedValue), // TODO
-    (Scopes::None, "has_map_interaction_export_goods", UncheckedValue), // TODO
-    (Scopes::None, "has_map_interaction_import_goods", UncheckedValue), // TODO
+    (Scopes::None, "has_map_interaction", Item(Item::MapInteractionType)),
+    (Scopes::None, "has_map_interaction_diplomatic_action", Item(Item::DiplomaticAction)),
+    (Scopes::None, "has_map_interaction_export_goods", Scope(Scopes::Goods)),
+    (Scopes::None, "has_map_interaction_import_goods", Scope(Scopes::Goods)),
     (Scopes::Character, "has_military_formation", Boolean),
     (Scopes::MilitaryFormation, "has_mobilization_option", Scope(Scopes::MobilizationOption)),
     (Scopes::State, "has_mobilizing_unit", Boolean),
@@ -1043,7 +1043,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::Country,
         "pop_type_percent_country",
-        Block(&[("pop_type", UncheckedValue), ("percent", CompareValue)]),
+        Block(&[("pop_type", Item(Item::PopType)), ("percent", CompareValue)]),
     ),
     (
         Scopes::State,
@@ -1405,7 +1405,12 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
         (Scopes::Country, "average_sol_for_culture", Scope(Scopes::Culture), Scopes::Value),
         (Scopes::Country, "average_sol_for_religion", Scope(Scopes::Religion), Scopes::Value),
         (Scopes::Character, "character_acceptance", Scope(Scopes::Country), Scopes::Value),
-        (Scopes::Country, "country_army_unit_type_fraction", UncheckedValue, Scopes::Value), // TODO Item(Item::UnitType))
+        (
+            Scopes::Country,
+            "country_army_unit_type_fraction",
+            Scope(Scopes::CombatUnitType),
+            Scopes::Value,
+        ),
         (
             Scopes::Country,
             "country_average_cultural_acceptance",
@@ -1430,7 +1435,12 @@ const TRIGGER_COMPLEX: &[(Scopes, &str, ArgumentValue, Scopes)] = {
             Item(Item::BuildingType),
             Scopes::Value,
         ),
-        (Scopes::Country, "country_navy_unity_type_fraction", UncheckedValue, Scopes::Value), // TODO Item(Item::UnitType)
+        (
+            Scopes::Country,
+            "country_navy_unity_type_fraction",
+            Scope(Scopes::CombatUnitType),
+            Scopes::Value,
+        ),
         (Scopes::Country, "cultural_acceptance_base", Scope(Scopes::Culture), Scopes::Value),
         (Scopes::Country, "cultural_acceptance_delta", Scope(Scopes::Culture), Scopes::Value),
         (Scopes::Country, "culture_percent_country", Item(Item::Culture), Scopes::Value),

@@ -990,3 +990,77 @@ pub fn validate_sort(
         sc.close();
     }
 }
+
+pub fn validate_owes_obligation(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("country");
+    vd.req_field("setting");
+    vd.field_target("country", sc, Scopes::Country);
+    vd.field_bool("setting");
+}
+
+pub fn validate_owner_of_provinces(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("country");
+    vd.req_field("provinces");
+    vd.field_target("country", sc, Scopes::Country);
+    vd.field_list_items("provinces", Item::Province);
+}
+
+pub fn validate_violate_sovereignty_join(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    // undocumented
+
+    vd.req_field("violator");
+    vd.req_field("target");
+    vd.req_field("join_violator");
+    vd.field_target("violator", sc, Scopes::Country);
+    vd.field_target("target", sc, Scopes::Country);
+    vd.field_bool("join_violator");
+}
+
+pub fn validate_ruling_ig(
+    _key: &Token,
+    _block: &Block,
+    data: &Everything,
+    _sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    for token in vd.values() {
+        data.verify_exists(Item::InterestGroup, token);
+    }
+}
+
+pub fn validate_start_tutorial(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    // undocumented
+
+    vd.req_field("tutorial_lesson");
+    vd.field_item("tutorial_lesson", Item::TutorialLesson);
+    vd.field_target("journal_entry", sc, Scopes::JournalEntry);
+}
