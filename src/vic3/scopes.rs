@@ -775,7 +775,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "company_type", Scopes::CompanyType, Item(Item::CompanyType)),
         (Scopes::None, "cu", Scopes::Culture, Item(Item::Culture)),
         (Scopes::State, "decree_cost", Scopes::Value, Item(Item::Decree)),
-        (Scopes::None, "define", Scopes::Value, UncheckedValue),
+        (Scopes::None, "define", Scopes::Value, Item(Item::Define)),
         (Scopes::None, "flag", Scopes::Flag, UncheckedValue),
         (Scopes::None, "g", Scopes::Goods, Item(Item::Goods)),
         (Scopes::Country, "get_ruler_for", Scopes::Character, Item(Item::TransferOfPower)),
