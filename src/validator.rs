@@ -1599,8 +1599,6 @@ impl<'a> Validator<'a> {
     }
 
     /// Expect the block to contain any number of `key = value` or `key = { block }` fields where the key is an integer.
-    /// Return them as a vector of (key, bv) pairs.
-    /// TODO: make this take a closure.
     pub fn integer_keys<F: FnMut(&Token, &BV)>(&mut self, mut f: F) {
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if key.is_integer() {

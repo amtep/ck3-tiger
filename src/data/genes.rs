@@ -596,11 +596,18 @@ fn validate_accessory_gene(block: &Block, data: &Everything) {
                 }
                 BV::Block(block) => {
                     let mut vd = Validator::new(block, data);
-                    for (_weight, token) in vd.integer_values() {
-                        if !token.is("empty") && !token.is("0") {
-                            data.verify_exists(Item::Accessory, token);
+                    vd.integer_keys(|_weight, bv| match bv {
+                        BV::Value(token) => {
+                            if !token.is("empty") && !token.is("0") {
+                                data.verify_exists(Item::Accessory, token);
+                            }
                         }
-                    }
+                        BV::Block(block) => {
+                            for token in block.iter_values_warn() {
+                                data.verify_exists(Item::Accessory, token);
+                            }
+                        }
+                    });
                 }
             }
         });
