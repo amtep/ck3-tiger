@@ -254,6 +254,11 @@ pub const SKILLS: &[&str] =
 // LAST UPDATED CK3 VERSION 1.12.1
 pub const SEXUALITIES: &[&str] = &["heterosexual", "homosexual", "bisexual", "asexual", "none"];
 
+// LAST UPDATED CK3 VERSION 1.15
+// Taken from gfx/court_scene/scene_settings/scene_settings_indian_1_g1.txt
+pub const SUPPORT_TYPES: &[&str] =
+    &["lectern", "tall", "short_pillow", "tall_pillow", "armorstand", "short"];
+
 // LAST UPDATED CK3 VERSION 1.13.0.1
 // Taken from recent_history description in triggers.log
 pub const TITLE_HISTORY_TYPES: &[&str] = &[

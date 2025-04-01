@@ -2,6 +2,7 @@ use std::cmp::max;
 
 use crate::block::Block;
 use crate::ck3::data::scripted_animations::validate_scripted_animation;
+use crate::ck3::tables::misc::SUPPORT_TYPES;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
@@ -115,7 +116,7 @@ impl DbKind for CourtSceneSetting {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_value("name"); // TODO
+        vd.field_value("name");
         vd.field_item("culture", Item::CourtSceneCulture);
         vd.field_integer("visual_culture_level");
         vd.field_item("cubemap", Item::File);
@@ -167,12 +168,24 @@ impl DbKind for CourtSceneSetting {
             }
         });
 
-        vd.field_validated_block("support_type", |block, data| {
+        vd.field_validated_key_block("support_type", |key, block, data| {
             let mut vd = Validator::new(block, data);
-            vd.unknown_value_fields(|_, value| {
-                // TODO: what is the key?
+            let mut seen = Vec::new();
+            vd.unknown_value_fields(|key, value| {
+                if SUPPORT_TYPES.contains(&key.as_str()) {
+                    seen.push(key.as_str());
+                } else {
+                    let msg = format!("expected one of {}", SUPPORT_TYPES.join(", "));
+                    warn(ErrorKey::Choice).msg(msg).loc(key).push();
+                }
                 data.verify_exists(Item::Entity, value);
             });
+            for s in SUPPORT_TYPES {
+                if !seen.contains(s) {
+                    let msg = format!("support type {s} missing");
+                    warn(ErrorKey::FieldMissing).msg(msg).loc(key).push();
+                }
+            }
         });
     }
 }

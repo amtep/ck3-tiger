@@ -1,5 +1,5 @@
 use crate::block::{Block, BV};
-use crate::ck3::tables::misc::ARTIFACT_RARITIES;
+use crate::ck3::tables::misc::{ARTIFACT_RARITIES, SUPPORT_TYPES};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
@@ -141,8 +141,8 @@ impl DbKind for ArtifactVisual {
         vd.field_value("default_type"); // unused
 
         // These two are undocumented
-        vd.field_value("pedestal"); // TODO
-        vd.field_value("support_type"); // TODO
+        vd.field_choice("pedestal", SUPPORT_TYPES);
+        vd.field_choice("support_type", SUPPORT_TYPES);
 
         let mut unconditional = false;
         vd.multi_field_validated("icon", |bv, data| match bv {
