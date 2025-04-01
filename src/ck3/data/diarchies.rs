@@ -38,7 +38,7 @@ impl DbKind for DiarchyType {
 
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new(Scopes::None, key); // TODO scope type
+        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         let loca = format!("{key}_diarchy_type");
         data.verify_exists_implied(Item::Localization, &loca, key);
@@ -65,7 +65,7 @@ impl DbKind for DiarchyType {
             let mut vd = Validator::new(block, data);
             vd.field_integer("swing");
             vd.multi_field_item("parameter", Item::Localization);
-            vd.multi_field_value("hidden_parameter"); // TODO: localization?
+            vd.multi_field_value("hidden_parameter");
         });
         vd.field_script_value_rooted("swing_balance", Scopes::Character);
 
