@@ -53,13 +53,6 @@ impl DbKind for Dlc {
             data.verify_exists_implied(Item::File, &path, key);
         }
 
-        let path = format!("{key}.dlc");
-        data.verify_exists_implied(Item::File, &path, key);
-        if Game::is_vic3() {
-            let path = format!("{key}.dlc.json");
-            data.verify_exists_implied(Item::File, &path, key);
-        }
-
         if Game::is_vic3() {
             vd.req_field("name");
             vd.field_value("name");
