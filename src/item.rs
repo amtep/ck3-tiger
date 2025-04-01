@@ -425,6 +425,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] ScriptedProgressBar,
     #[cfg(feature = "vic3")] ScriptedTest,
     #[cfg(feature = "vic3")] SecretGoal,
+    #[cfg(feature = "vic3")] Skin,
     #[cfg(feature = "vic3")] SocialClass,
     #[cfg(feature = "vic3")] SocialHierarchy,
     #[cfg(feature = "vic3")] StateRegion,
@@ -438,6 +439,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] TerrainManipulator,
     #[cfg(feature = "vic3")] TerrainMask,
     #[cfg(feature = "vic3")] TerrainMaterial,
+    #[cfg(feature = "vic3")] Theme,
     #[cfg(feature = "vic3")] TransferOfPower,
 
     // Items specific to imperator
@@ -1253,6 +1255,8 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::SecretGoal => "",
             #[cfg(feature = "vic3")]
+            Item::Skin => "gfx/skins/",
+            #[cfg(feature = "vic3")]
             Item::SocialClass => "common/social_classes/",
             #[cfg(feature = "vic3")]
             Item::SocialHierarchy => "common/social_hierarchies/",
@@ -1278,6 +1282,8 @@ impl Item {
             Item::TerrainMask => "gfx/map/masks/",
             #[cfg(feature = "vic3")]
             Item::TerrainMaterial => "gfx/map/terrain/materials.settings",
+            #[cfg(feature = "vic3")]
+            Item::Theme => "common/themes/",
             #[cfg(feature = "vic3")]
             Item::TransferOfPower => "",
 

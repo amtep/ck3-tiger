@@ -60,3 +60,4 @@ pub mod strategic_regions;
 pub mod subject_types;
 pub mod technology;
 pub mod terrain;
+pub mod themes;
