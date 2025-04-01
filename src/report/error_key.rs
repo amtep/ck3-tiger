@@ -30,6 +30,7 @@ pub enum ErrorKey {
     MissingSound,
     MissingItem,
     MissingPerspective,
+    ExtraFile,
     WrongGender,
     Conflict,
     ImageFormat,

@@ -102,7 +102,7 @@ impl DbKind for Skin {
                 if !data.item_exists(Item::File, &base_path) {
                     let msg = format!("file {base_path} does not exist");
                     let info = "every skin file must override an existing interface file";
-                    warn(ErrorKey::MissingFile).msg(msg).info(info).loc(entry).push();
+                    warn(ErrorKey::ExtraFile).msg(msg).info(info).loc(entry).push();
                 }
             }
         }
