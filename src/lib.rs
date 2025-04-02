@@ -2,8 +2,10 @@
 //! `imperator-tiger`. Each executable is a small wrapper around the functions in this library that
 //! start and perform validation.
 
-#[cfg(all(feature = "ck3", feature = "vic3", feature = "imperator", not(doc)))]
-compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled at the same time");
+#[cfg(all(feature = "ck3", feature = "vic3", feature = "imperator", feature = "hoi4", not(doc)))]
+compile_error!(
+    "features \"ck3\", \"vic3\", \"imperator\", and \"hoi4\" cannot be enabled at the same time"
+);
 
 #[cfg(all(
     not(feature = "ck3"),

@@ -11,7 +11,7 @@ use crate::validator::Validator;
 pub struct Accessory {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::all(), Item::Accessory, Accessory::add)
+    ItemLoader::Normal(GameFlags::modern(), Item::Accessory, Accessory::add)
 }
 
 impl Accessory {

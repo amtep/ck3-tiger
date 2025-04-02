@@ -126,6 +126,11 @@ impl Game {
         return GAME.get() == Some(&Game::Imperator);
     }
 
+    /// Convenience function indicating whether we are validating one of the three newer games
+    pub(crate) fn is_modern() -> bool {
+        Game::is_ck3() || Game::is_vic3() || Game::is_imperator()
+    }
+
     /// Convenience function indicating whether we are validating Imperator: Rome mods.
     pub(crate) fn is_hoi4() -> bool {
         #[cfg(not(feature = "hoi4"))]

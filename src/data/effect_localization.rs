@@ -12,7 +12,7 @@ use crate::validator::Validator;
 pub struct EffectLocalization {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::all(), Item::EffectLocalization, EffectLocalization::add)
+    ItemLoader::Normal(GameFlags::modern(), Item::EffectLocalization, EffectLocalization::add)
 }
 
 impl EffectLocalization {

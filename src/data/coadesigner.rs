@@ -14,7 +14,7 @@ use crate::validator::Validator;
 pub struct CoaDesignerColoredEmblem {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::all(), Item::CoaDesignerColoredEmblem, CoaDesignerColoredEmblem::add)
+    ItemLoader::Normal(GameFlags::modern(), Item::CoaDesignerColoredEmblem, CoaDesignerColoredEmblem::add)
 }
 
 impl CoaDesignerColoredEmblem {

@@ -37,7 +37,7 @@ use crate::ck3::data::{
 use crate::ck3::tables::misc::*;
 use crate::config_load::{check_for_legacy_ignore, load_filter};
 use crate::context::ScopeContext;
-#[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+#[cfg(feature = "modern")]
 use crate::data::coa::Coas;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::data::data_binding::DataBindings;
@@ -197,7 +197,7 @@ pub struct Everything {
     pub(crate) assets: Assets,
     pub(crate) music: Musics,
 
-    #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+    #[cfg(feature = "modern")]
     pub(crate) coas: Coas,
 
     #[cfg(feature = "vic3")]
@@ -307,7 +307,7 @@ impl Everything {
             data_bindings: DataBindings::default(),
             assets: Assets::default(),
             music: Musics::default(),
-            #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+            #[cfg(feature = "modern")]
             coas: Coas::default(),
             #[cfg(feature = "vic3")]
             history: History::default(),
@@ -620,12 +620,16 @@ impl Everything {
             Item::DoctrineCategory => self.doctrines.category_exists(key),
             Item::DoctrineParameter => self.doctrines.parameter_exists(key),
             Item::GameConcept => self.gameconcepts.exists(key),
+            Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::GeneticConstraint => self.traits.constraint_exists(key),
             Item::MenAtArms => self.menatarmstypes.exists(key),
             Item::MenAtArmsBase => self.menatarmstypes.base_exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces_ck3.exists(key),
             Item::RewardItem => REWARD_ITEMS.contains(&key),
+            Item::ScriptedList => self.scripted_lists.exists(key),
+            Item::ScriptedModifier => self.scripted_modifiers.exists(key),
+            Item::ScriptValue => self.script_values.exists(key),
             Item::Sexuality => SEXUALITIES.contains(&key),
             Item::Skill => SKILLS.contains(&key),
             Item::Sound => self.valid_sound(key),
@@ -651,9 +655,13 @@ impl Everything {
             Item::CountryTier => COUNTRY_TIERS.contains(&key),
             Item::DlcFeature => DLC_FEATURES_VIC3.contains(&key),
             Item::EventCategory => EVENT_CATEGORIES.contains(&key),
+            Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
             Item::Level => LEVELS.contains(&key),
             Item::RelationsThreshold => RELATIONS.contains(&key),
+            Item::ScriptedList => self.scripted_lists.exists(key),
+            Item::ScriptedModifier => self.scripted_modifiers.exists(key),
+            Item::ScriptValue => self.script_values.exists(key),
             Item::SecretGoal => SECRET_GOALS.contains(&key),
             Item::Sound => self.valid_sound(key),
             Item::Strata => STRATA.contains(&key),
@@ -671,7 +679,11 @@ impl Everything {
             Item::CoaTemplate => self.coas.template_exists(key),
             Item::DlcName => DLC_NAME_IMPERATOR.contains(&key),
             Item::Decision => self.decisions_imperator.exists(key),
+            Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::Province => self.provinces_imperator.exists(key),
+            Item::ScriptedList => self.scripted_lists.exists(key),
+            Item::ScriptedModifier => self.scripted_modifiers.exists(key),
+            Item::ScriptValue => self.script_values.exists(key),
             Item::Sound => self.valid_sound(key),
             _ => self.database.exists(itype, key),
         }
@@ -692,7 +704,6 @@ impl Everything {
             Item::Event => self.events.exists(key),
             Item::EventNamespace => self.events.namespace_exists(key),
             Item::File => self.fileset.exists(key),
-            Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::GuiLayer => self.gui.layer_exists(key),
             Item::GuiTemplate => self.gui.template_exists(key),
             Item::GuiType => self.gui.type_exists(&Lowercase::new(key)),
@@ -701,10 +712,7 @@ impl Everything {
             Item::OnAction => self.on_actions.exists(key),
             Item::Pdxmesh => self.assets.mesh_exists(key),
             Item::ScriptedEffect => self.effects.exists(key),
-            Item::ScriptedList => self.scripted_lists.exists(key),
-            Item::ScriptedModifier => self.scripted_modifiers.exists(key),
             Item::ScriptedTrigger => self.triggers.exists(key),
-            Item::ScriptValue => self.script_values.exists(key),
             Item::TextFormat => self.gui.textformat_exists(key),
             Item::TextIcon => self.gui.texticon_exists(key),
             Item::TextureFile => self.assets.texture_exists(key),
@@ -990,10 +998,14 @@ impl Everything {
             Item::DoctrineCategory => Box::new(self.doctrines.iter_category_keys()),
             Item::DoctrineParameter => Box::new(self.doctrines.iter_parameter_keys()),
             Item::GameConcept => Box::new(self.gameconcepts.iter_keys()),
+            Item::GeneAttribute => Box::new(self.assets.iter_attribute_keys()),
             Item::GeneticConstraint => Box::new(self.traits.iter_constraint_keys()),
             Item::MenAtArms => Box::new(self.menatarmstypes.iter_keys()),
             Item::MenAtArmsBase => Box::new(self.menatarmstypes.iter_base_keys()),
             Item::Province => Box::new(self.provinces_ck3.iter_keys()),
+            Item::ScriptedList => Box::new(self.scripted_lists.iter_keys()),
+            Item::ScriptedModifier => Box::new(self.scripted_modifiers.iter_keys()),
+            Item::ScriptValue => Box::new(self.script_values.iter_keys()),
             Item::Title => Box::new(self.titles.iter_keys()),
             Item::TitleHistory => Box::new(self.title_history.iter_keys()),
             Item::Trait => Box::new(self.traits.iter_keys()),
@@ -1008,6 +1020,10 @@ impl Everything {
         match itype {
             Item::Coa => Box::new(self.coas.iter_keys()),
             Item::CoaTemplate => Box::new(self.coas.iter_template_keys()),
+            Item::GeneAttribute => Box::new(self.assets.iter_attribute_keys()),
+            Item::ScriptedList => Box::new(self.scripted_lists.iter_keys()),
+            Item::ScriptedModifier => Box::new(self.scripted_modifiers.iter_keys()),
+            Item::ScriptValue => Box::new(self.script_values.iter_keys()),
             _ => Box::new(self.database.iter_keys(itype)),
         }
     }
@@ -1018,7 +1034,11 @@ impl Everything {
             Item::Coa => Box::new(self.coas.iter_keys()),
             Item::CoaTemplate => Box::new(self.coas.iter_template_keys()),
             Item::Decision => Box::new(self.decisions_imperator.iter_keys()),
+            Item::GeneAttribute => Box::new(self.assets.iter_attribute_keys()),
             Item::Province => Box::new(self.provinces_imperator.iter_keys()),
+            Item::ScriptedList => Box::new(self.scripted_lists.iter_keys()),
+            Item::ScriptedModifier => Box::new(self.scripted_modifiers.iter_keys()),
+            Item::ScriptValue => Box::new(self.script_values.iter_keys()),
             _ => Box::new(self.database.iter_keys(itype)),
         }
     }
@@ -1037,7 +1057,6 @@ impl Everything {
             Item::Event => Box::new(self.events.iter_keys()),
             Item::EventNamespace => Box::new(self.events.iter_namespace_keys()),
             Item::File => Box::new(self.fileset.iter_keys()),
-            Item::GeneAttribute => Box::new(self.assets.iter_attribute_keys()),
             Item::GuiLayer => Box::new(self.gui.iter_layer_keys()),
             Item::GuiTemplate => Box::new(self.gui.iter_template_keys()),
             Item::GuiType => Box::new(self.gui.iter_type_keys()),
@@ -1046,10 +1065,7 @@ impl Everything {
             Item::OnAction => Box::new(self.on_actions.iter_keys()),
             Item::Pdxmesh => Box::new(self.assets.iter_mesh_keys()),
             Item::ScriptedEffect => Box::new(self.effects.iter_keys()),
-            Item::ScriptedList => Box::new(self.scripted_lists.iter_keys()),
-            Item::ScriptedModifier => Box::new(self.scripted_modifiers.iter_keys()),
             Item::ScriptedTrigger => Box::new(self.triggers.iter_keys()),
-            Item::ScriptValue => Box::new(self.script_values.iter_keys()),
             Item::TextFormat => Box::new(self.gui.iter_textformat_keys()),
             Item::TextIcon => Box::new(self.gui.iter_texticon_keys()),
             Item::TextureFile => Box::new(self.assets.iter_texture_keys()),

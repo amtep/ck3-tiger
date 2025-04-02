@@ -58,13 +58,16 @@ fn achievement_scope() -> Scopes {
     }
 }
 
+#[cfg(feature = "modern")]
 #[derive(Clone, Debug)]
 pub struct AchievementGroup {}
 
+#[cfg(feature = "modern")]
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::all(), Item::AchievementGroup, AchievementGroup::add)
+    ItemLoader::Normal(GameFlags::modern(), Item::AchievementGroup, AchievementGroup::add)
 }
 
+#[cfg(feature = "modern")]
 impl AchievementGroup {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if key.is("group") {
@@ -82,6 +85,7 @@ impl AchievementGroup {
     }
 }
 
+#[cfg(feature = "modern")]
 impl DbKind for AchievementGroup {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
