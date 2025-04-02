@@ -35,30 +35,46 @@ use crate::token::Token;
 pub enum Item {
     // Generic items used by all games and assumed to be there by the validators in
     // non-game-specific `data` modules.
+    #[cfg(feature = "modern")]
     Accessory,
+    #[cfg(feature = "modern")]
     AccessoryTag,
+    #[cfg(feature = "modern")]
     AccessoryVariation,
+    #[cfg(feature = "modern")]
     AccessoryVariationLayout,
+    #[cfg(feature = "modern")]
     AccessoryVariationTextures,
     Achievement,
+    #[cfg(feature = "modern")]
     AchievementGroup,
     Asset,
     BlendShape,
+    #[cfg(feature = "modern")]
     CharacterInteraction,
+    #[cfg(feature = "modern")]
     Coa,
+    #[cfg(feature = "modern")]
     CoaColorList,
+    #[cfg(feature = "modern")]
     CoaColoredEmblemList,
     #[cfg(feature = "ck3")]
     CoaDesignerColorPalette,
+    #[cfg(feature = "modern")]
     CoaDesignerColoredEmblem,
     #[cfg(feature = "ck3")]
     CoaDesignerEmblemLayout,
+    #[cfg(feature = "modern")]
     CoaDesignerPattern,
+    #[cfg(feature = "modern")]
     CoaPatternList,
+    #[cfg(feature = "modern")]
     CoaTemplate,
+    #[cfg(feature = "modern")]
     CoaTemplateList,
+    #[cfg(feature = "modern")]
     CoaTexturedEmblemList,
-    #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+    #[cfg(feature = "modern")]
     Culture,
     CustomLocalization,
     Decision,
@@ -67,27 +83,33 @@ pub enum Item {
     Dlc,
     DlcFeature,
     DlcName,
+    #[cfg(feature = "modern")]
     EffectLocalization,
     Entity,
     Entry,
+    #[cfg(feature = "modern")]
     Ethnicity,
     Event,
     EventNamespace,
     File,
     Font,
     Fontfiles,
+    #[cfg(feature = "modern")]
     GameConcept,
     GameRule,
     GameRuleSetting,
+    #[cfg(feature = "modern")]
     GeneAgePreset,
+    #[cfg(feature = "modern")]
     GeneAttribute,
+    #[cfg(feature = "modern")]
     GeneCategory,
-    #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+    #[cfg(feature = "modern")]
     GovernmentType,
     GuiLayer,
     GuiTemplate,
     GuiType,
-    #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+    #[cfg(feature = "modern")]
     LawGroup,
     Localization,
     MapEnvironment,
@@ -98,20 +120,29 @@ pub enum Item {
     NamedColor,
     OnAction,
     Pdxmesh,
+    #[cfg(feature = "modern")]
     PortraitAnimation,
+    #[cfg(feature = "modern")]
     PortraitCamera,
+    #[cfg(feature = "modern")]
     PortraitEnvironment,
+    #[cfg(feature = "modern")]
     PortraitModifierGroup,
+    #[cfg(feature = "modern")]
     PortraitModifierPack,
     Province,
-    #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+    #[cfg(feature = "modern")]
     Religion,
     ScriptedEffect,
     ScriptedGui,
+    #[cfg(feature = "modern")]
     ScriptedList,
+    #[cfg(feature = "modern")]
     ScriptedModifier,
+    #[cfg(feature = "modern")]
     ScriptedRule,
     ScriptedTrigger,
+    #[cfg(feature = "modern")]
     ScriptValue,
     Shortcut,
     Sound,
@@ -512,30 +543,55 @@ impl Item {
         #[allow(clippy::match_same_arms)]
         // These variants are in the same order as the Item enum declaration
         match self {
+            #[cfg(feature = "modern")]
             Item::Accessory => "gfx/portraits/accessories/",
+            #[cfg(feature = "modern")]
             Item::AccessoryTag => "gfx/portraits/accessories/",
+            #[cfg(feature = "modern")]
             Item::AccessoryVariation => "gfx/portraits/accessory_variations/",
+            #[cfg(feature = "modern")]
             Item::AccessoryVariationLayout => "gfx/portraits/accessory_variations/",
+            #[cfg(feature = "modern")]
             Item::AccessoryVariationTextures => "gfx/portraits/accessory_variations/",
-            Item::Achievement => "common/achievements",
+            Item::Achievement => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => "common/achievements/",
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => "common/achievements/",
+                #[cfg(feature = "imperator")]
+                Game::Imperator => "common/achievements/",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "common/achievements.txt",
+            },
+            #[cfg(feature = "modern")]
             Item::AchievementGroup => "common/achievement_groups.txt",
             Item::Asset => "gfx/models/",
             Item::BlendShape => "gfx/models/",
+            #[cfg(feature = "modern")]
             Item::CharacterInteraction => "common/character_interactions/",
+            #[cfg(feature = "modern")]
             Item::Coa => "common/coat_of_arms/coat_of_arms/",
+            #[cfg(feature = "modern")]
             Item::CoaColorList => "common/coat_of_arms/template_lists/",
+            #[cfg(feature = "modern")]
             Item::CoaColoredEmblemList => "common/coat_of_arms/template_lists/",
             #[cfg(feature = "ck3")]
             Item::CoaDesignerColorPalette => "gfx/coat_of_arms/color_palettes/",
+            #[cfg(feature = "modern")]
             Item::CoaDesignerColoredEmblem => "gfx/coat_of_arms/colored_emblems/",
             #[cfg(feature = "ck3")]
             Item::CoaDesignerEmblemLayout => "gfx/coat_of_arms/emblem_layouts/",
+            #[cfg(feature = "modern")]
             Item::CoaDesignerPattern => "gfx/coat_of_arms/patterns/",
+            #[cfg(feature = "modern")]
             Item::CoaPatternList => "common/coat_of_arms/template_lists/",
+            #[cfg(feature = "modern")]
             Item::CoaTemplate => "common/coat_of_arms/coat_of_arms/",
+            #[cfg(feature = "modern")]
             Item::CoaTemplateList => "common/coat_of_arms/template_lists/",
+            #[cfg(feature = "modern")]
             Item::CoaTexturedEmblemList => "common/coat_of_arms/template_lists/",
-            #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+            #[cfg(feature = "modern")]
             Item::Culture => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/culture/cultures/",
@@ -560,22 +616,28 @@ impl Item {
             Item::DlcFeature => "",
             Item::DlcName => "dlc_metadata/",
             Item::Directory => "",
+            #[cfg(feature = "modern")]
             Item::EffectLocalization => "common/effect_localization/",
             Item::Entity => "gfx/models/",
             Item::Entry => "",
+            #[cfg(feature = "modern")]
             Item::Ethnicity => "common/ethnicities/",
             Item::Event => "events/",
             Item::EventNamespace => "events/",
             Item::File => "",
             Item::Font => "fonts/",
             Item::Fontfiles => "fonts/",
+            #[cfg(feature = "modern")]
             Item::GameConcept => "common/game_concepts/",
             Item::GameRule => "common/game_rules/",
             Item::GameRuleSetting => "common/game_rules/",
+            #[cfg(feature = "modern")]
             Item::GeneAgePreset => "common/genes/",
+            #[cfg(feature = "modern")]
             Item::GeneAttribute => "gfx/models/",
+            #[cfg(feature = "modern")]
             Item::GeneCategory => "common/genes/",
-            #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+            #[cfg(feature = "modern")]
             Item::GovernmentType => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/governments/",
@@ -614,10 +676,15 @@ impl Item {
                 Game::Hoi4 => "common/on_actions/",
             },
             Item::Pdxmesh => "gfx/models/",
+            #[cfg(feature = "modern")]
             Item::PortraitAnimation => "gfx/portraits/portrait_animations/",
+            #[cfg(feature = "modern")]
             Item::PortraitCamera => "gfx/portraits/cameras/",
+            #[cfg(feature = "modern")]
             Item::PortraitEnvironment => "gfx/portraits/environments/",
+            #[cfg(feature = "modern")]
             Item::PortraitModifierGroup => "gfx/portraits/portrait_modifiers/",
+            #[cfg(feature = "modern")]
             Item::PortraitModifierPack => "gfx/portraits/portrait_animations/",
             Item::Province => match Game::game() {
                 #[cfg(feature = "ck3")]
@@ -629,7 +696,7 @@ impl Item {
                 #[cfg(feature = "hoi4")]
                 Game::Hoi4 => "map/definition.csv",
             },
-            #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+            #[cfg(feature = "modern")]
             Item::Religion => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/religion/religions/",
@@ -640,10 +707,14 @@ impl Item {
             },
             Item::ScriptedEffect => "common/scripted_effects/",
             Item::ScriptedGui => "common/scripted_guis/",
+            #[cfg(feature = "modern")]
             Item::ScriptedList => "common/scripted_lists/",
+            #[cfg(feature = "modern")]
             Item::ScriptedModifier => "common/scripted_modifiers/",
+            #[cfg(feature = "modern")]
             Item::ScriptedRule => "common/scripted_rules/",
             Item::ScriptedTrigger => "common/scripted_triggers/",
+            #[cfg(feature = "modern")]
             Item::ScriptValue => "common/script_values/",
             Item::Shortcut => "gui/shortcuts.shortcuts",
             Item::Sound => "",
@@ -1398,12 +1469,12 @@ impl Item {
     /// Should be `Strong` for most, `Weak` for items that aren't defined anywhere but just used (such as gfx flags).
     pub fn confidence(self) -> Confidence {
         match self {
-            Item::AccessoryTag
+            #[cfg(feature = "modern")]
+            Item::AccessoryTag => Confidence::Weak,
+
             // GuiType and GuiTemplate are here because referring to templates in other mods is a
             // common compatibility technique.
-            | Item::GuiType
-            | Item::GuiTemplate
-            | Item::Sound => Confidence::Weak,
+            Item::GuiType | Item::GuiTemplate | Item::Sound => Confidence::Weak,
 
             #[cfg(feature = "ck3")]
             Item::AccoladeCategory
@@ -1434,6 +1505,7 @@ impl Item {
             // common compatibility technique.
             Item::GuiType | Item::GuiTemplate => Severity::Untidy,
 
+            #[cfg(feature = "modern")]
             Item::Accessory
             | Item::AccessoryTag
             | Item::AccessoryVariation
@@ -1445,16 +1517,22 @@ impl Item {
             | Item::CoaPatternList
             | Item::CoaTemplate
             | Item::CoaTemplateList
-            | Item::CoaTexturedEmblemList
-            | Item::CustomLocalization
-            | Item::EffectLocalization
-            | Item::Ethnicity
-            | Item::File
-            | Item::GameConcept
-            | Item::Localization
-            | Item::MapEnvironment
-            | Item::NamedColor
-            | Item::PortraitAnimation
+            | Item::CoaTexturedEmblemList => Severity::Warning,
+
+            Item::CustomLocalization => Severity::Warning,
+
+            #[cfg(feature = "modern")]
+            Item::EffectLocalization | Item::Ethnicity => Severity::Warning,
+
+            Item::File => Severity::Warning,
+
+            #[cfg(feature = "modern")]
+            Item::GameConcept => Severity::Warning,
+
+            Item::Localization | Item::MapEnvironment | Item::NamedColor => Severity::Warning,
+
+            #[cfg(feature = "modern")]
+            Item::PortraitAnimation
             | Item::PortraitCamera
             | Item::PortraitEnvironment
             | Item::Sound
