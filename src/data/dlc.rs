@@ -28,6 +28,8 @@ impl DbKind for Dlc {
             Game::Vic3 => "name",
             #[cfg(feature = "imperator")]
             Game::Imperator => "key",
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => "name",
         };
         if let Some(name) = block.get_field_value(field) {
             db.add_flag(Item::DlcName, name.clone());

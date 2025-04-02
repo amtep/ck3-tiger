@@ -6,6 +6,7 @@ use std::str::FromStr;
 
 use crate::block::{Block, Comparator, Eq::*, Field, BV};
 use crate::context::{Reason, ScopeContext};
+#[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
 use crate::data::genes::Gene;
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::date::Date;
@@ -45,6 +46,8 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
         Game::Vic3 => crate::vic3::tables::triggers::scope_trigger,
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::tables::triggers::scope_trigger,
+        #[cfg(feature = "hoi4")]
+        Game::Hoi4 => crate::hoi4::tables::triggers::scope_trigger,
     };
     scope_trigger(name, data)
 }
@@ -627,7 +630,7 @@ fn match_trigger_bv(
     // True iff it's probably a mistake if the comparator is Comparator::Equals
     #[cfg(feature = "ck3")]
     let mut warn_if_eq = false;
-    #[cfg(any(feature = "imperator", feature = "vic3"))]
+    #[cfg(any(feature = "imperator", feature = "vic3", feature = "hoi4"))]
     let warn_if_eq = false;
 
     match trigger {
@@ -712,7 +715,7 @@ fn match_trigger_bv(
                 }
             }
         }
-        #[cfg(not(feature = "imperator"))]
+        #[cfg(any(feature = "ck3", feature = "vic3"))]
         Trigger::CompareChoice(choices) => {
             must_be_eq = false;
             if let Some(token) = bv.expect_value() {
@@ -872,6 +875,7 @@ fn match_trigger_bv(
                     }
                 }
             } else if name.is("has_gene") {
+                #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
                     vd.set_max_severity(max_sev);
@@ -1424,7 +1428,16 @@ pub fn validate_argument(
         let msg = "imperator does not support the `()` syntax";
         let mut opening_paren_loc = arg.loc;
         opening_paren_loc.column -= 1;
-        err(ErrorKey::Validation).msg(msg).loc(opening_paren_loc).push();
+        err(ErrorKey::WrongGame).msg(msg).loc(opening_paren_loc).push();
+        return;
+    }
+
+    #[cfg(feature = "hoi4")]
+    if Game::is_hoi4() {
+        let msg = "hoi4 does not support the `()` syntax";
+        let mut opening_paren_loc = arg.loc;
+        opening_paren_loc.column -= 1;
+        err(ErrorKey::WrongGame).msg(msg).loc(opening_paren_loc).push();
         return;
     }
 
@@ -1436,6 +1449,8 @@ pub fn validate_argument(
             Game::Vic3 => crate::vic3::tables::triggers::scope_trigger_complex,
             #[cfg(feature = "imperator")]
             Game::Imperator => unreachable!(),
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => unreachable!(),
         };
 
     let func_lc = func.as_str().to_ascii_lowercase();

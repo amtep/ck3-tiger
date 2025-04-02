@@ -33,6 +33,7 @@ default = ["ck3"]
 ck3 = ["tiger-lib/ck3"]
 vic3 = ["tiger-lib/vic3"]
 imperator = ["tiger-lib/imperator"]
+hoi4 = ["tiger-lib/hoi4"]
 
 [target.'cfg(target_os = "windows")'.dependencies]
 self_update = { version = "0.42", features = [
