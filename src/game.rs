@@ -22,6 +22,8 @@ pub enum Game {
     Vic3,
     #[cfg(feature = "imperator")]
     Imperator,
+    #[cfg(feature = "hoi4")]
+    Hoi4,
 }
 
 impl Game {
@@ -39,12 +41,34 @@ impl Game {
     #[allow(clippy::self_named_constructors)] // not a constructor
     #[allow(unreachable_code)]
     pub fn game() -> Game {
-        #[cfg(all(feature = "ck3", not(feature = "vic3"), not(feature = "imperator")))]
+        #[cfg(all(
+            feature = "ck3",
+            not(feature = "vic3"),
+            not(feature = "imperator"),
+            not(feature = "hoi4")
+        ))]
         return Game::Ck3;
-        #[cfg(all(feature = "vic3", not(feature = "ck3"), not(feature = "imperator")))]
+        #[cfg(all(
+            feature = "vic3",
+            not(feature = "ck3"),
+            not(feature = "imperator"),
+            not(feature = "hoi4")
+        ))]
         return Game::Vic3;
-        #[cfg(all(feature = "imperator", not(feature = "ck3"), not(feature = "vic3")))]
+        #[cfg(all(
+            feature = "imperator",
+            not(feature = "ck3"),
+            not(feature = "vic3"),
+            not(feature = "hoi4")
+        ))]
         return Game::Imperator;
+        #[cfg(all(
+            feature = "hoi4",
+            not(feature = "ck3"),
+            not(feature = "vic3"),
+            not(feature = "imperator")
+        ))]
+        return Game::Hoi4;
         *GAME.get().expect("internal error: don't know which game we are validating")
     }
 
@@ -52,9 +76,17 @@ impl Game {
     pub(crate) fn is_ck3() -> bool {
         #[cfg(not(feature = "ck3"))]
         return false;
-        #[cfg(all(feature = "ck3", not(feature = "vic3"), not(feature = "imperator")))]
+        #[cfg(all(
+            feature = "ck3",
+            not(feature = "vic3"),
+            not(feature = "imperator"),
+            not(feature = "hoi4")
+        ))]
         return true;
-        #[cfg(all(feature = "ck3", any(feature = "vic3", feature = "imperator")))]
+        #[cfg(all(
+            feature = "ck3",
+            any(feature = "vic3", feature = "imperator", feature = "hoi4")
+        ))]
         return GAME.get() == Some(&Game::Ck3);
     }
 
@@ -62,9 +94,17 @@ impl Game {
     pub(crate) fn is_vic3() -> bool {
         #[cfg(not(feature = "vic3"))]
         return false;
-        #[cfg(all(feature = "vic3", not(feature = "ck3"), not(feature = "imperator")))]
+        #[cfg(all(
+            feature = "vic3",
+            not(feature = "ck3"),
+            not(feature = "imperator"),
+            not(feature = "hoi4")
+        ))]
         return true;
-        #[cfg(all(feature = "vic3", any(feature = "ck3", feature = "imperator")))]
+        #[cfg(all(
+            feature = "vic3",
+            any(feature = "ck3", feature = "imperator", feature = "hoi4")
+        ))]
         return GAME.get() == Some(&Game::Vic3);
     }
 
@@ -72,10 +112,36 @@ impl Game {
     pub(crate) fn is_imperator() -> bool {
         #[cfg(not(feature = "imperator"))]
         return false;
-        #[cfg(all(feature = "imperator", not(feature = "ck3"), not(feature = "vic3")))]
+        #[cfg(all(
+            feature = "imperator",
+            not(feature = "ck3"),
+            not(feature = "vic3"),
+            not(feature = "hoi4")
+        ))]
         return true;
-        #[cfg(all(feature = "imperator", any(feature = "ck3", feature = "vic3")))]
+        #[cfg(all(
+            feature = "imperator",
+            any(feature = "ck3", feature = "vic3", feature = "hoi4")
+        ))]
         return GAME.get() == Some(&Game::Imperator);
+    }
+
+    /// Convenience function indicating whether we are validating Imperator: Rome mods.
+    pub(crate) fn is_hoi4() -> bool {
+        #[cfg(not(feature = "hoi4"))]
+        return false;
+        #[cfg(all(
+            feature = "hoi4",
+            not(feature = "ck3"),
+            not(feature = "vic3"),
+            not(feature = "imperator")
+        ))]
+        return true;
+        #[cfg(all(
+            feature = "hoi4",
+            any(feature = "ck3", feature = "vic3", feature = "imperator")
+        ))]
+        return GAME.get() == Some(&Game::Hoi4);
     }
 }
 
@@ -89,6 +155,7 @@ bitflags! {
         const Ck3 = 0x01;
         const Vic3 = 0x02;
         const Imperator = 0x04;
+        const Hoi4 = 0x08;
     }
 }
 
@@ -104,7 +171,13 @@ impl GameFlags {
             Game::Vic3 => GameFlags::Vic3,
             #[cfg(feature = "imperator")]
             Game::Imperator => GameFlags::Imperator,
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => GameFlags::Hoi4,
         }
+    }
+
+    pub const fn modern() -> Self {
+        GameFlags::Ck3.union(GameFlags::Vic3).union(GameFlags::Imperator)
     }
 }
 
@@ -120,6 +193,9 @@ impl Display for GameFlags {
         if self.contains(Self::Imperator) {
             vec.push("Imperator: Rome");
         }
+        if self.contains(Self::Hoi4) {
+            vec.push("Hearts of Iron 4");
+        }
         display_choices(f, &vec, "and")
     }
 }
@@ -134,6 +210,8 @@ impl From<Game> for GameFlags {
             Game::Vic3 => GameFlags::Vic3,
             #[cfg(feature = "imperator")]
             Game::Imperator => GameFlags::Imperator,
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => GameFlags::Hoi4,
         }
     }
 }

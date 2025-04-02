@@ -43,7 +43,7 @@ bitflags! {
 
         #[cfg(any(feature = "vic3", feature = "imperator"))]
         const Color = 0x0000_0010;
-        #[cfg(any(feature = "vic3", feature = "imperator"))]
+        #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
         const Country = 0x0000_0020;
         const Character = 0x0000_0040;
         const Culture = 0x0000_0080;
@@ -53,7 +53,7 @@ bitflags! {
         #[cfg(any(feature = "vic3", feature = "imperator"))]
         const Party = 0x0000_0400;
         const Religion = 0x0000_0800;
-        #[cfg(any(feature = "vic3", feature = "imperator"))]
+        #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
         const State = 0x0000_1000;
         const War = 0x0000_2000;
         // 0x0000_8000 is allocated for ck3
@@ -234,6 +234,8 @@ impl Scopes {
             Game::Vic3 => crate::vic3::scopes::scope_from_snake_case(s),
             #[cfg(feature = "imperator")]
             Game::Imperator => crate::imperator::scopes::scope_from_snake_case(s),
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => crate::hoi4::scopes::scope_from_snake_case(s),
         }
     }
 
@@ -275,6 +277,8 @@ impl Display for Scopes {
                 Game::Vic3 => crate::vic3::scopes::display_fmt(*self, f),
                 #[cfg(feature = "imperator")]
                 Game::Imperator => crate::imperator::scopes::display_fmt(*self, f),
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => crate::hoi4::scopes::display_fmt(*self, f),
             }
         }
     }
@@ -322,6 +326,8 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
         Game::Vic3 => crate::vic3::scopes::scope_to_scope,
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::scopes::scope_to_scope,
+        #[cfg(feature = "hoi4")]
+        Game::Hoi4 => crate::hoi4::scopes::scope_to_scope,
     };
     let scope_to_scope_removed = match Game::game() {
         #[cfg(feature = "ck3")]
@@ -330,6 +336,8 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
         Game::Vic3 => crate::vic3::scopes::scope_to_scope_removed,
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::scopes::scope_to_scope_removed,
+        #[cfg(feature = "hoi4")]
+        Game::Hoi4 => crate::hoi4::scopes::scope_to_scope_removed,
     };
 
     let name_lc = name.as_str().to_ascii_lowercase();
@@ -400,6 +408,8 @@ pub fn scope_prefix(prefix: &Token) -> Option<(Scopes, Scopes, ArgumentValue)> {
         Game::Vic3 => crate::vic3::scopes::scope_prefix,
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::scopes::scope_prefix,
+        #[cfg(feature = "hoi4")]
+        Game::Hoi4 => crate::hoi4::scopes::scope_prefix,
     };
     let prefix_lc = prefix.as_str().to_ascii_lowercase();
     scope_prefix(&prefix_lc)
@@ -420,6 +430,8 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
         Game::Vic3 => crate::vic3::scopes::needs_prefix(arg, data, scopes),
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::scopes::needs_prefix(arg, data, scopes),
+        #[cfg(feature = "hoi4")]
+        Game::Hoi4 => crate::hoi4::scopes::needs_prefix(arg, data, scopes),
     }
 }
 
@@ -444,6 +456,8 @@ pub fn scope_iterator(
         Game::Vic3 => crate::vic3::scopes::scope_iterator,
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::scopes::scope_iterator,
+        #[cfg(feature = "hoi4")]
+        Game::Hoi4 => crate::hoi4::scopes::scope_iterator,
     };
     let scope_iterator_removed = match Game::game() {
         #[cfg(feature = "ck3")]
@@ -452,6 +466,8 @@ pub fn scope_iterator(
         Game::Vic3 => crate::vic3::scopes::scope_iterator_removed,
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::scopes::scope_iterator_removed,
+        #[cfg(feature = "hoi4")]
+        Game::Hoi4 => crate::hoi4::scopes::scope_iterator_removed,
     };
 
     let name_lc = name.as_str().to_ascii_lowercase();
