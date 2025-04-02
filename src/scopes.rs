@@ -473,11 +473,14 @@ pub fn scope_iterator(
     let name_lc = name.as_str().to_ascii_lowercase();
     if let scopes @ Some(_) = scope_iterator(&name_lc) {
         return scopes;
-    } else if let Some((version, explanation)) = scope_iterator_removed(&name_lc) {
+    }
+    if let Some((version, explanation)) = scope_iterator_removed(&name_lc) {
         let msg = format!("`{name}` iterators were removed in {version}");
         err(ErrorKey::Removed).strong().msg(msg).info(explanation).loc(name).push();
         return Some((Scopes::all(), Scopes::all()));
-    } else if data.scripted_lists.exists(name.as_str()) {
+    }
+    #[cfg(feature = "modern")]
+    if Game::is_modern() && data.scripted_lists.exists(name.as_str()) {
         data.scripted_lists.validate_call(name, data, sc);
         return data
             .scripted_lists

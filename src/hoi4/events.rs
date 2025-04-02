@@ -11,7 +11,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validate::{validate_ai_chance, validate_duration, ListType};
+use crate::validate::{validate_ai_chance, ListType};
 use crate::validator::Validator;
 
 // TODO
@@ -81,7 +81,6 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     vd.field_validated_sc("title", sc, validate_desc);
     vd.field_validated_sc("desc", sc, validate_desc);
     vd.field_validated_sc("flavor", sc, validate_desc);
-    vd.field_validated_block_sc("cooldown", sc, validate_duration);
 
     vd.field_item_or_target("minor_left_icon", sc, Item::File, Scopes::Country | Scopes::Character);
     vd.field_item_or_target(
