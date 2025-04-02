@@ -1,5 +1,6 @@
 //! Track all the files (vanilla and mods) that are relevant to the current validation.
 
+use std::borrow::ToOwned;
 use std::cmp::Ordering;
 use std::ffi::OsStr;
 use std::fmt::{Display, Formatter};
@@ -246,7 +247,11 @@ pub struct Fileset {
 
 impl Fileset {
     pub fn new(vanilla_dir: Option<&Path>, mod_root: PathBuf, replace_paths: Vec<PathBuf>) -> Self {
-        let vanilla_root = vanilla_dir.map(|dir| dir.join("game"));
+        let vanilla_root = if Game::is_ck3() || Game::is_vic3() || Game::is_imperator() {
+            vanilla_dir.map(|dir| dir.join("game"))
+        } else {
+            vanilla_dir.map(ToOwned::to_owned)
+        };
         let clausewitz_root = vanilla_dir.map(|dir| dir.join("clausewitz"));
         let jomini_root = vanilla_dir.map(|dir| dir.join("jomini"));
 
@@ -280,7 +285,7 @@ impl Fileset {
             let default_label = || format!("MOD{mod_idx}");
             let label =
                 block.get_field_value("label").map_or_else(default_label, ToString::to_string);
-            if Game::is_ck3() || Game::is_imperator() {
+            if Game::is_ck3() || Game::is_imperator() || Game::is_hoi4() {
                 #[cfg(any(feature = "ck3", feature = "imperator"))]
                 if let Some(path) = block.get_field_value("modfile") {
                     let path = config_path
@@ -379,11 +384,13 @@ impl Fileset {
     }
 
     pub fn scan_all(&mut self) -> Result<(), FilesError> {
+        #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
         if let Some(clausewitz_root) = self.clausewitz_root.clone() {
             self.scan(&clausewitz_root.clone(), FileKind::Clausewitz).map_err(|e| {
                 FilesError::VanillaUnreadable { path: clausewitz_root.clone(), source: e }
             })?;
         }
+        #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
         if let Some(jomini_root) = &self.jomini_root.clone() {
             self.scan(&jomini_root.clone(), FileKind::Jomini).map_err(|e| {
                 FilesError::VanillaUnreadable { path: jomini_root.clone(), source: e }
@@ -573,6 +580,8 @@ impl Fileset {
             Game::Vic3 => crate::vic3::tables::misc::COMMON_DIRS,
             #[cfg(feature = "imperator")]
             Game::Imperator => crate::imperator::tables::misc::COMMON_DIRS,
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => crate::hoi4::tables::misc::COMMON_DIRS,
         };
         let common_subdirs_ok = match Game::game() {
             #[cfg(feature = "ck3")]
@@ -581,6 +590,8 @@ impl Fileset {
             Game::Vic3 => crate::vic3::tables::misc::COMMON_SUBDIRS_OK,
             #[cfg(feature = "imperator")]
             Game::Imperator => crate::imperator::tables::misc::COMMON_SUBDIRS_OK,
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => crate::hoi4::tables::misc::COMMON_SUBDIRS_OK,
         };
         // Check the files in directories in common/ to make sure they are in known directories
         let mut warned: Vec<&Path> = Vec::new();

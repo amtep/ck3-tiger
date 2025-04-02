@@ -4,6 +4,7 @@ members = [
     "ck3-tiger",
     "vic3-tiger",
     "imperator-tiger",
+    "hoi4-tiger",
     "tiger-bin-shared",
     "utils",
     ".",
@@ -25,6 +26,7 @@ default = ["ck3"]
 ck3 = []
 vic3 = []
 imperator = []
+hoi4 = []
 
 [build-dependencies]
 lalrpop = "0.22.0"

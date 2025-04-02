@@ -2,7 +2,7 @@ use std::{mem::forget, path::PathBuf};
 
 use anyhow::{bail, Result};
 use clap::{Args, Parser, Subcommand};
-#[cfg(any(feature = "ck3", feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
 use tiger_lib::ModFile;
 #[cfg(feature = "vic3")]
 use tiger_lib::ModMetadata;
@@ -40,7 +40,7 @@ struct ValidateArgs {
     #[cfg(feature = "vic3")]
     /// Path to folder of mod to check.
     modpath: PathBuf,
-    #[cfg(any(feature = "ck3", feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
     /// Path to .mod file of mod to check.
     modpath: PathBuf,
     #[cfg_attr(feature = "ck3", clap(visible_alias = "ck3"))]
@@ -167,7 +167,7 @@ pub fn run(
 
             let mut everything;
 
-            #[cfg(any(feature = "ck3", feature = "imperator"))]
+            #[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
             {
                 if args.modpath.is_dir() {
                     args.modpath.push("descriptor.mod");

@@ -41,6 +41,8 @@ impl Musics {
             Game::Vic3 => crate::vic3::tables::misc::DLC_MUSIC,
             #[cfg(feature = "imperator")]
             Game::Imperator => crate::imperator::tables::misc::DLC_MUSIC,
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => crate::hoi4::tables::misc::DLC_MUSIC,
         };
         self.musics.contains_key(key) || dlc_music.contains(&key)
     }

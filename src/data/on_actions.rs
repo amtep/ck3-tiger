@@ -65,6 +65,8 @@ impl FileHandler<Block> for OnActions {
             Game::Imperator => PathBuf::from("common/on_action"),
             #[cfg(feature = "vic3")]
             Game::Vic3 => PathBuf::from("common/on_actions"),
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => PathBuf::from("common/on_actions"),
         }
     }
 

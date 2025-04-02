@@ -37,11 +37,12 @@ use crate::ck3::data::{
 use crate::ck3::tables::misc::*;
 use crate::config_load::{check_for_legacy_ignore, load_filter};
 use crate::context::ScopeContext;
+#[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+use crate::data::coa::Coas;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::data::data_binding::DataBindings;
 use crate::data::{
     assets::Assets,
-    coa::Coas,
     defines::Defines,
     events::Events,
     gui::Gui,
@@ -60,6 +61,8 @@ use crate::fileset::{FileEntry, FileKind, Fileset};
 use crate::game::Game;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::helpers::TigerHashSet;
+#[cfg(feature = "hoi4")]
+use crate::hoi4::data::provinces::Hoi4Provinces;
 #[cfg(feature = "imperator")]
 use crate::imperator::data::{decisions::Decisions, provinces::ImperatorProvinces};
 #[cfg(feature = "imperator")]
@@ -151,6 +154,8 @@ pub struct Everything {
     pub(crate) provinces_vic3: Vic3Provinces,
     #[cfg(feature = "imperator")]
     pub(crate) provinces_imperator: ImperatorProvinces,
+    #[cfg(feature = "hoi4")]
+    pub(crate) provinces_hoi4: Hoi4Provinces,
 
     #[cfg(feature = "ck3")]
     pub(crate) province_histories: ProvinceHistories,
@@ -192,6 +197,7 @@ pub struct Everything {
     pub(crate) assets: Assets,
     pub(crate) music: Musics,
 
+    #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
     pub(crate) coas: Coas,
 
     #[cfg(feature = "vic3")]
@@ -226,6 +232,8 @@ impl Everything {
             Game::Vic3 => "vic3-tiger.conf",
             #[cfg(feature = "imperator")]
             Game::Imperator => "imperator-tiger.conf",
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => "hoi4-tiger.conf",
         };
 
         let config_file = match config_filepath {
@@ -269,6 +277,8 @@ impl Everything {
             provinces_vic3: Vic3Provinces::default(),
             #[cfg(feature = "imperator")]
             provinces_imperator: ImperatorProvinces::default(),
+            #[cfg(feature = "hoi4")]
+            provinces_hoi4: Hoi4Provinces::default(),
             #[cfg(feature = "ck3")]
             province_histories: ProvinceHistories::default(),
             #[cfg(feature = "ck3")]
@@ -297,6 +307,7 @@ impl Everything {
             data_bindings: DataBindings::default(),
             assets: Assets::default(),
             music: Musics::default(),
+            #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
             coas: Coas::default(),
             #[cfg(feature = "vic3")]
             history: History::default(),
@@ -420,7 +431,6 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.assets, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.gui, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.on_actions, &self.parser));
-            s.spawn(|_| self.fileset.handle(&mut self.coas, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.music, &self.parser));
         });
 
@@ -444,6 +454,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.data_bindings, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.provinces_ck3, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.wars, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.coas, &self.parser));
         });
         crate::ck3::data::buildings::Building::finalize(&mut self.database);
     }
@@ -453,6 +464,7 @@ impl Everything {
         self.fileset.handle(&mut self.history, &self.parser);
         self.fileset.handle(&mut self.provinces_vic3, &self.parser);
         self.fileset.handle(&mut self.data_bindings, &self.parser);
+        self.fileset.handle(&mut self.coas, &self.parser);
         self.load_json(Item::TerrainMask, TerrainMask::add_json);
     }
 
@@ -460,7 +472,11 @@ impl Everything {
     fn load_all_imperator(&mut self) {
         self.fileset.handle(&mut self.decisions_imperator, &self.parser);
         self.fileset.handle(&mut self.provinces_imperator, &self.parser);
+        self.fileset.handle(&mut self.coas, &self.parser);
     }
+
+    #[cfg(feature = "hoi4")]
+    fn load_all_hoi4(&mut self) {}
 
     pub fn load_all(&mut self) {
         #[cfg(feature = "ck3")]
@@ -473,6 +489,8 @@ impl Everything {
             Game::Vic3 => self.load_all_vic3(),
             #[cfg(feature = "imperator")]
             Game::Imperator => self.load_all_imperator(),
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => self.load_all_hoi4(),
         }
         self.database.add_subitems();
     }
@@ -489,7 +507,6 @@ impl Everything {
         s.spawn(|_| self.assets.validate(self));
         s.spawn(|_| self.gui.validate(self));
         s.spawn(|_| self.on_actions.validate(self));
-        s.spawn(|_| self.coas.validate(self));
         s.spawn(|_| self.music.validate(self));
     }
 
@@ -509,6 +526,7 @@ impl Everything {
         s.spawn(|_| self.data_bindings.validate(self));
         s.spawn(|_| self.provinces_ck3.validate(self));
         s.spawn(|_| self.wars.validate(self));
+        s.spawn(|_| self.coas.validate(self));
         s.spawn(|_| Climate::validate_all(&self.database, self));
     }
 
@@ -517,6 +535,7 @@ impl Everything {
         s.spawn(|_| self.history.validate(self));
         s.spawn(|_| self.provinces_vic3.validate(self));
         s.spawn(|_| self.data_bindings.validate(self));
+        s.spawn(|_| self.coas.validate(self));
         s.spawn(|_| StrategicRegion::crosscheck(self));
         s.spawn(|_| BuyPackage::crosscheck(self));
     }
@@ -525,7 +544,11 @@ impl Everything {
     fn validate_all_imperator<'a>(&'a self, s: &Scope<'a>) {
         s.spawn(|_| self.decisions_imperator.validate(self));
         s.spawn(|_| self.provinces_imperator.validate(self));
+        s.spawn(|_| self.coas.validate(self));
     }
+
+    #[cfg(feature = "hoi4")]
+    fn validate_all_hoi4<'a>(&'a self, _s: &Scope<'a>) {}
 
     pub fn validate_all(&self) {
         scope(|s| {
@@ -537,6 +560,8 @@ impl Everything {
                 Game::Vic3 => self.validate_all_vic3(s),
                 #[cfg(feature = "imperator")]
                 Game::Imperator => self.validate_all_imperator(s),
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => self.validate_all_hoi4(s),
             }
         });
         self.database.validate(self);
@@ -545,9 +570,12 @@ impl Everything {
     }
 
     pub fn check_rivers(&mut self) {
-        let mut rivers = Rivers::default();
-        self.fileset.handle(&mut rivers, &self.parser);
-        rivers.validate(self);
+        if !Game::is_hoi4() {
+            // TODO HOI4
+            let mut rivers = Rivers::default();
+            self.fileset.handle(&mut rivers, &self.parser);
+            rivers.validate(self);
+        }
     }
 
     #[cfg(feature = "ck3")]
@@ -584,6 +612,8 @@ impl Everything {
             Item::ArtifactRarity => ARTIFACT_RARITIES.contains(&&*key.to_ascii_lowercase()),
             Item::Character => self.characters.exists(key),
             Item::CharacterInteractionCategory => self.interaction_cats.exists(key),
+            Item::Coa => self.coas.exists(key),
+            Item::CoaTemplate => self.coas.template_exists(key),
             Item::DangerType => DANGER_TYPES.contains(&key),
             Item::DlcFeature => DLC_FEATURES_CK3.contains(&key),
             Item::Doctrine => self.doctrines.exists(key),
@@ -616,6 +646,8 @@ impl Everything {
             Item::Approval => APPROVALS.contains(&key),
             Item::Attitude => ATTITUDES.contains(&&*key.to_lowercase()),
             Item::CharacterRole => CHARACTER_ROLES.contains(&key),
+            Item::Coa => self.coas.exists(key),
+            Item::CoaTemplate => self.coas.template_exists(key),
             Item::CountryTier => COUNTRY_TIERS.contains(&key),
             Item::DlcFeature => DLC_FEATURES_VIC3.contains(&key),
             Item::EventCategory => EVENT_CATEGORIES.contains(&key),
@@ -635,6 +667,8 @@ impl Everything {
     #[cfg(feature = "imperator")]
     fn item_exists_imperator(&self, itype: Item, key: &str) -> bool {
         match itype {
+            Item::Coa => self.coas.exists(key),
+            Item::CoaTemplate => self.coas.template_exists(key),
             Item::DlcName => DLC_NAME_IMPERATOR.contains(&key),
             Item::Decision => self.decisions_imperator.exists(key),
             Item::Province => self.provinces_imperator.exists(key),
@@ -643,12 +677,15 @@ impl Everything {
         }
     }
 
+    #[cfg(feature = "hoi4")]
+    fn item_exists_hoi4(&self, itype: Item, key: &str) -> bool {
+        self.database.exists(itype, key)
+    }
+
     pub(crate) fn item_exists(&self, itype: Item, key: &str) -> bool {
         match itype {
             Item::Asset => self.assets.asset_exists(key),
             Item::BlendShape => self.assets.blend_shape_exists(key),
-            Item::Coa => self.coas.exists(key),
-            Item::CoaTemplate => self.coas.template_exists(key),
             Item::Define => self.defines.exists(key),
             Item::Entity => self.assets.entity_exists(key),
             Item::Entry => self.fileset.entry_exists(key),
@@ -680,6 +717,8 @@ impl Everything {
                 Game::Vic3 => self.item_exists_vic3(itype, key),
                 #[cfg(feature = "imperator")]
                 Game::Imperator => self.item_exists_imperator(itype, key),
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => self.item_exists_hoi4(itype, key),
             },
         }
     }
@@ -721,6 +760,16 @@ impl Everything {
 
     /// Return true iff the item `key` is found with a case insensitive match.
     /// This function is **incomplete**. It only contains the item types for which case insensitive
+    /// matches are needed; this is currently the ones used in `src/hoi4/tables/modif.rs`.
+    #[cfg(feature = "hoi4")]
+    fn item_exists_lc_hoi4(&self, itype: Item, key: &Lowercase) -> bool {
+        #[allow(clippy::match_single_binding)]
+        match itype {
+            _ => self.database.exists_lc(itype, key),
+        }
+    }
+    /// Return true iff the item `key` is found with a case insensitive match.
+    /// This function is **incomplete**. It only contains the item types for which case insensitive
     /// matches are needed; this is currently the ones used in modif lookups.
     pub(crate) fn item_exists_lc(&self, itype: Item, key: &Lowercase) -> bool {
         #[allow(clippy::match_single_binding)]
@@ -732,6 +781,8 @@ impl Everything {
                 Game::Vic3 => self.item_exists_lc_vic3(itype, key),
                 #[cfg(feature = "imperator")]
                 Game::Imperator => self.item_exists_lc_imperator(itype, key),
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => self.item_exists_lc_hoi4(itype, key),
             },
         }
     }
@@ -772,6 +823,10 @@ impl Everything {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => {
                     self.provinces_imperator.verify_exists_implied(key, token, max_sev);
+                }
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => {
+                    self.provinces_hoi4.verify_exists_implied(key, token, max_sev);
                 }
             },
             Item::TextureFile => {
@@ -927,6 +982,8 @@ impl Everything {
     #[cfg(feature = "ck3")]
     pub fn iter_keys_ck3<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &'a Token> + 'a> {
         match itype {
+            Item::Coa => Box::new(self.coas.iter_keys()),
+            Item::CoaTemplate => Box::new(self.coas.iter_template_keys()),
             Item::Character => Box::new(self.characters.iter_keys()),
             Item::CharacterInteractionCategory => Box::new(self.interaction_cats.iter_keys()),
             Item::Doctrine => Box::new(self.doctrines.iter_keys()),
@@ -948,24 +1005,33 @@ impl Everything {
 
     #[cfg(feature = "vic3")]
     fn iter_keys_vic3<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &'a Token> + 'a> {
-        Box::new(self.database.iter_keys(itype))
+        match itype {
+            Item::Coa => Box::new(self.coas.iter_keys()),
+            Item::CoaTemplate => Box::new(self.coas.iter_template_keys()),
+            _ => Box::new(self.database.iter_keys(itype)),
+        }
     }
 
     #[cfg(feature = "imperator")]
     fn iter_keys_imperator<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &'a Token> + 'a> {
         match itype {
+            Item::Coa => Box::new(self.coas.iter_keys()),
+            Item::CoaTemplate => Box::new(self.coas.iter_template_keys()),
             Item::Decision => Box::new(self.decisions_imperator.iter_keys()),
             Item::Province => Box::new(self.provinces_imperator.iter_keys()),
             _ => Box::new(self.database.iter_keys(itype)),
         }
     }
 
+    #[cfg(feature = "hoi4")]
+    fn iter_keys_hoi4<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &'a Token> + 'a> {
+        Box::new(self.database.iter_keys(itype))
+    }
+
     pub fn iter_keys<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &'a Token> + 'a> {
         match itype {
             Item::Asset => Box::new(self.assets.iter_asset_keys()),
             Item::BlendShape => Box::new(self.assets.iter_blend_shape_keys()),
-            Item::Coa => Box::new(self.coas.iter_keys()),
-            Item::CoaTemplate => Box::new(self.coas.iter_template_keys()),
             Item::Define => Box::new(self.defines.iter_keys()),
             Item::Entity => Box::new(self.assets.iter_entity_keys()),
             Item::Event => Box::new(self.events.iter_keys()),
@@ -995,6 +1061,8 @@ impl Everything {
                 Game::Vic3 => self.iter_keys_vic3(itype),
                 #[cfg(feature = "imperator")]
                 Game::Imperator => self.iter_keys_imperator(itype),
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => self.iter_keys_hoi4(itype),
             },
         }
     }
@@ -1011,6 +1079,8 @@ impl Everything {
                 Game::Vic3 => &crate::vic3::tables::sounds::SOUNDS_SET,
                 #[cfg(feature = "imperator")]
                 Game::Imperator => &crate::imperator::tables::sounds::SOUNDS_SET,
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => &crate::hoi4::tables::sounds::SOUNDS_SET,
             };
             sounds_set.contains(&Lowercase::new(name))
         }

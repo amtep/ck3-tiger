@@ -5,8 +5,15 @@
 #[cfg(all(feature = "ck3", feature = "vic3", feature = "imperator", not(doc)))]
 compile_error!("features \"ck3\", \"vic3\", and \"imperator\" cannot be enabled at the same time");
 
-#[cfg(all(not(feature = "ck3"), not(feature = "vic3"), not(feature = "imperator")))]
-compile_error!("exactly one of the features \"ck3\", \"vic3\", \"imperator\" must be enabled");
+#[cfg(all(
+    not(feature = "ck3"),
+    not(feature = "vic3"),
+    not(feature = "imperator"),
+    not(feature = "hoi4")
+))]
+compile_error!(
+    "exactly one of the features \"ck3\", \"vic3\", \"imperator\", \"hoi4\" must be enabled"
+);
 
 pub use crate::config_load::validate_config_file;
 pub use crate::everything::Everything;
@@ -15,7 +22,7 @@ pub use crate::game::Game;
 pub use crate::item::Item;
 #[cfg(feature = "vic3")]
 pub use crate::mod_metadata::ModMetadata;
-#[cfg(any(feature = "ck3", feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
 pub use crate::modfile::ModFile;
 pub use crate::report::{
     add_loaded_mod_root, disable_ansi_colors, emit_reports, log, set_output_file, set_output_style,
@@ -26,6 +33,8 @@ pub use crate::token::{Loc, Token};
 
 #[cfg(feature = "ck3")]
 mod ck3;
+#[cfg(feature = "hoi4")]
+mod hoi4;
 #[cfg(feature = "imperator")]
 mod imperator;
 #[cfg(feature = "vic3")]
@@ -52,7 +61,7 @@ mod lowercase;
 mod macros;
 #[cfg(feature = "vic3")]
 mod mod_metadata;
-#[cfg(any(feature = "ck3", feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
 mod modfile;
 mod modif;
 mod on_action;

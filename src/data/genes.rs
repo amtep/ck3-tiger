@@ -16,7 +16,7 @@ use crate::validator::Validator;
 pub struct Gene {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::all(), Item::GeneCategory, Gene::add)
+    ItemLoader::Normal(GameFlags::modern(), Item::GeneCategory, Gene::add)
 }
 
 impl Gene {

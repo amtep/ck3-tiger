@@ -182,6 +182,8 @@ pub fn validate_effect_field(
         Game::Vic3 => crate::vic3::tables::effects::scope_effect,
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::tables::effects::scope_effect,
+        #[cfg(feature = "hoi4")]
+        Game::Hoi4 => crate::hoi4::tables::effects::scope_effect,
     };
 
     if let Some((inscopes, effect)) = scope_effect(key, data) {

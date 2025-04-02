@@ -34,6 +34,8 @@ cfg_if! {
         const BIN_NAME: &str = "vic3-tiger";
     } else if #[cfg(feature = "imperator")] {
         const BIN_NAME: &str = "imperator-tiger";
+    } else if #[cfg(feature = "hoi4")] {
+        const BIN_NAME: &str = "hoi4-tiger";
     }
 }
 

@@ -29,16 +29,17 @@ bitflags! {
     // LAST UPDATED CK3 1.15.0
     // LAST UPDATED VIC3 1.7.0
     // LAST UPDATED IMPERATOR 2.0.4
+    // LAST UPDATED HOI4 1.16.4
     // Taken from the game's `modifers.log`
     // Remember to update the display_fmt functions when ModifKinds changes.
     #[derive(Debug, Copy, Clone)]
     #[rustfmt::skip] // table looks better with cfg on same line
-    pub struct ModifKinds: u16 {
+    pub struct ModifKinds: u32 {
         // ModifKinds used by more than one game
         const Character = 0x0001;
-        #[cfg(any(feature = "vic3", feature = "imperator"))]
+        #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
         const Country = 0x0002;
-        #[cfg(any(feature = "vic3", feature = "imperator"))]
+        #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
         const State = 0x0004;
         #[cfg(any(feature = "ck3", feature = "imperator"))]
         const Province = 0x0008;
@@ -60,6 +61,22 @@ bitflags! {
         #[cfg(feature = "vic3")] const Goods = 0x1000;
         #[cfg(feature = "vic3")] const MilitaryFormation = 0x2000;
         #[cfg(feature = "vic3")] const PowerBloc = 0x4000;
+
+        #[cfg(feature = "hoi4")] const Aggressive = 0x0010;
+        #[cfg(feature = "hoi4")] const Ai = 0x0020;
+        #[cfg(feature = "hoi4")] const Air = 0x0040;
+        #[cfg(feature = "hoi4")] const Army = 0x0080;
+        #[cfg(feature = "hoi4")] const Autonomy = 0x0100;
+        #[cfg(feature = "hoi4")] const Defensive = 0x0200;
+        #[cfg(feature = "hoi4")] const GovernmentInExile = 0x0400;
+        #[cfg(feature = "hoi4")] const IntelligenceAgency = 0x0800;
+        #[cfg(feature = "hoi4")] const MilitaryAdvancements = 0x1000;
+        #[cfg(feature = "hoi4")] const Naval = 0x2000;
+        #[cfg(feature = "hoi4")] const Peace = 0x4000;
+        #[cfg(feature = "hoi4")] const Politics = 0x8000;
+        #[cfg(feature = "hoi4")] const Scientist = 0x0001_0000;
+        #[cfg(feature = "hoi4")] const UnitLeader = 0x0002_0000;
+        #[cfg(feature = "hoi4")] const WarProduction = 0x0004_0000;
     }
 }
 
@@ -72,6 +89,8 @@ impl Display for ModifKinds {
             Game::Vic3 => crate::vic3::modif::display_fmt(*self, f),
             #[cfg(feature = "imperator")]
             Game::Imperator => crate::imperator::modif::display_fmt(*self, f),
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => crate::hoi4::modif::display_fmt(*self, f),
         }
     }
 }
@@ -98,6 +117,8 @@ pub fn validate_modifs<'a>(
         Game::Vic3 => crate::vic3::tables::modifs::lookup_modif,
         #[cfg(feature = "imperator")]
         Game::Imperator => crate::imperator::tables::modifs::lookup_modif,
+        #[cfg(feature = "hoi4")]
+        Game::Hoi4 => crate::hoi4::tables::modifs::lookup_modif,
     };
 
     vd.unknown_fields(|key, bv| {

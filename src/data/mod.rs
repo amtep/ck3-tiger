@@ -4,6 +4,7 @@
 pub mod accessory;
 pub mod achievements;
 pub mod assets;
+#[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
 pub mod coa;
 pub mod coadesigner;
 pub mod colors;
@@ -15,14 +16,17 @@ pub mod dlc;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 pub mod dna;
 pub mod effect_localization;
+#[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
 pub mod ethnicity;
 pub mod events;
 pub mod fonts;
+#[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
 pub mod genes;
 pub mod gui;
 pub mod localization;
 pub mod music;
 pub mod on_actions;
+#[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
 pub mod portrait;
 pub mod script_values;
 pub mod scripted_effects;

@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use console::Term;
-#[cfg(any(feature = "ck3", feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
 use tiger_lib::ModFile;
 #[cfg(feature = "vic3")]
 use tiger_lib::ModMetadata;
@@ -102,11 +102,11 @@ fn validate_mod(
     let mut everything;
     let mut modpath = modpath;
 
-    #[cfg(any(feature = "ck3", feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
     let modfile = ModFile::read(modpath)?;
-    #[cfg(any(feature = "ck3", feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
     let modpath_owned = modfile.modpath();
-    #[cfg(any(feature = "ck3", feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
     {
         modpath = &modpath_owned;
         if !modpath.is_dir() {
@@ -123,7 +123,7 @@ fn validate_mod(
     eprintln!("Writing error reports to {} ...", output_file.display());
     eprintln!("This will take a few seconds.");
 
-    #[cfg(any(feature = "ck3", feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
     {
         everything = Everything::new(None, Some(game), modpath, modfile.replace_paths())?;
     }
@@ -153,7 +153,7 @@ fn validate_mod(
 }
 
 fn is_local_mod_entry(entry: &DirEntry) -> bool {
-    #[cfg(any(feature = "ck3", feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
     {
         let filename = entry.file_name();
         let name = filename.to_string_lossy();

@@ -28,6 +28,8 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler, FileKind};
 use crate::game::Game;
 use crate::helpers::{dup_error, stringify_list, TigerHashMap};
+#[cfg(feature = "hoi4")]
+use crate::hoi4::tables::localization::BUILTIN_MACROS_HOI4;
 #[cfg(feature = "imperator")]
 use crate::imperator::tables::localization::BUILTIN_MACROS_IMPERATOR;
 use crate::item::Item;
@@ -122,6 +124,8 @@ fn is_builtin_macro<S: Borrow<str>>(s: S) -> bool {
         Game::Vic3 => BUILTIN_MACROS_VIC3.contains(&s),
         #[cfg(feature = "imperator")]
         Game::Imperator => BUILTIN_MACROS_IMPERATOR.contains(&s),
+        #[cfg(feature = "hoi4")]
+        Game::Hoi4 => BUILTIN_MACROS_HOI4.contains(&s),
     }
 }
 

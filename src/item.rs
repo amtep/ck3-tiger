@@ -58,6 +58,7 @@ pub enum Item {
     CoaTemplate,
     CoaTemplateList,
     CoaTexturedEmblemList,
+    #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
     Culture,
     CustomLocalization,
     Decision,
@@ -81,10 +82,12 @@ pub enum Item {
     GeneAgePreset,
     GeneAttribute,
     GeneCategory,
+    #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
     GovernmentType,
     GuiLayer,
     GuiTemplate,
     GuiType,
+    #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
     LawGroup,
     Localization,
     MapEnvironment,
@@ -101,6 +104,7 @@ pub enum Item {
     PortraitModifierGroup,
     PortraitModifierPack,
     Province,
+    #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
     Religion,
     ScriptedEffect,
     ScriptedGui,
@@ -531,6 +535,7 @@ impl Item {
             Item::CoaTemplate => "common/coat_of_arms/coat_of_arms/",
             Item::CoaTemplateList => "common/coat_of_arms/template_lists/",
             Item::CoaTexturedEmblemList => "common/coat_of_arms/template_lists/",
+            #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
             Item::Culture => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/culture/cultures/",
@@ -547,6 +552,8 @@ impl Item {
                 Game::Vic3 => "common/decisions/",
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "decisions/",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "common/decisions/",
             },
             Item::Define => "common/defines/",
             Item::Dlc => "dlc_metadata/",
@@ -568,6 +575,7 @@ impl Item {
             Item::GeneAgePreset => "common/genes/",
             Item::GeneAttribute => "gfx/models/",
             Item::GeneCategory => "common/genes/",
+            #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
             Item::GovernmentType => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/governments/",
@@ -589,6 +597,8 @@ impl Item {
                 Game::Vic3 => "common/static_modifiers/",
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/modifiers/",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "common/modifiers/",
             },
             Item::Music => "music/",
             Item::MusicPlayerCategory => "music/music_player_categories/",
@@ -600,6 +610,8 @@ impl Item {
                 Game::Vic3 => "common/on_actions/",
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/on_action/",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "common/on_actions/",
             },
             Item::Pdxmesh => "gfx/models/",
             Item::PortraitAnimation => "gfx/portraits/portrait_animations/",
@@ -614,7 +626,10 @@ impl Item {
                 Game::Vic3 => "map_data/provinces.png",
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "map_data/provinces.png",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "map/definition.csv",
             },
+            #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
             Item::Religion => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/religion/religions/",
@@ -639,6 +654,8 @@ impl Item {
                 Game::Vic3 => "common/terrain/",
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/terrain_types/",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "common/terrain/",
             },
             Item::TextFormat => "gui/",
             Item::TextIcon => "gui/",
@@ -677,6 +694,7 @@ impl Item {
             Item::EventTheme => "common/event_themes/",
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::Law => "common/laws/",
+            #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
             Item::LawGroup => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/laws/",
