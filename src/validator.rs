@@ -17,6 +17,7 @@ use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::script_value::validate_script_value_no_breakdown;
+#[cfg(feature = "modern")]
 use crate::script_value::{validate_bv, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -724,6 +725,19 @@ impl<'a> Validator<'a> {
         })
     }
 
+    /// Expect field `name`, if present, to be set to a number with up to 5 decimals.
+    /// (5 decimals is the limit accepted by the game engine in most contexts).
+    /// Expect any number of `name` fields.
+    /// Returns true iff the field is present.
+    #[cfg(feature = "hoi4")]
+    pub fn multi_field_numeric(&mut self, name: &str) -> bool {
+        self.multi_field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                token.expect_number();
+            }
+        })
+    }
+
     /// Expect field `name`, if present, to be set to a number with any number of decimals.
     /// Expect no more than one `name` field.
     /// Returns true iff the field is present.
@@ -869,7 +883,7 @@ impl<'a> Validator<'a> {
     /// If `breakdown` is true, it does not warn if it is an inline script value and the `desc`
     /// fields in it do not contain valid localizations. This is generally used for script values
     /// that will never be shown to the user except in debugging contexts, such as `ai_will_do`.
-    #[allow(dead_code)]
+    #[cfg(feature = "modern")]
     pub fn field_script_value_full<'b, T>(&mut self, name: &str, fsc: T, breakdown: bool) -> bool
     where
         T: Into<FieldScopeContext<'b>>,
@@ -891,6 +905,7 @@ impl<'a> Validator<'a> {
     ///
     /// Expect no more than one `name` field in the block.
     /// Returns true iff the field is present.
+    #[cfg(feature = "modern")]
     pub fn field_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             // TODO: pass max_severity value down
@@ -913,7 +928,7 @@ impl<'a> Validator<'a> {
     /// to be used for the `root` of a `ScopeContext` that is made on the spot. This is a convenient way to associate the
     /// `root` type with the key of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated
     /// with a key that is further away.
-    #[cfg(not(feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub fn field_script_value_rooted(&mut self, name: &str, scopes: Scopes) -> bool {
         self.field_check(name, |key, bv| {
             let mut sc = ScopeContext::new(scopes, key);
@@ -955,7 +970,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_script_value`], but it can accept a literal `flag:something` value as well as a script value.
-    #[cfg(not(feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub fn field_script_value_or_flag(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             // TODO: pass max_severity value down
@@ -968,6 +983,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_script_value`], but it it expects any number of `name` fields.
+    #[cfg(feature = "modern")]
     pub fn fields_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.multi_field_check(name, |_, bv| {
             // TODO: pass max_severity value down

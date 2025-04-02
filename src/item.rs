@@ -150,6 +150,7 @@ pub enum Item {
     TextFormat,
     TextIcon,
     TextureFile,
+    #[cfg(feature = "modern")]
     TriggerLocalization,
     WidgetName,
 
@@ -731,6 +732,7 @@ impl Item {
             Item::TextFormat => "gui/",
             Item::TextIcon => "gui/",
             Item::TextureFile => "gfx/models/",
+            #[cfg(feature = "modern")]
             Item::TriggerLocalization => "common/trigger_localization/",
             Item::WidgetName => "gui/",
 

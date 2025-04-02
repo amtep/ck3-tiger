@@ -11,6 +11,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{err, fatal, tips, warn, ErrorKey, Severity};
 use crate::scopes::{scope_iterator, Scopes};
+#[cfg(feature = "modern")]
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -21,12 +22,13 @@ use crate::trigger::{validate_target, validate_trigger};
 use crate::validate::validate_compare_duration;
 #[cfg(any(feature = "ck3", feature = "imperator"))]
 use crate::validate::validate_modifiers;
+#[cfg(feature = "modern")]
+use crate::validate::validate_scripted_modifier_call;
 #[cfg(feature = "vic3")]
 use crate::validate::validate_vic3_modifiers;
 use crate::validate::{
     precheck_iterator_fields, validate_identifier, validate_ifelse_sequence,
-    validate_inside_iterator, validate_iterator_fields, validate_scope_chain,
-    validate_scripted_modifier_call, ListType,
+    validate_inside_iterator, validate_iterator_fields, validate_scope_chain, ListType,
 };
 use crate::validator::{Validator, ValueValidator};
 
@@ -166,14 +168,17 @@ pub fn validate_effect_field(
         return;
     }
 
-    if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
-        if caller != "random" && caller != "random_list" && caller != "duel" {
-            let msg = "cannot use scripted modifier here";
-            err(ErrorKey::Validation).msg(msg).loc(key).push();
+    #[cfg(feature = "modern")]
+    if Game::is_modern() {
+        if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
+            if caller != "random" && caller != "random_list" && caller != "duel" {
+                let msg = "cannot use scripted modifier here";
+                err(ErrorKey::Validation).msg(msg).loc(key).push();
+                return;
+            }
+            validate_scripted_modifier_call(key, bv, modifier, data, sc);
             return;
         }
-        validate_scripted_modifier_call(key, bv, modifier, data, sc);
-        return;
     }
 
     let scope_effect = match Game::game() {
@@ -223,7 +228,11 @@ pub fn validate_effect_field(
                         }
                     }
                 }
-                validate_script_value(bv, data, sc);
+                #[cfg(feature = "modern")]
+                if Game::is_modern() {
+                    validate_script_value(bv, data, sc);
+                }
+                // TODO HOI4
             }
             #[cfg(feature = "vic3")]
             Effect::Date => {
@@ -451,11 +460,14 @@ pub fn validate_effect_control(
         vd.ban_field("subject", || "`custom_description` or `custom_tooltip`");
     }
 
-    if caller == "custom_description" || caller == "custom_description_no_bullet" {
-        vd.field_target_ok_this("object", sc, Scopes::non_primitive());
-        vd.field_script_value("value", sc);
-    } else {
-        vd.ban_field("object", || "`custom_description`");
+    #[cfg(feature = "modern")]
+    if Game::is_modern() {
+        if caller == "custom_description" || caller == "custom_description_no_bullet" {
+            vd.field_target_ok_this("object", sc, Scopes::non_primitive());
+            vd.field_script_value("value", sc);
+        } else {
+            vd.ban_field("object", || "`custom_description`");
+        }
     }
 
     if caller == "hidden_effect" || caller == "hidden_effect_new_object" {
@@ -464,7 +476,13 @@ pub fn validate_effect_control(
 
     if caller == "random" {
         vd.req_field("chance");
-        vd.field_script_value("chance", sc);
+        if Game::is_modern() {
+            #[cfg(feature = "modern")]
+            vd.field_script_value("chance", sc);
+        } else {
+            // TODO HOI4
+            vd.field_numeric("chance");
+        }
     } else {
         vd.ban_field("chance", || "`random`");
     }
@@ -491,12 +509,16 @@ pub fn validate_effect_control(
     }
 
     if caller == "while" {
+        // TODO HOI4
         if !(block.has_key("limit") || block.has_key("count")) {
             let msg = "`while` needs one of `limit` or `count`";
             warn(ErrorKey::Validation).msg(msg).loc(block).push();
         }
 
-        vd.field_script_value("count", sc);
+        if Game::is_modern() {
+            #[cfg(feature = "modern")]
+            vd.field_script_value("count", sc);
+        }
     } else {
         vd.ban_field("count", || "`while` and `any_` lists");
     }
@@ -528,8 +550,11 @@ pub fn validate_effect_control(
         });
         vd.field_bool("show_chance");
         vd.field_validated_sc("desc", sc, validate_desc);
-        vd.field_script_value("min", sc); // used in vanilla
-        vd.field_script_value("max", sc); // used in vanilla
+        #[cfg(feature = "modern")]
+        if Game::is_modern() {
+            vd.field_script_value("min", sc); // used in vanilla
+            vd.field_script_value("max", sc); // used in vanilla
+        }
     } else {
         vd.ban_field("trigger", || "`random_list` or `duel`");
         vd.ban_field("show_chance", || "`random_list` or `duel`");

@@ -32,14 +32,18 @@ pub mod music;
 pub mod on_actions;
 #[cfg(feature = "modern")]
 pub mod portrait;
+#[cfg(feature = "modern")]
 pub mod script_values;
 pub mod scripted_effects;
 pub mod scripted_guis;
+#[cfg(feature = "modern")]
 pub mod scripted_lists;
+#[cfg(feature = "modern")]
 pub mod scripted_modifiers;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 pub mod scripted_rules;
 pub mod scripted_triggers;
+#[cfg(feature = "modern")]
 pub mod trigger_localization;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 pub mod tutorials;
