@@ -5,12 +5,12 @@ use crate::context::ScopeContext;
 use crate::desc::validate_desc;
 use crate::effect::{validate_effect, validate_effect_control};
 use crate::everything::Everything;
-#[cfg(not(feature = "imperator"))]
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{err, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
+#[cfg(feature = "modern")]
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -48,6 +48,7 @@ pub fn validate_add_to_variable_list(
 }
 
 /// A specific validator for the three `change_variable` effects (`global`, `local`, and default).
+#[cfg(feature = "modern")]
 pub fn validate_change_variable(
     _key: &Token,
     _block: &Block,
@@ -68,6 +69,7 @@ pub fn validate_change_variable(
 }
 
 /// A specific validator for the three `clamp_variable` effects (`global`, `local`, and default).
+#[cfg(feature = "modern")]
 pub fn validate_clamp_variable(
     _key: &Token,
     _block: &Block,
@@ -124,6 +126,7 @@ pub fn validate_remove_from_list(
 }
 
 /// A specific validator for the three `round_variable` effects (`global`, `local`, and default).
+#[cfg(feature = "modern")]
 pub fn validate_round_variable(
     _key: &Token,
     _block: &Block,
@@ -189,7 +192,13 @@ pub fn validate_set_variable(
                 BV::Value(token) => {
                     validate_target_ok_this(token, data, sc, Scopes::all_but_none());
                 }
-                BV::Block(_) => validate_script_value(bv, data, sc),
+                BV::Block(_) => {
+                    #[cfg(feature = "modern")]
+                    if Game::is_modern() {
+                        validate_script_value(bv, data, sc);
+                    }
+                    // TODO HOI4
+                }
             });
             validate_optional_duration(&mut vd, sc);
         }

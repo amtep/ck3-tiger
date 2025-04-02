@@ -73,6 +73,7 @@ mod pdxfile;
 mod report;
 mod rivers;
 mod scopes;
+#[cfg(feature = "modern")]
 mod script_value;
 mod token;
 mod tooltipped;
