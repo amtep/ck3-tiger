@@ -37,8 +37,6 @@ use crate::ck3::data::{
 use crate::ck3::tables::misc::*;
 use crate::config_load::{check_for_legacy_ignore, load_filter};
 use crate::context::ScopeContext;
-#[cfg(feature = "modern")]
-use crate::data::coa::Coas;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::data::data_binding::DataBindings;
 use crate::data::{
@@ -49,11 +47,13 @@ use crate::data::{
     localization::Localization,
     music::Musics,
     on_actions::OnActions,
-    script_values::ScriptValues,
     scripted_effects::{Effect, Effects},
-    scripted_lists::ScriptedLists,
-    scripted_modifiers::ScriptedModifiers,
     scripted_triggers::{Trigger, Triggers},
+};
+#[cfg(feature = "modern")]
+use crate::data::{
+    coa::Coas, script_values::ScriptValues, scripted_lists::ScriptedLists,
+    scripted_modifiers::ScriptedModifiers,
 };
 use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
@@ -134,6 +134,7 @@ pub struct Everything {
 
     pub(crate) localization: Localization,
 
+    #[cfg(feature = "modern")]
     pub(crate) scripted_lists: ScriptedLists,
 
     pub(crate) defines: Defines,
@@ -142,6 +143,7 @@ pub struct Everything {
     #[cfg(feature = "imperator")]
     pub(crate) decisions_imperator: Decisions,
 
+    #[cfg(feature = "modern")]
     pub(crate) scripted_modifiers: ScriptedModifiers,
     pub(crate) on_actions: OnActions,
 
@@ -173,6 +175,7 @@ pub struct Everything {
     #[cfg(feature = "ck3")]
     pub(crate) characters: Characters,
 
+    #[cfg(feature = "modern")]
     pub(crate) script_values: ScriptValues,
 
     pub(crate) triggers: Triggers,
@@ -262,11 +265,13 @@ impl Everything {
             warned_defines: RwLock::new(TigerHashSet::default()),
             database: Db::default(),
             localization: Localization::default(),
+            #[cfg(feature = "modern")]
             scripted_lists: ScriptedLists::default(),
             defines: Defines::default(),
             events: Events::default(),
             #[cfg(feature = "imperator")]
             decisions_imperator: Decisions::default(),
+            #[cfg(feature = "modern")]
             scripted_modifiers: ScriptedModifiers::default(),
             on_actions: OnActions::default(),
             #[cfg(feature = "ck3")]
@@ -291,6 +296,7 @@ impl Everything {
             titles: Titles::default(),
             #[cfg(feature = "ck3")]
             characters: Characters::default(),
+            #[cfg(feature = "modern")]
             script_values: ScriptValues::default(),
             triggers: Triggers::default(),
             effects: Effects::default(),
@@ -422,10 +428,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.dds, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.events, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.localization, &self.parser));
-            s.spawn(|_| self.fileset.handle(&mut self.scripted_lists, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.defines, &self.parser));
-            s.spawn(|_| self.fileset.handle(&mut self.scripted_modifiers, &self.parser));
-            s.spawn(|_| self.fileset.handle(&mut self.script_values, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.triggers, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.effects, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.assets, &self.parser));
@@ -453,8 +456,11 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.menatarmstypes, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.data_bindings, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.provinces_ck3, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.scripted_lists, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.wars, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.coas, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.scripted_modifiers, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.script_values, &self.parser));
         });
         crate::ck3::data::buildings::Building::finalize(&mut self.database);
     }
@@ -465,6 +471,9 @@ impl Everything {
         self.fileset.handle(&mut self.provinces_vic3, &self.parser);
         self.fileset.handle(&mut self.data_bindings, &self.parser);
         self.fileset.handle(&mut self.coas, &self.parser);
+        self.fileset.handle(&mut self.scripted_lists, &self.parser);
+        self.fileset.handle(&mut self.scripted_modifiers, &self.parser);
+        self.fileset.handle(&mut self.script_values, &self.parser);
         self.load_json(Item::TerrainMask, TerrainMask::add_json);
     }
 
@@ -473,6 +482,9 @@ impl Everything {
         self.fileset.handle(&mut self.decisions_imperator, &self.parser);
         self.fileset.handle(&mut self.provinces_imperator, &self.parser);
         self.fileset.handle(&mut self.coas, &self.parser);
+        self.fileset.handle(&mut self.scripted_lists, &self.parser);
+        self.fileset.handle(&mut self.scripted_modifiers, &self.parser);
+        self.fileset.handle(&mut self.script_values, &self.parser);
     }
 
     #[cfg(feature = "hoi4")]
@@ -497,10 +509,7 @@ impl Everything {
 
     fn validate_all_generic<'a>(&'a self, s: &Scope<'a>) {
         s.spawn(|_| self.fileset.validate(self));
-        s.spawn(|_| self.scripted_lists.validate(self));
         s.spawn(|_| self.defines.validate(self));
-        s.spawn(|_| self.scripted_modifiers.validate(self));
-        s.spawn(|_| self.script_values.validate(self));
         s.spawn(|_| self.triggers.validate(self));
         s.spawn(|_| self.effects.validate(self));
         s.spawn(|_| self.events.validate(self));
@@ -527,6 +536,9 @@ impl Everything {
         s.spawn(|_| self.provinces_ck3.validate(self));
         s.spawn(|_| self.wars.validate(self));
         s.spawn(|_| self.coas.validate(self));
+        s.spawn(|_| self.scripted_lists.validate(self));
+        s.spawn(|_| self.scripted_modifiers.validate(self));
+        s.spawn(|_| self.script_values.validate(self));
         s.spawn(|_| Climate::validate_all(&self.database, self));
     }
 
@@ -536,6 +548,9 @@ impl Everything {
         s.spawn(|_| self.provinces_vic3.validate(self));
         s.spawn(|_| self.data_bindings.validate(self));
         s.spawn(|_| self.coas.validate(self));
+        s.spawn(|_| self.scripted_lists.validate(self));
+        s.spawn(|_| self.scripted_modifiers.validate(self));
+        s.spawn(|_| self.script_values.validate(self));
         s.spawn(|_| StrategicRegion::crosscheck(self));
         s.spawn(|_| BuyPackage::crosscheck(self));
     }
@@ -545,6 +560,9 @@ impl Everything {
         s.spawn(|_| self.decisions_imperator.validate(self));
         s.spawn(|_| self.provinces_imperator.validate(self));
         s.spawn(|_| self.coas.validate(self));
+        s.spawn(|_| self.scripted_lists.validate(self));
+        s.spawn(|_| self.scripted_modifiers.validate(self));
+        s.spawn(|_| self.script_values.validate(self));
     }
 
     #[cfg(feature = "hoi4")]
@@ -1100,6 +1118,15 @@ impl Everything {
             };
             sounds_set.contains(&Lowercase::new(name))
         }
+    }
+
+    /// Return true iff a script value of the given name is defined.
+    pub(crate) fn script_value_exists(&self, name: &str) -> bool {
+        if Game::is_modern() {
+            #[cfg(feature = "modern")]
+            return self.script_values.exists(name);
+        }
+        false
     }
 }
 

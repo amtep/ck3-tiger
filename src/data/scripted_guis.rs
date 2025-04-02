@@ -3,10 +3,11 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::everything::Everything;
-use crate::game::GameFlags;
+use crate::game::{Game, GameFlags};
 use crate::item::{Item, ItemLoader};
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
+#[cfg(feature = "modern")]
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -44,7 +45,10 @@ impl DbKind for ScriptedGui {
         vd.field_validated_sc("confirm_text", &mut sc.clone(), validate_desc);
         vd.field_trigger_full("ai_is_valid", &mut sc.clone(), Tooltipped::No);
         vd.field_validated_block_sc("ai_chance", &mut sc.clone(), validate_modifiers_with_base);
-        vd.field_validated("ai_frequency", validate_non_dynamic_script_value);
+        #[cfg(feature = "modern")]
+        if Game::is_modern() {
+            vd.field_validated("ai_frequency", validate_non_dynamic_script_value);
+        }
 
         vd.field_validated_list("saved_scopes", |token, _| {
             sc.define_name(token.as_str(), Scopes::all_but_none(), token);

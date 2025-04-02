@@ -8,6 +8,7 @@ use crate::block::{Block, Comparator, Eq::*, Field, BV};
 use crate::context::{Reason, ScopeContext};
 #[cfg(feature = "modern")]
 use crate::data::genes::Gene;
+#[cfg(feature = "modern")]
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::date::Date;
 use crate::desc::validate_desc;
@@ -22,6 +23,7 @@ use crate::report::{err, fatal, tips, warn, ErrorKey, Severity};
 use crate::scopes::{
     needs_prefix, scope_iterator, scope_prefix, scope_to_scope, ArgumentValue, Scopes,
 };
+#[cfg(feature = "modern")]
 use crate::script_value::validate_script_value;
 use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
@@ -190,22 +192,25 @@ pub fn validate_trigger_internal(
     }
 
     // TODO: the custom_description and custom_tooltip logic is duplicated for effects
-    if caller == "custom_description" || caller == "custom_tooltip" {
-        vd.req_field("text");
-        if caller == "custom_tooltip" {
-            vd.field_item("text", Item::Localization);
-        } else if let Some(token) = vd.field_value("text") {
-            data.verify_exists_max_sev(Item::TriggerLocalization, token, max_sev);
-            if let Some((key, block)) =
-                data.get_key_block(Item::TriggerLocalization, token.as_str())
-            {
-                TriggerLocalization::validate_use(key, block, data, token, tooltipped, negated);
+    #[cfg(feature = "modern")]
+    if Game::is_modern() {
+        if caller == "custom_description" || caller == "custom_tooltip" {
+            vd.req_field("text");
+            if caller == "custom_tooltip" {
+                vd.field_item("text", Item::Localization);
+            } else if let Some(token) = vd.field_value("text") {
+                data.verify_exists_max_sev(Item::TriggerLocalization, token, max_sev);
+                if let Some((key, block)) =
+                    data.get_key_block(Item::TriggerLocalization, token.as_str())
+                {
+                    TriggerLocalization::validate_use(key, block, data, token, tooltipped, negated);
+                }
             }
+            vd.field_target_ok_this("subject", sc, Scopes::non_primitive());
+        } else {
+            vd.ban_field("text", || "`custom_description` or `custom_tooltip`");
+            vd.ban_field("subject", || "`custom_description` or `custom_tooltip`");
         }
-        vd.field_target_ok_this("subject", sc, Scopes::non_primitive());
-    } else {
-        vd.ban_field("text", || "`custom_description` or `custom_tooltip`");
-        vd.ban_field("subject", || "`custom_description` or `custom_tooltip`");
     }
 
     if caller == "custom_description" {
@@ -240,7 +245,8 @@ pub fn validate_trigger_internal(
     validate_ifelse_sequence(block, "trigger_if", "trigger_else_if", "trigger_else");
 
     vd.unknown_fields_any_cmp(|key, cmp, bv| {
-        if key.is("value") {
+        #[cfg(feature = "modern")]
+        if Game::is_modern() && key.is("value") {
             validate_script_value(bv, data, sc);
             side_effects = true;
             return;
@@ -299,13 +305,23 @@ pub fn validate_trigger_internal(
         // check add and factor at the end, accounting for any temporary scope saved
         // elsewhere in the block.
         vd.multi_field_validated("add", |bv, data| {
-            validate_script_value(bv, data, sc);
-            side_effects = true;
+            if Game::is_modern() {
+                #[cfg(feature = "modern")]
+                validate_script_value(bv, data, sc);
+                side_effects = true;
+            } else {
+                // TODO HOI4
+            }
         });
 
         vd.multi_field_validated("factor", |bv, data| {
-            validate_script_value(bv, data, sc);
-            side_effects = true;
+            if Game::is_modern() {
+                #[cfg(feature = "modern")]
+                validate_script_value(bv, data, sc);
+                side_effects = true;
+            } else {
+                // TODO HOI4
+            }
         });
     }
 
@@ -380,7 +396,12 @@ pub fn validate_trigger_key_bv(
 
     // `10 < script value` is a valid trigger
     if key.is_number() {
-        validate_script_value(bv, data, sc);
+        if Game::is_modern() {
+            #[cfg(feature = "modern")]
+            validate_script_value(bv, data, sc);
+        } else {
+            // TODO HOI4
+        }
         return side_effects;
     }
 
@@ -431,8 +452,9 @@ pub fn validate_trigger_key_bv(
                     sc.replace_prev();
                 } else if part_lc == "this" {
                     sc.replace_this();
-                } else if data.script_values.exists(part.as_str()) {
+                } else if data.script_value_exists(part.as_str()) {
                     // TODO: check side_effects
+                    #[cfg(feature = "modern")]
                     data.script_values.validate_call(part, data, sc);
                     sc.replace(Scopes::Value, part.clone());
                 } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
@@ -516,6 +538,7 @@ pub fn validate_trigger_key_bv(
         } else if sc.can_be(Scopes::Value) {
             sc.close();
             // TODO: check side_effects
+            #[cfg(feature = "modern")]
             validate_script_value(bv, data, sc);
         } else {
             let msg = format!("unexpected comparator {cmp}");
@@ -642,14 +665,18 @@ fn match_trigger_bv(
         Trigger::CompareValue => {
             must_be_eq = false;
             // TODO: check side_effects
+            #[cfg(feature = "modern")]
             validate_script_value(bv, data, sc);
+            // TODO HOI4
         }
         #[cfg(feature = "ck3")]
         Trigger::CompareValueWarnEq => {
             must_be_eq = false;
             warn_if_eq = true;
             // TODO: check side_effects
+            #[cfg(feature = "modern")]
             validate_script_value(bv, data, sc);
+            // TODO HOI4
         }
         #[cfg(any(feature = "ck3", feature = "vic3"))]
         Trigger::SetValue => {
@@ -679,7 +706,9 @@ fn match_trigger_bv(
                 validate_target(token, data, sc, *s);
             } else if s.contains(Scopes::Value) {
                 // TODO: check side_effects
+                #[cfg(feature = "modern")]
                 validate_script_value(bv, data, sc);
+                // TODO HOI4
             } else {
                 bv.expect_value();
             }
@@ -689,7 +718,9 @@ fn match_trigger_bv(
                 validate_target_ok_this(token, data, sc, *s);
             } else if s.contains(Scopes::Value) {
                 // TODO: check side_effects
+                #[cfg(feature = "modern")]
                 validate_script_value(bv, data, sc);
+                // TODO HOI4
             } else {
                 bv.expect_value();
             }
@@ -899,6 +930,7 @@ fn match_trigger_bv(
                     }
                 }
             } else if name.is("save_temporary_scope_value_as") {
+                #[cfg(feature = "modern")]
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
                     vd.set_max_severity(max_sev);
@@ -1076,8 +1108,9 @@ pub fn validate_target_ok_this(
                     sc.replace_prev();
                 } else if part_lc == "this" {
                     sc.replace_this();
-                } else if data.script_values.exists(part.as_str()) {
+                } else if data.script_value_exists(part.as_str()) {
                     // TODO: check side_effects
+                    #[cfg(feature = "modern")]
                     data.script_values.validate_call(part, data, sc);
                     sc.replace(Scopes::Value, part.clone());
                 } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {

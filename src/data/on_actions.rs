@@ -17,7 +17,9 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validate::{validate_duration, validate_modifiers_with_base};
+#[cfg(feature = "modern")]
+use crate::validate::validate_duration;
+use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
@@ -161,7 +163,10 @@ fn validate_on_action_internal(
     #[allow(unused_variables)] // vic3 doesn't use `key`
     vd.multi_field_validated_key_block("events", |key, b, data| {
         let mut vd = Validator::new(b, data);
-        vd.multi_field_validated_block_sc("delay", sc, validate_duration);
+        #[cfg(feature = "modern")]
+        if Game::is_modern() {
+            vd.multi_field_validated_block_sc("delay", sc, validate_duration);
+        }
         for token in vd.values() {
             data.verify_exists(Item::Event, token);
             data.events.check_scope(token, sc);
@@ -182,9 +187,15 @@ fn validate_on_action_internal(
     #[allow(unused_variables)] // vic3 doesn't use `key`
     vd.multi_field_validated_key_block("random_events", |key, b, data| {
         let mut vd = Validator::new(b, data);
-        vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
-        vd.field_script_value("chance_of_no_event", sc);
-        vd.multi_field_validated_block_sc("delay", sc, validate_duration); // undocumented
+        #[cfg(feature = "modern")]
+        if Game::is_modern() {
+            vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
+            vd.field_script_value("chance_of_no_event", sc);
+        }
+        #[cfg(feature = "modern")]
+        if Game::is_modern() {
+            vd.multi_field_validated_block_sc("delay", sc, validate_duration); // undocumented
+        }
         for (_key, token) in vd.integer_values() {
             if token.is("0") {
                 continue;
@@ -227,7 +238,10 @@ fn validate_on_action_internal(
     #[allow(unused_variables)] // vic3 doesn't use `key`
     vd.multi_field_validated_key_block("on_actions", |key, b, data| {
         let mut vd = Validator::new(b, data);
-        vd.multi_field_validated_block_sc("delay", sc, validate_duration);
+        #[cfg(feature = "modern")]
+        if Game::is_modern() {
+            vd.multi_field_validated_block_sc("delay", sc, validate_duration);
+        }
         for token in vd.values() {
             data.verify_exists(Item::OnAction, token);
             if let Some(mut action_sc) = sc.root_for_action(token) {
@@ -247,8 +261,11 @@ fn validate_on_action_internal(
     #[allow(unused_variables)] // vic3 doesn't use `key`
     vd.multi_field_validated_key_block("random_on_action", |key, b, data| {
         let mut vd = Validator::new(b, data);
-        vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
-        vd.field_script_value("chance_of_no_event", sc);
+        #[cfg(feature = "modern")]
+        if Game::is_modern() {
+            vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
+            vd.field_script_value("chance_of_no_event", sc);
+        }
         for (_key, token) in vd.integer_values() {
             if token.is("0") {
                 continue;
