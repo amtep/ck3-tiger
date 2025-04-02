@@ -251,16 +251,20 @@ impl Asset {
         vd.field_bool("get_state_from_parent");
         vd.field_numeric("scale");
         vd.field_numeric("cull_radius");
-        vd.multi_field_validated_block("attribute", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.req_field("name");
-            vd.req_field_one_of(&["blend_shape", "additive_animation"]);
-            vd.field_item("name", Item::GeneAttribute);
-            vd.field_item("additive_animation", Item::GeneAttribute);
-            vd.field_item("blend_shape", Item::BlendShape);
-            vd.field_numeric("default");
-        });
+        #[cfg(feature = "modern")]
+        if Game::is_hoi4() {
+            vd.multi_field_validated_block("attribute", |block, data| {
+                let mut vd = Validator::new(block, data);
+                vd.req_field("name");
+                vd.req_field_one_of(&["blend_shape", "additive_animation"]);
+                vd.field_item("name", Item::GeneAttribute);
+                vd.field_item("additive_animation", Item::GeneAttribute);
+                vd.field_item("blend_shape", Item::BlendShape);
+                vd.field_numeric("default");
+            });
+        }
         vd.multi_field_validated_block("meshsettings", validate_meshsettings);
+        #[cfg(feature = "modern")]
         vd.multi_field_validated_block("game_data", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.multi_field_validated_block("portrait_entity_user_data", |block, data| {

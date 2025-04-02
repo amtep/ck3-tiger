@@ -12,7 +12,7 @@ use crate::validator::Validator;
 pub struct Font {}
 
 inventory::submit! {
-    ItemLoader::Full(GameFlags::all(), Item::Font, PdxEncoding::Utf8OptionalBom, ".font", LoadAsFile::No, Recursive::Yes, Font::add)
+    ItemLoader::Full(GameFlags::modern(), Item::Font, PdxEncoding::Utf8OptionalBom, ".font", LoadAsFile::No, Recursive::Yes, Font::add)
 }
 
 impl Font {

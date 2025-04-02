@@ -2,6 +2,7 @@
 
 use crate::block::{Block, Comparator, Eq::*, BV};
 use crate::context::{Reason, ScopeContext};
+#[cfg(feature = "modern")]
 use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
@@ -423,10 +424,12 @@ pub fn validate_effect_control(
         vd.req_field_warn("limit");
     }
 
-    if caller == "custom_description"
-        || caller == "custom_description_no_bullet"
-        || caller == "custom_tooltip"
-        || caller == "custom_label"
+    #[cfg(feature = "modern")]
+    if Game::is_modern()
+        && (caller == "custom_description"
+            || caller == "custom_description_no_bullet"
+            || caller == "custom_tooltip"
+            || caller == "custom_label")
     {
         vd.req_field("text");
         if caller == "custom_tooltip" || caller == "custom_label" {

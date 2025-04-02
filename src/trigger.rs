@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use crate::block::{Block, Comparator, Eq::*, Field, BV};
 use crate::context::{Reason, ScopeContext};
-#[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+#[cfg(feature = "modern")]
 use crate::data::genes::Gene;
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::date::Date;
@@ -875,7 +875,7 @@ fn match_trigger_bv(
                     }
                 }
             } else if name.is("has_gene") {
-                #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+                #[cfg(feature = "modern")]
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
                     vd.set_max_severity(max_sev);

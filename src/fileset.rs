@@ -247,7 +247,7 @@ pub struct Fileset {
 
 impl Fileset {
     pub fn new(vanilla_dir: Option<&Path>, mod_root: PathBuf, replace_paths: Vec<PathBuf>) -> Self {
-        let vanilla_root = if Game::is_ck3() || Game::is_vic3() || Game::is_imperator() {
+        let vanilla_root = if Game::is_modern() {
             vanilla_dir.map(|dir| dir.join("game"))
         } else {
             vanilla_dir.map(ToOwned::to_owned)
@@ -384,13 +384,13 @@ impl Fileset {
     }
 
     pub fn scan_all(&mut self) -> Result<(), FilesError> {
-        #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+        #[cfg(feature = "modern")]
         if let Some(clausewitz_root) = self.clausewitz_root.clone() {
             self.scan(&clausewitz_root.clone(), FileKind::Clausewitz).map_err(|e| {
                 FilesError::VanillaUnreadable { path: clausewitz_root.clone(), source: e }
             })?;
         }
-        #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
+        #[cfg(feature = "modern")]
         if let Some(jomini_root) = &self.jomini_root.clone() {
             self.scan(&jomini_root.clone(), FileKind::Jomini).map_err(|e| {
                 FilesError::VanillaUnreadable { path: jomini_root.clone(), source: e }
