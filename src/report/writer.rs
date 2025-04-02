@@ -187,6 +187,8 @@ pub(crate) fn kind_tag(errors: &Errors, kind: FileKind) -> &str {
             Game::Vic3 => "Vic3",
             #[cfg(feature = "imperator")]
             Game::Imperator => "Imperator",
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => "Hoi4",
         },
         FileKind::Dlc(idx) => &errors.loaded_dlcs_labels[idx as usize],
         FileKind::LoadedMod(idx) => &errors.loaded_mods_labels[idx as usize],

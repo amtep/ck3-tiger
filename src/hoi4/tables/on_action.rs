@@ -1,0 +1,4 @@
+// LAST UPDATED HOI4 VERSION 1.16.4
+// TODO
+pub const ON_ACTION_SCOPES: &str = "
+";
