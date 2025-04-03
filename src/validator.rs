@@ -17,7 +17,7 @@ use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::script_value::validate_script_value_no_breakdown;
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::script_value::{validate_bv, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -883,7 +883,7 @@ impl<'a> Validator<'a> {
     /// If `breakdown` is true, it does not warn if it is an inline script value and the `desc`
     /// fields in it do not contain valid localizations. This is generally used for script values
     /// that will never be shown to the user except in debugging contexts, such as `ai_will_do`.
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     pub fn field_script_value_full<'b, T>(&mut self, name: &str, fsc: T, breakdown: bool) -> bool
     where
         T: Into<FieldScopeContext<'b>>,
@@ -905,7 +905,7 @@ impl<'a> Validator<'a> {
     ///
     /// Expect no more than one `name` field in the block.
     /// Returns true iff the field is present.
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     pub fn field_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.field_check(name, |_, bv| {
             // TODO: pass max_severity value down
@@ -983,7 +983,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_script_value`], but it it expects any number of `name` fields.
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     pub fn multi_field_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.multi_field_check(name, |_, bv| {
             // TODO: pass max_severity value down

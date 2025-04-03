@@ -127,7 +127,8 @@ impl Game {
     }
 
     /// Convenience function indicating whether we are validating one of the three newer games
-    pub(crate) fn is_modern() -> bool {
+    /// which use the Jomini scripting engine.
+    pub(crate) fn is_jomini() -> bool {
         Game::is_ck3() || Game::is_vic3() || Game::is_imperator()
     }
 
@@ -181,7 +182,7 @@ impl GameFlags {
         }
     }
 
-    pub const fn modern() -> Self {
+    pub const fn jomini() -> Self {
         GameFlags::Ck3.union(GameFlags::Vic3).union(GameFlags::Imperator)
     }
 }
