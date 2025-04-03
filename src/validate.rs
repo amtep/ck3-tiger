@@ -569,10 +569,10 @@ pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut S
         #[cfg(feature = "modern")]
         {
             vd.field_validated("base", validate_non_dynamic_script_value);
-            vd.fields_script_value("add", sc);
-            vd.fields_script_value("factor", sc);
-            vd.fields_script_value("min", sc);
-            vd.fields_script_value("max", sc);
+            vd.multi_field_script_value("add", sc);
+            vd.multi_field_script_value("factor", sc);
+            vd.multi_field_script_value("min", sc);
+            vd.multi_field_script_value("max", sc);
         }
     } else {
         #[cfg(feature = "hoi4")]
@@ -627,8 +627,8 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
 
     #[cfg(feature = "modern")]
     if Game::is_modern() {
-        vd.fields_script_value("min", sc);
-        vd.fields_script_value("max", sc);
+        vd.multi_field_script_value("min", sc);
+        vd.multi_field_script_value("max", sc);
     }
     // TODO HOI4
 }
