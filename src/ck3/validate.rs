@@ -198,7 +198,7 @@ pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut Scop
     }
     sc.close();
 
-    vd.fields_script_value("multiplier", sc);
+    vd.multi_field_script_value("multiplier", sc);
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
     vd.field_script_value("step", sc); // What does this do?
