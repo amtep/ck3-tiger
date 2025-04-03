@@ -10,7 +10,7 @@ use crate::validator::Validator;
 pub struct Dlc {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Ck3.union(GameFlags::Vic3), Item::Dlc, Dlc::add)
+    ItemLoader::Normal(GameFlags::Ck3.union(GameFlags::Vic3).union(GameFlags::Hoi4), Item::Dlc, Dlc::add)
 }
 
 impl Dlc {
@@ -39,9 +39,11 @@ impl DbKind for Dlc {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        data.verify_exists(Item::Localization, key);
-        let loca = format!("{key}_desc");
-        data.verify_exists_implied(Item::Localization, &loca, key);
+        if Game::is_jomini() {
+            data.verify_exists(Item::Localization, key);
+            let loca = format!("{key}_desc");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+        }
 
         if Game::is_vic3() && block.get_field_bool("theme_provider").unwrap_or(false) {
             let path = format!("gfx/interface/icons/dlc_icons/{key}.dds");
@@ -59,23 +61,34 @@ impl DbKind for Dlc {
             vd.req_field("name");
             vd.field_value("name");
             vd.field_choice("type", &["minor", "major"]);
+            vd.field_integer("priority");
         } else if Game::is_ck3() {
             vd.req_field("key");
             vd.field_value("key");
             vd.field_choice("type", &["minor", "medium", "major"]);
+            vd.field_integer("priority");
+        } else if Game::is_hoi4() {
+            vd.req_field("name");
+            vd.field_value("name");
+            vd.field_bool("major");
         }
 
-        vd.field_integer("priority");
         vd.field_value("steam_id");
         vd.field_value("msgr_id");
 
         if Game::is_vic3() {
             vd.field_bool("theme_provider");
-        }
-
-        if Game::is_ck3() {
+        } else if Game::is_ck3() {
             // Documented but not used
             vd.field_list_items("features", Item::Localization);
+        } else if Game::is_hoi4() {
+            #[cfg(feature = "hoi4")]
+            vd.field_item("career_profile_background_promotion", Item::Sprite);
+            #[cfg(feature = "hoi4")]
+            vd.field_item("career_profile_background_owned", Item::Sprite);
+            vd.field_item("localization_key", Item::Localization);
+            vd.field_item("description", Item::Localization);
+            vd.field_value("web_link");
         }
     }
 }

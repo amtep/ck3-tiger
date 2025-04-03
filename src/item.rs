@@ -76,6 +76,7 @@ pub enum Item {
     CoaTexturedEmblemList,
     #[cfg(feature = "jomini")]
     Culture,
+    #[cfg(feature = "jomini")]
     CustomLocalization,
     Decision,
     Define,
@@ -117,6 +118,7 @@ pub enum Item {
     Modifier,
     Music,
     MusicPlayerCategory,
+    #[cfg(feature = "jomini")]
     NamedColor,
     OnAction,
     Pdxmesh,
@@ -157,9 +159,11 @@ pub enum Item {
     // Items shared by more than one game
     #[cfg(any(feature = "ck3", feature = "imperator"))]
     Building,
+    #[cfg(any(feature = "ck3", feature = "hoi4"))]
+    Character,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     CharacterTemplate,
-    #[cfg(any(feature = "vic3", feature = "imperator"))]
+    #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
     CharacterTrait,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     Country,
@@ -173,6 +177,8 @@ pub enum Item {
     Law,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     Message,
+    #[cfg(any(feature = "imperator", feature = "hoi4"))]
+    Mission,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     PopType,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
@@ -226,7 +232,6 @@ pub enum Item {
     #[cfg(feature = "ck3")] CasusBelliGroup,
     #[cfg(feature = "ck3")] Catalyst,
     #[cfg(feature = "ck3")] ChallengeCharacter,
-    #[cfg(feature = "ck3")] Character,
     #[cfg(feature = "ck3")] CharacterBackground,
     #[cfg(feature = "ck3")] CharacterInteractionCategory,
     #[cfg(feature = "ck3")] Climate,
@@ -506,7 +511,6 @@ pub enum Item {
     #[cfg(feature = "imperator")] Loyalty,
     #[cfg(feature = "imperator")] MilitaryTraditionTree,
     #[cfg(feature = "imperator")] MilitaryTradition,
-    #[cfg(feature = "imperator")] Mission,
     #[cfg(feature = "imperator")] MissionTask,
     #[cfg(feature = "imperator")] Office,
     #[cfg(feature = "imperator")] Opinion,
@@ -522,6 +526,11 @@ pub enum Item {
     #[cfg(feature = "imperator")] Treasure,
     #[cfg(feature = "imperator")] Unit,
     #[cfg(feature = "imperator")] UnitAbility,
+
+    #[cfg(feature = "hoi4")] AceModifier,
+    #[cfg(feature = "hoi4")] AdvisorSlot,
+    #[cfg(feature = "hoi4")] Focus,
+    #[cfg(feature = "hoi4")] Sprite,
 }
 
 /// Display items in `separated word case` for maximum friendliness.
@@ -601,6 +610,7 @@ impl Item {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/cultures/",
             },
+            #[cfg(feature = "jomini")]
             Item::CustomLocalization => "common/customizable_localization/",
             Item::Decision => match Game::game() {
                 #[cfg(feature = "ck3")]
@@ -665,6 +675,7 @@ impl Item {
             },
             Item::Music => "music/",
             Item::MusicPlayerCategory => "music/music_player_categories/",
+            #[cfg(feature = "jomini")]
             Item::NamedColor => "common/named_colors/",
             Item::OnAction => match Game::game() {
                 #[cfg(feature = "ck3")]
@@ -738,6 +749,13 @@ impl Item {
 
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::Building => "common/buildings/",
+            #[cfg(any(feature = "ck3", feature = "hoi4"))]
+            Item::Character => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => "history/characters/",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "common/characters/",
+            },
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::CharacterTemplate => match Game::game() {
                 #[cfg(feature = "ck3")]
@@ -745,12 +763,14 @@ impl Item {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => "common/character_templates/",
             },
-            #[cfg(any(feature = "vic3", feature = "imperator"))]
+            #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
             Item::CharacterTrait => match Game::game() {
                 #[cfg(feature = "vic3")]
-                Game::Vic3 => "common/character_traits",
+                Game::Vic3 => "common/character_traits/",
                 #[cfg(feature = "imperator")]
-                Game::Imperator => "common/traits",
+                Game::Imperator => "common/traits/",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "common/unit_leader/",
             },
             #[cfg(any(feature = "vic3", feature = "imperator"))]
             Item::Country => match Game::game() {
@@ -778,6 +798,13 @@ impl Item {
             },
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::Message => "common/messages",
+            #[cfg(any(feature = "imperator", feature = "hoi4"))]
+            Item::Mission => match Game::game() {
+                #[cfg(feature = "imperator")]
+                Game::Imperator => "common/missions/",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "common/script_enums.txt", // TODO HOI4
+            },
             #[cfg(any(feature = "vic3", feature = "imperator"))]
             Item::PopType => "common/pop_types/",
             #[cfg(any(feature = "ck3", feature = "imperator"))]
@@ -877,8 +904,6 @@ impl Item {
             Item::Catalyst => "common/struggle/catalysts/",
             #[cfg(feature = "ck3")]
             Item::ChallengeCharacter => "common/bookmarks/challenge_characters/",
-            #[cfg(feature = "ck3")]
-            Item::Character => "history/characters/",
             #[cfg(feature = "ck3")]
             Item::CharacterBackground => "common/character_backgrounds/",
             #[cfg(feature = "ck3")]
@@ -1433,8 +1458,6 @@ impl Item {
             #[cfg(feature = "imperator")]
             Item::MilitaryTradition => "common/military_traditions/",
             #[cfg(feature = "imperator")]
-            Item::Mission => "common/missions/",
-            #[cfg(feature = "imperator")]
             Item::MissionTask => "common/missions/",
             #[cfg(feature = "imperator")]
             Item::Office => "common/offices/",
@@ -1464,6 +1487,15 @@ impl Item {
             Item::Unit => "common/units/",
             #[cfg(feature = "imperator")]
             Item::UnitAbility => "common/unit_abilities/",
+
+            #[cfg(feature = "hoi4")]
+            Item::AceModifier => "common/aces", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::AdvisorSlot => "common/script_enums.txt", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::Focus => "common/national_focus/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::Sprite => "gfx/", // TODO HOI4
         }
     }
 
@@ -1507,6 +1539,8 @@ impl Item {
             // common compatibility technique.
             Item::GuiType | Item::GuiTemplate => Severity::Untidy,
 
+            Item::File | Item::Localization | Item::MapEnvironment => Severity::Warning,
+
             #[cfg(feature = "jomini")]
             Item::Accessory
             | Item::AccessoryTag
@@ -1519,22 +1553,13 @@ impl Item {
             | Item::CoaPatternList
             | Item::CoaTemplate
             | Item::CoaTemplateList
-            | Item::CoaTexturedEmblemList => Severity::Warning,
-
-            Item::CustomLocalization => Severity::Warning,
-
-            #[cfg(feature = "jomini")]
-            Item::EffectLocalization | Item::Ethnicity => Severity::Warning,
-
-            Item::File => Severity::Warning,
-
-            #[cfg(feature = "jomini")]
-            Item::GameConcept => Severity::Warning,
-
-            Item::Localization | Item::MapEnvironment | Item::NamedColor => Severity::Warning,
-
-            #[cfg(feature = "jomini")]
-            Item::PortraitAnimation
+            | Item::CoaTexturedEmblemList
+            | Item::CustomLocalization
+            | Item::EffectLocalization
+            | Item::Ethnicity
+            | Item::GameConcept
+            | Item::NamedColor
+            | Item::PortraitAnimation
             | Item::PortraitCamera
             | Item::PortraitEnvironment
             | Item::Sound

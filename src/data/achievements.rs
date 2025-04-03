@@ -28,10 +28,16 @@ impl DbKind for Achievement {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        let loca = format!("ACHIEVEMENT_{key}");
-        data.verify_exists_implied(Item::Localization, &loca, key);
-        let loca = format!("ACHIEVEMENT_DESC_{key}");
-        data.verify_exists_implied(Item::Localization, &loca, key);
+        if Game::is_jomini() {
+            let loca = format!("ACHIEVEMENT_{key}");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+            let loca = format!("ACHIEVEMENT_DESC_{key}");
+            data.verify_exists_implied(Item::Localization, &loca, key);
+        }
+
+        if Game::is_hoi4() {
+            vd.field_integer("id");
+        }
 
         vd.field_validated_key_block("possible", |key, block, data| {
             let mut sc = ScopeContext::new(achievement_scope(), key);

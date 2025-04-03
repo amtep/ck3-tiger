@@ -18,7 +18,7 @@ use crate::validator::Validator;
 pub struct CustomLocalization {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::all(), Item::CustomLocalization, CustomLocalization::add)
+    ItemLoader::Normal(GameFlags::jomini(), Item::CustomLocalization, CustomLocalization::add)
 }
 
 impl CustomLocalization {

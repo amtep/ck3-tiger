@@ -19,7 +19,7 @@ use crate::helpers::TigerHashSet;
 use crate::item::Item;
 #[cfg(feature = "vic3")]
 use crate::mod_metadata::ModMetadata;
-#[cfg(any(feature = "ck3", feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
 use crate::modfile::ModFile;
 use crate::parse::ParserMemory;
 use crate::pathtable::{PathTable, PathTableIndex};
@@ -286,7 +286,7 @@ impl Fileset {
             let label =
                 block.get_field_value("label").map_or_else(default_label, ToString::to_string);
             if Game::is_ck3() || Game::is_imperator() || Game::is_hoi4() {
-                #[cfg(any(feature = "ck3", feature = "imperator"))]
+                #[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
                 if let Some(path) = block.get_field_value("modfile") {
                     let path = config_path
                         .parent()
@@ -641,7 +641,9 @@ impl Fileset {
             {
                 let msg = "file should be in common/on_action/";
                 err(ErrorKey::Filename).msg(msg).loc(entry).push();
-            } else if Game::is_vic3() && entry.path.starts_with("common/on_action") {
+            } else if (Game::is_vic3() || Game::is_hoi4())
+                && entry.path.starts_with("common/on_action")
+            {
                 let msg = "file should be in common/on_actions/";
                 err(ErrorKey::Filename).msg(msg).loc(entry).push();
             } else if Game::is_vic3() && entry.path.starts_with("common/modifiers") {

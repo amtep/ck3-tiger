@@ -1121,6 +1121,7 @@ impl Everything {
     }
 
     /// Return true iff a script value of the given name is defined.
+    #[allow(clippy::unused_self)]
     pub(crate) fn script_value_exists(&self, name: &str) -> bool {
         if Game::is_jomini() {
             #[cfg(feature = "jomini")]
