@@ -241,7 +241,7 @@ pub fn precheck_iterator_fields(
                     BV::Value(token) if token.is("all") => (),
                     bv => validate_script_value(bv, data, sc),
                 }
-            };
+            }
         }
         ListType::Ordered => {
             for field in &["min", "max"] {

@@ -50,9 +50,7 @@ impl Gui {
             let colorblindmode = block.get_field_value("color_blind_mode").cloned();
             for item in block.drain() {
                 if let BlockItem::Field(Field(key, _, BV::Value(_))) = item {
-                    if key.is("color_blind_mode") {
-                        continue;
-                    }
+                    if key.is("color_blind_mode") {}
                 } else if let BlockItem::Field(Field(key, _, BV::Block(block))) = item {
                     if key.is("format") {
                         if let Some(token) = block.get_field_value("name") {

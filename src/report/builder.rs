@@ -1,8 +1,8 @@
 //! By splitting the builder up into stages, we achieve two goals.
 //! - The order of calls is enforced, leading to more consistent code. E.g. calls to `weak()` or
-//!     `strong()` should always directly follow the opening call.
+//!   `strong()` should always directly follow the opening call.
 //! - The user is forced to add at least one pointer, making it impossible to create a report
-//!     without pointers, which would lead to panics.
+//!   without pointers, which would lead to panics.
 
 use crate::report::{log, Confidence, ErrorKey, ErrorLoc, LogReport, PointedMessage, Severity};
 

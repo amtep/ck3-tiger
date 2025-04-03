@@ -137,7 +137,7 @@ impl LocaParser {
                 .msg(format!("Unexpected character `{c}`, {expected}"))
                 .loc(self.loc)
                 .push(),
-        };
+        }
     }
 
     // Look ahead to the last `"` on the line

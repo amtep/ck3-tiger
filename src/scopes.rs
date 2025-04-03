@@ -226,7 +226,7 @@ impl Scopes {
             "bool" => return Some(Scopes::Bool),
             "flag" => return Some(Scopes::Flag),
             _ => (),
-        };
+        }
         match Game::game() {
             #[cfg(feature = "ck3")]
             Game::Ck3 => crate::ck3::scopes::scope_from_snake_case(s),

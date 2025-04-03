@@ -211,7 +211,7 @@ fn report_error(error: ParseError<usize, Lexeme, LexError>, mut file_loc: Loc) {
             let token = lexeme.into_token();
             err(ErrorKey::ParseError).msg(msg).loc(token).push();
         }
-    };
+    }
 }
 
 fn get_numeric_var(memory: &CombinedMemory, name: &Token) -> f64 {

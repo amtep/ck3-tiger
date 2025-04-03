@@ -450,7 +450,7 @@ impl Character {
                 }
                 _ => (),
             },
-        };
+        }
 
         // unknown effect field
         validate_effect_field(
@@ -503,7 +503,9 @@ impl Character {
                     loc.column = 0;
 
                     if let Some((birth_date, birth_loc)) = birth {
-                        let msg = format!("{character} couldn't be born again on {date}, was born already on {birth_date}");
+                        let msg = format!(
+                            "{character} couldn't be born again on {date}, was born already on {birth_date}"
+                        );
                         warn(ErrorKey::History)
                             .msg(msg)
                             .loc(loc)

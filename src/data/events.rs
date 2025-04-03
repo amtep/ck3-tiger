@@ -175,7 +175,7 @@ impl FileHandler<Block> for Events {
                         Expecting::Event => {
                             self.load_event(key, block);
                         }
-                    };
+                    }
                 } else {
                     let msg = "unknown setting in event file";
                     err(ErrorKey::UnknownField).msg(msg).loc(key).push();
@@ -248,7 +248,7 @@ impl Event {
             Game::Vic3 => crate::vic3::events::validate_event(self, data, &mut sc),
             #[cfg(feature = "imperator")]
             Game::Imperator => crate::imperator::events::validate_event(self, data, &mut sc),
-        };
+        }
     }
 
     pub fn validate_call(&self, data: &Everything, sc: &mut ScopeContext) {
@@ -263,6 +263,6 @@ impl Event {
             Game::Vic3 => crate::vic3::events::validate_event(self, data, sc),
             #[cfg(feature = "imperator")]
             Game::Imperator => crate::imperator::events::validate_event(self, data, sc),
-        };
+        }
     }
 }
