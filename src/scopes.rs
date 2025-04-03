@@ -46,15 +46,19 @@ bitflags! {
         #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
         const Country = 0x0000_0020;
         const Character = 0x0000_0040;
+        #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
         const Culture = 0x0000_0080;
+        #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
         const Province = 0x0000_0100;
         #[cfg(any(feature = "vic3", feature = "imperator"))]
         const Pop = 0x0000_0200;
         #[cfg(any(feature = "vic3", feature = "imperator"))]
         const Party = 0x0000_0400;
+        #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
         const Religion = 0x0000_0800;
         #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
         const State = 0x0000_1000;
+        #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
         const War = 0x0000_2000;
         // 0x0000_8000 is allocated for ck3
 
@@ -199,6 +203,16 @@ bitflags! {
         #[cfg(feature = "imperator")] const SubUnit = 0x1000_0000;
         #[cfg(feature = "imperator")] const Treasure = 0x2000_0000;
         #[cfg(feature = "imperator")] const Unit = 0x4000_0000;
+
+        #[cfg(feature = "hoi4")] const Ace = 0x0001_0000;
+        #[cfg(feature = "hoi4")] const Combatant = 0x0002_0000;
+        #[cfg(feature = "hoi4")] const Division = 0x0004_0000;
+        #[cfg(feature = "hoi4")] const IndustrialOrg = 0x0008_0000;
+        #[cfg(feature = "hoi4")] const Operation = 0x0010_0000;
+        #[cfg(feature = "hoi4")] const PurchaseContract = 0x0020_0000;
+        #[cfg(feature = "hoi4")] const RaidInstance = 0x0040_0000;
+        #[cfg(feature = "hoi4")] const SpecialProject = 0x0080_0000;
+        #[cfg(feature = "hoi4")] const StrategicRegion = 0x0100_0000;
     }
 }
 

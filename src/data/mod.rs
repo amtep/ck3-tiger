@@ -9,7 +9,9 @@ pub mod assets;
 pub mod coa;
 #[cfg(feature = "jomini")]
 pub mod coadesigner;
+#[cfg(feature = "jomini")]
 pub mod colors;
+#[cfg(feature = "jomini")]
 pub mod customloca;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 pub mod data_binding;

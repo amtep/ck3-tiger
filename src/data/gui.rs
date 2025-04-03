@@ -7,6 +7,7 @@ use std::sync::{Arc, RwLock};
 use crate::block::{Block, BlockItem, Field, BV};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+use crate::game::Game;
 use crate::gui::{BuiltinWidget, GuiBlock, GuiBlockFrom};
 use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
@@ -270,7 +271,11 @@ impl Gui {
 
 impl FileHandler<Block> for Gui {
     fn subpath(&self) -> PathBuf {
-        PathBuf::from("gui")
+        if Game::is_hoi4() {
+            PathBuf::from("interface")
+        } else {
+            PathBuf::from("gui")
+        }
     }
 
     fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
