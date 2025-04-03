@@ -50,7 +50,10 @@ impl Gui {
             let colorblindmode = block.get_field_value("color_blind_mode").cloned();
             for item in block.drain() {
                 if let BlockItem::Field(Field(key, _, BV::Value(_))) = item {
-                    if key.is("color_blind_mode") {}
+                    if !key.is("color_blind_mode") {
+                        let msg = "unknown key in textformatting";
+                        untidy(ErrorKey::UnknownField).msg(msg).loc(key).push();
+                    }
                 } else if let BlockItem::Field(Field(key, _, BV::Block(block))) = item {
                     if key.is("format") {
                         if let Some(token) = block.get_field_value("name") {
