@@ -91,11 +91,38 @@ static SCOPE_ITERATOR_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>
     });
 
 /// LAST UPDATED HOI4 VERSION 1.16.4
-/// See `effects.log` from the game data dumps
+/// See `documentation/effects_documentation.md` from the game files.
 /// These are the list iterators. Every entry represents
-/// a every_, ordered_, random_, and any_ version.
+/// a every_, random_, and any_ version.
+/// TODO: Hoi4 does not have the ordered_ versions.
+/// TODO: Hoi4 has any_ iterators that don't have corresponding every_ or random_+
 const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
-    // TODO
+    (Scopes::None, "active_scientist", Scopes::Character),
+    (Scopes::Country, "allied_country", Scopes::Country),
+    (Scopes::Country, "army_leader", Scopes::Character),
+    (Scopes::Country, "character", Scopes::Character),
+    (Scopes::Country, "controlled_state", Scopes::State),
+    (Scopes::Country, "core_state", Scopes::State),
+    (Scopes::None, "country", Scopes::Country),
+    (Scopes::Country, "country_division", Scopes::Division),
+    (Scopes::Country, "country_with_original_tag", Scopes::Country),
+    (Scopes::Country, "enemy_country", Scopes::Country),
+    (Scopes::Country, "military_industrial_organization", Scopes::IndustrialOrg),
+    (Scopes::Country, "navy_leader", Scopes::Character),
+    (Scopes::Country, "neighbor_country", Scopes::Country),
+    (Scopes::State, "neighbor_state", Scopes::State),
+    (Scopes::Country, "occupied_country", Scopes::Country),
+    // TODO: the any_ version is any_operative_leader
+    (Scopes::Country.union(Scopes::Operation), "operative", Scopes::Character),
+    (Scopes::Country, "other_country", Scopes::Country),
+    (Scopes::Country, "owned_state", Scopes::State),
+    (Scopes::None, "possible_country", Scopes::Country),
+    (Scopes::None, "purchase_contract", Scopes::PurchaseContract),
+    (Scopes::None, "scientist", Scopes::Character),
+    (Scopes::None, "state", Scopes::State),
+    (Scopes::State, "state_division", Scopes::Division),
+    (Scopes::Country, "subject_country", Scopes::Country),
+    (Scopes::Country, "unit_leader", Scopes::Character),
 ];
 
 pub fn scope_iterator_removed(name: &str) -> Option<(&'static str, &'static str)> {
@@ -107,14 +134,7 @@ pub fn scope_iterator_removed(name: &str) -> Option<(&'static str, &'static str)
     None
 }
 
-const SCOPE_ITERATOR_REMOVED: &[(&str, &str, &str)] = &[
-    (
-        "scope_cobelligerent",
-        "1.4.0",
-        "replaced with _cobelligerent_in_diplo_play, _cobelligerent_in_war",
-    ),
-    ("supporting_interest_group", "1.8", "replaced with `_influenced_interest_group`"),
-];
+const SCOPE_ITERATOR_REMOVED: &[(&str, &str, &str)] = &[];
 
 pub fn scope_to_scope_removed(name: &str) -> Option<(&'static str, &'static str)> {
     for (removed_name, version, explanation) in SCOPE_TO_SCOPE_REMOVED.iter().copied() {
@@ -125,10 +145,4 @@ pub fn scope_to_scope_removed(name: &str) -> Option<(&'static str, &'static str)
     None
 }
 
-const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
-    ("num_commanded_units", "1.6", ""),
-    ("num_enemy_units", "1.6", ""),
-    ("num_units_not_in_battle", "1.6", ""),
-    ("supply", "1.6", ""),
-    ("active_diplomatic_play", "1.7", ""),
-];
+const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[];
