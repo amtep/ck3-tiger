@@ -695,8 +695,8 @@ pub fn validate_datatypes(
         if let Args::Args(a) = args {
             for (i, arg) in a.iter().enumerate() {
                 // Handle |E that contain a SelectLocalization that chooses between two gameconcepts
-                #[cfg(feature = "modern")]
-                if Game::is_modern() && code.name.is("SelectLocalization") && i > 0 {
+                #[cfg(feature = "jomini")]
+                if Game::is_jomini() && code.name.is("SelectLocalization") && i > 0 {
                     if let CodeArg::Chain(chain) = &code.arguments[i] {
                         if chain.codes.len() == 1
                             && chain.codes[0].arguments.is_empty()

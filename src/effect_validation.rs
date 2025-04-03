@@ -10,7 +10,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{err, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -48,7 +48,7 @@ pub fn validate_add_to_variable_list(
 }
 
 /// A specific validator for the three `change_variable` effects (`global`, `local`, and default).
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 pub fn validate_change_variable(
     _key: &Token,
     _block: &Block,
@@ -69,7 +69,7 @@ pub fn validate_change_variable(
 }
 
 /// A specific validator for the three `clamp_variable` effects (`global`, `local`, and default).
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 pub fn validate_clamp_variable(
     _key: &Token,
     _block: &Block,
@@ -126,7 +126,7 @@ pub fn validate_remove_from_list(
 }
 
 /// A specific validator for the three `round_variable` effects (`global`, `local`, and default).
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 pub fn validate_round_variable(
     _key: &Token,
     _block: &Block,
@@ -193,8 +193,8 @@ pub fn validate_set_variable(
                     validate_target_ok_this(token, data, sc, Scopes::all_but_none());
                 }
                 BV::Block(_) => {
-                    #[cfg(feature = "modern")]
-                    if Game::is_modern() {
+                    #[cfg(feature = "jomini")]
+                    if Game::is_jomini() {
                         validate_script_value(bv, data, sc);
                     }
                     // TODO HOI4

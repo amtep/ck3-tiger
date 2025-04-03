@@ -17,7 +17,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::validate::validate_duration;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
@@ -163,8 +163,8 @@ fn validate_on_action_internal(
     #[allow(unused_variables)] // vic3 doesn't use `key`
     vd.multi_field_validated_key_block("events", |key, b, data| {
         let mut vd = Validator::new(b, data);
-        #[cfg(feature = "modern")]
-        if Game::is_modern() {
+        #[cfg(feature = "jomini")]
+        if Game::is_jomini() {
             vd.multi_field_validated_block_sc("delay", sc, validate_duration);
         }
         for token in vd.values() {
@@ -187,13 +187,13 @@ fn validate_on_action_internal(
     #[allow(unused_variables)] // vic3 doesn't use `key`
     vd.multi_field_validated_key_block("random_events", |key, b, data| {
         let mut vd = Validator::new(b, data);
-        #[cfg(feature = "modern")]
-        if Game::is_modern() {
+        #[cfg(feature = "jomini")]
+        if Game::is_jomini() {
             vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
             vd.field_script_value("chance_of_no_event", sc);
         }
-        #[cfg(feature = "modern")]
-        if Game::is_modern() {
+        #[cfg(feature = "jomini")]
+        if Game::is_jomini() {
             vd.multi_field_validated_block_sc("delay", sc, validate_duration); // undocumented
         }
         for (_key, token) in vd.integer_values() {
@@ -238,8 +238,8 @@ fn validate_on_action_internal(
     #[allow(unused_variables)] // vic3 doesn't use `key`
     vd.multi_field_validated_key_block("on_actions", |key, b, data| {
         let mut vd = Validator::new(b, data);
-        #[cfg(feature = "modern")]
-        if Game::is_modern() {
+        #[cfg(feature = "jomini")]
+        if Game::is_jomini() {
             vd.multi_field_validated_block_sc("delay", sc, validate_duration);
         }
         for token in vd.values() {
@@ -261,8 +261,8 @@ fn validate_on_action_internal(
     #[allow(unused_variables)] // vic3 doesn't use `key`
     vd.multi_field_validated_key_block("random_on_action", |key, b, data| {
         let mut vd = Validator::new(b, data);
-        #[cfg(feature = "modern")]
-        if Game::is_modern() {
+        #[cfg(feature = "jomini")]
+        if Game::is_jomini() {
             vd.field_numeric("chance_to_happen"); // TODO: 0 - 100
             vd.field_script_value("chance_of_no_event", sc);
         }

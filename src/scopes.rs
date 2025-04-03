@@ -479,8 +479,8 @@ pub fn scope_iterator(
         err(ErrorKey::Removed).strong().msg(msg).info(explanation).loc(name).push();
         return Some((Scopes::all(), Scopes::all()));
     }
-    #[cfg(feature = "modern")]
-    if Game::is_modern() && data.scripted_lists.exists(name.as_str()) {
+    #[cfg(feature = "jomini")]
+    if Game::is_jomini() && data.scripted_lists.exists(name.as_str()) {
         data.scripted_lists.validate_call(name, data, sc);
         return data
             .scripted_lists

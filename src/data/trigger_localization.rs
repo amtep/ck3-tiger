@@ -12,7 +12,7 @@ use crate::validator::Validator;
 pub struct TriggerLocalization {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::modern(), Item::TriggerLocalization, TriggerLocalization::add)
+    ItemLoader::Normal(GameFlags::jomini(), Item::TriggerLocalization, TriggerLocalization::add)
 }
 
 impl TriggerLocalization {

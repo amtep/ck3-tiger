@@ -7,7 +7,7 @@ use crate::game::{Game, GameFlags};
 use crate::item::{Item, ItemLoader};
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -45,8 +45,8 @@ impl DbKind for ScriptedGui {
         vd.field_validated_sc("confirm_text", &mut sc.clone(), validate_desc);
         vd.field_trigger_full("ai_is_valid", &mut sc.clone(), Tooltipped::No);
         vd.field_validated_block_sc("ai_chance", &mut sc.clone(), validate_modifiers_with_base);
-        #[cfg(feature = "modern")]
-        if Game::is_modern() {
+        #[cfg(feature = "jomini")]
+        if Game::is_jomini() {
             vd.field_validated("ai_frequency", validate_non_dynamic_script_value);
         }
 

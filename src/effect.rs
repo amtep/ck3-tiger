@@ -2,7 +2,7 @@
 
 use crate::block::{Block, Comparator, Eq::*, BV};
 use crate::context::{Reason, ScopeContext};
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
@@ -11,7 +11,7 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{err, fatal, tips, warn, ErrorKey, Severity};
 use crate::scopes::{scope_iterator, Scopes};
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -22,7 +22,7 @@ use crate::trigger::{validate_target, validate_trigger};
 use crate::validate::validate_compare_duration;
 #[cfg(any(feature = "ck3", feature = "imperator"))]
 use crate::validate::validate_modifiers;
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::validate::validate_scripted_modifier_call;
 #[cfg(feature = "vic3")]
 use crate::validate::validate_vic3_modifiers;
@@ -168,8 +168,8 @@ pub fn validate_effect_field(
         return;
     }
 
-    #[cfg(feature = "modern")]
-    if Game::is_modern() {
+    #[cfg(feature = "jomini")]
+    if Game::is_jomini() {
         if let Some(modifier) = data.scripted_modifiers.get(key.as_str()) {
             if caller != "random" && caller != "random_list" && caller != "duel" {
                 let msg = "cannot use scripted modifier here";
@@ -228,8 +228,8 @@ pub fn validate_effect_field(
                         }
                     }
                 }
-                #[cfg(feature = "modern")]
-                if Game::is_modern() {
+                #[cfg(feature = "jomini")]
+                if Game::is_jomini() {
                     validate_script_value(bv, data, sc);
                 }
                 // TODO HOI4
@@ -433,8 +433,8 @@ pub fn validate_effect_control(
         vd.req_field_warn("limit");
     }
 
-    #[cfg(feature = "modern")]
-    if Game::is_modern()
+    #[cfg(feature = "jomini")]
+    if Game::is_jomini()
         && (caller == "custom_description"
             || caller == "custom_description_no_bullet"
             || caller == "custom_tooltip"
@@ -460,8 +460,8 @@ pub fn validate_effect_control(
         vd.ban_field("subject", || "`custom_description` or `custom_tooltip`");
     }
 
-    #[cfg(feature = "modern")]
-    if Game::is_modern() {
+    #[cfg(feature = "jomini")]
+    if Game::is_jomini() {
         if caller == "custom_description" || caller == "custom_description_no_bullet" {
             vd.field_target_ok_this("object", sc, Scopes::non_primitive());
             vd.field_script_value("value", sc);
@@ -476,8 +476,8 @@ pub fn validate_effect_control(
 
     if caller == "random" {
         vd.req_field("chance");
-        if Game::is_modern() {
-            #[cfg(feature = "modern")]
+        if Game::is_jomini() {
+            #[cfg(feature = "jomini")]
             vd.field_script_value("chance", sc);
         } else {
             // TODO HOI4
@@ -515,8 +515,8 @@ pub fn validate_effect_control(
             warn(ErrorKey::Validation).msg(msg).loc(block).push();
         }
 
-        if Game::is_modern() {
-            #[cfg(feature = "modern")]
+        if Game::is_jomini() {
+            #[cfg(feature = "jomini")]
             vd.field_script_value("count", sc);
         }
     } else {
@@ -550,8 +550,8 @@ pub fn validate_effect_control(
         });
         vd.field_bool("show_chance");
         vd.field_validated_sc("desc", sc, validate_desc);
-        #[cfg(feature = "modern")]
-        if Game::is_modern() {
+        #[cfg(feature = "jomini")]
+        if Game::is_jomini() {
             vd.field_script_value("min", sc); // used in vanilla
             vd.field_script_value("max", sc); // used in vanilla
         }

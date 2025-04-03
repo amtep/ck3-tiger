@@ -50,7 +50,7 @@ use crate::data::{
     scripted_effects::{Effect, Effects},
     scripted_triggers::{Trigger, Triggers},
 };
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::data::{
     coa::Coas, script_values::ScriptValues, scripted_lists::ScriptedLists,
     scripted_modifiers::ScriptedModifiers,
@@ -134,7 +134,7 @@ pub struct Everything {
 
     pub(crate) localization: Localization,
 
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     pub(crate) scripted_lists: ScriptedLists,
 
     pub(crate) defines: Defines,
@@ -143,7 +143,7 @@ pub struct Everything {
     #[cfg(feature = "imperator")]
     pub(crate) decisions_imperator: Decisions,
 
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     pub(crate) scripted_modifiers: ScriptedModifiers,
     pub(crate) on_actions: OnActions,
 
@@ -175,7 +175,7 @@ pub struct Everything {
     #[cfg(feature = "ck3")]
     pub(crate) characters: Characters,
 
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     pub(crate) script_values: ScriptValues,
 
     pub(crate) triggers: Triggers,
@@ -200,7 +200,7 @@ pub struct Everything {
     pub(crate) assets: Assets,
     pub(crate) music: Musics,
 
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     pub(crate) coas: Coas,
 
     #[cfg(feature = "vic3")]
@@ -265,13 +265,13 @@ impl Everything {
             warned_defines: RwLock::new(TigerHashSet::default()),
             database: Db::default(),
             localization: Localization::default(),
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             scripted_lists: ScriptedLists::default(),
             defines: Defines::default(),
             events: Events::default(),
             #[cfg(feature = "imperator")]
             decisions_imperator: Decisions::default(),
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             scripted_modifiers: ScriptedModifiers::default(),
             on_actions: OnActions::default(),
             #[cfg(feature = "ck3")]
@@ -296,7 +296,7 @@ impl Everything {
             titles: Titles::default(),
             #[cfg(feature = "ck3")]
             characters: Characters::default(),
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             script_values: ScriptValues::default(),
             triggers: Triggers::default(),
             effects: Effects::default(),
@@ -313,7 +313,7 @@ impl Everything {
             data_bindings: DataBindings::default(),
             assets: Assets::default(),
             music: Musics::default(),
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             coas: Coas::default(),
             #[cfg(feature = "vic3")]
             history: History::default(),
@@ -1122,8 +1122,8 @@ impl Everything {
 
     /// Return true iff a script value of the given name is defined.
     pub(crate) fn script_value_exists(&self, name: &str) -> bool {
-        if Game::is_modern() {
-            #[cfg(feature = "modern")]
+        if Game::is_jomini() {
+            #[cfg(feature = "jomini")]
             return self.script_values.exists(name);
         }
         false

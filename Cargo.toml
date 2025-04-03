@@ -23,10 +23,10 @@ rust-version = "1.80"
 
 [features]
 default = ["ck3"]
-ck3 = ["modern"]
-vic3 = ["modern"]
-imperator = ["modern"]
-modern = []
+ck3 = ["jomini"]
+vic3 = ["jomini"]
+imperator = ["jomini"]
+jomini = []
 hoi4 = []
 
 [build-dependencies]

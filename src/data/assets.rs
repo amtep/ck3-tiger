@@ -251,7 +251,7 @@ impl Asset {
         vd.field_bool("get_state_from_parent");
         vd.field_numeric("scale");
         vd.field_numeric("cull_radius");
-        #[cfg(feature = "modern")]
+        #[cfg(feature = "jomini")]
         if Game::is_hoi4() {
             vd.multi_field_validated_block("attribute", |block, data| {
                 let mut vd = Validator::new(block, data);
@@ -264,7 +264,7 @@ impl Asset {
             });
         }
         vd.multi_field_validated_block("meshsettings", validate_meshsettings);
-        #[cfg(feature = "modern")]
+        #[cfg(feature = "jomini")]
         vd.multi_field_validated_block("game_data", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.multi_field_validated_block("portrait_entity_user_data", |block, data| {

@@ -6,9 +6,9 @@ use std::str::FromStr;
 
 use crate::block::{Block, Comparator, Eq::*, Field, BV};
 use crate::context::{Reason, ScopeContext};
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::data::genes::Gene;
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::data::trigger_localization::TriggerLocalization;
 use crate::date::Date;
 use crate::desc::validate_desc;
@@ -23,7 +23,7 @@ use crate::report::{err, fatal, tips, warn, ErrorKey, Severity};
 use crate::scopes::{
     needs_prefix, scope_iterator, scope_prefix, scope_to_scope, ArgumentValue, Scopes,
 };
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::script_value::validate_script_value;
 use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
@@ -192,8 +192,8 @@ pub fn validate_trigger_internal(
     }
 
     // TODO: the custom_description and custom_tooltip logic is duplicated for effects
-    #[cfg(feature = "modern")]
-    if Game::is_modern() {
+    #[cfg(feature = "jomini")]
+    if Game::is_jomini() {
         if caller == "custom_description" || caller == "custom_tooltip" {
             vd.req_field("text");
             if caller == "custom_tooltip" {
@@ -245,8 +245,8 @@ pub fn validate_trigger_internal(
     validate_ifelse_sequence(block, "trigger_if", "trigger_else_if", "trigger_else");
 
     vd.unknown_fields_any_cmp(|key, cmp, bv| {
-        #[cfg(feature = "modern")]
-        if Game::is_modern() && key.is("value") {
+        #[cfg(feature = "jomini")]
+        if Game::is_jomini() && key.is("value") {
             validate_script_value(bv, data, sc);
             side_effects = true;
             return;
@@ -305,8 +305,8 @@ pub fn validate_trigger_internal(
         // check add and factor at the end, accounting for any temporary scope saved
         // elsewhere in the block.
         vd.multi_field_validated("add", |bv, data| {
-            if Game::is_modern() {
-                #[cfg(feature = "modern")]
+            if Game::is_jomini() {
+                #[cfg(feature = "jomini")]
                 validate_script_value(bv, data, sc);
                 side_effects = true;
             } else {
@@ -315,8 +315,8 @@ pub fn validate_trigger_internal(
         });
 
         vd.multi_field_validated("factor", |bv, data| {
-            if Game::is_modern() {
-                #[cfg(feature = "modern")]
+            if Game::is_jomini() {
+                #[cfg(feature = "jomini")]
                 validate_script_value(bv, data, sc);
                 side_effects = true;
             } else {
@@ -396,8 +396,8 @@ pub fn validate_trigger_key_bv(
 
     // `10 < script value` is a valid trigger
     if key.is_number() {
-        if Game::is_modern() {
-            #[cfg(feature = "modern")]
+        if Game::is_jomini() {
+            #[cfg(feature = "jomini")]
             validate_script_value(bv, data, sc);
         } else {
             // TODO HOI4
@@ -454,7 +454,7 @@ pub fn validate_trigger_key_bv(
                     sc.replace_this();
                 } else if data.script_value_exists(part.as_str()) {
                     // TODO: check side_effects
-                    #[cfg(feature = "modern")]
+                    #[cfg(feature = "jomini")]
                     data.script_values.validate_call(part, data, sc);
                     sc.replace(Scopes::Value, part.clone());
                 } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
@@ -538,7 +538,7 @@ pub fn validate_trigger_key_bv(
         } else if sc.can_be(Scopes::Value) {
             sc.close();
             // TODO: check side_effects
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             validate_script_value(bv, data, sc);
         } else {
             let msg = format!("unexpected comparator {cmp}");
@@ -665,7 +665,7 @@ fn match_trigger_bv(
         Trigger::CompareValue => {
             must_be_eq = false;
             // TODO: check side_effects
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             validate_script_value(bv, data, sc);
             // TODO HOI4
         }
@@ -674,7 +674,7 @@ fn match_trigger_bv(
             must_be_eq = false;
             warn_if_eq = true;
             // TODO: check side_effects
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             validate_script_value(bv, data, sc);
             // TODO HOI4
         }
@@ -706,7 +706,7 @@ fn match_trigger_bv(
                 validate_target(token, data, sc, *s);
             } else if s.contains(Scopes::Value) {
                 // TODO: check side_effects
-                #[cfg(feature = "modern")]
+                #[cfg(feature = "jomini")]
                 validate_script_value(bv, data, sc);
                 // TODO HOI4
             } else {
@@ -718,7 +718,7 @@ fn match_trigger_bv(
                 validate_target_ok_this(token, data, sc, *s);
             } else if s.contains(Scopes::Value) {
                 // TODO: check side_effects
-                #[cfg(feature = "modern")]
+                #[cfg(feature = "jomini")]
                 validate_script_value(bv, data, sc);
                 // TODO HOI4
             } else {
@@ -906,7 +906,7 @@ fn match_trigger_bv(
                     }
                 }
             } else if name.is("has_gene") {
-                #[cfg(feature = "modern")]
+                #[cfg(feature = "jomini")]
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
                     vd.set_max_severity(max_sev);
@@ -930,7 +930,7 @@ fn match_trigger_bv(
                     }
                 }
             } else if name.is("save_temporary_scope_value_as") {
-                #[cfg(feature = "modern")]
+                #[cfg(feature = "jomini")]
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
                     vd.set_max_severity(max_sev);
@@ -1110,7 +1110,7 @@ pub fn validate_target_ok_this(
                     sc.replace_this();
                 } else if data.script_value_exists(part.as_str()) {
                     // TODO: check side_effects
-                    #[cfg(feature = "modern")]
+                    #[cfg(feature = "jomini")]
                     data.script_values.validate_call(part, data, sc);
                     sc.replace(Scopes::Value, part.clone());
                 } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {

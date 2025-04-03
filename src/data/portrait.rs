@@ -18,7 +18,7 @@ use crate::validator::Validator;
 pub struct PortraitModifierGroup {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::modern(), Item::PortraitModifierGroup, PortraitModifierGroup::add)
+    ItemLoader::Normal(GameFlags::jomini(), Item::PortraitModifierGroup, PortraitModifierGroup::add)
 }
 
 impl PortraitModifierGroup {

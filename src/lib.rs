@@ -73,7 +73,7 @@ mod pdxfile;
 mod report;
 mod rivers;
 mod scopes;
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 mod script_value;
 mod token;
 mod tooltipped;

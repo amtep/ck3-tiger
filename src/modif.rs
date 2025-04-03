@@ -12,7 +12,7 @@ use crate::game::Game;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::item::Item;
 use crate::report::{err, ErrorKey, Severity};
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::validator::Validator;
@@ -125,8 +125,8 @@ pub fn validate_modifs<'a>(
     vd.unknown_fields(|key, bv| {
         if let Some(mk) = lookup_modif(key, data, Some(Severity::Error)) {
             kinds.require(mk, key);
-            #[cfg(feature = "modern")]
-            if Game::is_modern() {
+            #[cfg(feature = "jomini")]
+            if Game::is_jomini() {
                 validate_non_dynamic_script_value(bv, data);
             } else {
                 // TODO HOI4

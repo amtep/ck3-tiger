@@ -9,7 +9,7 @@ use crate::ck3::validate::{
     validate_compatibility_modifier, validate_opinion_modifier, validate_scheme_modifier,
 };
 use crate::context::ScopeContext;
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::data::scripted_modifiers::ScriptedModifier;
 use crate::everything::Everything;
 use crate::game::Game;
@@ -19,7 +19,7 @@ use crate::report::{err, fatal, report, warn, Confidence, ErrorKey, Severity};
 #[cfg(feature = "ck3")]
 use crate::scopes::Scopes;
 use crate::scopes::{scope_prefix, scope_to_scope};
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -74,8 +74,8 @@ pub fn validate_compare_duration(block: &Block, data: &Everything, sc: &mut Scop
 
     for field in &["days", "weeks", "months", "years"] {
         if let Some(bv) = vd.field_any_cmp(field) {
-            if Game::is_modern() {
-                #[cfg(feature = "modern")]
+            if Game::is_jomini() {
+                #[cfg(feature = "jomini")]
                 validate_script_value(bv, data, sc);
             } else {
                 // TODO HOI4
@@ -93,7 +93,7 @@ pub fn validate_compare_duration(block: &Block, data: &Everything, sc: &mut Scop
 
 // Very similar to validate_days_weeks_months_years, but requires = instead of allowing comparators
 // "weeks" is not documented but is used all over vanilla TODO: verify
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 pub fn validate_mandatory_duration(block: &Block, vd: &mut Validator, sc: &mut ScopeContext) {
     let mut count = 0;
 
@@ -110,7 +110,7 @@ pub fn validate_mandatory_duration(block: &Block, vd: &mut Validator, sc: &mut S
     }
 }
 
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 pub fn validate_duration(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     validate_mandatory_duration(block, &mut vd, sc);
@@ -146,8 +146,8 @@ pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
 
     for field in options {
         vd.field_validated_key(field, |key, bv, data| {
-            if Game::is_modern() {
-                #[cfg(feature = "modern")]
+            if Game::is_jomini() {
+                #[cfg(feature = "jomini")]
                 validate_script_value(bv, data, sc);
             } else {
                 // TODO HOI4
@@ -238,7 +238,7 @@ pub fn precheck_iterator_fields(
 ) {
     match ltype {
         ListType::Any => {
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             if let Some(bv) = block.get_field("percent") {
                 if let Some(token) = bv.get_value() {
                     if let Some(num) = token.get_number() {
@@ -251,7 +251,7 @@ pub fn precheck_iterator_fields(
                 }
                 validate_script_value(bv, data, sc);
             }
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             if let Some(bv) = block.get_field("count") {
                 match bv {
                     BV::Value(token) if token.is("all") => (),
@@ -260,13 +260,13 @@ pub fn precheck_iterator_fields(
             }
         }
         ListType::Ordered => {
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             for field in &["min", "max"] {
                 if let Some(bv) = block.get_field(field) {
                     validate_script_value(bv, data, sc);
                 }
             }
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             if let Some(bv) = block.get_field("position") {
                 if let Some(token) = bv.get_value() {
                     if !token.is("end") {
@@ -338,8 +338,8 @@ pub fn validate_iterator_fields(
     }
 
     if list_type == ListType::Ordered {
-        #[cfg(feature = "modern")]
-        if Game::is_modern() {
+        #[cfg(feature = "jomini")]
+        if Game::is_jomini() {
             vd.field_script_value("order_by", sc);
         }
         vd.field("position"); // prechecked
@@ -565,8 +565,8 @@ pub fn validate_inside_iterator(
 
 pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
-    if Game::is_modern() {
-        #[cfg(feature = "modern")]
+    if Game::is_jomini() {
+        #[cfg(feature = "jomini")]
         {
             vd.field_validated("base", validate_non_dynamic_script_value);
             vd.multi_field_script_value("add", sc);
@@ -586,8 +586,8 @@ pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut S
         }
     }
     validate_modifiers(&mut vd, sc);
-    #[cfg(feature = "modern")]
-    if Game::is_modern() {
+    #[cfg(feature = "jomini")]
+    if Game::is_jomini() {
         validate_scripted_modifier_calls(vd, data, sc);
     }
 }
@@ -625,8 +625,8 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
         vd.multi_field_validated_block_sc("activity_modifier", sc, validate_activity_modifier);
     }
 
-    #[cfg(feature = "modern")]
-    if Game::is_modern() {
+    #[cfg(feature = "jomini")]
+    if Game::is_jomini() {
         vd.multi_field_script_value("min", sc);
         vd.multi_field_script_value("max", sc);
     }
@@ -640,7 +640,7 @@ pub fn validate_vic3_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
     });
 }
 
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 pub fn validate_scripted_modifier_call(
     key: &Token,
     bv: &BV,
@@ -689,7 +689,7 @@ pub fn validate_scripted_modifier_call(
     }
 }
 
-#[cfg(feature = "modern")]
+#[cfg(feature = "jomini")]
 pub fn validate_scripted_modifier_calls(
     mut vd: Validator,
     data: &Everything,
