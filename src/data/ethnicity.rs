@@ -13,7 +13,7 @@ use crate::validator::Validator;
 pub struct Ethnicity {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::modern(), Item::Ethnicity, Ethnicity::add)
+    ItemLoader::Normal(GameFlags::jomini(), Item::Ethnicity, Ethnicity::add)
 }
 
 impl Ethnicity {

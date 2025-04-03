@@ -35,46 +35,46 @@ use crate::token::Token;
 pub enum Item {
     // Generic items used by all games and assumed to be there by the validators in
     // non-game-specific `data` modules.
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     Accessory,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     AccessoryTag,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     AccessoryVariation,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     AccessoryVariationLayout,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     AccessoryVariationTextures,
     Achievement,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     AchievementGroup,
     Asset,
     BlendShape,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     CharacterInteraction,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     Coa,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     CoaColorList,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     CoaColoredEmblemList,
     #[cfg(feature = "ck3")]
     CoaDesignerColorPalette,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     CoaDesignerColoredEmblem,
     #[cfg(feature = "ck3")]
     CoaDesignerEmblemLayout,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     CoaDesignerPattern,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     CoaPatternList,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     CoaTemplate,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     CoaTemplateList,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     CoaTexturedEmblemList,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     Culture,
     CustomLocalization,
     Decision,
@@ -83,33 +83,33 @@ pub enum Item {
     Dlc,
     DlcFeature,
     DlcName,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     EffectLocalization,
     Entity,
     Entry,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     Ethnicity,
     Event,
     EventNamespace,
     File,
     Font,
     Fontfiles,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     GameConcept,
     GameRule,
     GameRuleSetting,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     GeneAgePreset,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     GeneAttribute,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     GeneCategory,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     GovernmentType,
     GuiLayer,
     GuiTemplate,
     GuiType,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     LawGroup,
     Localization,
     MapEnvironment,
@@ -120,29 +120,29 @@ pub enum Item {
     NamedColor,
     OnAction,
     Pdxmesh,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     PortraitAnimation,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     PortraitCamera,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     PortraitEnvironment,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     PortraitModifierGroup,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     PortraitModifierPack,
     Province,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     Religion,
     ScriptedEffect,
     ScriptedGui,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     ScriptedList,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     ScriptedModifier,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     ScriptedRule,
     ScriptedTrigger,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     ScriptValue,
     Shortcut,
     Sound,
@@ -150,7 +150,7 @@ pub enum Item {
     TextFormat,
     TextIcon,
     TextureFile,
-    #[cfg(feature = "modern")]
+    #[cfg(feature = "jomini")]
     TriggerLocalization,
     WidgetName,
 
@@ -544,15 +544,15 @@ impl Item {
         #[allow(clippy::match_same_arms)]
         // These variants are in the same order as the Item enum declaration
         match self {
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::Accessory => "gfx/portraits/accessories/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::AccessoryTag => "gfx/portraits/accessories/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::AccessoryVariation => "gfx/portraits/accessory_variations/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::AccessoryVariationLayout => "gfx/portraits/accessory_variations/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::AccessoryVariationTextures => "gfx/portraits/accessory_variations/",
             Item::Achievement => match Game::game() {
                 #[cfg(feature = "ck3")]
@@ -564,35 +564,35 @@ impl Item {
                 #[cfg(feature = "hoi4")]
                 Game::Hoi4 => "common/achievements.txt",
             },
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::AchievementGroup => "common/achievement_groups.txt",
             Item::Asset => "gfx/models/",
             Item::BlendShape => "gfx/models/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::CharacterInteraction => "common/character_interactions/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::Coa => "common/coat_of_arms/coat_of_arms/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::CoaColorList => "common/coat_of_arms/template_lists/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::CoaColoredEmblemList => "common/coat_of_arms/template_lists/",
             #[cfg(feature = "ck3")]
             Item::CoaDesignerColorPalette => "gfx/coat_of_arms/color_palettes/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::CoaDesignerColoredEmblem => "gfx/coat_of_arms/colored_emblems/",
             #[cfg(feature = "ck3")]
             Item::CoaDesignerEmblemLayout => "gfx/coat_of_arms/emblem_layouts/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::CoaDesignerPattern => "gfx/coat_of_arms/patterns/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::CoaPatternList => "common/coat_of_arms/template_lists/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::CoaTemplate => "common/coat_of_arms/coat_of_arms/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::CoaTemplateList => "common/coat_of_arms/template_lists/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::CoaTexturedEmblemList => "common/coat_of_arms/template_lists/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::Culture => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/culture/cultures/",
@@ -617,28 +617,28 @@ impl Item {
             Item::DlcFeature => "",
             Item::DlcName => "dlc_metadata/",
             Item::Directory => "",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::EffectLocalization => "common/effect_localization/",
             Item::Entity => "gfx/models/",
             Item::Entry => "",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::Ethnicity => "common/ethnicities/",
             Item::Event => "events/",
             Item::EventNamespace => "events/",
             Item::File => "",
             Item::Font => "fonts/",
             Item::Fontfiles => "fonts/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::GameConcept => "common/game_concepts/",
             Item::GameRule => "common/game_rules/",
             Item::GameRuleSetting => "common/game_rules/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::GeneAgePreset => "common/genes/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::GeneAttribute => "gfx/models/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::GeneCategory => "common/genes/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::GovernmentType => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/governments/",
@@ -677,15 +677,15 @@ impl Item {
                 Game::Hoi4 => "common/on_actions/",
             },
             Item::Pdxmesh => "gfx/models/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::PortraitAnimation => "gfx/portraits/portrait_animations/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::PortraitCamera => "gfx/portraits/cameras/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::PortraitEnvironment => "gfx/portraits/environments/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::PortraitModifierGroup => "gfx/portraits/portrait_modifiers/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::PortraitModifierPack => "gfx/portraits/portrait_animations/",
             Item::Province => match Game::game() {
                 #[cfg(feature = "ck3")]
@@ -697,7 +697,7 @@ impl Item {
                 #[cfg(feature = "hoi4")]
                 Game::Hoi4 => "map/definition.csv",
             },
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::Religion => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/religion/religions/",
@@ -708,14 +708,14 @@ impl Item {
             },
             Item::ScriptedEffect => "common/scripted_effects/",
             Item::ScriptedGui => "common/scripted_guis/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::ScriptedList => "common/scripted_lists/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::ScriptedModifier => "common/scripted_modifiers/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::ScriptedRule => "common/scripted_rules/",
             Item::ScriptedTrigger => "common/scripted_triggers/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::ScriptValue => "common/script_values/",
             Item::Shortcut => "gui/shortcuts.shortcuts",
             Item::Sound => "",
@@ -732,7 +732,7 @@ impl Item {
             Item::TextFormat => "gui/",
             Item::TextIcon => "gui/",
             Item::TextureFile => "gfx/models/",
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::TriggerLocalization => "common/trigger_localization/",
             Item::WidgetName => "gui/",
 
@@ -1471,7 +1471,7 @@ impl Item {
     /// Should be `Strong` for most, `Weak` for items that aren't defined anywhere but just used (such as gfx flags).
     pub fn confidence(self) -> Confidence {
         match self {
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::AccessoryTag => Confidence::Weak,
 
             // GuiType and GuiTemplate are here because referring to templates in other mods is a
@@ -1507,7 +1507,7 @@ impl Item {
             // common compatibility technique.
             Item::GuiType | Item::GuiTemplate => Severity::Untidy,
 
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::Accessory
             | Item::AccessoryTag
             | Item::AccessoryVariation
@@ -1523,17 +1523,17 @@ impl Item {
 
             Item::CustomLocalization => Severity::Warning,
 
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::EffectLocalization | Item::Ethnicity => Severity::Warning,
 
             Item::File => Severity::Warning,
 
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::GameConcept => Severity::Warning,
 
             Item::Localization | Item::MapEnvironment | Item::NamedColor => Severity::Warning,
 
-            #[cfg(feature = "modern")]
+            #[cfg(feature = "jomini")]
             Item::PortraitAnimation
             | Item::PortraitCamera
             | Item::PortraitEnvironment
