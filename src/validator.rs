@@ -984,7 +984,7 @@ impl<'a> Validator<'a> {
 
     /// Just like [`Validator::field_script_value`], but it it expects any number of `name` fields.
     #[cfg(feature = "modern")]
-    pub fn fields_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
+    pub fn multi_field_script_value(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         self.multi_field_check(name, |_, bv| {
             // TODO: pass max_severity value down
             validate_script_value(bv, self.data, sc);
