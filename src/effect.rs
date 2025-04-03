@@ -283,7 +283,7 @@ pub fn validate_effect_field(
                     vd.field_script_value(valuekey, sc);
                 }
             }
-            #[cfg(feature = "ck3")]
+            #[cfg(any(feature = "ck3", feature = "hoi4"))]
             Effect::ItemTarget(ikey, itype, tkey, outscopes) => {
                 if let Some(block) = bv.expect_block() {
                     let mut vd = Validator::new(block, data);
@@ -365,7 +365,7 @@ pub fn validate_effect_field(
                 warn(ErrorKey::Removed).msg(msg).info(explanation).loc(key).push();
             }
             Effect::Unchecked => (),
-            #[cfg(any(feature = "ck3", feature = "vic3"))]
+            #[cfg(any(feature = "ck3", feature = "vic3", feature = "hoi4"))]
             Effect::UncheckedTodo => (),
         }
         return;
@@ -656,7 +656,7 @@ pub enum Effect {
     /// the given [`Item`] type and the other specifies a target of the given [`Scopes`] type.
     ///
     /// * Example: `remove_hook = { type = indebted_hook target = scope:old_caliph }`
-    #[cfg(feature = "ck3")]
+    #[cfg(any(feature = "ck3", feature = "hoi4"))]
     ItemTarget(&'static str, Item, &'static str, Scopes),
     /// The effect takes a block with two fields, both named here, where one specifies a key for
     /// the given [`Item`] type and the other specifies a script value.
@@ -687,7 +687,7 @@ pub enum Effect {
     /// * Examples: `assert_if`, `debug_log`, `remove_variable`
     Unchecked,
     /// This variant is for effects that we haven't gotten around to validating yet.
-    #[cfg(any(feature = "ck3", feature = "vic3"))]
+    #[cfg(any(feature = "ck3", feature = "vic3", feature = "hoi4"))]
     UncheckedTodo,
     /// The effect takes a literal string that is one of the options given here.
     ///

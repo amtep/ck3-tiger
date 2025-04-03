@@ -12,6 +12,7 @@ use strum_macros::{Display, EnumString};
 #[cfg(feature = "ck3")]
 use crate::ck3::data::religions::CUSTOM_RELIGION_LOCAS;
 use crate::context::ScopeContext;
+#[cfg(feature = "jomini")]
 use crate::data::customloca::CustomLocalization;
 use crate::data::localization::Language;
 use crate::everything::Everything;
@@ -283,6 +284,7 @@ enum LookupResult {
 /// * `lang`: The language being validated, can be `None` when not applicable (such as in gui files).
 ///   Many custom localizations are only meant for one language, and the keys they use only need
 ///   to exist in that language.
+#[cfg(feature = "jomini")]
 fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: Option<Language>) {
     data.verify_exists(Item::CustomLocalization, token);
     if let Some((key, block)) = data.get_key_block(Item::CustomLocalization, token.as_str()) {

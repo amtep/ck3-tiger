@@ -221,6 +221,13 @@ pub fn validate_color(block: &Block, _data: &Everything) {
 }
 
 pub fn validate_possibly_named_color(bv: &BV, data: &Everything) {
+    if Game::is_hoi4() {
+        // no named colors
+        if let Some(block) = bv.expect_block() {
+            validate_color(block, data);
+        }
+    }
+    #[cfg(feature = "jomini")]
     match bv {
         BV::Value(token) => data.verify_exists(Item::NamedColor, token),
         BV::Block(block) => validate_color(block, data),
