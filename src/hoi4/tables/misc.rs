@@ -100,3 +100,18 @@ pub const COMMON_DIRS: &[&str] = &[
 ];
 
 pub const COMMON_SUBDIRS_OK: &[&str] = &[];
+
+pub const COMMON_FILES: &[&str] = &[
+    "common/acclimatation.txt",
+    "common/achievements.txt",
+    "common/ai_attitudes.txt",
+    "common/ai_personalities.txt",
+    "common/alerts.txt",
+    "common/combat_tactics.txt",
+    "common/event_modifiers.txt",
+    "common/graphicalculturetype.txt",
+    "common/region_colors.txt",
+    "common/script_enums.txt",
+    "common/triggered_modifiers.txt",
+    "common/weather.txt",
+];
