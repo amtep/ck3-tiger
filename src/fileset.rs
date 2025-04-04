@@ -602,6 +602,14 @@ impl Fileset {
             if entry.path == PathBuf::from("common/achievement_groups.txt") {
                 continue;
             }
+            #[cfg(feature = "hoi4")]
+            if Game::is_hoi4() {
+                for valid in crate::hoi4::tables::misc::COMMON_FILES {
+                    if <&str as AsRef<Path>>::as_ref(valid) == entry.path {
+                        continue 'outer;
+                    }
+                }
+            }
             let dirname = entry.path.parent().unwrap();
             if warned.contains(&dirname) {
                 continue;
