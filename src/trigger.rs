@@ -1030,6 +1030,10 @@ fn match_trigger_bv(
             bv.expect_value();
             side_effects = true; // have to assume it's possible
         }
+        #[cfg(feature = "hoi4")]
+        Trigger::UncheckedTodo => {
+            side_effects = true; // have to assume it's possible
+        }
     }
 
     if matches!(cmp, Comparator::Equals(_)) {
@@ -1569,6 +1573,8 @@ pub enum Trigger {
     Special,
 
     UncheckedValue,
+    #[cfg(feature = "hoi4")]
+    UncheckedTodo,
 }
 
 /// This function checks if the trigger is one that can be used at the end of a scope chain on the
