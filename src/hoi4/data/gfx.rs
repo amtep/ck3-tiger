@@ -5,15 +5,12 @@ use std::path::PathBuf;
 use crate::block::{Block, BV};
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
-use crate::game::Game;
-use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
+use crate::helpers::{dup_error, TigerHashMap};
 use crate::item::Item;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, warn, Confidence, ErrorKey, Severity};
+use crate::report::{err, ErrorKey};
 use crate::token::Token;
-use crate::util::SmartJoin;
-use crate::validate::validate_numeric_range;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
