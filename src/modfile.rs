@@ -8,6 +8,7 @@ use anyhow::{Context, Result};
 
 use crate::block::Block;
 use crate::fileset::{FileEntry, FileKind};
+use crate::game::Game;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::report::{untidy, warn, ErrorKey};
@@ -46,7 +47,8 @@ fn validate_modfile(block: &Block) -> ModFile {
     };
 
     if let Some(picture) = &modfile.picture {
-        if !picture.is("thumbnail.png") {
+        // TODO: reverify this for the other games as well
+        if !Game::is_hoi4() && !picture.is("thumbnail.png") {
             let msg = "Steam ignores picture= and always uses thumbnail.png.";
             warn(ErrorKey::Packaging).msg(msg).loc(picture).push();
         }
