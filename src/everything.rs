@@ -62,7 +62,7 @@ use crate::game::Game;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::helpers::TigerHashSet;
 #[cfg(feature = "hoi4")]
-use crate::hoi4::data::provinces::Hoi4Provinces;
+use crate::hoi4::data::{gfx::Gfx, provinces::Hoi4Provinces};
 #[cfg(feature = "imperator")]
 use crate::imperator::data::{decisions::Decisions, provinces::ImperatorProvinces};
 #[cfg(feature = "imperator")]
@@ -197,6 +197,8 @@ pub struct Everything {
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub(crate) data_bindings: DataBindings,
 
+    #[cfg(feature = "hoi4")]
+    pub(crate) gfx: Gfx,
     pub(crate) assets: Assets,
     pub(crate) music: Musics,
 
@@ -311,6 +313,8 @@ impl Everything {
             gui: Gui::default(),
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             data_bindings: DataBindings::default(),
+            #[cfg(feature = "hoi4")]
+            gfx: Gfx::default(),
             assets: Assets::default(),
             music: Musics::default(),
             #[cfg(feature = "jomini")]
@@ -488,7 +492,9 @@ impl Everything {
     }
 
     #[cfg(feature = "hoi4")]
-    fn load_all_hoi4(&mut self) {}
+    fn load_all_hoi4(&mut self) {
+        self.fileset.handle(&mut self.gfx, &self.parser);
+    }
 
     pub fn load_all(&mut self) {
         #[cfg(feature = "ck3")]
@@ -566,7 +572,9 @@ impl Everything {
     }
 
     #[cfg(feature = "hoi4")]
-    fn validate_all_hoi4<'a>(&'a self, _s: &Scope<'a>) {}
+    fn validate_all_hoi4<'a>(&'a self, s: &Scope<'a>) {
+        s.spawn(|_| self.gfx.validate(self));
+    }
 
     pub fn validate_all(&self) {
         scope(|s| {
@@ -709,7 +717,11 @@ impl Everything {
 
     #[cfg(feature = "hoi4")]
     fn item_exists_hoi4(&self, itype: Item, key: &str) -> bool {
-        self.database.exists(itype, key)
+        match itype {
+            Item::Pdxmesh => self.gfx.mesh_exists(key),
+            Item::Sprite => self.gfx.sprite_exists(key),
+            _ => self.database.exists(itype, key),
+        }
     }
 
     pub(crate) fn item_exists(&self, itype: Item, key: &str) -> bool {
@@ -728,6 +740,7 @@ impl Everything {
             Item::Localization => self.localization.exists(key),
             Item::Music => self.music.exists(key),
             Item::OnAction => self.on_actions.exists(key),
+            #[cfg(feature = "jomini")]
             Item::Pdxmesh => self.assets.mesh_exists(key),
             Item::ScriptedEffect => self.effects.exists(key),
             Item::ScriptedTrigger => self.triggers.exists(key),
@@ -1063,7 +1076,11 @@ impl Everything {
 
     #[cfg(feature = "hoi4")]
     fn iter_keys_hoi4<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &'a Token> + 'a> {
-        Box::new(self.database.iter_keys(itype))
+        match itype {
+            Item::Pdxmesh => Box::new(self.gfx.iter_mesh_keys()),
+            Item::Sprite => Box::new(self.gfx.iter_sprite_keys()),
+            _ => Box::new(self.database.iter_keys(itype)),
+        }
     }
 
     pub fn iter_keys<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &'a Token> + 'a> {
@@ -1081,6 +1098,7 @@ impl Everything {
             Item::Localization => Box::new(self.localization.iter_keys()),
             Item::Music => Box::new(self.music.iter_keys()),
             Item::OnAction => Box::new(self.on_actions.iter_keys()),
+            #[cfg(feature = "jomini")]
             Item::Pdxmesh => Box::new(self.assets.iter_mesh_keys()),
             Item::ScriptedEffect => Box::new(self.effects.iter_keys()),
             Item::ScriptedTrigger => Box::new(self.triggers.iter_keys()),
