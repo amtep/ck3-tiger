@@ -529,6 +529,8 @@ pub enum Item {
 
     #[cfg(feature = "hoi4")] AceModifier,
     #[cfg(feature = "hoi4")] AdvisorSlot,
+    #[cfg(feature = "hoi4")] Continent,
+    #[cfg(feature = "hoi4")] DecisionCategory,
     #[cfg(feature = "hoi4")] Focus,
     #[cfg(feature = "hoi4")] Sprite,
 }
@@ -1492,6 +1494,10 @@ impl Item {
             Item::AceModifier => "common/aces", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::AdvisorSlot => "common/script_enums.txt", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::Continent => "", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::DecisionCategory => "common/decisions/categories/",
             #[cfg(feature = "hoi4")]
             Item::Focus => "common/national_focus/", // TODO HOI4
             #[cfg(feature = "hoi4")]
