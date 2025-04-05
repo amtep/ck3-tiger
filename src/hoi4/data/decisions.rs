@@ -124,7 +124,10 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
             validate_effect(block, data, &mut sc, Tooltipped::Yes);
         });
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
-        vd.field_item("on_map_mode", Item::MapMode);
+        vd.field_choice(
+            "on_map_mode",
+            &["map_only", "decision_view_only", "map_and_decisions_view"],
+        );
         vd.field_value("target_array"); // TODO
     }
 }
