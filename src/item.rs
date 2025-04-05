@@ -165,7 +165,7 @@ pub enum Item {
     CharacterTemplate,
     #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
     CharacterTrait,
-    #[cfg(any(feature = "vic3", feature = "imperator"))]
+    #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
     Country,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
     DeathReason,
@@ -774,12 +774,14 @@ impl Item {
                 #[cfg(feature = "hoi4")]
                 Game::Hoi4 => "common/unit_leader/",
             },
-            #[cfg(any(feature = "vic3", feature = "imperator"))]
+            #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
             Item::Country => match Game::game() {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => "common/country_definitions/",
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "setup/countries/countries.txt",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "common/country_tags/",
             },
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::DeathReason => "common/deathreasons/",
