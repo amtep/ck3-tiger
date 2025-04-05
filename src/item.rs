@@ -1662,7 +1662,13 @@ impl ItemLoader {
 
     pub fn encoding(&self) -> PdxEncoding {
         match self {
-            ItemLoader::Normal(_, _, _) => PdxEncoding::Utf8Bom,
+            ItemLoader::Normal(_, _, _) => {
+                #[cfg(feature = "hoi4")]
+                if Game::is_hoi4() {
+                    return PdxEncoding::Utf8NoBom;
+                }
+                PdxEncoding::Utf8Bom
+            }
             ItemLoader::Full(_, _, encoding, _, _, _, _) => *encoding,
         }
     }

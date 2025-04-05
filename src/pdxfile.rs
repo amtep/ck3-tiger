@@ -27,6 +27,8 @@ pub enum PdxEncoding {
     Utf8OptionalBom,
     #[cfg(feature = "ck3")]
     Detect,
+    #[cfg(feature = "hoi4")]
+    Utf8NoBom,
 }
 
 pub struct PdxFile {}
@@ -53,6 +55,19 @@ impl PdxFile {
         } else {
             let msg = "file must start with a UTF-8 BOM";
             warn(ErrorKey::Encoding).msg(msg).loc(entry).push();
+            Some(parse_pdx_file(entry, contents, 0, parser))
+        }
+    }
+
+    /// Parse a UTF-8 file that may must start with a BOM (Byte Order Marker).
+    #[cfg(feature = "hoi4")]
+    pub fn read_no_bom(entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
+        let contents = Self::read_utf8(entry)?;
+        if contents.starts_with(BOM_CHAR) {
+            let msg = "file must not start with a UTF-8 BOM";
+            err(ErrorKey::Encoding).msg(msg).loc(entry).push();
+            Some(parse_pdx_file(entry, contents, BOM_UTF8_LEN, parser))
+        } else {
             Some(parse_pdx_file(entry, contents, 0, parser))
         }
     }
@@ -110,6 +125,8 @@ impl PdxFile {
             PdxEncoding::Utf8OptionalBom => Self::read_optional_bom(entry, parser),
             #[cfg(feature = "ck3")]
             PdxEncoding::Detect => Self::read_detect_encoding(entry, parser),
+            #[cfg(feature = "hoi4")]
+            PdxEncoding::Utf8NoBom => Self::read_no_bom(entry, parser),
         }
     }
 
