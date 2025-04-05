@@ -225,148 +225,8 @@ impl Iterator for Lexer<'_> {
         while let Some((i, c)) = self.peek() {
             match c {
                 _ if c.is_ascii_whitespace() => self.consume(),
-                _ if !self.in_calc && c.is_id_char() => {
-                    // An unquoted token
-                    let mut id = self.start_cob();
-                    id.add_char(c);
-                    let start_i = i;
-                    self.consume();
-                    while let Some((i, c)) = self.peek() {
-                        if c.is_id_char() {
-                            id.add_char(c);
-                            self.consume();
-                        } else {
-                            let token = id.take_to_token();
-                            return Some(Ok((start_i, Lexeme::General(token), i)));
-                        }
-                    }
-                    let token = id.take_to_token();
-                    return Some(Ok((start_i, Lexeme::General(token), self.eof_offset())));
-                }
-                _ if c.is_comparator_char() => {
-                    let mut id = self.start_cob();
-                    id.add_char(c);
-                    let start_i = i;
-                    self.consume();
-                    while let Some((i, c)) = self.peek() {
-                        if c.is_comparator_char() {
-                            id.add_char(c);
-                            self.consume();
-                        } else {
-                            let token = id.take_to_token();
-                            let cmp = parse_comparator(&token);
-                            return Some(Ok((start_i, Lexeme::Comparator(cmp, token), i)));
-                        }
-                    }
-                    let token = id.take_to_token();
-                    let cmp = parse_comparator(&token);
-                    return Some(Ok((start_i, Lexeme::Comparator(cmp, token), self.eof_offset())));
-                }
-                _ if self.in_calc && (c.is_local_value_char() || c == '.') => {
-                    // A number or the name of a reader variable, inside a `@[` calculation
-                    let mut id = self.start_cob();
-                    id.add_char(c);
-                    let start_i = i;
-                    self.consume();
-                    while let Some((i, c)) = self.peek() {
-                        if c.is_local_value_char() || c == '.' {
-                            id.add_char(c);
-                            self.consume();
-                        } else {
-                            return Some(Ok((start_i, Lexeme::General(id.take_to_token()), i)));
-                        }
-                    }
-                    return Some(Ok((
-                        start_i,
-                        Lexeme::General(id.take_to_token()),
-                        self.eof_offset(),
-                    )));
-                }
-                // The ; is silently accepted because putting it after a number is a common mistake
-                // and doesn't seem to cause any harm.
-                ';' => self.consume(),
-                '"' => {
-                    // A quoted token
-                    let start_i = i;
-                    let start_loc = self.loc;
-                    self.consume();
-                    let mut warn_linebreaks = true;
-                    let mut id = self.start_cob();
-                    while let Some((i, c)) = self.peek() {
-                        if c == '[' && i == start_i + 1 {
-                            // A string that starts with `"[` is a datatype expression which might
-                            // be broken into multiple lines for readability.
-                            warn_linebreaks = false;
-                        }
-
-                        if c == '\n' {
-                            id.add_char(c);
-                            if warn_linebreaks {
-                                // Warn, but continue parsing the string.
-                                let msg = "quoted string not closed";
-                                warn(ErrorKey::ParseError).weak().msg(msg).loc(self.loc).push();
-                            }
-                            self.consume();
-                        } else if c == '"' {
-                            let token = id.take_to_token();
-                            self.consume();
-                            return Some(Ok((start_i, Lexeme::General(token), i + 1)));
-                        } else {
-                            id.add_char(c);
-                            self.consume();
-                        }
-                    }
-                    let msg = "quoted string not closed";
-                    err(ErrorKey::ParseError).msg(msg).loc(start_loc).push();
-                    let token = if matches!(id, Cob::Uninit) {
-                        Token::from_static_str("", self.loc)
-                    } else {
-                        id.take_to_token()
-                    };
-                    return Some(Ok((start_i, Lexeme::General(token), self.eof_offset())));
-                }
-                '#' => {
-                    // A comment
-                    self.consume();
-                    while let Some((_, c)) = self.peek() {
-                        self.consume();
-                        if c == '\n' {
-                            break;
-                        }
-                    }
-                }
-                '$' => {
-                    // A macro parameter
-                    let start_i = i;
-                    let start_loc = self.loc;
-                    self.consume();
-                    let mut id = self.start_cob();
-                    while let Some((i, c)) = self.peek() {
-                        if c.is_id_char() {
-                            id.add_char(c);
-                            self.consume();
-                        } else if c == '$' {
-                            let token = id.take_to_token();
-                            self.consume();
-                            return Some(Ok((start_i, Lexeme::MacroParam(token), i + 1)));
-                        } else {
-                            let msg = "macro parameter not closed";
-                            err(ErrorKey::ParseError).msg(msg).loc(self.loc).push();
-                            // Return it as a Lexeme::General because a stray $ is not treated
-                            // as a macro parameter by the game.
-                            let token = id.take_to_token();
-                            return Some(Ok((start_i, Lexeme::General(token), i)));
-                        }
-                    }
-                    let msg = "macro parameter not closed";
-                    err(ErrorKey::ParseError).msg(msg).loc(start_loc).push();
-                    let token = if matches!(id, Cob::Uninit) {
-                        Token::from_static_str("", self.loc)
-                    } else {
-                        id.take_to_token()
-                    };
-                    return Some(Ok((start_i, Lexeme::General(token), self.eof_offset())));
-                }
+                // This has been moved before c.is_id_char() because in hoi4, '@' is both a
+                // variable reference start and a component of an id, but can't start an id.
                 '@' => {
                     // A variable reference @name
                     let mut id = self.start_cob();
@@ -464,6 +324,166 @@ impl Iterator for Lexer<'_> {
                             self.eof_offset(),
                         )));
                     }
+                }
+                _ if !self.in_calc && c.is_id_char() => {
+                    // An unquoted token
+                    let mut id = self.start_cob();
+                    id.add_char(c);
+                    let start_i = i;
+                    self.consume();
+                    while let Some((i, c)) = self.peek() {
+                        if c.is_id_char() {
+                            id.add_char(c);
+                            self.consume();
+                        } else {
+                            let token = id.take_to_token();
+                            return Some(Ok((start_i, Lexeme::General(token), i)));
+                        }
+                    }
+                    let token = id.take_to_token();
+                    return Some(Ok((start_i, Lexeme::General(token), self.eof_offset())));
+                }
+                _ if c.is_comparator_char() => {
+                    let mut id = self.start_cob();
+                    id.add_char(c);
+                    let start_i = i;
+                    self.consume();
+                    while let Some((i, c)) = self.peek() {
+                        if c.is_comparator_char() {
+                            id.add_char(c);
+                            self.consume();
+                        } else {
+                            let token = id.take_to_token();
+                            let cmp = parse_comparator(&token);
+                            return Some(Ok((start_i, Lexeme::Comparator(cmp, token), i)));
+                        }
+                    }
+                    let token = id.take_to_token();
+                    let cmp = parse_comparator(&token);
+                    return Some(Ok((start_i, Lexeme::Comparator(cmp, token), self.eof_offset())));
+                }
+                _ if self.in_calc && (c.is_local_value_char() || c == '.') => {
+                    // A number or the name of a reader variable, inside a `@[` calculation
+                    let mut id = self.start_cob();
+                    id.add_char(c);
+                    let start_i = i;
+                    self.consume();
+                    while let Some((i, c)) = self.peek() {
+                        if c.is_local_value_char() || c == '.' {
+                            id.add_char(c);
+                            self.consume();
+                        } else {
+                            return Some(Ok((start_i, Lexeme::General(id.take_to_token()), i)));
+                        }
+                    }
+                    return Some(Ok((
+                        start_i,
+                        Lexeme::General(id.take_to_token()),
+                        self.eof_offset(),
+                    )));
+                }
+                // The ; is silently accepted because putting it after a number is a common mistake
+                // and doesn't seem to cause any harm.
+                ';' => self.consume(),
+                '"' => {
+                    // A quoted token
+                    let start_i = i;
+                    let start_loc = self.loc;
+                    self.consume();
+                    let mut warn_linebreaks = true;
+                    let mut id = self.start_cob();
+                    while let Some((i, c)) = self.peek() {
+                        if c == '[' && i == start_i + 1 {
+                            // A string that starts with `"[` is a datatype expression which might
+                            // be broken into multiple lines for readability.
+                            warn_linebreaks = false;
+                        }
+
+                        if c == '\n' {
+                            if Game::is_hoi4() {
+                                // In Hoi4, a newline always terminates a string.
+                                let msg = "quoted string not closed";
+                                warn(ErrorKey::ParseError).msg(msg).loc(self.loc).push();
+                                self.consume();
+                                let token = id.take_to_token();
+                                return Some(Ok((start_i, Lexeme::General(token), i + 1)));
+                            }
+                            id.add_char(c);
+                            if warn_linebreaks {
+                                // Warn, but continue parsing the string.
+                                let msg = "quoted string not closed";
+                                warn(ErrorKey::ParseError).weak().msg(msg).loc(self.loc).push();
+                            }
+                            self.consume();
+                        } else if c == '"' {
+                            let token = id.take_to_token();
+                            self.consume();
+                            return Some(Ok((start_i, Lexeme::General(token), i + 1)));
+                        } else {
+                            if Game::is_hoi4() && i - start_i == 255 {
+                                let msg = "string too long";
+                                let info = "in Hoi4 strings are limited to 255 bytes";
+                                err(ErrorKey::Overflow)
+                                    .strong()
+                                    .msg(msg)
+                                    .info(info)
+                                    .loc(self.loc)
+                                    .push();
+                            }
+                            id.add_char(c);
+                            self.consume();
+                        }
+                    }
+                    let msg = "quoted string not closed";
+                    err(ErrorKey::ParseError).msg(msg).loc(start_loc).push();
+                    let token = if matches!(id, Cob::Uninit) {
+                        Token::from_static_str("", self.loc)
+                    } else {
+                        id.take_to_token()
+                    };
+                    return Some(Ok((start_i, Lexeme::General(token), self.eof_offset())));
+                }
+                '#' => {
+                    // A comment
+                    self.consume();
+                    while let Some((_, c)) = self.peek() {
+                        self.consume();
+                        if c == '\n' {
+                            break;
+                        }
+                    }
+                }
+                '$' => {
+                    // A macro parameter
+                    let start_i = i;
+                    let start_loc = self.loc;
+                    self.consume();
+                    let mut id = self.start_cob();
+                    while let Some((i, c)) = self.peek() {
+                        if c.is_id_char() {
+                            id.add_char(c);
+                            self.consume();
+                        } else if c == '$' {
+                            let token = id.take_to_token();
+                            self.consume();
+                            return Some(Ok((start_i, Lexeme::MacroParam(token), i + 1)));
+                        } else {
+                            let msg = "macro parameter not closed";
+                            err(ErrorKey::ParseError).msg(msg).loc(self.loc).push();
+                            // Return it as a Lexeme::General because a stray $ is not treated
+                            // as a macro parameter by the game.
+                            let token = id.take_to_token();
+                            return Some(Ok((start_i, Lexeme::General(token), i)));
+                        }
+                    }
+                    let msg = "macro parameter not closed";
+                    err(ErrorKey::ParseError).msg(msg).loc(start_loc).push();
+                    let token = if matches!(id, Cob::Uninit) {
+                        Token::from_static_str("", self.loc)
+                    } else {
+                        id.take_to_token()
+                    };
+                    return Some(Ok((start_i, Lexeme::General(token), self.eof_offset())));
                 }
                 '{' => {
                     let token = Token::from_static_str("{", self.loc);
