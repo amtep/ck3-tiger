@@ -57,6 +57,15 @@ impl DbKind for Decision {
     }
 }
 
+fn validate_icon(mut vd: ValueValidator, data: &Everything, is_category: bool) {
+    if !vd.maybe_item(Item::Sprite) {
+        let category = if is_category { "category_" } else { "" };
+        let pathname = format!("gfx/interface/decisions/decision_{}{}.dds", category, vd.value());
+        data.verify_exists_implied(Item::File, &pathname, vd.value());
+        vd.accept();
+    }
+}
+
 fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category: bool) {
     let mut vd = Validator::new(block, data);
     let mut sc = ScopeContext::new(Scopes::Country, key);
@@ -67,18 +76,14 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
     vd.multi_field_validated("icon", |bv, data| match bv {
         BV::Value(value) => {
             let mut vd = ValueValidator::new(value, data);
-            if !vd.maybe_item(Item::Sprite) {
-                let category = if is_category { "category_" } else { "" };
-                let pathname =
-                    format!("gfx/interface/decisions/decision_{}{}.dds", category, vd.value());
-                data.verify_exists_implied(Item::File, &pathname, vd.value());
-                vd.accept();
-            }
+            validate_icon(vd, data, is_category);
         }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.req_field("key");
-            vd.field_item("key", Item::Sprite);
+            vd.field_validated_value("key", |_, mut vd| {
+                validate_icon(vd, data, is_category);
+            });
             vd.field_validated_block("trigger", |block, data| {
                 validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
