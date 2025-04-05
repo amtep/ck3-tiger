@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use crate::block::{Block, BV};
+use crate::block::Block;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, TigerHashMap};
