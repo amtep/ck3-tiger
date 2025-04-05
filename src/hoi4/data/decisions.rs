@@ -1,4 +1,4 @@
-use crate::block::Block;
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
@@ -10,7 +10,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
-use crate::validator::Validator;
+use crate::validator::{Validator, ValueValidator};
 
 #[derive(Clone, Debug)]
 pub struct DecisionCategory {}
@@ -64,7 +64,26 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
     data.verify_exists(Item::Localization, key);
 
     vd.field_integer("priority");
-    vd.field_item("icon", Item::Sprite);
+    vd.multi_field_validated("icon", |bv, data| match bv {
+        BV::Value(value) => {
+            let mut vd = ValueValidator::new(value, data);
+            if !vd.maybe_item(Item::Sprite) {
+                let category = if is_category { "category_" } else { "" };
+                let pathname =
+                    format!("gfx/interface/decisions/decision_{}{}.dds", category, vd.value());
+                data.verify_exists_implied(Item::File, &pathname, vd.value());
+                vd.accept();
+            }
+        }
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("key");
+            vd.field_item("key", Item::Sprite);
+            vd.field_validated_block("trigger", |block, data| {
+                validate_trigger(block, data, &mut sc, Tooltipped::No);
+            });
+        }
+    });
     vd.field_item("picture", Item::Sprite);
     vd.field_bool("visble_when_empty");
     vd.field_bool("cancel_if_not_visible");
