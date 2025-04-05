@@ -318,7 +318,7 @@ dependencies = [
 
 [[package]]
 name = "ck3-tiger"
-version = "1.6.0"
+version = "1.6.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -1192,7 +1192,7 @@ dependencies = [
 
 [[package]]
 name = "imperator-tiger"
-version = "1.6.0"
+version = "1.6.1"
 dependencies = [
  "anyhow",
  "tiger-bin-shared",
@@ -2530,7 +2530,7 @@ dependencies = [
 
 [[package]]
 name = "tiger-bin-shared"
-version = "1.6.0"
+version = "1.6.1"
 dependencies = [
  "ansiterm",
  "anyhow",
@@ -2549,7 +2549,7 @@ dependencies = [
 
 [[package]]
 name = "tiger-lib"
-version = "1.6.0"
+version = "1.6.1"
 dependencies = [
  "ahash",
  "ansiterm",
@@ -2848,7 +2848,7 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "utils"
-version = "1.6.0"
+version = "1.6.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -2869,7 +2869,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "vic3-tiger"
-version = "1.6.0"
+version = "1.6.1"
 dependencies = [
  "ansiterm",
  "anyhow",
