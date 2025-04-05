@@ -32,8 +32,9 @@ static SCOPE_EFFECT_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Effect)>> 
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "activate_advisor", Item(Item::Character)),
     (Scopes::Country, "activate_decision", Item(Item::Decision)),
-    (Scopes::Country, "activate_mission", Item(Item::Mission)),
-    (Scopes::Country, "activate_mission_tooltip", Item(Item::Mission)),
+    // TODO: figure out how to distinguish decisions from missions
+    (Scopes::Country, "activate_mission", Item(Item::Decision)),
+    (Scopes::Country, "activate_mission_tooltip", Item(Item::Decision)),
     (Scopes::Country, "activate_shine_on_focus", Item(Item::Focus)),
     (
         Scopes::Country.union(Scopes::State),
