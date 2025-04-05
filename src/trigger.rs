@@ -512,6 +512,14 @@ pub fn validate_trigger_key_bv(
                         max_sev,
                     );
                     return side_effects;
+                } else if Game::is_hoi4() && is_country_tag(part.as_str()) {
+                    if !part_flags.contains(PartFlags::First) {
+                        warn_not_first(part);
+                    }
+                    #[cfg(feature = "hoi4")]
+                    data.verify_exists(Item::Country, part);
+                    #[cfg(feature = "hoi4")]
+                    sc.replace(Scopes::Country, part.clone());
                 } else {
                     // TODO: warn if trying to use iterator here
                     let msg = format!("unknown token `{part}`");
@@ -1141,6 +1149,14 @@ pub fn validate_target_ok_this(
                     }
                     validate_inscopes(part_flags, part, inscopes, sc);
                     sc.replace(Scopes::Value, part.clone());
+                } else if Game::is_hoi4() && is_country_tag(part.as_str()) {
+                    if !part_flags.contains(PartFlags::First) {
+                        warn_not_first(part);
+                    }
+                    #[cfg(feature = "hoi4")]
+                    data.verify_exists(Item::Country, part);
+                    #[cfg(feature = "hoi4")]
+                    sc.replace(Scopes::Country, part.clone());
                 } else {
                     // See if the user forgot a prefix like `faith:` or `culture:`
                     let mut opt_info = None;
@@ -1603,4 +1619,8 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
         Some((s, Trigger::CompareValue | Trigger::CompareDate)) => Some(s),
         _ => std::option::Option::None,
     }
+}
+
+fn is_country_tag(part: &str) -> bool {
+    part.len() == 3 && part.chars().all(|c| c.is_ascii_uppercase())
 }
