@@ -66,6 +66,7 @@ pub enum ErrorKey {
     WrongGame,
     Gui,
     Performance,
+    Overflow,
 
     PrincesOfDarkness,
 

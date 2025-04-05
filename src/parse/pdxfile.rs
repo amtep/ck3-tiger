@@ -8,6 +8,7 @@ use lalrpop_util::{lalrpop_mod, ParseError};
 
 use crate::block::{Block, Comparator, Eq};
 use crate::fileset::{FileEntry, FileKind};
+use crate::game::Game;
 use crate::parse::cob::Cob;
 use crate::parse::pdxfile::lexer::{LexError, Lexeme, Lexer};
 use crate::parse::pdxfile::memory::CombinedMemory;
@@ -249,6 +250,7 @@ impl CharExt for char {
             || self.is_ascii_digit()
             // %, [, ] added for parsing .gui files
             || matches!(self, '.' | ':' | '_' | '-' | '&' | '/' | '|' | '\'' | '%' | '[' | ']')
+            || (Game::is_hoi4() && (self == '?' || self == '@'))
     }
 
     fn is_local_value_char(self) -> bool {
