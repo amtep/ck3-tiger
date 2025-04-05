@@ -586,7 +586,7 @@ pub fn validate_create_pop(
                 sum_fractions % 100_000,
             );
             warn(ErrorKey::Validation).msg(msg.trim_end_matches('0')).loc(loc).push();
-        };
+        }
     }
 
     vd.field_item("pop_type", Item::PopType);
