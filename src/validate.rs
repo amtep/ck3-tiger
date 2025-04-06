@@ -602,20 +602,24 @@ pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut S
 }
 
 pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
+    let max_sev = vd.max_severity();
     vd.multi_field_validated_block("first_valid", |b, data| {
         let mut vd = Validator::new(b, data);
+        vd.set_max_severity(max_sev);
         validate_modifiers(&mut vd, sc);
     });
     vd.multi_field_validated_block("modifier", |b, data| {
+        let mut vd = Validator::new(b, data);
+        vd.set_max_severity(max_sev);
         validate_trigger_internal(
             &Lowercase::new_unchecked("modifier"),
             false,
             b,
             data,
             sc,
+            vd,
             Tooltipped::No,
             false,
-            Severity::Error,
         );
     });
     #[cfg(feature = "ck3")]
