@@ -2,7 +2,6 @@ use std::sync::LazyLock;
 
 use crate::everything::Everything;
 use crate::helpers::TigerHashMap;
-use crate::hoi4::tables::misc::*;
 use crate::item::Item;
 use crate::scopes::*;
 use crate::token::Token;
@@ -88,8 +87,8 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country.union(Scopes::Character), "can_be_country_leader", UncheckedTodo),
     (Scopes::None, "can_build_railway", UncheckedTodo),
     (Scopes::State, "can_construct_building", UncheckedTodo),
-    (Scopes::Country, "can_declare_war_on", UncheckedTodo),
-    (Scopes::Country, "can_research", UncheckedTodo),
+    (Scopes::Country, "can_declare_war_on", Scope(Scopes::Country)),
+    (Scopes::Country, "can_research", Item(Item::Technology)),
     (Scopes::Character.union(Scopes::Combatant), "can_select_trait", UncheckedTodo),
     (Scopes::None, "career_profile_check_medal", UncheckedTodo),
     (Scopes::None, "career_profile_check_playthrough_ratio", UncheckedTodo),

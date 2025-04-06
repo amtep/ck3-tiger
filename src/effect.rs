@@ -116,6 +116,7 @@ pub fn validate_effect_internal(
 }
 
 /// Validate a single effect field
+#[allow(unused_variables)] // hoi4 does not use `caller`
 pub fn validate_effect_field(
     caller: &Lowercase,
     key: &Token,

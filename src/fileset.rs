@@ -208,9 +208,11 @@ pub struct Fileset {
     vanilla_root: Option<PathBuf>,
 
     /// Extra CK3 directory loaded before vanilla.
+    #[cfg(feature = "jomini")]
     clausewitz_root: Option<PathBuf>,
 
     /// Extra CK3 directory loaded before vanilla.
+    #[cfg(feature = "jomini")]
     jomini_root: Option<PathBuf>,
 
     /// The mod being analyzed.
@@ -252,12 +254,16 @@ impl Fileset {
         } else {
             vanilla_dir.map(ToOwned::to_owned)
         };
+        #[cfg(feature = "jomini")]
         let clausewitz_root = vanilla_dir.map(|dir| dir.join("clausewitz"));
+        #[cfg(feature = "jomini")]
         let jomini_root = vanilla_dir.map(|dir| dir.join("jomini"));
 
         Fileset {
             vanilla_root,
+            #[cfg(feature = "jomini")]
             clausewitz_root,
+            #[cfg(feature = "jomini")]
             jomini_root,
             the_mod: LoadedMod::new_main_mod(mod_root, replace_paths),
             loaded_mods: Vec::new(),

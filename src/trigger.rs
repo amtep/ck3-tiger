@@ -297,6 +297,8 @@ pub fn validate_trigger_internal(
                 side_effects = true;
             } else {
                 // TODO HOI4
+                let _ = &bv;
+                let _ = &data;
             }
         });
 
@@ -307,6 +309,8 @@ pub fn validate_trigger_internal(
                 side_effects = true;
             } else {
                 // TODO HOI4
+                let _ = &bv;
+                let _ = &data;
             }
         });
     }
