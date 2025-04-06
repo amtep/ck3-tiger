@@ -1137,6 +1137,7 @@ impl Everything {
 
     /// Return true iff a script value of the given name is defined.
     #[allow(clippy::unused_self)]
+    #[allow(unused_variables)] // hoi4 does not use `name`
     pub(crate) fn script_value_exists(&self, name: &str) -> bool {
         if Game::is_jomini() {
             #[cfg(feature = "jomini")]

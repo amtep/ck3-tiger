@@ -501,5 +501,9 @@ pub fn scope_iterator(
             .base(name)
             .and_then(|base| scope_iterator(&base.as_str().to_ascii_lowercase()));
     }
+    #[cfg(feature = "hoi4")]
+    let _ = &data; // mark parameter used
+    #[cfg(feature = "hoi4")]
+    let _ = &sc; // mark parameter used
     None
 }

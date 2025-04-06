@@ -250,9 +250,11 @@ impl CodeChain {
 pub enum Arg {
     /// The argument is expected to be a code chain whose final function returns this [`Datatype`],
     /// or a literal that is encoded to be of the expected type.
+    #[cfg(feature = "jomini")]
     DType(Datatype),
     /// The argument is expected to be a literal containing a key to this [`Item`] type, or a code
     /// chain that returns a `CString` (in which case the `Item` lookup is not checked).
+    #[cfg(feature = "jomini")]
     IType(Item),
 }
 
@@ -300,6 +302,7 @@ fn validate_custom(token: &Token, data: &Everything, scopes: Scopes, lang: Optio
 /// * `expect_arg`: The form of argument expected by the promote or function.
 /// * `lang`: The language of the localization file in which this code appears. This is just passed through.
 /// * `format`: The formatting code for this code chain. This just passed through.
+#[cfg(feature = "jomini")]
 fn validate_argument(
     arg: &CodeArg,
     data: &Everything,
@@ -694,6 +697,7 @@ pub fn validate_datatypes(
             }
         }
 
+        #[cfg(feature = "jomini")]
         if let Args::Args(a) = args {
             for (i, arg) in a.iter().enumerate() {
                 // Handle |E that contain a SelectLocalization that chooses between two gameconcepts
