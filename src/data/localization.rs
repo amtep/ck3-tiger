@@ -682,7 +682,11 @@ impl FileHandler<(Language, Vec<LocaEntry>)> for Localization {
     }
 
     fn subpath(&self) -> PathBuf {
-        PathBuf::from("localization")
+        if Game::is_hoi4() {
+            PathBuf::from("localisation")
+        } else {
+            PathBuf::from("localization")
+        }
     }
 
     fn load_file(
@@ -691,8 +695,6 @@ impl FileHandler<(Language, Vec<LocaEntry>)> for Localization {
         _parser: &ParserMemory,
     ) -> Option<(Language, Vec<LocaEntry>)> {
         let depth = entry.path().components().count();
-        assert!(depth >= 2);
-        assert!(entry.path().starts_with("localization"));
         if !entry.filename().to_string_lossy().ends_with(".yml") {
             return None;
         }

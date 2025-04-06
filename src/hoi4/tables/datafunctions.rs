@@ -79,21 +79,23 @@ pub static FUNCTIONS_MAP: LazyLock<TigerHashMap<&'static str, Vec<(Datatype, Arg
     });
 
 const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
-    // TODO
+    (Hoi4(Ace), Scopes::Ace),
+    (Hoi4(Character), Scopes::Character),
+    (Hoi4(Country), Scopes::Country),
+    (Hoi4(IndustrialOrg), Scopes::IndustrialOrg),
+    (Hoi4(Operation), Scopes::Operation),
+    (Hoi4(PurchaseContract), Scopes::PurchaseContract),
+    (Hoi4(SpecialProject), Scopes::SpecialProject),
+    (Hoi4(State), Scopes::State),
+    (Hoi4(UnitLeader), Scopes::Character),
 ];
 
-const GLOBAL_PROMOTES: &[(&str, Args, Datatype)] = &[
-    // TODO
-];
+// Hoi4 does not have these
+const GLOBAL_PROMOTES: &[(&str, Args, Datatype)] = &[];
 
-const GLOBAL_FUNCTIONS: &[(&str, Args, Datatype)] = &[
-    // TODO
-];
+// Hoi4 does not have these
+const GLOBAL_FUNCTIONS: &[(&str, Args, Datatype)] = &[];
 
-const PROMOTES: &[(&str, Datatype, Args, Datatype)] = &[
-    // TODO
-];
+const PROMOTES: &[(&str, Datatype, Args, Datatype)] = include!("include/data_promotes.rs");
 
-const FUNCTIONS: &[(&str, Datatype, Args, Datatype)] = &[
-    // TODO
-];
+const FUNCTIONS: &[(&str, Datatype, Args, Datatype)] = include!("include/data_functions.rs");
