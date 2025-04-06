@@ -325,7 +325,8 @@ impl Iterator for Lexer<'_> {
                         )));
                     }
                 }
-                _ if !self.in_calc && c.is_id_char() => {
+                // `+` can start a number, and numbers are treated as ids here.
+                _ if !self.in_calc && (c.is_id_char() || c == '+') => {
                     // An unquoted token
                     let mut id = self.start_cob();
                     id.add_char(c);
