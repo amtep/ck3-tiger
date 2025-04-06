@@ -16,7 +16,7 @@ use crate::validator::{Validator, ValueValidator};
 pub struct DecisionCategory {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Vic3, Item::DecisionCategory, DecisionCategory::add)
+    ItemLoader::Normal(GameFlags::Hoi4, Item::DecisionCategory, DecisionCategory::add)
 }
 
 impl DecisionCategory {
