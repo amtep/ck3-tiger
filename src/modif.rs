@@ -125,11 +125,12 @@ pub fn validate_modifs<'a>(
     vd.unknown_fields(|key, bv| {
         if let Some(mk) = lookup_modif(key, data, Some(Severity::Error)) {
             kinds.require(mk, key);
-            #[cfg(feature = "jomini")]
             if Game::is_jomini() {
+                #[cfg(feature = "jomini")]
                 validate_non_dynamic_script_value(bv, data);
             } else {
                 // TODO HOI4
+                let _ = &bv;
             }
             #[cfg(feature = "ck3")]
             if Game::is_ck3()

@@ -1,7 +1,6 @@
 use std::sync::LazyLock;
 
 use crate::effect::Effect;
-use crate::effect_validation::*;
 use crate::everything::Everything;
 use crate::helpers::TigerHashMap;
 use crate::hoi4::effect_validation::*;

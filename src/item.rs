@@ -185,6 +185,8 @@ pub enum Item {
     Region,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     SubjectType,
+    #[cfg(any(feature = "vic3", feature = "hoi4"))]
+    Technology,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     TutorialLesson,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
@@ -473,7 +475,6 @@ pub enum Item {
     #[cfg(feature = "vic3")] StateTrait,
     #[cfg(feature = "vic3")] Strata,
     #[cfg(feature = "vic3")] StrategicRegion,
-    #[cfg(feature = "vic3")] Technology,
     #[cfg(feature = "vic3")] TechnologyEra,
     #[cfg(feature = "vic3")] TerrainKey,
     #[cfg(feature = "vic3")] TerrainLabel,
@@ -825,6 +826,13 @@ impl Item {
             },
             #[cfg(any(feature = "vic3", feature = "imperator"))]
             Item::SubjectType => "common/subject_types/",
+            #[cfg(any(feature = "vic3", feature = "hoi4"))]
+            Item::Technology => match Game::game() {
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => "common/technology/technologies/",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "common/technologies/",
+            },
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::TutorialLesson => "common/tutorial_lessons",
             #[cfg(any(feature = "ck3", feature = "vic3"))]
@@ -1393,8 +1401,6 @@ impl Item {
             Item::Strata => "",
             #[cfg(feature = "vic3")]
             Item::StrategicRegion => "common/strategic_regions/",
-            #[cfg(feature = "vic3")]
-            Item::Technology => "common/technology/technologies/",
             #[cfg(feature = "vic3")]
             Item::TechnologyEra => "common/technology/eras/",
             #[cfg(feature = "vic3")]

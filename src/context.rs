@@ -1070,7 +1070,10 @@ impl Drop for ScopeContext {
 ///
 /// It should be limited to names that are so obvious that it's extremely unlikely that anyone
 /// would use them for a different type.
+#[allow(unused_variables)] // hoi4 does not use `name`
+#[allow(unused_mut)] // hoi4 does not use `name`
 fn scope_type_from_name(mut name: &str) -> Option<Scopes> {
+    #[cfg(feature = "jomini")]
     if let Some(real_name) = name.strip_prefix("scope:") {
         name = real_name;
     } else {

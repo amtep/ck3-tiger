@@ -153,6 +153,9 @@ pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
                 validate_script_value(bv, data, sc);
             } else {
                 // TODO HOI4
+                let _ = &bv;
+                let _ = &data;
+                let _ = &sc;
             }
             count += 1;
             if count > 1 {

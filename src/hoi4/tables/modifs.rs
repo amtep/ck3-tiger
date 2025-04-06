@@ -13,7 +13,11 @@ use crate::token::Token;
 
 /// Returns Some(kinds) if the token is a valid modif or *could* be a valid modif if the appropriate item existed.
 /// Returns None otherwise.
-pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> Option<ModifKinds> {
+pub fn lookup_modif(
+    name: &Token,
+    _data: &Everything,
+    warn: Option<Severity>,
+) -> Option<ModifKinds> {
     let name_lc = Lowercase::new(name.as_str());
 
     if let result @ Some(_) = MODIF_MAP.get(&name_lc).copied() {
@@ -47,7 +51,7 @@ fn maybe_warn(itype: Item, s: &Lowercase, name: &Token, data: &Everything, warn:
 
 /// Return the modifier localization keys.
 /// It's usually just the name, but there are known exceptions.
-pub fn modif_loc(name: &Token, data: &Everything) -> (Cow<'static, str>, Cow<'static, str>) {
+pub fn modif_loc(name: &Token, _data: &Everything) -> (Cow<'static, str>, Cow<'static, str>) {
     let name_lc = Lowercase::new(name.as_str());
 
     // TODO: check hoi4 format
