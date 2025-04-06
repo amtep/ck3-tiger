@@ -20,6 +20,7 @@ use crate::validate::{validate_identifier, validate_optional_duration};
 use crate::validator::{Validator, ValueValidator};
 
 #[allow(dead_code)] // No longer used by CK3
+#[cfg(feature = "jomini")]
 pub fn validate_add_to_list(
     _key: &Token,
     mut vd: ValueValidator,
@@ -32,6 +33,7 @@ pub fn validate_add_to_list(
 }
 
 /// A specific validator for the three `add_to_variable_list` effects (`global`, `local`, and default).
+#[cfg(feature = "jomini")]
 pub fn validate_add_to_variable_list(
     _key: &Token,
     _block: &Block,
@@ -86,6 +88,7 @@ pub fn validate_clamp_variable(
 }
 
 /// A specific validator for the `random_list` effect, which has a unique syntax.
+#[cfg(feature = "jomini")]
 pub fn validate_random_list(
     key: &Token,
     _block: &Block,
@@ -115,6 +118,7 @@ pub fn validate_random_list(
     });
 }
 
+#[cfg(feature = "jomini")]
 pub fn validate_remove_from_list(
     _key: &Token,
     mut vd: ValueValidator,
@@ -142,6 +146,7 @@ pub fn validate_round_variable(
     vd.field_script_value("nearest", sc);
 }
 
+#[cfg(feature = "jomini")]
 pub fn validate_save_scope(
     _key: &Token,
     mut vd: ValueValidator,
@@ -173,6 +178,7 @@ pub fn validate_save_scope_value(
 }
 
 /// A specific validator for the three `set_variable` effects (`global`, `local`, and default).
+#[cfg(feature = "jomini")]
 pub fn validate_set_variable(
     _key: &Token,
     bv: &BV,
@@ -207,6 +213,7 @@ pub fn validate_set_variable(
 }
 
 /// A specific validator for the `switch` effect, which has a unique syntax.
+#[cfg(feature = "jomini")]
 pub fn validate_switch(
     key: &Token,
     _block: &Block,
@@ -248,6 +255,7 @@ pub fn validate_switch(
     }
 }
 
+#[cfg(feature = "jomini")]
 pub fn validate_trigger_event(
     _key: &Token,
     bv: &BV,
@@ -258,9 +266,9 @@ pub fn validate_trigger_event(
     match bv {
         BV::Value(token) => {
             data.verify_exists(Item::Event, token);
-            data.events.check_scope(token, sc);
+            data.event_check_scope(token, sc);
             if let Some(mut event_sc) = sc.root_for_event(token) {
-                data.events.validate_call(token, data, &mut event_sc);
+                data.event_validate_call(token, &mut event_sc);
             }
         }
         BV::Block(block) => {

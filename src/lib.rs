@@ -52,6 +52,7 @@ mod db;
 mod dds;
 mod desc;
 mod effect;
+#[cfg(feature = "jomini")]
 mod effect_validation;
 mod everything;
 mod fileset;

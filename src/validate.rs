@@ -593,8 +593,6 @@ pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut S
             vd.field_numeric("base");
             vd.multi_field_numeric("add");
             vd.multi_field_numeric("factor");
-            vd.multi_field_numeric("min");
-            vd.multi_field_numeric("max");
         }
     }
     validate_modifiers(&mut vd, sc);

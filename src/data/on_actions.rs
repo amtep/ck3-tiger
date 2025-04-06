@@ -169,9 +169,9 @@ fn validate_on_action_internal(
         }
         for token in vd.values() {
             data.verify_exists(Item::Event, token);
-            data.events.check_scope(token, sc);
+            data.event_check_scope(token, sc);
             if let Some(mut event_sc) = sc.root_for_event(token) {
-                data.events.validate_call(token, data, &mut event_sc);
+                data.event_validate_call(token, &mut event_sc);
             }
         }
         count += 1;
@@ -201,9 +201,9 @@ fn validate_on_action_internal(
                 continue;
             }
             data.verify_exists(Item::Event, token);
-            data.events.check_scope(token, sc);
+            data.event_check_scope(token, sc);
             if let Some(mut event_sc) = sc.root_for_event(token) {
-                data.events.validate_call(token, data, &mut event_sc);
+                data.event_validate_call(token, &mut event_sc);
             }
         }
         count += 1;
@@ -220,9 +220,9 @@ fn validate_on_action_internal(
         let mut vd = Validator::new(b, data);
         for token in vd.values() {
             data.verify_exists(Item::Event, token);
-            data.events.check_scope(token, sc);
+            data.event_check_scope(token, sc);
             if let Some(mut event_sc) = sc.root_for_event(token) {
-                data.events.validate_call(token, data, &mut event_sc);
+                data.event_validate_call(token, &mut event_sc);
             }
         }
         count += 1;
