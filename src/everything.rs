@@ -42,7 +42,6 @@ use crate::data::data_binding::DataBindings;
 use crate::data::{
     assets::Assets,
     defines::Defines,
-    events::Events,
     gui::Gui,
     localization::Localization,
     music::Musics,
@@ -52,7 +51,7 @@ use crate::data::{
 };
 #[cfg(feature = "jomini")]
 use crate::data::{
-    coa::Coas, script_values::ScriptValues, scripted_lists::ScriptedLists,
+    coa::Coas, events::Events, script_values::ScriptValues, scripted_lists::ScriptedLists,
     scripted_modifiers::ScriptedModifiers,
 };
 use crate::db::{Db, DbKind};
@@ -62,7 +61,7 @@ use crate::game::Game;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::helpers::TigerHashSet;
 #[cfg(feature = "hoi4")]
-use crate::hoi4::data::{gfx::Gfx, provinces::Hoi4Provinces};
+use crate::hoi4::data::{events::Hoi4Events, gfx::Gfx, provinces::Hoi4Provinces};
 #[cfg(feature = "imperator")]
 use crate::imperator::data::{decisions::Decisions, provinces::ImperatorProvinces};
 #[cfg(feature = "imperator")]
@@ -139,7 +138,10 @@ pub struct Everything {
 
     pub(crate) defines: Defines,
 
+    #[cfg(feature = "jomini")]
     pub(crate) events: Events,
+    #[cfg(feature = "hoi4")]
+    pub(crate) events_hoi4: Hoi4Events,
     #[cfg(feature = "imperator")]
     pub(crate) decisions_imperator: Decisions,
 
@@ -270,7 +272,10 @@ impl Everything {
             #[cfg(feature = "jomini")]
             scripted_lists: ScriptedLists::default(),
             defines: Defines::default(),
+            #[cfg(feature = "jomini")]
             events: Events::default(),
+            #[cfg(feature = "hoi4")]
+            events_hoi4: Hoi4Events::default(),
             #[cfg(feature = "imperator")]
             decisions_imperator: Decisions::default(),
             #[cfg(feature = "jomini")]
@@ -430,7 +435,6 @@ impl Everything {
     fn load_all_generic(&mut self) {
         scope(|s| {
             s.spawn(|_| self.fileset.handle(&mut self.dds, &self.parser));
-            s.spawn(|_| self.fileset.handle(&mut self.events, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.localization, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.defines, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.triggers, &self.parser));
@@ -447,6 +451,7 @@ impl Everything {
     #[cfg(feature = "ck3")]
     fn load_all_ck3(&mut self) {
         scope(|s| {
+            s.spawn(|_| self.fileset.handle(&mut self.events, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.interaction_cats, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.province_histories, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.province_properties, &self.parser));
@@ -471,6 +476,7 @@ impl Everything {
 
     #[cfg(feature = "vic3")]
     fn load_all_vic3(&mut self) {
+        self.fileset.handle(&mut self.events, &self.parser);
         self.fileset.handle(&mut self.history, &self.parser);
         self.fileset.handle(&mut self.provinces_vic3, &self.parser);
         self.fileset.handle(&mut self.data_bindings, &self.parser);
@@ -483,6 +489,7 @@ impl Everything {
 
     #[cfg(feature = "imperator")]
     fn load_all_imperator(&mut self) {
+        self.fileset.handle(&mut self.events, &self.parser);
         self.fileset.handle(&mut self.decisions_imperator, &self.parser);
         self.fileset.handle(&mut self.provinces_imperator, &self.parser);
         self.fileset.handle(&mut self.coas, &self.parser);
@@ -493,6 +500,7 @@ impl Everything {
 
     #[cfg(feature = "hoi4")]
     fn load_all_hoi4(&mut self) {
+        self.fileset.handle(&mut self.events_hoi4, &self.parser);
         self.fileset.handle(&mut self.gfx, &self.parser);
         self.fileset.handle(&mut self.provinces_hoi4, &self.parser);
     }
@@ -519,7 +527,6 @@ impl Everything {
         s.spawn(|_| self.defines.validate(self));
         s.spawn(|_| self.triggers.validate(self));
         s.spawn(|_| self.effects.validate(self));
-        s.spawn(|_| self.events.validate(self));
         s.spawn(|_| self.assets.validate(self));
         s.spawn(|_| self.gui.validate(self));
         s.spawn(|_| self.on_actions.validate(self));
@@ -528,6 +535,7 @@ impl Everything {
 
     #[cfg(feature = "ck3")]
     fn validate_all_ck3<'a>(&'a self, s: &Scope<'a>) {
+        s.spawn(|_| self.events.validate(self));
         s.spawn(|_| self.interaction_cats.validate(self));
         s.spawn(|_| self.province_histories.validate(self));
         s.spawn(|_| self.province_properties.validate(self));
@@ -551,6 +559,7 @@ impl Everything {
 
     #[cfg(feature = "vic3")]
     fn validate_all_vic3<'a>(&'a self, s: &Scope<'a>) {
+        s.spawn(|_| self.events.validate(self));
         s.spawn(|_| self.history.validate(self));
         s.spawn(|_| self.provinces_vic3.validate(self));
         s.spawn(|_| self.data_bindings.validate(self));
@@ -564,6 +573,7 @@ impl Everything {
 
     #[cfg(feature = "imperator")]
     fn validate_all_imperator<'a>(&'a self, s: &Scope<'a>) {
+        s.spawn(|_| self.events.validate(self));
         s.spawn(|_| self.decisions_imperator.validate(self));
         s.spawn(|_| self.provinces_imperator.validate(self));
         s.spawn(|_| self.coas.validate(self));
@@ -574,6 +584,7 @@ impl Everything {
 
     #[cfg(feature = "hoi4")]
     fn validate_all_hoi4<'a>(&'a self, s: &Scope<'a>) {
+        s.spawn(|_| self.events_hoi4.validate(self));
         s.spawn(|_| self.provinces_hoi4.validate(self));
         s.spawn(|_| self.gfx.validate(self));
     }
@@ -647,6 +658,8 @@ impl Everything {
             Item::Doctrine => self.doctrines.exists(key),
             Item::DoctrineCategory => self.doctrines.category_exists(key),
             Item::DoctrineParameter => self.doctrines.parameter_exists(key),
+            Item::Event => self.events.exists(key),
+            Item::EventNamespace => self.events.namespace_exists(key),
             Item::GameConcept => self.gameconcepts.exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::GeneticConstraint => self.traits.constraint_exists(key),
@@ -682,7 +695,9 @@ impl Everything {
             Item::CoaTemplate => self.coas.template_exists(key),
             Item::CountryTier => COUNTRY_TIERS.contains(&key),
             Item::DlcFeature => DLC_FEATURES_VIC3.contains(&key),
+            Item::Event => self.events.exists(key),
             Item::EventCategory => EVENT_CATEGORIES.contains(&key),
+            Item::EventNamespace => self.events.namespace_exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
             Item::Level => LEVELS.contains(&key),
@@ -707,6 +722,8 @@ impl Everything {
             Item::CoaTemplate => self.coas.template_exists(key),
             Item::DlcName => DLC_NAME_IMPERATOR.contains(&key),
             Item::Decision => self.decisions_imperator.exists(key),
+            Item::Event => self.events.exists(key),
+            Item::EventNamespace => self.events.namespace_exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::Province => self.provinces_imperator.exists(key),
             Item::ScriptedList => self.scripted_lists.exists(key),
@@ -720,6 +737,8 @@ impl Everything {
     #[cfg(feature = "hoi4")]
     fn item_exists_hoi4(&self, itype: Item, key: &str) -> bool {
         match itype {
+            Item::Event => self.events_hoi4.exists(key),
+            Item::EventNamespace => self.events_hoi4.namespace_exists(key),
             Item::Pdxmesh => self.gfx.mesh_exists(key),
             Item::Sprite => self.gfx.sprite_exists(key),
             _ => self.database.exists(itype, key),
@@ -733,8 +752,6 @@ impl Everything {
             Item::Define => self.defines.exists(key),
             Item::Entity => self.assets.entity_exists(key),
             Item::Entry => self.fileset.entry_exists(key),
-            Item::Event => self.events.exists(key),
-            Item::EventNamespace => self.events.namespace_exists(key),
             Item::File => self.fileset.exists(key),
             Item::GuiLayer => self.gui.layer_exists(key),
             Item::GuiTemplate => self.gui.template_exists(key),
@@ -801,11 +818,12 @@ impl Everything {
 
     /// Return true iff the item `key` is found with a case insensitive match.
     /// This function is **incomplete**. It only contains the item types for which case insensitive
-    /// matches are needed; this is currently the ones used in `src/hoi4/tables/modif.rs`.
+    /// matches are needed.
     #[cfg(feature = "hoi4")]
     fn item_exists_lc_hoi4(&self, itype: Item, key: &Lowercase) -> bool {
         #[allow(clippy::match_single_binding)]
         match itype {
+            Item::EventNamespace => self.events_hoi4.namespace_exists_lc(key),
             _ => self.database.exists_lc(itype, key),
         }
     }
@@ -1030,6 +1048,8 @@ impl Everything {
             Item::Doctrine => Box::new(self.doctrines.iter_keys()),
             Item::DoctrineCategory => Box::new(self.doctrines.iter_category_keys()),
             Item::DoctrineParameter => Box::new(self.doctrines.iter_parameter_keys()),
+            Item::Event => Box::new(self.events.iter_keys()),
+            Item::EventNamespace => Box::new(self.events.iter_namespace_keys()),
             Item::GameConcept => Box::new(self.gameconcepts.iter_keys()),
             Item::GeneAttribute => Box::new(self.assets.iter_attribute_keys()),
             Item::GeneticConstraint => Box::new(self.traits.iter_constraint_keys()),
@@ -1053,6 +1073,8 @@ impl Everything {
         match itype {
             Item::Coa => Box::new(self.coas.iter_keys()),
             Item::CoaTemplate => Box::new(self.coas.iter_template_keys()),
+            Item::Event => Box::new(self.events.iter_keys()),
+            Item::EventNamespace => Box::new(self.events.iter_namespace_keys()),
             Item::GeneAttribute => Box::new(self.assets.iter_attribute_keys()),
             Item::ScriptedList => Box::new(self.scripted_lists.iter_keys()),
             Item::ScriptedModifier => Box::new(self.scripted_modifiers.iter_keys()),
@@ -1067,6 +1089,8 @@ impl Everything {
             Item::Coa => Box::new(self.coas.iter_keys()),
             Item::CoaTemplate => Box::new(self.coas.iter_template_keys()),
             Item::Decision => Box::new(self.decisions_imperator.iter_keys()),
+            Item::Event => Box::new(self.events.iter_keys()),
+            Item::EventNamespace => Box::new(self.events.iter_namespace_keys()),
             Item::GeneAttribute => Box::new(self.assets.iter_attribute_keys()),
             Item::Province => Box::new(self.provinces_imperator.iter_keys()),
             Item::ScriptedList => Box::new(self.scripted_lists.iter_keys()),
@@ -1079,6 +1103,8 @@ impl Everything {
     #[cfg(feature = "hoi4")]
     fn iter_keys_hoi4<'a>(&'a self, itype: Item) -> Box<dyn Iterator<Item = &'a Token> + 'a> {
         match itype {
+            Item::Event => Box::new(self.events_hoi4.iter_keys()),
+            Item::EventNamespace => Box::new(self.events_hoi4.iter_namespace_keys()),
             Item::Pdxmesh => Box::new(self.gfx.iter_mesh_keys()),
             Item::Sprite => Box::new(self.gfx.iter_sprite_keys()),
             _ => Box::new(self.database.iter_keys(itype)),
@@ -1091,8 +1117,6 @@ impl Everything {
             Item::BlendShape => Box::new(self.assets.iter_blend_shape_keys()),
             Item::Define => Box::new(self.defines.iter_keys()),
             Item::Entity => Box::new(self.assets.iter_entity_keys()),
-            Item::Event => Box::new(self.events.iter_keys()),
-            Item::EventNamespace => Box::new(self.events.iter_namespace_keys()),
             Item::File => Box::new(self.fileset.iter_keys()),
             Item::GuiLayer => Box::new(self.gui.iter_layer_keys()),
             Item::GuiTemplate => Box::new(self.gui.iter_template_keys()),
@@ -1149,6 +1173,26 @@ impl Everything {
             return self.script_values.exists(name);
         }
         false
+    }
+
+    pub(crate) fn event_check_scope(&self, id: &Token, sc: &mut ScopeContext) {
+        if Game::is_hoi4() {
+            #[cfg(feature = "hoi4")]
+            self.events_hoi4.check_scope(id, sc);
+        } else {
+            #[cfg(feature = "jomini")]
+            self.events.check_scope(id, sc);
+        }
+    }
+
+    pub(crate) fn event_validate_call(&self, id: &Token, sc: &mut ScopeContext) {
+        if Game::is_hoi4() {
+            #[cfg(feature = "hoi4")]
+            self.events_hoi4.validate_call(id, self, sc);
+        } else {
+            #[cfg(feature = "jomini")]
+            self.events.validate_call(id, self, sc);
+        }
     }
 }
 

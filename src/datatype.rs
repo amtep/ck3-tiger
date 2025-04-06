@@ -17,6 +17,8 @@ use crate::data::customloca::CustomLocalization;
 use crate::data::localization::Language;
 use crate::everything::Everything;
 use crate::game::Game;
+#[cfg(feature = "hoi4")]
+use crate::helpers::is_country_tag;
 use crate::helpers::BiTigerHashMap;
 use crate::item::Item;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
@@ -577,6 +579,8 @@ pub fn validate_datatypes(
             rtype = Datatype::CString;
         }
 
+        // TODO HOI4: see about disabling the scope-related logic below.
+
         // See if it's a passed-in scope.
         // It may still be a passed-in scope even if this check doesn't pass, because sc might be a non-strict scope
         // where the scope names are not known. That's handled heuristically below.
@@ -604,6 +608,13 @@ pub fn validate_datatypes(
             // That would be valuable for checks because it will find
             // the common mistake of using .Var directly after one.
             rtype = Datatype::Unknown;
+        }
+
+        #[cfg(feature = "hoi4")]
+        if Game::is_hoi4() && !found && is_country_tag(code.name.as_str()) {
+            found = true;
+            data.verify_exists(Item::CountryTag, &code.name);
+            rtype = Datatype::Hoi4(Hoi4Datatype::Country);
         }
 
         // If it's still not found, warn and exit.
@@ -701,7 +712,6 @@ pub fn validate_datatypes(
         if let Args::Args(a) = args {
             for (i, arg) in a.iter().enumerate() {
                 // Handle |E that contain a SelectLocalization that chooses between two gameconcepts
-                #[cfg(feature = "jomini")]
                 if Game::is_jomini() && code.name.is("SelectLocalization") && i > 0 {
                     if let CodeArg::Chain(chain) = &code.arguments[i] {
                         if chain.codes.len() == 1

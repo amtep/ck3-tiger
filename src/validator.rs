@@ -514,17 +514,17 @@ impl<'a> Validator<'a> {
     /// Returns true iff the field is present.
     pub fn field_event(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         let sev = self.max_severity;
-        let data = &self.data;
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
                 self.data.verify_exists_max_sev(Item::Event, token, sev);
-                self.data.events.check_scope(token, sc);
+                self.data.event_check_scope(token, sc);
                 if let Some(mut event_sc) = sc.root_for_event(token) {
-                    self.data.events.validate_call(token, data, &mut event_sc);
+                    self.data.event_validate_call(token, &mut event_sc);
                 }
             }
         })
     }
+
     /// Expect field `name`, if present, to be set to the key of an `itype` item the game database,
     /// or be the empty string.
     /// The item is looked up and must exist.

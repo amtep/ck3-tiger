@@ -14,6 +14,7 @@ use crate::date::Date;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::game::Game;
+use crate::helpers::is_country_tag;
 use crate::helpers::stringify_choices;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
@@ -1623,8 +1624,4 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
         Some((s, Trigger::CompareValue | Trigger::CompareDate)) => Some(s),
         _ => std::option::Option::None,
     }
-}
-
-fn is_country_tag(part: &str) -> bool {
-    part.len() == 3 && part.chars().all(|c| c.is_ascii_uppercase())
 }
