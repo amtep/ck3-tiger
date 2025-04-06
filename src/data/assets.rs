@@ -8,9 +8,12 @@ use crate::helpers::{dup_error, TigerHashMap, TigerHashSet};
 use crate::item::Item;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, Confidence, ErrorKey, Severity};
+use crate::report::{warn, ErrorKey};
+#[cfg(feature = "jomini")]
+use crate::report::{Confidence, Severity};
 use crate::token::Token;
 use crate::util::SmartJoin;
+#[cfg(feature = "jomini")]
 use crate::validate::validate_numeric_range;
 use crate::validator::Validator;
 

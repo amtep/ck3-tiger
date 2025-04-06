@@ -53,6 +53,7 @@ impl Decision {
 
 impl DbKind for Decision {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        data.verify_exists(Item::DecisionCategory, &self.category);
         validate_decision(key, block, data, false);
     }
 }
@@ -75,13 +76,13 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
     vd.field_integer("priority");
     vd.multi_field_validated("icon", |bv, data| match bv {
         BV::Value(value) => {
-            let mut vd = ValueValidator::new(value, data);
+            let vd = ValueValidator::new(value, data);
             validate_icon(vd, data, is_category);
         }
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.req_field("key");
-            vd.field_validated_value("key", |_, mut vd| {
+            vd.field_validated_value("key", |_, vd| {
                 validate_icon(vd, data, is_category);
             });
             vd.field_validated_block("trigger", |block, data| {

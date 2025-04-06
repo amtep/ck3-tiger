@@ -85,9 +85,7 @@ impl FileHandler<Block> for Gfx {
         }
     }
 
-    fn handle_file(&mut self, entry: &FileEntry, mut block: Block) {
-        let name = entry.filename().to_string_lossy();
-
+    fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {
         for (key, mut block) in block.drain_definitions_warn() {
             if key.lowercase_is("spritetypes") {
                 for (key, block) in block.drain_definitions_warn() {
@@ -138,7 +136,7 @@ impl Sprite {
 
         if self.key.lowercase_is("corneredtilespritetype") {
             vd.field_validated_block("bordersize", |block, data| {
-                let mut vd = Validator::new(&self.block, data);
+                let mut vd = Validator::new(block, data);
                 vd.set_case_sensitive(false);
 
                 vd.field_integer("x");

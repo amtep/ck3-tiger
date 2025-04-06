@@ -18,7 +18,7 @@ use crate::tooltipped::Tooltipped;
 #[cfg(any(feature = "ck3", feature = "imperator"))]
 use crate::trigger::validate_target_ok_this;
 use crate::trigger::{validate_target, validate_trigger};
-#[cfg(not(feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::validate::validate_compare_duration;
 #[cfg(any(feature = "ck3", feature = "imperator"))]
 use crate::validate::validate_modifiers;

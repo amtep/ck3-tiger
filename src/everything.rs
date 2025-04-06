@@ -494,6 +494,7 @@ impl Everything {
     #[cfg(feature = "hoi4")]
     fn load_all_hoi4(&mut self) {
         self.fileset.handle(&mut self.gfx, &self.parser);
+        self.fileset.handle(&mut self.provinces_hoi4, &self.parser);
     }
 
     pub fn load_all(&mut self) {
@@ -573,6 +574,7 @@ impl Everything {
 
     #[cfg(feature = "hoi4")]
     fn validate_all_hoi4<'a>(&'a self, s: &Scope<'a>) {
+        s.spawn(|_| self.provinces_hoi4.validate(self));
         s.spawn(|_| self.gfx.validate(self));
     }
 
