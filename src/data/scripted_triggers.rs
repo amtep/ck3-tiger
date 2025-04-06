@@ -9,11 +9,12 @@ use crate::lowercase::Lowercase;
 use crate::macros::{MacroCache, MACRO_MAP};
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-use crate::report::{err, warn, ErrorKey, Severity};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger_internal;
+use crate::validator::Validator;
 
 #[derive(Debug, Default)]
 pub struct Triggers {
@@ -149,15 +150,16 @@ impl Trigger {
                 our_sc.set_no_warn(true);
             }
             self.cache.insert(key, &[], tooltipped, negated, our_sc.clone());
+            let vd = Validator::new(&self.block, data);
             validate_trigger_internal(
                 Lowercase::empty(),
                 false,
                 &self.block,
                 data,
                 &mut our_sc,
+                vd,
                 tooltipped,
                 negated,
-                Severity::Error,
             );
             if let Some(scopes) = self.scope_override {
                 our_sc = ScopeContext::new_unrooted(scopes, key);
@@ -206,15 +208,16 @@ impl Trigger {
                 // Insert the dummy sc before continuing. That way, if we recurse, we'll hit
                 // that dummy context instead of macro-expanding again.
                 self.cache.insert(key, args, tooltipped, negated, our_sc.clone());
+                let vd = Validator::new(&block, data);
                 validate_trigger_internal(
                     Lowercase::empty(),
                     false,
                     &block,
                     data,
                     &mut our_sc,
+                    vd,
                     tooltipped,
                     negated,
-                    Severity::Error,
                 );
                 if let Some(scopes) = self.scope_override {
                     our_sc = ScopeContext::new_unrooted(scopes, key);

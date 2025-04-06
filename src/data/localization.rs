@@ -694,7 +694,6 @@ impl FileHandler<(Language, Vec<LocaEntry>)> for Localization {
         entry: &FileEntry,
         _parser: &ParserMemory,
     ) -> Option<(Language, Vec<LocaEntry>)> {
-        let depth = entry.path().components().count();
         if !entry.filename().to_string_lossy().ends_with(".yml") {
             return None;
         }

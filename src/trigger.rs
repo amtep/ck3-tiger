@@ -66,16 +66,8 @@ pub fn validate_trigger(
     sc: &mut ScopeContext,
     tooltipped: Tooltipped,
 ) -> bool {
-    validate_trigger_internal(
-        Lowercase::empty(),
-        false,
-        block,
-        data,
-        sc,
-        tooltipped,
-        false,
-        Severity::Error,
-    )
+    let vd = Validator::new(block, data);
+    validate_trigger_internal(Lowercase::empty(), false, block, data, sc, vd, tooltipped, false)
 }
 
 /// Like [`validate_trigger`] but specifies a maximum [`Severity`] for the reports emitted by this
@@ -89,16 +81,9 @@ pub fn validate_trigger_max_sev(
     tooltipped: Tooltipped,
     max_sev: Severity,
 ) -> bool {
-    validate_trigger_internal(
-        Lowercase::empty(),
-        false,
-        block,
-        data,
-        sc,
-        tooltipped,
-        false,
-        max_sev,
-    )
+    let mut vd = Validator::new(block, data);
+    vd.set_max_severity(max_sev);
+    validate_trigger_internal(Lowercase::empty(), false, block, data, sc, vd, tooltipped, false)
 }
 
 /// The interface to trigger validation when [`validate_trigger`] is too limited.
@@ -122,13 +107,12 @@ pub fn validate_trigger_internal(
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
+    mut vd: Validator,
     mut tooltipped: Tooltipped,
     negated: bool,
-    max_sev: Severity,
 ) -> bool {
     let mut side_effects = false;
-    let mut vd = Validator::new(block, data);
-    vd.set_max_severity(max_sev);
+    let max_sev = vd.max_severity();
 
     // If this condition looks weird, it's because the negation from for example NOR has already
     // been applied to the `negated` value.
@@ -277,18 +261,20 @@ pub fn validate_trigger_internal(
                         return;
                     }
                     sc.expect(inscopes, &Reason::Token(key.clone()));
-                    if let Some(b) = bv.expect_block() {
-                        precheck_iterator_fields(ListType::Any, it_name.as_str(), b, data, sc);
+                    if let Some(block) = bv.expect_block() {
+                        precheck_iterator_fields(ListType::Any, it_name.as_str(), block, data, sc);
                         sc.open_scope(outscope, key.clone());
+                        let mut vd = Validator::new(block, data);
+                        vd.set_max_severity(max_sev);
                         side_effects |= validate_trigger_internal(
                             &Lowercase::new(it_name.as_str()),
                             true,
-                            b,
+                            block,
                             data,
                             sc,
+                            vd,
                             tooltipped,
                             negated,
-                            max_sev,
                         );
                         sc.close();
                     }
@@ -564,15 +550,17 @@ pub fn validate_trigger_key_bv(
         }
         BV::Block(b) => {
             sc.finalize_builder();
+            let mut vd = Validator::new(b, data);
+            vd.set_max_severity(max_sev);
             side_effects |= validate_trigger_internal(
                 Lowercase::empty(),
                 false,
                 b,
                 data,
                 sc,
+                vd,
                 tooltipped,
                 negated,
-                max_sev,
             );
             sc.close();
         }
@@ -857,15 +845,17 @@ fn match_trigger_bv(
                 if name_lc == "custom_description" {
                     tooltipped = Tooltipped::No;
                 }
+                let mut vd = Validator::new(block, data);
+                vd.set_max_severity(max_sev);
                 side_effects |= validate_trigger_internal(
                     &Lowercase::from_string_unchecked(name_lc),
                     false,
                     block,
                     data,
                     sc,
+                    vd,
                     tooltipped,
                     negated,
-                    max_sev,
                 );
             }
         }
@@ -901,15 +891,17 @@ fn match_trigger_bv(
                 match bv {
                     BV::Value(t) => data.verify_exists_max_sev(Item::Localization, t, max_sev),
                     BV::Block(b) => {
+                        let mut vd = Validator::new(b, data);
+                        vd.set_max_severity(max_sev);
                         side_effects |= validate_trigger_internal(
                             &Lowercase::new(name.as_str()),
                             false,
                             b,
                             data,
                             sc,
+                            vd,
                             Tooltipped::No,
                             negated,
-                            max_sev,
                         );
                     }
                 }

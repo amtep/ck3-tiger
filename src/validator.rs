@@ -145,6 +145,14 @@ impl<'a> Validator<'a> {
         }
     }
 
+    /// Construct a new `Validator` for a [`Block`] that is subordinate to the current `Validator`.
+    #[cfg(feature = "hoi4")]
+    pub fn sub_validator(&self, block: &'a Block, data: &'a Everything) -> Self {
+        let mut vd = Self::new(block, data);
+        vd.set_max_severity(self.max_severity);
+        vd
+    }
+
     /// Control whether the fields in this `Block` will be matched case-sensitively or not.
     /// Whether this should be on or off depends on what the game engine allows, which is not always known.
     pub fn set_case_sensitive(&mut self, cs: bool) {
@@ -159,6 +167,9 @@ impl<'a> Validator<'a> {
 
     pub fn set_max_severity(&mut self, max_severity: Severity) {
         self.max_severity = max_severity;
+    }
+    pub fn max_severity(&self) -> Severity {
+        self.max_severity
     }
 
     /// Require field `name` to be present in the block, and warn if it isn't there.
@@ -833,17 +844,20 @@ impl<'a> Validator<'a> {
         T: Into<FieldScopeContext<'b>>,
     {
         let mut fsc = fsc.into();
+        let max_sev = self.max_severity;
         self.field_validated_key_block(name, |key, block, data| {
             fsc.validate(key, |sc| {
+                let mut vd = Validator::new(block, data);
+                vd.set_max_severity(max_sev);
                 validate_trigger_internal(
                     Lowercase::empty(),
                     false,
                     block,
                     data,
                     sc,
+                    vd,
                     tooltipped,
                     false,
-                    Severity::Error,
                 )
             });
         })
