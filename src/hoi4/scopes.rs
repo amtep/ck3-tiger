@@ -100,8 +100,9 @@ static SCOPE_TO_SCOPE_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>
 /// LAST UPDATED HOI4 VERSION 1.16.4
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
+// TODO
 const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
-    // TODO
+    (Scopes::Country, "capital_scope", Scopes::State), // undocumented
 ];
 
 #[inline]
