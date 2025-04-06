@@ -1,11 +1,9 @@
 use std::sync::LazyLock;
 
-use crate::datatype::{Arg, Args, CaseInsensitiveStr, Datatype, Hoi4Datatype};
+use crate::datatype::{Args, CaseInsensitiveStr, Datatype, Hoi4Datatype};
 use crate::helpers::{BiTigerHashMap, TigerHashMap, TigerHashSet};
-use crate::item::Item;
 use crate::scopes::Scopes;
 
-use Arg::*;
 use Datatype::*;
 use Hoi4Datatype::*;
 

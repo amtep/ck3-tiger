@@ -24,6 +24,7 @@ const BOM_CHAR: char = '\u{feff}';
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PdxEncoding {
     Utf8Bom,
+    #[cfg(feature = "jomini")]
     Utf8OptionalBom,
     #[cfg(feature = "ck3")]
     Detect,
@@ -122,6 +123,7 @@ impl PdxFile {
     ) -> Option<Block> {
         match encoding {
             PdxEncoding::Utf8Bom => Self::read(entry, parser),
+            #[cfg(feature = "jomini")]
             PdxEncoding::Utf8OptionalBom => Self::read_optional_bom(entry, parser),
             #[cfg(feature = "ck3")]
             PdxEncoding::Detect => Self::read_detect_encoding(entry, parser),

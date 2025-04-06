@@ -531,6 +531,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] AdvisorSlot,
     #[cfg(feature = "hoi4")] Continent,
     #[cfg(feature = "hoi4")] CountryTag,
+    #[cfg(feature = "hoi4")] CountryTagAlias,
     #[cfg(feature = "hoi4")] DecisionCategory,
     #[cfg(feature = "hoi4")] IndustrialOrg,
     #[cfg(feature = "hoi4")] Focus,
@@ -1504,6 +1505,8 @@ impl Item {
             Item::Continent => "map/continent.txt", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::CountryTag => "common/country_tags/",
+            #[cfg(feature = "hoi4")]
+            Item::CountryTagAlias => "common/country_tag_aliases/",
             #[cfg(feature = "hoi4")]
             Item::DecisionCategory => "common/decisions/categories/",
             #[cfg(feature = "hoi4")]
