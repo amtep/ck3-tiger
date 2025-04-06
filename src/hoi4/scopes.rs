@@ -10,7 +10,20 @@ use crate::scopes::{ArgumentValue, Scopes};
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
         "none" => Scopes::None,
-        // TODO
+        "value" => Scopes::Value,
+        "bool" => Scopes::Bool,
+        "flag" => Scopes::Flag,
+        "country" => Scopes::Country,
+        "state" => Scopes::State,
+        "ace" => Scopes::Ace,
+        "combatant" => Scopes::Combatant,
+        "division" => Scopes::Division,
+        "industrial_org" => Scopes::IndustrialOrg,
+        "operation" => Scopes::Operation,
+        "purchase_contract" => Scopes::PurchaseContract,
+        "raid_instance" => Scopes::RaidInstance,
+        "special_project" => Scopes::SpecialProject,
+        "strategic_region" => Scopes::StrategicRegion,
         _ => return std::option::Option::None,
     })
 }
@@ -20,11 +33,52 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::None) {
         vec.push("none");
     }
-    // TODO
+    if s.contains(Scopes::Value) {
+        vec.push("value");
+    }
+    if s.contains(Scopes::Bool) {
+        vec.push("bool");
+    }
+    if s.contains(Scopes::Flag) {
+        vec.push("flag");
+    }
+    if s.contains(Scopes::Country) {
+        vec.push("country");
+    }
+    if s.contains(Scopes::State) {
+        vec.push("state");
+    }
+    if s.contains(Scopes::Ace) {
+        vec.push("ace");
+    }
+    if s.contains(Scopes::Combatant) {
+        vec.push("combatant");
+    }
+    if s.contains(Scopes::Division) {
+        vec.push("division");
+    }
+    if s.contains(Scopes::IndustrialOrg) {
+        vec.push("industrial org");
+    }
+    if s.contains(Scopes::Operation) {
+        vec.push("operation");
+    }
+    if s.contains(Scopes::PurchaseContract) {
+        vec.push("purchase contract");
+    }
+    if s.contains(Scopes::RaidInstance) {
+        vec.push("raid instance");
+    }
+    if s.contains(Scopes::SpecialProject) {
+        vec.push("special project");
+    }
+    if s.contains(Scopes::StrategicRegion) {
+        vec.push("strategic region");
+    }
     display_choices(f, &vec, "or")
 }
 
-pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
+pub fn needs_prefix(_arg: &str, _data: &Everything, _scopes: Scopes) -> Option<&'static str> {
     // TODO
     None
 }
@@ -72,7 +126,13 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
     use crate::item::Item;
     use ArgumentValue::*;
     &[
-        // TODO
+        (Scopes::None, "constant", Scopes::Value, Item(Item::ScriptedConstant)),
+        (Scopes::all(), "event_target", Scopes::all(), UncheckedValue),
+        (Scopes::Country, "mio", Scopes::IndustrialOrg, Item(Item::IndustrialOrg)),
+        (Scopes::Country, "sp", Scopes::SpecialProject, Item(Item::SpecialProject)),
+        // TODO: need special handling for token: prefix
+        (Scopes::None, "token", Scopes::all(), UncheckedValue),
+        (Scopes::all(), "var", Scopes::all(), UncheckedValue),
     ]
 };
 
