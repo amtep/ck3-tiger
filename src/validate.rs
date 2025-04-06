@@ -18,7 +18,7 @@ use crate::lowercase::Lowercase;
 #[cfg(feature = "jomini")]
 use crate::report::fatal;
 use crate::report::{err, report, warn, Confidence, ErrorKey, Severity};
-#[cfg(feature = "ck3")]
+#[cfg(any(feature = "ck3", feature = "hoi4"))]
 use crate::scopes::Scopes;
 use crate::scopes::{scope_prefix, scope_to_scope};
 #[cfg(feature = "jomini")]
@@ -773,6 +773,10 @@ pub fn validate_scope_chain(
                     sc.replace_prev();
                 } else if part_lc == "this" {
                     sc.replace_this();
+                } else if Game::is_hoi4() && part_lc == "from" {
+                    // TODO HOI4: is FROM always a country?
+                    #[cfg(feature = "hoi4")]
+                    sc.replace(Scopes::Country, part.clone());
                 } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
                     validate_inscopes(part_flags, part, inscopes, sc);
                     sc.replace(outscope, part.clone());
