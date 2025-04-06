@@ -3,7 +3,9 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
 use crate::everything::Everything;
-use crate::game::{Game, GameFlags};
+#[cfg(feature = "jomini")]
+use crate::game::Game;
+use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;

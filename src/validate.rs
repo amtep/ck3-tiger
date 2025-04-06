@@ -15,7 +15,9 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
-use crate::report::{err, fatal, report, warn, Confidence, ErrorKey, Severity};
+#[cfg(feature = "jomini")]
+use crate::report::fatal;
+use crate::report::{err, report, warn, Confidence, ErrorKey, Severity};
 #[cfg(feature = "ck3")]
 use crate::scopes::Scopes;
 use crate::scopes::{scope_prefix, scope_to_scope};
@@ -67,7 +69,7 @@ impl TryFrom<&str> for ListType {
     }
 }
 
-#[cfg(not(feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
 pub fn validate_compare_duration(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
     let mut count = 0;
