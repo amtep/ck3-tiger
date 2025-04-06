@@ -115,6 +115,15 @@ pub fn validate_trigger_internal(
     let mut side_effects = false;
     let max_sev = vd.max_severity();
 
+    #[cfg(feature = "hoi4")]
+    let caller = if Game::is_hoi4() && tooltipped == Tooltipped::Inner {
+        &Lowercase::new_unchecked("custom_override_tooltip")
+    } else {
+        caller
+    };
+    #[cfg(not(feature = "hoi4"))]
+    let caller = caller;
+
     // If this condition looks weird, it's because the negation from for example NOR has already
     // been applied to the `negated` value.
     if tooltipped == Tooltipped::FailuresOnly
