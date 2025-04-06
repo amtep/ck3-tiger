@@ -509,7 +509,7 @@ pub fn validate_trigger_key_bv(
                         warn_not_first(part);
                     }
                     #[cfg(feature = "hoi4")]
-                    data.verify_exists(Item::Country, part);
+                    data.verify_exists(Item::CountryTag, part);
                     #[cfg(feature = "hoi4")]
                     sc.replace(Scopes::Country, part.clone());
                 } else {
@@ -1146,7 +1146,7 @@ pub fn validate_target_ok_this(
                         warn_not_first(part);
                     }
                     #[cfg(feature = "hoi4")]
-                    data.verify_exists(Item::Country, part);
+                    data.verify_exists(Item::CountryTag, part);
                     #[cfg(feature = "hoi4")]
                     sc.replace(Scopes::Country, part.clone());
                 } else {

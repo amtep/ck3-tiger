@@ -530,6 +530,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] AceModifier,
     #[cfg(feature = "hoi4")] AdvisorSlot,
     #[cfg(feature = "hoi4")] Continent,
+    #[cfg(feature = "hoi4")] CountryTag,
     #[cfg(feature = "hoi4")] DecisionCategory,
     #[cfg(feature = "hoi4")] Focus,
     #[cfg(feature = "hoi4")] Sprite,
@@ -781,7 +782,7 @@ impl Item {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "setup/countries/countries.txt",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/country_tags/",
+                Game::Hoi4 => "common/counties/",
             },
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::DeathReason => "common/deathreasons/",
@@ -1497,7 +1498,9 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::AdvisorSlot => "common/script_enums.txt", // TODO HOI4
             #[cfg(feature = "hoi4")]
-            Item::Continent => "", // TODO HOI4
+            Item::Continent => "map/continent.txt", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::CountryTag => "common/country_tags/",
             #[cfg(feature = "hoi4")]
             Item::DecisionCategory => "common/decisions/categories/",
             #[cfg(feature = "hoi4")]
