@@ -209,9 +209,10 @@ fn main() -> Result<()> {
                     store = format!("Hoi4({parent})");
                     dtype = &store;
                 }
+                let key = format!("{dtype}.{name}");
                 if is_promotion {
                     new_promotes.insert(
-                        name.to_owned(),
+                        key,
                         NonGlobal::new(
                             name.to_owned(),
                             dtype.to_owned(),
@@ -221,7 +222,7 @@ fn main() -> Result<()> {
                     );
                 } else {
                     new_functions.insert(
-                        name.to_owned(),
+                        key,
                         NonGlobal::new(
                             name.to_owned(),
                             dtype.to_owned(),
