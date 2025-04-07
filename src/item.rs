@@ -157,7 +157,7 @@ pub enum Item {
     WidgetName,
 
     // Items shared by more than one game
-    #[cfg(any(feature = "ck3", feature = "imperator"))]
+    #[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
     Building,
     #[cfg(any(feature = "ck3", feature = "hoi4"))]
     Character,
@@ -173,6 +173,8 @@ pub enum Item {
     Dna,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
     EventTheme,
+    #[cfg(any(feature = "imperator", feature = "hoi4"))]
+    Idea,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
     Law,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
@@ -504,7 +506,6 @@ pub enum Item {
     #[cfg(feature = "imperator")] GreatWorkModule,
     #[cfg(feature = "imperator")] GreatWorkTemplate,
     #[cfg(feature = "imperator")] Heritage,
-    #[cfg(feature = "imperator")] Idea,
     #[cfg(feature = "imperator")] Invention,
     #[cfg(feature = "imperator")] InventionGroup,
     #[cfg(feature = "imperator")] LegionDistinction,
@@ -758,7 +759,7 @@ impl Item {
             Item::TriggerLocalization => "common/trigger_localization/",
             Item::WidgetName => "gui/",
 
-            #[cfg(any(feature = "ck3", feature = "imperator"))]
+            #[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
             Item::Building => "common/buildings/",
             #[cfg(any(feature = "ck3", feature = "hoi4"))]
             Item::Character => match Game::game() {
@@ -798,6 +799,8 @@ impl Item {
             Item::Dna => "common/dna_data/",
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::EventTheme => "common/event_themes/",
+            #[cfg(any(feature = "imperator", feature = "hoi4"))]
+            Item::Idea => "common/ideas/",
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::Law => "common/laws/",
             #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
@@ -1459,8 +1462,6 @@ impl Item {
             Item::GreatWorkTemplate => "common/great_work_templates/",
             #[cfg(feature = "imperator")]
             Item::Heritage => "common/heritage/",
-            #[cfg(feature = "imperator")]
-            Item::Idea => "common/ideas/",
             #[cfg(feature = "imperator")]
             Item::Invention => "common/inventions/",
             #[cfg(feature = "imperator")]
