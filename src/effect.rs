@@ -86,7 +86,7 @@ pub fn validate_effect_internal(
                 let info = "normally you would use `else_if` instead.";
                 tips(ErrorKey::IfElse).msg(msg).info(info).loc(key).push();
             }
-            validate_trigger(block, data, sc, tooltipped);
+            validate_trigger(block, data, sc, Tooltipped::No);
         });
     } else {
         vd.ban_field("limit", || "if/else_if or lists");
