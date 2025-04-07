@@ -159,7 +159,7 @@ pub fn validate_trigger_internal(
         || caller == "trigger_else"
         || (Game::is_hoi4() && (caller == "if" || caller == "else_if" || caller == "else"))
     {
-        if caller != "trigger_else" {
+        if caller != "trigger_else" && caller != "else" {
             vd.req_field_warn("limit");
         }
         vd.field_validated_key_block("limit", |key, block, data| {
