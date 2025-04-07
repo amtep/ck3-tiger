@@ -11,5 +11,5 @@ cargo clippy -p ck3-tiger
 cargo clippy -p vic3-tiger
 cargo clippy -p imperator-tiger
 cargo clippy -p utils
-cargo doc --features "ck3 vic3 imperator" --no-deps --document-private-items
+cargo doc --features "ck3 vic3 imperator hoi4" --no-deps --document-private-items
 cargo +1.75 check

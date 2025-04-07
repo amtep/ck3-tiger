@@ -1,17 +1,12 @@
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::lowercase::Lowercase;
-use crate::pdxfile::PdxEncoding;
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger_internal;
-use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -29,7 +24,8 @@ impl Continents {
             }
         } else {
             warn(ErrorKey::UnknownField)
-                .msg("unexpect key, only `continents` list should be defined here")
+                .msg("unexpected key")
+                .info("only `continents` list should be defined here")
                 .loc(key)
                 .push();
         }
@@ -56,7 +52,8 @@ impl AdjacencyRule {
             }
         } else {
             warn(ErrorKey::UnknownField)
-                .msg("unexpect key, only `adjacency_rule` is a valid key here")
+                .msg("unexpected key")
+                .info("only `adjacency_rule` is a valid key here")
                 .loc(key)
                 .push();
         }
@@ -69,9 +66,9 @@ impl DbKind for AdjacencyRule {
     }
 }
 
-fn validate_adjacency_rule(key: &Token, block: &Block, data: &Everything) {
+fn validate_adjacency_rule(_key: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    vd.field("name"); // already checked when added.
+    vd.field_item("name", Item::Localization);
 
     for state in ["contested", "friend", "enemy", "neutral"] {
         vd.field_validated_block(state, |block, data| {
