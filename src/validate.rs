@@ -13,6 +13,7 @@ use crate::context::ScopeContext;
 use crate::data::scripted_modifiers::ScriptedModifier;
 use crate::everything::Everything;
 use crate::game::Game;
+use crate::helpers::is_country_tag;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 #[cfg(feature = "jomini")]
@@ -757,6 +758,7 @@ pub fn validate_scope_chain(
                 let part_lc = Lowercase::new(part.as_str());
                 // prefixed scope transition, e.g. cp:councillor_steward
                 if let Some((prefix, arg)) = part.split_once(':') {
+                    #[allow(clippy::if_same_then_else)] // cfg attributes give a false positive here
                     // known prefix
                     if let Some(entry) = scope_prefix(&prefix) {
                         validate_argument_scope(part_flags, entry, &prefix, &arg, data, sc);
@@ -778,6 +780,23 @@ pub fn validate_scope_chain(
                     // TODO HOI4: is FROM always a country?
                     #[cfg(feature = "hoi4")]
                     sc.replace(Scopes::Country, part.clone());
+                } else if Game::is_hoi4() && is_country_tag(part.as_str()) {
+                    if !part_flags.contains(PartFlags::First) {
+                        warn_not_first(part);
+                    }
+                    #[cfg(feature = "hoi4")]
+                    data.verify_exists(Item::CountryTag, part);
+                    #[cfg(feature = "hoi4")]
+                    sc.replace(Scopes::Country, part.clone());
+                } else if Game::is_hoi4() && part.is_integer() {
+                    // TODO HOI4: figure out if a state id has to be the whole target
+                    if !part_flags.contains(PartFlags::First) {
+                        warn_not_first(part);
+                    }
+                    #[cfg(feature = "hoi4")]
+                    data.verify_exists(Item::State, part);
+                    #[cfg(feature = "hoi4")]
+                    sc.replace(Scopes::State, part.clone());
                 } else if let Some((inscopes, outscope)) = scope_to_scope(part, sc.scopes()) {
                     validate_inscopes(part_flags, part, inscopes, sc);
                     sc.replace(outscope, part.clone());

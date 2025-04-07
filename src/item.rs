@@ -540,6 +540,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] ScriptedConstant,
     #[cfg(feature = "hoi4")] SpecialProject,
     #[cfg(feature = "hoi4")] Sprite,
+    #[cfg(feature = "hoi4")] State,
 }
 
 /// Display items in `separated word case` for maximum friendliness.
@@ -1511,7 +1512,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::AdvisorSlot => "common/script_enums.txt", // TODO HOI4
             #[cfg(feature = "hoi4")]
-            Item::Continent => "map/continent.txt", // TODO HOI4
+            Item::Continent => "map/continent.txt",
             #[cfg(feature = "hoi4")]
             Item::CountryTag => "common/country_tags/",
             #[cfg(feature = "hoi4")]
@@ -1528,6 +1529,8 @@ impl Item {
             Item::SpecialProject => "common/special_projects/", // TODO: HOI4
             #[cfg(feature = "hoi4")]
             Item::Sprite => "gfx/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::State => "history/states/", // TODO HOI4
         }
     }
 
