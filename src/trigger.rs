@@ -154,7 +154,11 @@ pub fn validate_trigger_internal(
         }
     }
 
-    if caller == "trigger_if" || caller == "trigger_else_if" || caller == "trigger_else" {
+    if caller == "trigger_if"
+        || caller == "trigger_else_if"
+        || caller == "trigger_else"
+        || (Game::is_hoi4() && (caller == "if" || caller == "else_if" || caller == "else"))
+    {
         if caller != "trigger_else" {
             vd.req_field_warn("limit");
         }
