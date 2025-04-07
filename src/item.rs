@@ -540,6 +540,8 @@ pub enum Item {
     #[cfg(feature = "hoi4")] NationalFocus,
     #[cfg(feature = "hoi4")] ScriptedConstant,
     #[cfg(feature = "hoi4")] ScriptedLocalisation,
+    #[cfg(feature = "hoi4")] SpawnPoint,
+    #[cfg(feature = "hoi4")] Specialization,
     #[cfg(feature = "hoi4")] SpecialProject,
     #[cfg(feature = "hoi4")] Sprite,
     #[cfg(feature = "hoi4")] State,
@@ -1530,7 +1532,11 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::ScriptedLocalisation => "common/scripted_localisation/",
             #[cfg(feature = "hoi4")]
-            Item::SpecialProject => "common/special_projects/", // TODO: HOI4
+            Item::SpawnPoint => "common/buildings/",
+            #[cfg(feature = "hoi4")]
+            Item::Specialization => "common/special_projects/specialization/", // TODO: HOI4
+            #[cfg(feature = "hoi4")]
+            Item::SpecialProject => "common/special_projects/projects/", // TODO: HOI4
             #[cfg(feature = "hoi4")]
             Item::Sprite => "gfx/",
             #[cfg(feature = "hoi4")]
