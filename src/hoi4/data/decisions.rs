@@ -104,10 +104,10 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
         validate_trigger(block, data, &mut sc, Tooltipped::Yes);
     });
     vd.field_validated_block("target_root_trigger", |block, data| {
-        validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+        validate_trigger(block, data, &mut sc, Tooltipped::No);
     });
     vd.field_validated_block("target_trigger", |block, data| {
-        validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+        validate_trigger(block, data, &mut sc, Tooltipped::No);
     });
     vd.advice_field("state_trigger", "docs say state_trigger but it's state_target");
     vd.field_validated_value("state_target", |_, mut vd| {
@@ -125,7 +125,7 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
         vd.field_bool("selectable_mission");
         vd.field_integer("days_mission_timeout");
         vd.field_validated_block("activation", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         vd.field_validated_block("complete_effect", |block, data| {
             validate_effect(block, data, &mut sc, Tooltipped::Yes);
