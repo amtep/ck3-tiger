@@ -6,7 +6,7 @@ use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{err, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -40,13 +40,13 @@ impl ScriptedLocalisation {
     pub fn validate_loca_call(block: &Block, data: &Everything, lang: Option<Language>) {
         for block in block.get_field_blocks("text") {
             if let Some(key) = block.get_field_value("localization_key") {
-                data.localization.verify_exists_lang(key, lang);
+                validate_localization_key(key, data, lang);
             }
             if let Some(block) = block.get_field_block("random_list") {
                 for (key, block) in block.iter_definitions() {
                     if key.is_integer() {
                         if let Some(key) = block.get_field_value("localization_key") {
-                            data.localization.verify_exists_lang(key, lang);
+                            validate_localization_key(key, data, lang);
                         }
                     }
                 }
@@ -79,5 +79,33 @@ impl DbKind for ScriptedLocalisation {
                 }
             });
         });
+    }
+}
+
+fn validate_localization_key(key: &Token, data: &Everything, lang: Option<Language>) {
+    let v = key.split('|');
+    match v.len() {
+        1 => data.localization.verify_exists_lang(key, lang),
+        2 => {
+            let [ref format, ref value] = v[..] else { unreachable!() };
+            // The formats are described in documentation/loc_formatter_documentation.md
+            match format.as_str() {
+                "character_name" | "advisor_desc" | "country_leader_desc" => {
+                    data.verify_exists(Item::Character, &value)
+                }
+                "country_culture" => (), // TODO (no examples)
+                "idea_name" | "idea_desc" => data.verify_exists(Item::Idea, &value),
+                "tech_effect" => data.verify_exists(Item::Technology, &value),
+                "building_state_modifier" => data.verify_exists(Item::Building, &value),
+                _ => {
+                    let msg = "unknown format {format}";
+                    warn(ErrorKey::Localization).msg(msg).loc(key).push();
+                }
+            }
+        }
+        _ => {
+            let msg = "could not parse format of localization key {key}";
+            warn(ErrorKey::Localization).msg(msg).loc(key).push();
+        }
     }
 }
