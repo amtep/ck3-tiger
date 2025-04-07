@@ -76,6 +76,12 @@ impl FileHandler<Block> for Gfx {
     }
 
     fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
+        // Don't descend into the dlc directories directly.
+        // Wait for them to be processed as Dlc FileKind.
+        if entry.path().starts_with("dlc") {
+            return None;
+        }
+
         let name = entry.filename().to_string_lossy();
 
         if name.ends_with(".gfx") {
