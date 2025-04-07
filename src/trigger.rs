@@ -669,9 +669,9 @@ fn match_trigger_bv(
     // True iff the comparator must be Comparator::Equals
     let mut must_be_eq = true;
     // True iff it's probably a mistake if the comparator is Comparator::Equals
-    #[cfg(feature = "ck3")]
+    #[cfg(any(feature = "ck3", feature = "hoi4"))]
     let mut warn_if_eq = false;
-    #[cfg(any(feature = "imperator", feature = "vic3", feature = "hoi4"))]
+    #[cfg(any(feature = "imperator", feature = "vic3"))]
     let warn_if_eq = false;
 
     match trigger {
@@ -694,7 +694,7 @@ fn match_trigger_bv(
                 value.expect_integer();
             }
         }
-        #[cfg(feature = "ck3")]
+        #[cfg(any(feature = "ck3", feature = "hoi4"))]
         Trigger::CompareValueWarnEq => {
             must_be_eq = false;
             warn_if_eq = true;
@@ -1588,7 +1588,7 @@ pub enum Trigger {
     #[cfg(feature = "hoi4")]
     CompareValueInt,
     /// can be a script value; warn if =
-    #[cfg(feature = "ck3")]
+    #[cfg(any(feature = "ck3", feature = "hoi4"))]
     CompareValueWarnEq,
     /// can be a script value; no < or >
     #[cfg(any(feature = "ck3", feature = "vic3"))]
@@ -1681,9 +1681,13 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
         #[cfg(feature = "imperator")]
         Some((s, Trigger::CompareValue | Trigger::CompareDate)) => Some(s),
         #[cfg(feature = "hoi4")]
-        Some((s, Trigger::CompareValue | Trigger::CompareValueInt | Trigger::CompareDate)) => {
-            Some(s)
-        }
+        Some((
+            s,
+            Trigger::CompareValue
+            | Trigger::CompareValueWarnEq
+            | Trigger::CompareValueInt
+            | Trigger::CompareDate,
+        )) => Some(s),
         _ => std::option::Option::None,
     }
 }
