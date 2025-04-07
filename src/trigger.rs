@@ -16,6 +16,8 @@ use crate::everything::Everything;
 use crate::game::Game;
 use crate::helpers::is_country_tag;
 use crate::helpers::stringify_choices;
+#[cfg(feature = "hoi4")]
+use crate::hoi4::effect_validation::validate_flag_name;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 #[cfg(feature = "vic3")]
@@ -681,6 +683,13 @@ fn match_trigger_bv(
             validate_script_value(bv, data, sc);
             // TODO HOI4
         }
+        #[cfg(feature = "hoi4")]
+        Trigger::CompareValueInt => {
+            must_be_eq = false;
+            if let Some(value) = bv.expect_value() {
+                value.expect_integer();
+            }
+        }
         #[cfg(feature = "ck3")]
         Trigger::CompareValueWarnEq => {
             must_be_eq = false;
@@ -1036,6 +1045,27 @@ fn match_trigger_bv(
         Trigger::Identifier(kind) => {
             if let Some(token) = bv.expect_value() {
                 validate_identifier(token, kind, Severity::Error);
+            }
+        }
+        #[cfg(feature = "hoi4")]
+        Trigger::Flag => {
+            if let Some(token) = bv.expect_value() {
+                validate_flag_name(token);
+            }
+        }
+        #[cfg(feature = "hoi4")]
+        Trigger::FlagOrBlock(fields) => {
+            if name.is("has_unit_leader_flag") {
+                let msg = "deprecated in favor of has_character_flag";
+                warn(ErrorKey::Deprecated).msg(msg).loc(name).push();
+            }
+
+            match bv {
+                BV::Value(token) => validate_flag_name(token),
+                BV::Block(block) => {
+                    side_effects |=
+                        match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev);
+                }
             }
         }
         #[cfg(any(feature = "ck3", feature = "vic3"))]
@@ -1542,6 +1572,9 @@ pub enum Trigger {
     Boolean,
     /// can be a script value
     CompareValue,
+    /// value must be an integer
+    #[cfg(feature = "hoi4")]
+    CompareValueInt,
     /// can be a script value; warn if =
     #[cfg(feature = "ck3")]
     CompareValueWarnEq,
@@ -1591,6 +1624,12 @@ pub enum Trigger {
     CompareToScope(Scopes),
     /// trigger takes a single word
     Identifier(&'static str),
+    /// trigger takes a flag name
+    #[cfg(feature = "hoi4")]
+    Flag,
+    /// trigger takes a flag name or a block
+    #[cfg(feature = "hoi4")]
+    FlagOrBlock(&'static [(&'static str, Trigger)]),
 
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     Removed(&'static str, &'static str),
@@ -1629,6 +1668,10 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
         )) => Some(s),
         #[cfg(feature = "imperator")]
         Some((s, Trigger::CompareValue | Trigger::CompareDate)) => Some(s),
+        #[cfg(feature = "hoi4")]
+        Some((s, Trigger::CompareValue | Trigger::CompareValueInt | Trigger::CompareDate)) => {
+            Some(s)
+        }
         _ => std::option::Option::None,
     }
 }

@@ -67,6 +67,7 @@ pub enum ErrorKey {
     Gui,
     Performance,
     Overflow,
+    Deprecated,
 
     PrincesOfDarkness,
 
