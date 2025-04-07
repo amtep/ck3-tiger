@@ -1,4 +1,4 @@
-use crate::block::Block;
+use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::effect::{validate_effect, validate_effect_internal};
 use crate::everything::Everything;
@@ -40,7 +40,17 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     vd.field_value("id"); // checked in add
 
     vd.field_item("title", Item::Localization);
-    vd.field_item("desc", Item::Localization);
+    // TODO: verify whether a conditional desc after unconditional does anything
+    vd.multi_field_validated("desc", |bv, data| match bv {
+        BV::Value(value) => {
+            data.verify_exists(Item::Localization, value);
+        }
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("text", Item::Localization);
+            vd.field_trigger_full("trigger", &mut *sc, Tooltipped::No);
+        }
+    });
     vd.field_item("picture", Item::Sprite);
 
     vd.field_bool("fire_only_once");
