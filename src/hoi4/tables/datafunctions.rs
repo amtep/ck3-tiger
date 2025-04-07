@@ -88,8 +88,7 @@ const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
     (Hoi4(UnitLeader), Scopes::Character),
 ];
 
-// Hoi4 does not have these
-const GLOBAL_PROMOTES: &[(&str, Args, Datatype)] = &[];
+const GLOBAL_PROMOTES: &[(&str, Args, Datatype)] = include!("include/data_global_promotes.rs");
 
 // Hoi4 does not have these
 const GLOBAL_FUNCTIONS: &[(&str, Args, Datatype)] = &[];
