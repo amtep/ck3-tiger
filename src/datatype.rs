@@ -20,6 +20,8 @@ use crate::game::Game;
 #[cfg(feature = "hoi4")]
 use crate::helpers::is_country_tag;
 use crate::helpers::BiTigerHashMap;
+#[cfg(feature = "hoi4")]
+use crate::hoi4::data::scripted_localisation::ScriptedLocalisation;
 use crate::item::Item;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::report::err;
@@ -615,6 +617,20 @@ pub fn validate_datatypes(
             found = true;
             data.verify_exists(Item::CountryTag, &code.name);
             rtype = Datatype::Hoi4(Hoi4Datatype::Country);
+        }
+
+        #[cfg(feature = "hoi4")]
+        if Game::is_hoi4()
+            && !found
+            && data.item_exists(Item::ScriptedLocalisation, code.name.as_str())
+        {
+            found = true;
+            rtype = Datatype::CString;
+            if let Some((_, block)) =
+                data.get_key_block(Item::ScriptedLocalisation, code.name.as_str())
+            {
+                ScriptedLocalisation::validate_loca_call(block, data, lang);
+            }
         }
 
         // If it's still not found, warn and exit.
