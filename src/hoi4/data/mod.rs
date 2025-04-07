@@ -1,3 +1,4 @@
+pub mod buildings;
 pub mod countries;
 pub mod decisions;
 pub mod events;

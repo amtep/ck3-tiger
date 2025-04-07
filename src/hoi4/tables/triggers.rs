@@ -9,7 +9,10 @@ use crate::trigger::Trigger;
 
 use Trigger::*;
 
-pub fn scope_trigger(name: &Token, _data: &Everything) -> Option<(Scopes, Trigger)> {
+pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger)> {
+    if data.item_exists(Item::Building, name.as_str()) {
+        return Some((Scopes::State | Scopes::Country, Trigger::CompareValueInt));
+    }
     let name_lc = name.as_str().to_ascii_lowercase();
     TRIGGER_MAP.get(&*name_lc).copied()
 }
