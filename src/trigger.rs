@@ -121,8 +121,6 @@ pub fn validate_trigger_internal(
     } else {
         caller
     };
-    #[cfg(not(feature = "hoi4"))]
-    let caller = caller;
 
     // If this condition looks weird, it's because the negation from for example NOR has already
     // been applied to the `negated` value.

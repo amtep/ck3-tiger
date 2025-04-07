@@ -536,7 +536,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] CountryTagAlias,
     #[cfg(feature = "hoi4")] DecisionCategory,
     #[cfg(feature = "hoi4")] IndustrialOrg,
-    #[cfg(feature = "hoi4")] Focus,
+    #[cfg(feature = "hoi4")] NationalFocus,
     #[cfg(feature = "hoi4")] ScriptedConstant,
     #[cfg(feature = "hoi4")] SpecialProject,
     #[cfg(feature = "hoi4")] Sprite,
@@ -1521,7 +1521,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::IndustrialOrg => "common/military_industrial_organization/",
             #[cfg(feature = "hoi4")]
-            Item::Focus => "common/national_focus/", // TODO HOI4
+            Item::NationalFocus => "common/national_focus/", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::ScriptedConstant => "common/scripted_constants/", // TODO HOI4
             #[cfg(feature = "hoi4")]

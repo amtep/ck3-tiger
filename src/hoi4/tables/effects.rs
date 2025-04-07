@@ -34,7 +34,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     // TODO: figure out how to distinguish decisions from missions
     (Scopes::Country, "activate_mission", Item(Item::Decision)),
     (Scopes::Country, "activate_mission_tooltip", Item(Item::Decision)),
-    (Scopes::Country, "activate_shine_on_focus", Item(Item::Focus)),
+    (Scopes::Country, "activate_shine_on_focus", Item(Item::NationalFocus)),
     (
         Scopes::Country.union(Scopes::State),
         "activate_targeted_decision",
