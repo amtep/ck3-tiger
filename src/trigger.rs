@@ -1042,6 +1042,9 @@ fn match_trigger_bv(
         #[cfg(feature = "hoi4")]
         Trigger::Flag => {
             if let Some(token) = bv.expect_value() {
+                if tooltipped.is_tooltipped() && !token.as_str().contains('@') {
+                    data.verify_exists(Item::Localization, token);
+                }
                 validate_flag_name(token);
             }
         }
@@ -1053,7 +1056,12 @@ fn match_trigger_bv(
             }
 
             match bv {
-                BV::Value(token) => validate_flag_name(token),
+                BV::Value(token) => {
+                    if tooltipped.is_tooltipped() && !token.as_str().contains('@') {
+                        data.verify_exists(Item::Localization, token);
+                    }
+                    validate_flag_name(token);
+                }
                 BV::Block(block) => {
                     side_effects |=
                         match_trigger_fields(fields, block, data, sc, tooltipped, negated, max_sev);
