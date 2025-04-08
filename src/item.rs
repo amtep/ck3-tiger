@@ -778,7 +778,7 @@ impl Item {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "history/characters/",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/characters/", // TODO HOI4
+                Game::Hoi4 => "common/characters/",
             },
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::CharacterTemplate => match Game::game() {

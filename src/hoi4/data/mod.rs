@@ -1,4 +1,5 @@
 pub mod buildings;
+pub mod characters;
 pub mod countries;
 pub mod decisions;
 pub mod events;
