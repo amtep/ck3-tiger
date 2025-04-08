@@ -520,6 +520,9 @@ pub fn validate_trigger_key_bv(
                     data.verify_exists(Item::CountryTag, part);
                     #[cfg(feature = "hoi4")]
                     sc.replace(Scopes::Country, part.clone());
+                } else if is_character_token(part.as_str(), data) {
+                    #[cfg(feature = "hoi4")]
+                    sc.replace(Scopes::Character, part.clone());
                 } else {
                     // TODO: warn if trying to use iterator here
                     let msg = format!("unknown token `{part}`");
@@ -1203,6 +1206,9 @@ pub fn validate_target_ok_this(
                     data.verify_exists(Item::CountryTag, part);
                     #[cfg(feature = "hoi4")]
                     sc.replace(Scopes::Country, part.clone());
+                } else if is_character_token(part.as_str(), data) {
+                    #[cfg(feature = "hoi4")]
+                    sc.replace(Scopes::Character, part.clone());
                 } else {
                     // See if the user forgot a prefix like `faith:` or `culture:`
                     let mut opt_info = None;
@@ -1682,4 +1688,15 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
         )) => Some(s),
         _ => std::option::Option::None,
     }
+}
+
+// This function works around the problem of needing cfg-specific conditions in an else if
+#[inline]
+#[allow(unused_variables)]
+pub fn is_character_token(part: &str, data: &Everything) -> bool {
+    #[cfg(feature = "hoi4")]
+    if Game::is_hoi4() {
+        return data.item_exists(Item::Character, part);
+    }
+    false
 }

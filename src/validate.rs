@@ -29,8 +29,8 @@ use crate::tooltipped::Tooltipped;
 #[cfg(feature = "ck3")]
 use crate::trigger::validate_target_ok_this;
 use crate::trigger::{
-    partition, validate_argument, validate_argument_scope, validate_inscopes, validate_trigger,
-    validate_trigger_internal, warn_not_first, Part, PartFlags,
+    is_character_token, partition, validate_argument, validate_argument_scope, validate_inscopes,
+    validate_trigger, validate_trigger_internal, warn_not_first, Part, PartFlags,
 };
 use crate::validator::Validator;
 
@@ -788,6 +788,9 @@ pub fn validate_scope_chain(
                     data.verify_exists(Item::CountryTag, part);
                     #[cfg(feature = "hoi4")]
                     sc.replace(Scopes::Country, part.clone());
+                } else if is_character_token(part.as_str(), data) {
+                    #[cfg(feature = "hoi4")]
+                    sc.replace(Scopes::Character, part.clone());
                 } else if Game::is_hoi4() && part.is_integer() {
                     // TODO HOI4: figure out if a state id has to be the whole target
                     if !part_flags.contains(PartFlags::First) {
