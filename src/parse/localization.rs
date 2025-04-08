@@ -5,6 +5,8 @@ use std::str::Chars;
 use crate::data::localization::{Language, LocaEntry, LocaValue, MacroValue};
 use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
+#[cfg(feature = "hoi4")]
+use crate::game::Game;
 use crate::parse::cob::Cob;
 use crate::report::{untidy, warn, ErrorKey};
 use crate::token::{leak, Loc, Token};
@@ -518,6 +520,13 @@ impl<'a> ValueParser<'a> {
 
     fn parse_code_code(&mut self) -> Code {
         let mut text = self.start_text();
+
+        #[cfg(feature = "hoi4")]
+        if Game::is_hoi4() && self.peek() == Some('?') {
+            text.add_char('?');
+            self.next_char();
+        }
+
         while let Some(c) = self.peek() {
             if is_code_char(c) {
                 text.add_char(c);
