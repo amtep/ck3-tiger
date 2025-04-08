@@ -43,6 +43,17 @@ impl Cob {
         }
     }
 
+    pub(crate) fn make_owned(&mut self) {
+        match *self {
+            Self::Uninit => unreachable!(),
+            Self::Borrowed(str, start, end, loc) => {
+                let string = str[start..end].to_owned();
+                *self = Self::Owned(string, loc);
+            }
+            Self::Owned(_, _) => (),
+        }
+    }
+
     pub(crate) fn take_to_token(&mut self) -> Token {
         match take(self) {
             Cob::Uninit => unreachable!(),
