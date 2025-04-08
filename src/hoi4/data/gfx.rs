@@ -78,7 +78,7 @@ impl FileHandler<Block> for Gfx {
     fn load_file(&self, entry: &FileEntry, parser: &ParserMemory) -> Option<Block> {
         // Don't descend into the dlc directories directly.
         // Wait for them to be processed as Dlc FileKind.
-        if entry.path().starts_with("dlc") {
+        if entry.path().starts_with("dlc") || entry.path().starts_with("integrated_dlc") {
             return None;
         }
 
@@ -157,9 +157,9 @@ fn validate_meshsettings(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.field_value("name");
     vd.field_integer("index"); // TODO: do these need to be consecutive?
-    vd.field_item("texture_diffuse", Item::File);
-    vd.field_item("texture_normal", Item::File);
-    vd.field_item("texture_specular", Item::File);
+    vd.field_item("texture_diffuse", Item::TextureFile);
+    vd.field_item("texture_normal", Item::TextureFile);
+    vd.field_item("texture_specular", Item::TextureFile);
     vd.field_value("shader"); // TODO
 }
 
