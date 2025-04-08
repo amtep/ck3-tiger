@@ -26,7 +26,7 @@ use crate::scopes::{scope_prefix, scope_to_scope};
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-#[cfg(feature = "ck3")]
+#[cfg(any(feature = "ck3", feature = "hoi4"))]
 use crate::trigger::validate_target_ok_this;
 use crate::trigger::{
     is_character_token, partition, validate_argument, validate_argument_scope, validate_inscopes,
@@ -310,6 +310,13 @@ pub fn precheck_iterator_fields(
             validate_script_value(value, data, sc);
         }
     }
+
+    #[cfg(feature = "hoi4")]
+    if Game::is_hoi4() && name == "country_with_original_tag" {
+        if let Some(tag) = block.get_field_value("original_tag_to_check") {
+            validate_target_ok_this(tag, data, sc, Scopes::Country);
+        }
+    }
 }
 
 /// This checks the fields that are only used in iterators.
@@ -405,6 +412,14 @@ pub fn validate_inside_iterator(
                 "`{listtype}_in_list`, `{listtype}_in_local_list`, or `{listtype}_in_global_list`"
             )
         });
+    }
+
+    #[cfg(feature = "hoi4")]
+    if Game::is_hoi4() {
+        if name == "country_with_original_tag" {
+            vd.req_field("original_tag_to_check");
+            vd.field_value("original_tag_to_check"); // prechecked
+        }
     }
 
     #[cfg(feature = "ck3")]
