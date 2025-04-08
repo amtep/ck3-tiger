@@ -165,6 +165,8 @@ pub enum Item {
     CharacterTemplate,
     #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
     CharacterTrait,
+    #[cfg(any(feature = "imperator", feature = "hoi4"))]
+    CombatTactic,
     #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
     Country,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
@@ -175,6 +177,8 @@ pub enum Item {
     EventTheme,
     #[cfg(any(feature = "imperator", feature = "hoi4"))]
     Idea,
+    #[cfg(any(feature = "vic3", feature = "hoi4"))]
+    Ideology,
     #[cfg(any(feature = "ck3", feature = "imperator"))]
     Law,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
@@ -189,12 +193,16 @@ pub enum Item {
     SubjectType,
     #[cfg(any(feature = "vic3", feature = "hoi4"))]
     Technology,
+    #[cfg(any(feature = "ck3", feature = "hoi4"))]
+    Trait,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     TutorialLesson,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     TutorialLessonChain,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     TutorialLessonStep,
+    #[cfg(any(feature = "imperator", feature = "hoi4"))]
+    Unit,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     Wargoal,
 
@@ -375,7 +383,6 @@ pub enum Item {
     #[cfg(feature = "ck3")] Title,
     #[cfg(feature = "ck3")] TitleHistory,
     #[cfg(feature = "ck3")] TitleHistoryType,
-    #[cfg(feature = "ck3")] Trait,
     #[cfg(feature = "ck3")] TraitCategory,
     #[cfg(feature = "ck3")] TraitFlag,
     #[cfg(feature = "ck3")] TraitPortraitModifier,
@@ -427,7 +434,6 @@ pub enum Item {
     #[cfg(feature = "vic3")] Goods,
     #[cfg(feature = "vic3")] GradientBorderSettings,
     #[cfg(feature = "vic3")] HarvestConditionType,
-    #[cfg(feature = "vic3")] Ideology,
     #[cfg(feature = "vic3")] InfamyThreshold,
     #[cfg(feature = "vic3")] Institution,
     #[cfg(feature = "vic3")] InterestGroup,
@@ -491,7 +497,6 @@ pub enum Item {
     #[cfg(feature = "imperator")] AiPlanGoals,
     #[cfg(feature = "imperator")] Area,
     #[cfg(feature = "imperator")] CultureGroup,
-    #[cfg(feature = "imperator")] CombatTactic,
     #[cfg(feature = "imperator")] Deity,
     #[cfg(feature = "imperator")] DeityCategory,
     #[cfg(feature = "imperator")] DiplomaticStance,
@@ -526,7 +531,6 @@ pub enum Item {
     #[cfg(feature = "imperator")] TechnologyTable,
     #[cfg(feature = "imperator")] TradeGood,
     #[cfg(feature = "imperator")] Treasure,
-    #[cfg(feature = "imperator")] Unit,
     #[cfg(feature = "imperator")] UnitAbility,
 
     #[cfg(feature = "hoi4")] AdjacencyRule,
@@ -536,8 +540,14 @@ pub enum Item {
     #[cfg(feature = "hoi4")] CountryTag,
     #[cfg(feature = "hoi4")] CountryTagAlias,
     #[cfg(feature = "hoi4")] DecisionCategory,
+    #[cfg(feature = "hoi4")] Equipment,
+    #[cfg(feature = "hoi4")] EquipmentModule,
+    #[cfg(feature = "hoi4")] IdeaCategory,
+    #[cfg(feature = "hoi4")] IdeaGroup,
     #[cfg(feature = "hoi4")] IndustrialOrg,
     #[cfg(feature = "hoi4")] NationalFocus,
+    #[cfg(feature = "hoi4")] Operation,
+    #[cfg(feature = "hoi4")] Resource,
     #[cfg(feature = "hoi4")] ScriptedConstant,
     #[cfg(feature = "hoi4")] ScriptedLocalisation,
     #[cfg(feature = "hoi4")] SpawnPoint,
@@ -685,7 +695,7 @@ impl Item {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/modifiers/",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/modifiers/",
+                Game::Hoi4 => "common/modifiers/", // TODO HOI4
             },
             Item::Music => "music/",
             Item::MusicPlayerCategory => "music/music_player_categories/",
@@ -699,7 +709,7 @@ impl Item {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/on_action/",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/on_actions/",
+                Game::Hoi4 => "common/on_actions/", // TODO HOI4
             },
             Item::Pdxmesh => "gfx/models/",
             #[cfg(feature = "jomini")]
@@ -720,7 +730,7 @@ impl Item {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "map_data/provinces.png",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "map/definition.csv",
+                Game::Hoi4 => "map/definition.csv", // TODO HOI4
             },
             #[cfg(feature = "jomini")]
             Item::Religion => match Game::game() {
@@ -752,7 +762,7 @@ impl Item {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/terrain_types/",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/terrain/",
+                Game::Hoi4 => "common/terrain/", // TODO HOI4
             },
             Item::TextFormat => "gui/",
             Item::TextIcon => "gui/",
@@ -768,7 +778,7 @@ impl Item {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "history/characters/",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/characters/",
+                Game::Hoi4 => "common/characters/", // TODO HOI4
             },
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::CharacterTemplate => match Game::game() {
@@ -784,7 +794,14 @@ impl Item {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/traits/",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/unit_leader/",
+                Game::Hoi4 => "common/unit_leader/", // TODO HOI4
+            },
+            #[cfg(any(feature = "imperator", feature = "hoi4"))]
+            Item::CombatTactic => match Game::game() {
+                #[cfg(feature = "imperator")]
+                Game::Imperator => "common/combat_tactics/",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "common/combat_tactics.txt", // TODO HOI4
             },
             #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
             Item::Country => match Game::game() {
@@ -793,7 +810,7 @@ impl Item {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "setup/countries/countries.txt",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/counties/",
+                Game::Hoi4 => "common/countries/", // TODO HOI4
             },
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::DeathReason => "common/deathreasons/",
@@ -802,7 +819,9 @@ impl Item {
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::EventTheme => "common/event_themes/",
             #[cfg(any(feature = "imperator", feature = "hoi4"))]
-            Item::Idea => "common/ideas/",
+            Item::Idea => "common/ideas/", // TODO HOI4
+            #[cfg(any(feature = "vic3", feature = "hoi4"))]
+            Item::Ideology => "common/ideologies/", // TODO HOI4
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::Law => "common/laws/",
             #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
@@ -839,7 +858,14 @@ impl Item {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => "common/technology/technologies/",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/technologies/",
+                Game::Hoi4 => "common/technologies/", // TODO HOI4
+            },
+            #[cfg(any(feature = "ck3", feature = "hoi4"))]
+            Item::Trait => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => "common/traits/",
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "common/country_leader/", // TODO HOI4
             },
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::TutorialLesson => "common/tutorial_lessons",
@@ -847,6 +873,8 @@ impl Item {
             Item::TutorialLessonChain => "common/tutorial_lesson_chains",
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::TutorialLessonStep => "common/tutorial_lessons",
+            #[cfg(any(feature = "imperator", feature = "hoi4"))]
+            Item::Unit => "common/units/", // TODO HOI4
             #[cfg(any(feature = "vic3", feature = "imperator"))]
             Item::Wargoal => match Game::game() {
                 #[cfg(feature = "vic3")]
@@ -1208,8 +1236,6 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::TitleHistoryType => "",
             #[cfg(feature = "ck3")]
-            Item::Trait => "common/traits/",
-            #[cfg(feature = "ck3")]
             Item::TraitCategory => "",
             #[cfg(feature = "ck3")]
             Item::TraitFlag => "common/traits/",
@@ -1309,8 +1335,6 @@ impl Item {
             Item::GradientBorderSettings => "gfx/map/gradient_border_settings/",
             #[cfg(feature = "vic3")]
             Item::HarvestConditionType => "common/harvest_condition_types/",
-            #[cfg(feature = "vic3")]
-            Item::Ideology => "common/ideologies/",
             #[cfg(feature = "vic3")]
             Item::InfamyThreshold => "",
             #[cfg(feature = "vic3")]
@@ -1433,8 +1457,6 @@ impl Item {
             #[cfg(feature = "imperator")]
             Item::Area => "map_data/areas.txt",
             #[cfg(feature = "imperator")]
-            Item::CombatTactic => "common/combat_tactics/",
-            #[cfg(feature = "imperator")]
             Item::CultureGroup => "common/cultures/",
             #[cfg(feature = "imperator")]
             Item::Deity => "common/deities/",
@@ -1505,8 +1527,6 @@ impl Item {
             #[cfg(feature = "imperator")]
             Item::Treasure => "setup/main/",
             #[cfg(feature = "imperator")]
-            Item::Unit => "common/units/",
-            #[cfg(feature = "imperator")]
             Item::UnitAbility => "common/unit_abilities/",
 
             #[cfg(feature = "hoi4")]
@@ -1524,9 +1544,21 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::DecisionCategory => "common/decisions/categories/",
             #[cfg(feature = "hoi4")]
+            Item::Equipment => "common/units/equipment/",
+            #[cfg(feature = "hoi4")]
+            Item::EquipmentModule => "common/units/equipment/modules/",
+            #[cfg(feature = "hoi4")]
+            Item::IdeaCategory => "", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::IdeaGroup => "common/ideas/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
             Item::IndustrialOrg => "common/military_industrial_organization/", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::NationalFocus => "common/national_focus/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::Operation => "common/operations/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::Resource => "common/resources/", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::ScriptedConstant => "common/scripted_constants/", // TODO HOI4
             #[cfg(feature = "hoi4")]
