@@ -9,7 +9,9 @@ use bitflags::bitflags;
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::game::Game;
-#[cfg(any(feature = "ck3", feature = "vic3"))]
+#[cfg(feature = "hoi4")]
+use crate::hoi4::tables::modifs::modif_loc_hoi4;
+#[cfg(any(feature = "ck3", feature = "vic3", feature = "hoi4"))]
 use crate::item::Item;
 use crate::report::{err, ErrorKey, Severity};
 #[cfg(feature = "jomini")]
@@ -17,7 +19,7 @@ use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::validator::Validator;
 #[cfg(feature = "vic3")]
-use crate::vic3::tables::modifs::modif_loc;
+use crate::vic3::tables::modifs::modif_loc_vic3;
 
 bitflags! {
     /// All the things a modif can apply to.
@@ -145,9 +147,14 @@ pub fn validate_modifs<'a>(
             if Game::is_vic3() {
                 // The Item::ModifierType doesn't need to exist if the defaults are ok,
                 // but the loca should exist.
-                let (loca_key, loca_desc_key) = modif_loc(key, data);
+                let (loca_key, loca_desc_key) = modif_loc_vic3(key, data);
                 data.verify_exists_implied(Item::Localization, &loca_key, key);
                 data.verify_exists_implied(Item::Localization, &loca_desc_key, key);
+            }
+            #[cfg(feature = "hoi4")]
+            if Game::is_hoi4() {
+                let loca_key = modif_loc_hoi4(key, data);
+                data.verify_exists_implied(Item::Localization, &loca_key, key);
             }
         } else {
             let msg = format!("unknown modifier `{key}`");

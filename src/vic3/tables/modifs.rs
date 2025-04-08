@@ -542,7 +542,7 @@ fn maybe_warn(itype: Item, s: &Lowercase, name: &Token, data: &Everything, warn:
 
 /// Return the modifier localization keys.
 /// It's usually just the name, but there are known exceptions.
-pub fn modif_loc(name: &Token, data: &Everything) -> (Cow<'static, str>, Cow<'static, str>) {
+pub fn modif_loc_vic3(name: &Token, data: &Everything) -> (Cow<'static, str>, Cow<'static, str>) {
     let name_lc = Lowercase::new(name.as_str());
 
     if MODIF_MAP.contains_key(&name_lc) {
