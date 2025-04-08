@@ -63,7 +63,7 @@ impl DbKind for Alert {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
         // TODO figure out the valid panel and popup values
-        vd.req_field_one_of(&["open_panel", "open_popup"]);
+        vd.exclusive_fields(&["open_panel", "open_popup"]);
         vd.field_value("open_panel");
         vd.field_value("open_popup");
         vd.field_choice("type", &["alert", "important_action", "angry_important_action"]);

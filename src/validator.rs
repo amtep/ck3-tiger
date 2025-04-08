@@ -191,6 +191,24 @@ impl<'a> Validator<'a> {
         count == 1
     }
 
+    /// Require no more than one of the fields in `names` to be present in the block.
+    /// Returns true iff it found exactly one.
+    #[allow(dead_code)]
+    pub fn exclusive_fields(&mut self, names: &[&str]) -> bool {
+        let mut count = 0;
+        for name in names {
+            if self.check_key(name) {
+                count += 1;
+            }
+        }
+        if count > 1 {
+            let msg = format!("cannot combine fields {}", names.join(", "));
+            let sev = Severity::Error.at_most(self.max_severity);
+            report(ErrorKey::Validation, sev).msg(msg).loc(self.block).push();
+        }
+        count == 1
+    }
+
     /// Require field `name` to be present in the block, and warn if it isn't there.
     /// Returns true iff the field is present. Warns at a lower severity than `req_field`.
     pub fn req_field_warn(&mut self, name: &str) -> bool {
