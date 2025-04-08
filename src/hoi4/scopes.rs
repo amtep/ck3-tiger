@@ -103,6 +103,8 @@ static SCOPE_TO_SCOPE_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>
 // TODO
 const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "capital_scope", Scopes::State), // undocumented
+    (Scopes::State, "controller", Scopes::Country),
+    (Scopes::State, "owner", Scopes::Country),
 ];
 
 #[inline]
