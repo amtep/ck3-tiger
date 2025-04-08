@@ -633,6 +633,13 @@ pub fn validate_datatypes(
             }
         }
 
+        #[cfg(feature = "hoi4")]
+        if Game::is_hoi4() && !found && code.name.starts_with("?") {
+            // It's a variable reference
+            found = true;
+            rtype = Datatype::Unknown;
+        }
+
         // If it's still not found, warn and exit.
         if !found {
             // TODO: If there is a Custom of the same name, suggest that
