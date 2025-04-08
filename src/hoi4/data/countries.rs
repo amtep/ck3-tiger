@@ -33,9 +33,12 @@ impl CountryTag {
 }
 
 impl DbKind for CountryTag {
-    fn validate(&self, _key: &Token, _block: &Block, data: &Everything) {
+    fn validate(&self, key: &Token, _block: &Block, data: &Everything) {
         let pathname = format!("common/{}", &self.file);
         data.verify_exists_implied(Item::File, &pathname, &self.file);
+
+        data.verify_exists(Item::Localization, key);
+        // TODO: mark-used the per-ideology locas
     }
 }
 

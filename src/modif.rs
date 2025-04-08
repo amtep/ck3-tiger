@@ -124,6 +124,23 @@ pub fn validate_modifs<'a>(
         Game::Hoi4 => crate::hoi4::tables::modifs::lookup_modif,
     };
 
+    #[cfg(feature = "hoi4")]
+    vd.field_validated_block("hidden_modifier", |block, data| {
+        let mut vd = Validator::new(block, data);
+        // Same as below, but with no loca check
+        vd.unknown_fields(|key, bv| {
+            if let Some(mk) = lookup_modif(key, data, Some(Severity::Error)) {
+                kinds.require(mk, key);
+
+                // TODO HOI4
+                let _ = &bv;
+            } else {
+                let msg = format!("unknown modifier `{key}`");
+                err(ErrorKey::UnknownField).msg(msg).loc(key).push();
+            }
+        });
+    });
+
     vd.unknown_fields(|key, bv| {
         if let Some(mk) = lookup_modif(key, data, Some(Severity::Error)) {
             kinds.require(mk, key);

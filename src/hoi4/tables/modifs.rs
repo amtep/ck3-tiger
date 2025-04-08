@@ -119,11 +119,11 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         return Some(ModifKinds::Country);
     }
 
-    // $Ideology$_drift
-    // $Ideology$_acceptance
+    // $IdeologyGroup$_drift
+    // $IdeologyGroup$_acceptance
     for &sfx in &["_drift", "_acceptance"] {
         if let Some(part) = name_lc.strip_suffix_unchecked(sfx) {
-            maybe_warn(Item::Ideology, &part, name, data, warn);
+            maybe_warn(Item::IdeologyGroup, &part, name, data, warn);
             return Some(ModifKinds::Politics);
         }
     }
