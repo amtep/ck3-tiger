@@ -547,6 +547,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] EquipmentModule,
     #[cfg(feature = "hoi4")] IdeaCategory,
     #[cfg(feature = "hoi4")] IdeaGroup,
+    #[cfg(feature = "hoi4")] IdeologyGroup,
     #[cfg(feature = "hoi4")] IndustrialOrg,
     #[cfg(feature = "hoi4")] NationalFocus,
     #[cfg(feature = "hoi4")] Operation,
@@ -825,7 +826,7 @@ impl Item {
             #[cfg(any(feature = "imperator", feature = "hoi4"))]
             Item::Idea => "common/ideas/", // TODO HOI4
             #[cfg(any(feature = "vic3", feature = "hoi4"))]
-            Item::Ideology => "common/ideologies/", // TODO HOI4
+            Item::Ideology => "common/ideologies/",
             #[cfg(any(feature = "ck3", feature = "imperator"))]
             Item::Law => "common/laws/",
             #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
@@ -1561,6 +1562,8 @@ impl Item {
             Item::IdeaCategory => "", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::IdeaGroup => "common/ideas/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::IdeologyGroup => "common/ideologies/",
             #[cfg(feature = "hoi4")]
             Item::IndustrialOrg => "common/military_industrial_organization/", // TODO HOI4
             #[cfg(feature = "hoi4")]
