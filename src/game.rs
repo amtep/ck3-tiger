@@ -73,6 +73,7 @@ impl Game {
     }
 
     /// Convenience function indicating whether we are validating Crusader Kings 3 mods.
+    #[inline]
     pub(crate) fn is_ck3() -> bool {
         #[cfg(not(feature = "ck3"))]
         return false;
@@ -91,6 +92,7 @@ impl Game {
     }
 
     /// Convenience function indicating whether we are validating Victoria 3 mods.
+    #[inline]
     pub(crate) fn is_vic3() -> bool {
         #[cfg(not(feature = "vic3"))]
         return false;
@@ -109,6 +111,7 @@ impl Game {
     }
 
     /// Convenience function indicating whether we are validating Imperator: Rome mods.
+    #[inline]
     pub(crate) fn is_imperator() -> bool {
         #[cfg(not(feature = "imperator"))]
         return false;
@@ -128,11 +131,13 @@ impl Game {
 
     /// Convenience function indicating whether we are validating one of the three newer games
     /// which use the Jomini scripting engine.
+    #[inline]
     pub(crate) fn is_jomini() -> bool {
         Game::is_ck3() || Game::is_vic3() || Game::is_imperator()
     }
 
     /// Convenience function indicating whether we are validating Imperator: Rome mods.
+    #[inline]
     pub(crate) fn is_hoi4() -> bool {
         #[cfg(not(feature = "hoi4"))]
         return false;

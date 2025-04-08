@@ -42,6 +42,9 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::Flag) {
         vec.push("flag");
     }
+    if s.contains(Scopes::Character) {
+        vec.push("character");
+    }
     if s.contains(Scopes::Country) {
         vec.push("country");
     }

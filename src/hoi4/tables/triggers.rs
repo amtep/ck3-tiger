@@ -543,7 +543,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Combatant, "night", UncheckedTodo),
     (Scopes::State, "non_damaged_building_level", UncheckedTodo),
     (Scopes::None, "not", UncheckedTodo),
-    (Scopes::Character, "not_already_hired_except_as", CompareValueInt),
+    (Scopes::Character, "not_already_hired_except_as", Item(Item::AdvisorSlot)),
     (Scopes::Country, "num_battalions_in_states", CompareValueInt),
     (Scopes::Country, "num_divisions", CompareValueInt),
     (Scopes::Country, "num_divisions_in_states", CompareValueInt),
