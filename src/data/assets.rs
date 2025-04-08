@@ -255,7 +255,7 @@ impl Asset {
         vd.field_numeric("scale");
         vd.field_numeric("cull_radius");
         #[cfg(feature = "jomini")]
-        if Game::is_hoi4() {
+        if Game::is_jomini() {
             vd.multi_field_validated_block("attribute", |block, data| {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("name");
