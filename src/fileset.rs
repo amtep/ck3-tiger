@@ -406,27 +406,11 @@ impl Fileset {
             self.scan(&vanilla_root.clone(), FileKind::Vanilla).map_err(|e| {
                 FilesError::VanillaUnreadable { path: vanilla_root.clone(), source: e }
             })?;
-            let dlc_root = vanilla_root.join("dlc");
-            for entry in
-                WalkDir::new(dlc_root).max_depth(1).sort_by_file_name().into_iter().flatten()
-            {
-                if entry.depth() == 1 && entry.file_type().is_dir() {
-                    let label = entry.file_name().to_string_lossy().to_string();
-                    let idx =
-                        u8::try_from(self.loaded_dlcs.len()).expect("more than 256 DLCs installed");
-                    let dlc = LoadedMod::new(
-                        FileKind::Dlc(idx),
-                        label.clone(),
-                        entry.path().to_path_buf(),
-                        Vec::new(),
-                    );
-                    self.scan(dlc.root(), dlc.kind()).map_err(|e| {
-                        FilesError::VanillaUnreadable { path: dlc.root().to_path_buf(), source: e }
-                    })?;
-                    self.loaded_dlcs.push(dlc);
-                    add_loaded_dlc_root(label);
-                }
+            #[cfg(feature = "hoi4")]
+            if Game::is_hoi4() {
+                self.load_dlcs(&vanilla_root.join("integrated_dlc"))?;
             }
+            self.load_dlcs(&vanilla_root.join("dlc"))?;
         }
         // loaded_mods is cloned here for the borrow checker
         for loaded_mod in &self.loaded_mods.clone() {
@@ -438,6 +422,29 @@ impl Fileset {
         self.scan(&self.the_mod.root().to_path_buf(), FileKind::Mod).map_err(|e| {
             FilesError::ModUnreadable { path: self.the_mod.root().to_path_buf(), source: e }
         })?;
+        Ok(())
+    }
+
+    pub fn load_dlcs(&mut self, dlc_root: &Path) -> Result<(), FilesError> {
+        for entry in WalkDir::new(dlc_root).max_depth(1).sort_by_file_name().into_iter().flatten() {
+            if entry.depth() == 1 && entry.file_type().is_dir() {
+                let label = entry.file_name().to_string_lossy().to_string();
+                let idx =
+                    u8::try_from(self.loaded_dlcs.len()).expect("more than 256 DLCs installed");
+                let dlc = LoadedMod::new(
+                    FileKind::Dlc(idx),
+                    label.clone(),
+                    entry.path().to_path_buf(),
+                    Vec::new(),
+                );
+                self.scan(dlc.root(), dlc.kind()).map_err(|e| FilesError::VanillaUnreadable {
+                    path: dlc.root().to_path_buf(),
+                    source: e,
+                })?;
+                self.loaded_dlcs.push(dlc);
+                add_loaded_dlc_root(label);
+            }
+        }
         Ok(())
     }
 
