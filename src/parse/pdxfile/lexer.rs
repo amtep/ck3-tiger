@@ -392,6 +392,7 @@ impl Iterator for Lexer<'_> {
                     let start_loc = self.loc;
                     self.consume();
                     let mut warn_linebreaks = true;
+                    let mut escaped = false;
                     let mut id = self.start_cob();
                     while let Some((i, c)) = self.peek() {
                         if c == '[' && i == start_i + 1 {
@@ -416,7 +417,12 @@ impl Iterator for Lexer<'_> {
                                 warn(ErrorKey::ParseError).weak().msg(msg).loc(self.loc).push();
                             }
                             self.consume();
-                        } else if c == '"' {
+                        } else if Game::is_hoi4() && c == '\\' && !escaped {
+                            self.consume();
+                            id.make_owned();
+                            escaped = true;
+                            continue;
+                        } else if c == '"' && !escaped {
                             let token = id.take_to_token();
                             self.consume();
                             return Some(Ok((start_i, Lexeme::General(token), i + 1)));
@@ -434,6 +440,7 @@ impl Iterator for Lexer<'_> {
                             id.add_char(c);
                             self.consume();
                         }
+                        escaped = false;
                     }
                     let msg = "quoted string not closed";
                     err(ErrorKey::ParseError).msg(msg).loc(start_loc).push();
