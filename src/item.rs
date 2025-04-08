@@ -541,6 +541,9 @@ pub enum Item {
     #[cfg(feature = "hoi4")] CountryTagAlias,
     #[cfg(feature = "hoi4")] DecisionCategory,
     #[cfg(feature = "hoi4")] Equipment,
+    #[cfg(feature = "hoi4")] EquipmentBonusType,
+    #[cfg(feature = "hoi4")] EquipmentCategory,
+    #[cfg(feature = "hoi4")] EquipmentStat,
     #[cfg(feature = "hoi4")] EquipmentModule,
     #[cfg(feature = "hoi4")] IdeaCategory,
     #[cfg(feature = "hoi4")] IdeaGroup,
@@ -549,6 +552,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] Operation,
     #[cfg(feature = "hoi4")] Resource,
     #[cfg(feature = "hoi4")] ScriptedConstant,
+    #[cfg(feature = "hoi4")] ScriptedEnum,
     #[cfg(feature = "hoi4")] ScriptedLocalisation,
     #[cfg(feature = "hoi4")] SpawnPoint,
     #[cfg(feature = "hoi4")] Specialization,
@@ -840,7 +844,7 @@ impl Item {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/missions/",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/script_enums.txt", // TODO HOI4
+                Game::Hoi4 => "common/script_enums.txt",
             },
             #[cfg(any(feature = "vic3", feature = "imperator"))]
             Item::PopType => "common/pop_types/",
@@ -1534,7 +1538,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::AceModifier => "common/aces", // TODO HOI4
             #[cfg(feature = "hoi4")]
-            Item::AdvisorSlot => "common/script_enums.txt", // TODO HOI4
+            Item::AdvisorSlot => "common/script_enums.txt",
             #[cfg(feature = "hoi4")]
             Item::Continent => "map/continent.txt",
             #[cfg(feature = "hoi4")]
@@ -1545,6 +1549,12 @@ impl Item {
             Item::DecisionCategory => "common/decisions/categories/",
             #[cfg(feature = "hoi4")]
             Item::Equipment => "common/units/equipment/",
+            #[cfg(feature = "hoi4")]
+            Item::EquipmentBonusType => "common/script_enums.txt",
+            #[cfg(feature = "hoi4")]
+            Item::EquipmentCategory => "common/script_enums.txt",
+            #[cfg(feature = "hoi4")]
+            Item::EquipmentStat => "common/script_enums.txt",
             #[cfg(feature = "hoi4")]
             Item::EquipmentModule => "common/units/equipment/modules/",
             #[cfg(feature = "hoi4")]
@@ -1561,6 +1571,8 @@ impl Item {
             Item::Resource => "common/resources/", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::ScriptedConstant => "common/scripted_constants/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::ScriptedEnum => "common/script_enums.txt",
             #[cfg(feature = "hoi4")]
             Item::ScriptedLocalisation => "common/scripted_localisation/",
             #[cfg(feature = "hoi4")]
