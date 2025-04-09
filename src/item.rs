@@ -533,9 +533,10 @@ pub enum Item {
     #[cfg(feature = "imperator")] UnitAbility,
 
     #[cfg(feature = "hoi4")] Ability,
-    #[cfg(feature = "hoi4")] AdjacencyRule,
     #[cfg(feature = "hoi4")] AceModifier,
+    #[cfg(feature = "hoi4")] AdjacencyRule,
     #[cfg(feature = "hoi4")] AdvisorSlot,
+    #[cfg(feature = "hoi4")] AiStrategyType,
     #[cfg(feature = "hoi4")] Continent,
     #[cfg(feature = "hoi4")] CountryLeaderTrait,
     #[cfg(feature = "hoi4")] CountryTag,
@@ -1546,6 +1547,8 @@ impl Item {
             Item::AceModifier => "common/aces", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::AdvisorSlot => "common/script_enums.txt",
+            #[cfg(feature = "hoi4")]
+            Item::AiStrategyType => "",
             #[cfg(feature = "hoi4")]
             Item::Continent => "map/continent.txt",
             #[cfg(feature = "hoi4")]

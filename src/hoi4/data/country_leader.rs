@@ -37,10 +37,23 @@ impl DbKind for CountryLeaderTrait {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Country, key);
 
-        data.verify_exists(Item::Localization, key);
+        if let Some(name) = vd.field_value("name") {
+            data.verify_exists(Item::Localization, name);
+        } else {
+            data.verify_exists(Item::Localization, key);
+        }
 
         vd.field_bool("random");
         vd.field_integer("sprite");
+        vd.field_numeric("command_cap_increase");
+        vd.field_numeric("command_power");
+        vd.field_item("custom_modifier_tooltip", Item::Localization);
+        vd.multi_field_validated_block("ai_strategy", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("type", Item::AiStrategyType);
+            vd.field_item("id", Item::CountryTag);
+            vd.field_numeric("value");
+        });
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
         vd.field_numeric("command_cap");
         vd.multi_field_validated_block("targeted_modifier", |block, data| {
