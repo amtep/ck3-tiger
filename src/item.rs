@@ -193,8 +193,6 @@ pub enum Item {
     SubjectType,
     #[cfg(any(feature = "vic3", feature = "hoi4"))]
     Technology,
-    #[cfg(any(feature = "ck3", feature = "hoi4"))]
-    Trait,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     TutorialLesson,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
@@ -383,6 +381,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] Title,
     #[cfg(feature = "ck3")] TitleHistory,
     #[cfg(feature = "ck3")] TitleHistoryType,
+    #[cfg(feature = "ck3")] Trait,
     #[cfg(feature = "ck3")] TraitCategory,
     #[cfg(feature = "ck3")] TraitFlag,
     #[cfg(feature = "ck3")] TraitPortraitModifier,
@@ -537,6 +536,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] AceModifier,
     #[cfg(feature = "hoi4")] AdvisorSlot,
     #[cfg(feature = "hoi4")] Continent,
+    #[cfg(feature = "hoi4")] CountryLeaderTrait,
     #[cfg(feature = "hoi4")] CountryTag,
     #[cfg(feature = "hoi4")] CountryTagAlias,
     #[cfg(feature = "hoi4")] DecisionCategory,
@@ -560,6 +560,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] SpecialProject,
     #[cfg(feature = "hoi4")] Sprite,
     #[cfg(feature = "hoi4")] State,
+    #[cfg(feature = "hoi4")] UnitLeaderTrait,
 }
 
 /// Display items in `separated word case` for maximum friendliness.
@@ -864,13 +865,6 @@ impl Item {
                 Game::Vic3 => "common/technology/technologies/",
                 #[cfg(feature = "hoi4")]
                 Game::Hoi4 => "common/technologies/", // TODO HOI4
-            },
-            #[cfg(any(feature = "ck3", feature = "hoi4"))]
-            Item::Trait => match Game::game() {
-                #[cfg(feature = "ck3")]
-                Game::Ck3 => "common/traits/",
-                #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/country_leader/", // TODO HOI4
             },
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::TutorialLesson => "common/tutorial_lessons",
@@ -1241,6 +1235,8 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::TitleHistoryType => "",
             #[cfg(feature = "ck3")]
+            Item::Trait => "common/traits/",
+            #[cfg(feature = "ck3")]
             Item::TraitCategory => "",
             #[cfg(feature = "ck3")]
             Item::TraitFlag => "common/traits/",
@@ -1543,6 +1539,8 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::Continent => "map/continent.txt",
             #[cfg(feature = "hoi4")]
+            Item::CountryLeaderTrait => "common/country_leader/",
+            #[cfg(feature = "hoi4")]
             Item::CountryTag => "common/country_tags/",
             #[cfg(feature = "hoi4")]
             Item::CountryTagAlias => "common/country_tag_aliases/",
@@ -1588,6 +1586,8 @@ impl Item {
             Item::Sprite => "gfx/",
             #[cfg(feature = "hoi4")]
             Item::State => "history/states/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::UnitLeaderTrait => "common/unit_leader/",
         }
     }
 

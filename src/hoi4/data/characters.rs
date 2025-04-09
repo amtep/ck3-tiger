@@ -75,7 +75,7 @@ fn validate_character(key: &Token, block: &Block, data: &Everything, vd: &mut Va
     vd.field_validated_block("country_leader", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_item("ideology", Item::Ideology);
-        vd.field_list_items("traits", Item::Trait);
+        vd.field_list_items("traits", Item::CountryLeaderTrait);
         // "expire" is in year.month.day.hour format
         if let Some(date) = vd.field_value("expire") {
             let split = date.split('.');
@@ -94,7 +94,7 @@ fn validate_character(key: &Token, block: &Block, data: &Everything, vd: &mut Va
     for field in &["field_marshal", "corps_commander", "navy_leader"] {
         vd.field_validated_block(field, |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_list_items("traits", Item::Trait);
+            vd.field_list_items("traits", Item::UnitLeaderTrait);
             vd.field_integer("skill");
             vd.field_integer("attack_skill");
             vd.field_integer("defense_skill");
@@ -126,7 +126,7 @@ fn validate_character(key: &Token, block: &Block, data: &Everything, vd: &mut Va
         vd.field_trigger_full("allowed", Scopes::Country, Tooltipped::No);
         vd.field_trigger_full("visible", Scopes::Country, Tooltipped::No);
         vd.field_trigger_full("available", Scopes::Country, Tooltipped::Yes);
-        vd.field_list_items("traits", Item::Trait);
+        vd.field_list_items("traits", Item::CountryLeaderTrait);
         vd.field_numeric("cost");
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
         vd.field_bool("can_be_fired");
@@ -136,7 +136,7 @@ fn validate_character(key: &Token, block: &Block, data: &Everything, vd: &mut Va
 
     vd.field_validated_block("scientist", |block, data| {
         let mut vd = Validator::new(block, data);
-        vd.field_list_items("traits", Item::Trait);
+        vd.field_list_items("traits", Item::CountryLeaderTrait);
         vd.field_trigger_full("visible", Scopes::Country, Tooltipped::No);
         vd.field_validated_block("skills", |block, data| {
             let mut vd = Validator::new(block, data);
