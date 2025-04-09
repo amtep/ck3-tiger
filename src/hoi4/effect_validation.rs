@@ -1,7 +1,9 @@
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
+use crate::effect::validate_effect_control;
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::lowercase::Lowercase;
 use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -130,4 +132,37 @@ pub fn validate_set_flag(
             vd.field_integer("value");
         }
     }
+}
+
+/// A specific validator for the `random_list` effect, which has a unique syntax.
+/// This one is for the hoi4 version, which is different from the jomini games.
+pub fn validate_random_list(
+    key: &Token,
+    _block: &Block,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    tooltipped: Tooltipped,
+) {
+    let caller = Lowercase::new(key.as_str());
+    vd.field_bool("log");
+    // TODO: validate variable expression if not 'const' or 'random'
+    vd.field_value("seed"); // var_name/const/random
+    vd.unknown_block_fields(|key, block| {
+        // TODO: validate variable expression in else branch
+        if let Some(n) = key.get_number() {
+            // TODO: verify these claims for hoi4
+            if n < 0.0 {
+                let msg = "negative weights make the whole `random_list` fail";
+                err(ErrorKey::Range).strong().msg(msg).loc(key).push();
+            } else if n > 0.0 && n < 1.0 {
+                let msg = "fractional weights are treated as just 0 in `random_list`";
+                err(ErrorKey::Range).strong().msg(msg).loc(key).push();
+            } else if n.fract() != 0.0 {
+                let msg = "fractions are discarded in `random_list` weights";
+                warn(ErrorKey::Range).strong().msg(msg).loc(key).push();
+            }
+        }
+        validate_effect_control(&caller, block, data, sc, tooltipped);
+    });
 }

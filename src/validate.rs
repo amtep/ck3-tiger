@@ -28,9 +28,11 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 #[cfg(any(feature = "ck3", feature = "hoi4"))]
 use crate::trigger::validate_target_ok_this;
+#[cfg(feature = "jomini")]
+use crate::trigger::validate_trigger;
 use crate::trigger::{
     is_character_token, partition, validate_argument, validate_argument_scope, validate_inscopes,
-    validate_trigger, validate_trigger_internal, warn_not_first, Part, PartFlags,
+    validate_trigger_internal, warn_not_first, Part, PartFlags,
 };
 use crate::validator::Validator;
 
@@ -38,9 +40,27 @@ use crate::validator::Validator;
 pub enum ListType {
     None,
     Any,
+    #[cfg(feature = "hoi4")]
+    All,
     Every,
+    #[cfg(feature = "jomini")]
     Ordered,
     Random,
+}
+
+impl ListType {
+    pub fn is_for_triggers(self) -> bool {
+        match self {
+            ListType::None => false,
+            ListType::Any => true,
+            #[cfg(feature = "hoi4")]
+            ListType::All => true,
+            ListType::Every => false,
+            #[cfg(feature = "jomini")]
+            ListType::Ordered => false,
+            ListType::Random => false,
+        }
+    }
 }
 
 impl Display for ListType {
@@ -48,7 +68,10 @@ impl Display for ListType {
         match self {
             ListType::None => write!(f, ""),
             ListType::Any => write!(f, "any"),
+            #[cfg(feature = "hoi4")]
+            ListType::All => write!(f, "all"),
             ListType::Every => write!(f, "every"),
+            #[cfg(feature = "jomini")]
             ListType::Ordered => write!(f, "ordered"),
             ListType::Random => write!(f, "random"),
         }
@@ -62,7 +85,10 @@ impl TryFrom<&str> for ListType {
         match from {
             "" => Ok(ListType::None),
             "any" => Ok(ListType::Any),
+            #[cfg(feature = "hoi4")]
+            "all" => Ok(ListType::All),
             "every" => Ok(ListType::Every),
+            #[cfg(feature = "jomini")]
             "ordered" => Ok(ListType::Ordered),
             "random" => Ok(ListType::Random),
             _ => Err(std::fmt::Error),
@@ -272,14 +298,15 @@ pub fn precheck_iterator_fields(
                 }
             }
         }
+        #[cfg(feature = "hoi4")]
+        ListType::All => {}
+        #[cfg(feature = "jomini")]
         ListType::Ordered => {
-            #[cfg(feature = "jomini")]
             for field in &["min", "max"] {
                 if let Some(bv) = block.get_field(field) {
                     validate_script_value(bv, data, sc);
                 }
             }
-            #[cfg(feature = "jomini")]
             if let Some(bv) = block.get_field("position") {
                 if let Some(token) = bv.get_value() {
                     if !token.is("end") {
@@ -322,6 +349,7 @@ pub fn precheck_iterator_fields(
 /// This checks the fields that are only used in iterators.
 /// It does not check "limit" because that is shared with the if/else blocks.
 /// Returns true iff the iterator took care of its own tooltips
+#[allow(unused_variables)] // hoi4 does not use the parameters
 pub fn validate_iterator_fields(
     caller: &Lowercase,
     list_type: ListType,
@@ -332,6 +360,7 @@ pub fn validate_iterator_fields(
     is_svalue: bool,
 ) {
     // undocumented
+    #[cfg(feature = "jomini")]
     if list_type == ListType::None {
         vd.ban_field("custom", || "lists");
     } else if vd.field_item("custom", Item::Localization) {
@@ -339,6 +368,7 @@ pub fn validate_iterator_fields(
     }
 
     // undocumented
+    #[cfg(feature = "jomini")]
     if list_type != ListType::None && list_type != ListType::Any {
         vd.multi_field_validated_block("alternative_limit", |b, data| {
             validate_trigger(b, data, sc, *tooltipped);
@@ -347,6 +377,7 @@ pub fn validate_iterator_fields(
         vd.ban_field("alternative_limit", || "`every_`, `ordered_`, and `random_` lists");
     }
 
+    #[cfg(feature = "jomini")]
     if list_type == ListType::Any {
         vd.field_any_cmp("percent"); // prechecked
         vd.field_any_cmp("count"); // prechecked
@@ -357,6 +388,7 @@ pub fn validate_iterator_fields(
         }
     }
 
+    #[cfg(feature = "jomini")]
     if list_type == ListType::Ordered {
         #[cfg(feature = "jomini")]
         if Game::is_jomini() {
@@ -376,6 +408,7 @@ pub fn validate_iterator_fields(
         vd.ban_field("check_range_bounds", || "`ordered_` lists");
     }
 
+    #[cfg(feature = "jomini")]
     if list_type == ListType::Random {
         vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
     } else {
@@ -419,6 +452,14 @@ pub fn validate_inside_iterator(
         if name == "country_with_original_tag" {
             vd.req_field("original_tag_to_check");
             vd.field_value("original_tag_to_check"); // prechecked
+        } else if name == "owned_controlled_state" {
+            vd.field_list_items("prioritize", Item::State);
+        } else if name == "of" {
+            vd.field_value("array"); // TODO HOI4: check array reference
+            vd.field_value("value"); // name of temp variable
+            vd.field_value("index"); // name of temp variable
+        } else if name == "of_scopes" {
+            vd.field_value("array"); // TODO HOI4: check array reference
         }
     }
 
@@ -630,7 +671,7 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
         vd.set_max_severity(max_sev);
         validate_trigger_internal(
             &Lowercase::new_unchecked("modifier"),
-            false,
+            ListType::None,
             b,
             data,
             sc,

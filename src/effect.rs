@@ -20,7 +20,7 @@ use crate::trigger::validate_target_ok_this;
 use crate::trigger::{validate_target, validate_trigger};
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::validate::validate_compare_duration;
-#[cfg(any(feature = "ck3", feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
 use crate::validate::validate_modifiers;
 #[cfg(feature = "jomini")]
 use crate::validate::validate_scripted_modifier_call;
@@ -356,6 +356,25 @@ pub fn validate_effect_field(
                     );
                 }
             }
+            #[cfg(feature = "hoi4")]
+            Effect::Iterator(ltype, outscope) => {
+                let it_name = key.split_once('_').unwrap().1;
+                if let Some(block) = bv.expect_block() {
+                    precheck_iterator_fields(ltype, it_name.as_str(), block, data, sc);
+                    sc.open_scope(outscope, key.clone());
+                    let mut vd = Validator::new(block, data);
+                    validate_effect_internal(
+                        &Lowercase::new(it_name.as_str()),
+                        ltype,
+                        block,
+                        data,
+                        sc,
+                        &mut vd,
+                        tooltipped,
+                    );
+                }
+                sc.close();
+            }
             Effect::Identifier(kind) => {
                 if let Some(token) = bv.expect_value() {
                     validate_identifier(token, kind, Severity::Error);
@@ -373,21 +392,17 @@ pub fn validate_effect_field(
     }
 
     if let Some((it_type, it_name)) = key.split_once('_') {
-        if it_type.is("any") || it_type.is("ordered") || it_type.is("every") || it_type.is("random")
-        {
+        if let Ok(ltype) = ListType::try_from(it_type.as_str()) {
             if let Some((inscopes, outscope)) = scope_iterator(&it_name, data, sc) {
-                if it_type.is("any") {
-                    let msg = "cannot use `any_` lists in an effect";
+                if ltype.is_for_triggers() {
+                    let msg = format!("cannot use `{it_type}_` lists in an effect");
                     err(ErrorKey::Validation).msg(msg).loc(key).push();
                     return;
                 }
                 sc.expect(inscopes, &Reason::Token(key.clone()));
-                let ltype = ListType::try_from(it_type.as_str()).unwrap();
                 if let Some(b) = bv.expect_block() {
                     precheck_iterator_fields(ltype, it_name.as_str(), b, data, sc);
-                }
-                sc.open_scope(outscope, key.clone());
-                if let Some(b) = bv.get_block() {
+                    sc.open_scope(outscope, key.clone());
                     let mut vd = Validator::new(b, data);
                     validate_effect_internal(
                         &Lowercase::new(it_name.as_str()),
@@ -529,12 +544,8 @@ pub fn validate_effect_control(
         if Game::is_vic3() {
             validate_vic3_modifiers(&mut vd, sc);
         }
-        #[cfg(feature = "imperator")]
-        if Game::is_imperator() {
-            validate_modifiers(&mut vd, sc);
-        }
-        #[cfg(feature = "ck3")]
-        if Game::is_ck3() {
+        #[cfg(any(feature = "imperator", feature = "ck3", feature = "hoi4"))]
+        if Game::is_imperator() || Game::is_ck3() || Game::is_hoi4() {
             validate_modifiers(&mut vd, sc);
         }
     } else {
@@ -682,6 +693,9 @@ pub enum Effect {
     /// The effect takes either a localization key, or a block that contains other effects.
     /// This variant is used by `custom_tooltip`.
     ControlOrLabel,
+    /// The effect is an iterator that does not fit the regular pattern
+    #[cfg(feature = "hoi4")]
+    Iterator(ListType, Scopes),
     /// This variant is for effects that can take any argument and it's not validated.
     /// The effect is too unusual, or not worth checking, or really any argument is fine.
     ///
