@@ -38,6 +38,7 @@ impl DbKind for Achievement {
 
         if Game::is_hoi4() {
             vd.field_integer("id");
+            vd.field_bool("hidden");
         }
 
         vd.field_validated_key_block("possible", |key, block, data| {
