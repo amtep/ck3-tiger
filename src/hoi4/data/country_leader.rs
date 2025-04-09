@@ -43,6 +43,23 @@ impl DbKind for CountryLeaderTrait {
         vd.field_integer("sprite");
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
         vd.field_numeric("command_cap");
+        vd.multi_field_validated_block("targeted_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("tag", Item::CountryTag);
+            validate_modifs(block, data, ModifKinds::Country | ModifKinds::Army, vd);
+        });
+        vd.multi_field_validated_block("equipment_bonus", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_block_fields(|key, block| {
+                data.verify_exists(Item::EquipmentBonusType, key);
+                let mut vd = Validator::new(block, data);
+                vd.field_bool("instant");
+                vd.unknown_value_fields(|key, value| {
+                    data.verify_exists(Item::EquipmentStat, key);
+                    value.expect_number();
+                });
+            });
+        });
         validate_modifs(block, data, ModifKinds::Country, vd);
     }
 }
