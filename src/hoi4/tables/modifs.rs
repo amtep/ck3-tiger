@@ -164,13 +164,37 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // trait_$Trait$_xp_gain_factor
     // $Trait$_xp_gain_factor -- used if the trait has prefix 'trait_'
     if let Some(part) = name_lc.strip_suffix_unchecked("_xp_gain_factor") {
-        if !data.item_exists(Item::Trait, part.as_str()) {
+        if !data.item_exists(Item::CountryLeaderTrait, part.as_str())
+            && !data.item_exists(Item::UnitLeaderTrait, part.as_str())
+        {
             if let Some(part) = part.strip_prefix_unchecked("trait_") {
-                maybe_warn(Item::Trait, &part, name, data, warn);
+                if let Some(sev) = warn {
+                    if !data.item_exists(Item::CountryLeaderTrait, part.as_str())
+                        && !data.item_exists(Item::UnitLeaderTrait, part.as_str())
+                    {
+                        let msg =
+                            format!("could not find {part} as country leader or unit leader trait");
+                        let info = format!("so the modifier {name} does not exist");
+                        report(ErrorKey::MissingItem, sev)
+                            .strong()
+                            .msg(msg)
+                            .info(info)
+                            .loc(name)
+                            .push();
+                    }
+                }
                 return Some(ModifKinds::Naval | ModifKinds::Country | ModifKinds::Army);
             }
         }
-        maybe_warn(Item::Trait, &part, name, data, warn);
+        if let Some(sev) = warn {
+            if !data.item_exists(Item::CountryLeaderTrait, part.as_str())
+                && !data.item_exists(Item::UnitLeaderTrait, part.as_str())
+            {
+                let msg = format!("could not find {part} as country leader or unit leader trait");
+                let info = format!("so the modifier {name} does not exist");
+                report(ErrorKey::MissingItem, sev).strong().msg(msg).info(info).loc(name).push();
+            }
+        }
         return Some(ModifKinds::Naval | ModifKinds::Country | ModifKinds::Army);
     }
 
