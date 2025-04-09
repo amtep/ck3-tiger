@@ -557,6 +557,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] ScriptedEnum,
     #[cfg(feature = "hoi4")] ScriptedLocalisation,
     #[cfg(feature = "hoi4")] SoundEffect,
+    #[cfg(feature = "hoi4")] SoundFalloff,
     #[cfg(feature = "hoi4")] SpawnPoint,
     #[cfg(feature = "hoi4")] Specialization,
     #[cfg(feature = "hoi4")] SpecialProject,
@@ -761,7 +762,12 @@ impl Item {
             #[cfg(feature = "jomini")]
             Item::ScriptValue => "common/script_values/",
             Item::Shortcut => "gui/shortcuts.shortcuts",
-            Item::Sound => "",
+            Item::Sound => match Game::game() {
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => "sound/",
+                #[cfg(feature = "jomini")]
+                _ => "",
+            },
             Item::Terrain => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => "common/terrain_types/",
@@ -1581,7 +1587,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::ScriptedLocalisation => "common/scripted_localisation/",
             #[cfg(feature = "hoi4")]
-            Item::SoundEffect => "sound/", // TODO: HOI4
+            Item::SoundEffect | Item::SoundFalloff => "sound/",
             #[cfg(feature = "hoi4")]
             Item::SpawnPoint => "common/buildings/",
             #[cfg(feature = "hoi4")]
