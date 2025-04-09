@@ -27,14 +27,20 @@ pub struct Db {
     /// Items generated as side effects of the full items in `database`.
     /// The `Vec` is indexed with an `Item` discriminant.
     flags: Vec<TigerHashSet<Token>>,
+    /// Items that have object identity but no usable name
+    anonymous: Vec<DbEntry>,
     /// Lowercased registry of database items and flags, for case insensitive lookups
     items_lc: Vec<TigerHashMap<Lowercase<'static>, &'static str>>,
 }
 
 impl Default for Db {
     fn default() -> Self {
-        let mut db =
-            Self { database: Vec::default(), flags: Vec::default(), items_lc: Vec::default() };
+        let mut db = Self {
+            database: Vec::new(),
+            flags: Vec::new(),
+            anonymous: Vec::new(),
+            items_lc: Vec::new(),
+        };
         for _ in Item::iter() {
             db.database.push(TigerHashMap::default());
             db.flags.push(TigerHashSet::default());
@@ -84,6 +90,11 @@ impl Db {
         self.flags[item as usize].insert(key);
     }
 
+    #[cfg(feature = "hoi4")]
+    pub fn add_anonymous(&mut self, ident: Token, block: Block, kind: Box<dyn DbKind>) {
+        self.anonymous.push(DbEntry { key: ident, block, kind });
+    }
+
     pub fn add_subitems(&mut self) {
         for itype in Item::iter() {
             let queue = take(&mut self.database[itype as usize]);
@@ -105,6 +116,9 @@ impl Db {
             hash.par_iter().for_each(|(_, entry)| {
                 entry.kind.validate(&entry.key, &entry.block, data);
             });
+        });
+        self.anonymous.par_iter().for_each(|entry| {
+            entry.kind.validate(&entry.key, &entry.block, data);
         });
     }
 

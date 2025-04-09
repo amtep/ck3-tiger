@@ -415,7 +415,12 @@ fn validate_event(block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         if let Some(token) = vd.field_value("soundeffect") {
             if !token.is("") {
-                data.verify_exists(Item::Sound, token);
+                if Game::is_hoi4() {
+                    #[cfg(feature = "hoi4")]
+                    data.verify_exists(Item::SoundEffect, token);
+                } else {
+                    data.verify_exists(Item::Sound, token);
+                }
             }
         }
         vd.field_bool("stop_on_state_change");
