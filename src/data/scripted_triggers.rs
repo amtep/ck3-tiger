@@ -14,6 +14,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger_internal;
+use crate::validate::ListType;
 use crate::validator::Validator;
 
 #[derive(Debug, Default)]
@@ -153,7 +154,7 @@ impl Trigger {
             let vd = Validator::new(&self.block, data);
             validate_trigger_internal(
                 Lowercase::empty(),
-                false,
+                ListType::None,
                 &self.block,
                 data,
                 &mut our_sc,
@@ -211,7 +212,7 @@ impl Trigger {
                 let vd = Validator::new(&block, data);
                 validate_trigger_internal(
                     Lowercase::empty(),
-                    false,
+                    ListType::None,
                     &block,
                     data,
                     &mut our_sc,

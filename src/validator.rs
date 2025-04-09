@@ -851,7 +851,7 @@ impl<'a> Validator<'a> {
                 vd.set_max_severity(max_sev);
                 validate_trigger_internal(
                     Lowercase::empty(),
-                    false,
+                    ListType::None,
                     block,
                     data,
                     sc,

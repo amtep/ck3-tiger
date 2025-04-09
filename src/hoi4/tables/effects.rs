@@ -7,6 +7,7 @@ use crate::hoi4::effect_validation::*;
 use crate::item::Item;
 use crate::scopes::*;
 use crate::token::Token;
+use crate::validate::ListType;
 
 use Effect::*;
 
@@ -236,6 +237,21 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Country, "end_exile", UncheckedTodo),
     (Scopes::Country, "end_puppet", UncheckedTodo),
     (Scopes::None, "event_option_tooltip", UncheckedTodo),
+    (Scopes::Country, "every_country_division", Iterator(ListType::Every, Scopes::Division)),
+    (
+        Scopes::Country.union(Scopes::Operation),
+        "every_operative",
+        Iterator(ListType::Every, Scopes::Character),
+    ),
+    (Scopes::Country, "every_possible_country", Iterator(ListType::Every, Scopes::Country)),
+    (
+        Scopes::Country,
+        "every_purchase_contract",
+        Iterator(ListType::Every, Scopes::PurchaseContract),
+    ),
+    (Scopes::Country, "every_scientist", Iterator(ListType::Every, Scopes::Character)),
+    (Scopes::State, "every_state_division", Iterator(ListType::Every, Scopes::Division)),
+    (Scopes::Country, "every_subject_country", Iterator(ListType::Every, Scopes::Country)),
     (Scopes::Operation, "execute_operation_coordinated_strike", UncheckedTodo),
     (Scopes::None, "finalize_border_war", UncheckedTodo),
     (Scopes::None, "find_highest_in_array", UncheckedTodo),
@@ -319,6 +335,22 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::RaidInstance, "raid_damage_units", UncheckedTodo),
     (Scopes::State, "raid_reduce_project_progress_ratio", UncheckedTodo),
     (Scopes::None, "random", UncheckedTodo),
+    (Scopes::Country, "random_country_division", Iterator(ListType::Random, Scopes::Division)),
+    (Scopes::None, "random_list", Vb(validate_random_list)),
+    (
+        Scopes::Country.union(Scopes::Operation),
+        "random_operative",
+        Iterator(ListType::Random, Scopes::Character),
+    ),
+    (Scopes::Country, "random_owned_controlled_state", Iterator(ListType::Random, Scopes::State)),
+    (
+        Scopes::Country,
+        "random_purchase_contract",
+        Iterator(ListType::Random, Scopes::PurchaseContract),
+    ),
+    (Scopes::Country, "random_scientist", Iterator(ListType::Random, Scopes::Character)),
+    (Scopes::State, "random_state_division", Iterator(ListType::Random, Scopes::Division)),
+    (Scopes::Country, "random_subject_country", Iterator(ListType::Random, Scopes::Country)),
     (Scopes::None, "randomize_temp_variable", UncheckedTodo),
     (Scopes::None, "randomize_variable", UncheckedTodo),
     (Scopes::None, "randomize_weather", UncheckedTodo),

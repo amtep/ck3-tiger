@@ -170,19 +170,14 @@ fn validate_inner(
             }
         } else {
             if let Some((it_type, it_name)) = token.split_once('_') {
-                if it_type.is("every")
-                    || it_type.is("ordered")
-                    || it_type.is("random")
-                    || it_type.is("any")
-                {
+                if let Ok(ltype) = ListType::try_from(it_type.as_str()) {
                     if let Some((inscopes, outscope)) = scope_iterator(&it_name, data, sc) {
-                        if it_type.is("any") {
+                        if ltype.is_for_triggers() {
                             let msg = "cannot use `any_` iterators in a script value";
                             err(ErrorKey::Validation).msg(msg).loc(token).push();
                         }
                         sc.expect(inscopes, &Reason::Token(token.clone()));
                         if let Some(block) = bv.expect_block() {
-                            let ltype = ListType::try_from(it_type.as_str()).unwrap();
                             precheck_iterator_fields(ltype, it_name.as_str(), block, data, sc);
                             sc.open_scope(outscope, token.clone());
                             validate_iterator(ltype, &it_name, block, data, sc, check_desc);

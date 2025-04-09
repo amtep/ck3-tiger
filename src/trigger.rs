@@ -70,7 +70,16 @@ pub fn validate_trigger(
     tooltipped: Tooltipped,
 ) -> bool {
     let vd = Validator::new(block, data);
-    validate_trigger_internal(Lowercase::empty(), false, block, data, sc, vd, tooltipped, false)
+    validate_trigger_internal(
+        Lowercase::empty(),
+        ListType::None,
+        block,
+        data,
+        sc,
+        vd,
+        tooltipped,
+        false,
+    )
 }
 
 /// Like [`validate_trigger`] but specifies a maximum [`Severity`] for the reports emitted by this
@@ -86,7 +95,16 @@ pub fn validate_trigger_max_sev(
 ) -> bool {
     let mut vd = Validator::new(block, data);
     vd.set_max_severity(max_sev);
-    validate_trigger_internal(Lowercase::empty(), false, block, data, sc, vd, tooltipped, false)
+    validate_trigger_internal(
+        Lowercase::empty(),
+        ListType::None,
+        block,
+        data,
+        sc,
+        vd,
+        tooltipped,
+        false,
+    )
 }
 
 /// The interface to trigger validation when [`validate_trigger`] is too limited.
@@ -106,7 +124,7 @@ pub fn validate_trigger_max_sev(
 #[allow(clippy::too_many_arguments)]
 pub fn validate_trigger_internal(
     caller: &Lowercase,
-    in_list: bool,
+    ltype: ListType,
     block: &Block,
     data: &Everything,
     sc: &mut ScopeContext,
@@ -174,19 +192,19 @@ pub fn validate_trigger_internal(
         vd.ban_field("limit", || "`trigger_if`, `trigger_else_if` or `trigger_else`");
     }
 
-    if in_list {
+    #[cfg(feature = "jomini")]
+    if ltype == ListType::None {
+        vd.ban_field("filter", || "lists");
+    } else {
         vd.field_validated_block("filter", |block, data| {
             side_effects |= validate_trigger(block, data, sc, Tooltipped::No);
         });
-    } else {
-        vd.ban_field("filter", || "lists");
     }
 
-    let list_type = if in_list { ListType::Any } else { ListType::None };
-    validate_iterator_fields(caller, list_type, data, sc, &mut vd, &mut tooltipped, false);
+    validate_iterator_fields(caller, ltype, data, sc, &mut vd, &mut tooltipped, false);
 
-    if list_type != ListType::None {
-        validate_inside_iterator(caller, list_type, block, data, sc, &mut vd, tooltipped);
+    if ltype != ListType::None {
+        validate_inside_iterator(caller, ltype, block, data, sc, &mut vd, tooltipped);
     }
 
     // TODO: the custom_description and custom_tooltip logic is duplicated for effects
@@ -236,7 +254,7 @@ pub fn validate_trigger_internal(
         vd.req_field("amount");
         // TODO: verify these are integers
         vd.multi_field_any_cmp("amount");
-    } else if !in_list {
+    } else if ltype == ListType::None {
         vd.ban_field("amount", || "`calc_true_if`");
     }
 
@@ -263,26 +281,22 @@ pub fn validate_trigger_internal(
         }
 
         if let Some((it_type, it_name)) = key.split_once('_') {
-            if it_type.is("any")
-                || it_type.is("ordered")
-                || it_type.is("every")
-                || it_type.is("random")
-            {
+            if let Ok(ltype) = ListType::try_from(it_type.as_str()) {
                 if let Some((inscopes, outscope)) = scope_iterator(&it_name, data, sc) {
-                    if !it_type.is("any") {
+                    if !ltype.is_for_triggers() {
                         let msg = format!("cannot use `{it_type}_` list in a trigger");
                         err(ErrorKey::Validation).msg(msg).loc(key).push();
                         return;
                     }
                     sc.expect(inscopes, &Reason::Token(key.clone()));
                     if let Some(block) = bv.expect_block() {
-                        precheck_iterator_fields(ListType::Any, it_name.as_str(), block, data, sc);
+                        precheck_iterator_fields(ltype, it_name.as_str(), block, data, sc);
                         sc.open_scope(outscope, key.clone());
                         let mut vd = Validator::new(block, data);
                         vd.set_max_severity(max_sev);
                         side_effects |= validate_trigger_internal(
                             &Lowercase::new(it_name.as_str()),
-                            true,
+                            ltype,
                             block,
                             data,
                             sc,
@@ -579,7 +593,7 @@ pub fn validate_trigger_key_bv(
             vd.set_max_severity(max_sev);
             side_effects |= validate_trigger_internal(
                 Lowercase::empty(),
-                false,
+                ListType::None,
                 b,
                 data,
                 sc,
@@ -881,7 +895,7 @@ fn match_trigger_bv(
                 vd.set_max_severity(max_sev);
                 side_effects |= validate_trigger_internal(
                     &Lowercase::from_string_unchecked(name_lc),
-                    false,
+                    ListType::None,
                     block,
                     data,
                     sc,
@@ -927,7 +941,7 @@ fn match_trigger_bv(
                         vd.set_max_severity(max_sev);
                         side_effects |= validate_trigger_internal(
                             &Lowercase::new(name.as_str()),
-                            false,
+                            ListType::None,
                             b,
                             data,
                             sc,
@@ -1048,6 +1062,27 @@ fn match_trigger_bv(
                 }
             }
             // TODO: time_of_year
+        }
+        #[cfg(feature = "hoi4")]
+        Trigger::Iterator(ltype, outscope) => {
+            let it_name = name.split_once('_').unwrap().1;
+            if let Some(block) = bv.expect_block() {
+                precheck_iterator_fields(*ltype, it_name.as_str(), block, data, sc);
+                sc.open_scope(*outscope, name.clone());
+                let mut vd = Validator::new(block, data);
+                vd.set_max_severity(max_sev);
+                side_effects |= validate_trigger_internal(
+                    &Lowercase::new(it_name.as_str()),
+                    *ltype,
+                    block,
+                    data,
+                    sc,
+                    vd,
+                    tooltipped,
+                    negated,
+                );
+                sc.close();
+            }
         }
         Trigger::Identifier(kind) => {
             if let Some(token) = bv.expect_value() {
@@ -1640,6 +1675,9 @@ pub enum Trigger {
     /// this is for inside a Block, where a key is compared to a scope object
     #[cfg(feature = "ck3")]
     CompareToScope(Scopes),
+    /// trigger is an iterator that does not follow the regular pattern
+    #[cfg(feature = "hoi4")]
+    Iterator(ListType, Scopes),
     /// trigger takes a single word
     Identifier(&'static str),
     /// trigger takes a flag name
