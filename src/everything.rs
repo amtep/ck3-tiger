@@ -1145,6 +1145,7 @@ impl Everything {
         }
     }
 
+    #[cfg(feature = "jomini")]
     fn valid_sound(&self, name: &str) -> bool {
         // TODO: verify that file:/ values work
         if let Some(filename) = name.strip_prefix("file:/") {
@@ -1157,8 +1158,6 @@ impl Everything {
                 Game::Vic3 => &crate::vic3::tables::sounds::SOUNDS_SET,
                 #[cfg(feature = "imperator")]
                 Game::Imperator => &crate::imperator::tables::sounds::SOUNDS_SET,
-                #[cfg(feature = "hoi4")]
-                Game::Hoi4 => &crate::hoi4::tables::sounds::SOUNDS_SET,
             };
             sounds_set.contains(&Lowercase::new(name))
         }

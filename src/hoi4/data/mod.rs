@@ -1,3 +1,4 @@
+pub mod abilities;
 pub mod buildings;
 pub mod characters;
 pub mod countries;
