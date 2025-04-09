@@ -532,6 +532,7 @@ pub enum Item {
     #[cfg(feature = "imperator")] Treasure,
     #[cfg(feature = "imperator")] UnitAbility,
 
+    #[cfg(feature = "hoi4")] Ability,
     #[cfg(feature = "hoi4")] AdjacencyRule,
     #[cfg(feature = "hoi4")] AceModifier,
     #[cfg(feature = "hoi4")] AdvisorSlot,
@@ -555,6 +556,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] ScriptedConstant,
     #[cfg(feature = "hoi4")] ScriptedEnum,
     #[cfg(feature = "hoi4")] ScriptedLocalisation,
+    #[cfg(feature = "hoi4")] SoundEffect,
     #[cfg(feature = "hoi4")] SpawnPoint,
     #[cfg(feature = "hoi4")] Specialization,
     #[cfg(feature = "hoi4")] SpecialProject,
@@ -1531,6 +1533,8 @@ impl Item {
             Item::UnitAbility => "common/unit_abilities/",
 
             #[cfg(feature = "hoi4")]
+            Item::Ability => "common/abilities/",
+            #[cfg(feature = "hoi4")]
             Item::AdjacencyRule => "map/adjacency_rules.txt",
             #[cfg(feature = "hoi4")]
             Item::AceModifier => "common/aces", // TODO HOI4
@@ -1547,7 +1551,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::DecisionCategory => "common/decisions/categories/",
             #[cfg(feature = "hoi4")]
-            Item::Equipment => "common/units/equipment/",
+            Item::Equipment => "common/units/equipment/", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::EquipmentBonusType => "common/script_enums.txt",
             #[cfg(feature = "hoi4")]
@@ -1555,7 +1559,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::EquipmentStat => "common/script_enums.txt",
             #[cfg(feature = "hoi4")]
-            Item::EquipmentModule => "common/units/equipment/modules/",
+            Item::EquipmentModule => "common/units/equipment/modules/", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::IdeaCategory => "", // TODO HOI4
             #[cfg(feature = "hoi4")]
@@ -1577,6 +1581,8 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::ScriptedLocalisation => "common/scripted_localisation/",
             #[cfg(feature = "hoi4")]
+            Item::SoundEffect => "sound/", // TODO: HOI4
+            #[cfg(feature = "hoi4")]
             Item::SpawnPoint => "common/buildings/",
             #[cfg(feature = "hoi4")]
             Item::Specialization => "common/special_projects/specialization/", // TODO: HOI4
@@ -1587,7 +1593,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::State => "history/states/", // TODO HOI4
             #[cfg(feature = "hoi4")]
-            Item::UnitLeaderTrait => "common/unit_leader/",
+            Item::UnitLeaderTrait => "common/unit_leader/", // TODO HOI4
         }
     }
 
