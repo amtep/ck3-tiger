@@ -11,7 +11,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger_internal;
-use crate::validate::validate_modifiers_with_base;
+use crate::validate::{validate_modifiers_with_base, ListType};
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -100,7 +100,7 @@ impl DbKind for CountryTagAlias {
 
         validate_trigger_internal(
             &Lowercase::new_unchecked("country_tag_alias"),
-            false,
+            ListType::None,
             block,
             data,
             &mut sc,

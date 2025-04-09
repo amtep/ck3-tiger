@@ -180,16 +180,9 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "neighbor_country", Scopes::Country),
     (Scopes::State, "neighbor_state", Scopes::State),
     (Scopes::Country, "occupied_country", Scopes::Country),
-    // TODO: the any_ version is any_operative_leader
-    (Scopes::Country.union(Scopes::Operation), "operative", Scopes::Character),
     (Scopes::Country, "other_country", Scopes::Country),
     (Scopes::Country, "owned_state", Scopes::State),
-    (Scopes::None, "possible_country", Scopes::Country),
-    (Scopes::None, "purchase_contract", Scopes::PurchaseContract),
-    (Scopes::None, "scientist", Scopes::Character),
     (Scopes::None, "state", Scopes::State),
-    (Scopes::State, "state_division", Scopes::Division),
-    (Scopes::Country, "subject_country", Scopes::Country),
     (Scopes::Country, "unit_leader", Scopes::Character),
 ];
 
