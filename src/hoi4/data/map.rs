@@ -29,6 +29,11 @@ impl Continents {
                 .loc(key)
                 .push();
         }
+        db.set_flag_validator(Item::Continent, |flag, data| {
+            let adj = format!("{flag}_adj");
+            data.verify_exists(Item::Localization, flag);
+            data.verify_exists_implied(Item::Localization, &adj, flag);
+        });
     }
 }
 
