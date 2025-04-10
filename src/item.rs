@@ -1586,7 +1586,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::Operation => "common/operations/", // TODO HOI4
             #[cfg(feature = "hoi4")]
-            Item::Resource => "common/resources/", // TODO HOI4
+            Item::Resource => "common/resources/",
             #[cfg(feature = "hoi4")]
             Item::ScriptedConstant => "common/scripted_constants/", // TODO HOI4
             #[cfg(feature = "hoi4")]
@@ -1606,7 +1606,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::State => "history/states/",
             #[cfg(feature = "hoi4")]
-            Item::StateCategory => "common/state_category/", // TODO HOI4
+            Item::StateCategory => "common/state_category/",
             #[cfg(feature = "hoi4")]
             Item::UnitLeaderTrait => "common/unit_leader/", // TODO HOI4
         }
