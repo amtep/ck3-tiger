@@ -10,7 +10,7 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::validate::ListType;
+use crate::validate::{validate_color, ListType};
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -114,4 +114,35 @@ fn validate_state_history(key: &Token, block: &Block, data: &Everything, mut vd:
         &mut vd,
         Tooltipped::No,
     );
+}
+
+#[derive(Clone, Debug)]
+pub struct StateCategory {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Hoi4, Item::StateCategory, StateCategory::add)
+}
+
+impl StateCategory {
+    pub fn add(db: &mut Db, key: Token, mut block: Block) {
+        if key.is("state_categories") {
+            for (key, block) in block.drain_definitions_warn() {
+                db.add(Item::StateCategory, key, block, Box::new(Self {}));
+            }
+        } else {
+            let msg = "unexpected key";
+            let info = "expected only `state_categories`";
+            err(ErrorKey::FieldMissing).msg(msg).info(info).loc(key).push();
+        }
+    }
+}
+
+impl DbKind for StateCategory {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
+        vd.field_integer("local_building_slots");
+        vd.field_validated_block("color", validate_color);
+    }
 }
