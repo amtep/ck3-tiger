@@ -17,6 +17,9 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
     if data.item_exists(Item::IdeologyGroup, name.as_str()) {
         return Some((Scopes::Country, Trigger::CompareValue));
     }
+    if data.item_exists(Item::Resource, name.as_str()) {
+        return Some((Scopes::Country, Trigger::CompareValue));
+    }
     let name_lc = name.as_str().to_ascii_lowercase();
     TRIGGER_MAP.get(&*name_lc).copied()
 }

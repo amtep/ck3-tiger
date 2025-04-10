@@ -11,6 +11,7 @@ pub mod gfx;
 pub mod ideologies;
 pub mod map;
 pub mod provinces;
+pub mod resources;
 pub mod scripted_enums;
 pub mod scripted_localisation;
 pub mod sounds;
