@@ -2,7 +2,7 @@
 
 use std::fmt::{Display, Formatter};
 
-use strum_macros::{EnumCount, IntoStaticStr};
+use strum_macros::{EnumCount, EnumIter, IntoStaticStr};
 
 use crate::block::Block;
 use crate::db::Db;
@@ -23,7 +23,7 @@ use crate::token::Token;
 /// For example if a trigger takes a culture *scope*, you could supply either `culture:german` or
 /// `scope:target_culture`, while if a trigger takes a culture *item*, you would have to supply just
 /// `german` and don't have the option of supplying something determined at runtime.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord, EnumCount)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, IntoStaticStr, Hash, PartialOrd, Ord, EnumCount, EnumIter)]
 #[strum(serialize_all = "snake_case")]
 #[non_exhaustive]
 // The item table is in several alphabetized sections. First the generic items, then items used by
