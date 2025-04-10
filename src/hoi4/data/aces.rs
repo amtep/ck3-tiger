@@ -29,7 +29,7 @@ impl AceModifier {
 }
 
 impl DbKind for AceModifier {
-    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
         vd.field("type"); // TODO what are these?

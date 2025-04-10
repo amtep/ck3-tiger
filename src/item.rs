@@ -565,6 +565,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] SpecialProject,
     #[cfg(feature = "hoi4")] Sprite,
     #[cfg(feature = "hoi4")] State,
+    #[cfg(feature = "hoi4")] StateCategory,
     #[cfg(feature = "hoi4")] UnitLeaderTrait,
 }
 
@@ -1603,7 +1604,9 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::Sprite => "gfx/",
             #[cfg(feature = "hoi4")]
-            Item::State => "history/states/", // TODO HOI4
+            Item::State => "history/states/",
+            #[cfg(feature = "hoi4")]
+            Item::StateCategory => "common/state_category/", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::UnitLeaderTrait => "common/unit_leader/", // TODO HOI4
         }

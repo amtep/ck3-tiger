@@ -14,3 +14,4 @@ pub mod provinces;
 pub mod scripted_enums;
 pub mod scripted_localisation;
 pub mod sounds;
+pub mod states;

@@ -4,7 +4,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{err, warn, ErrorKey};
+use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -76,18 +76,7 @@ fn validate_character(key: &Token, block: &Block, data: &Everything, vd: &mut Va
         let mut vd = Validator::new(block, data);
         vd.field_item("ideology", Item::Ideology);
         vd.field_list_items("traits", Item::CountryLeaderTrait);
-        // "expire" is in year.month.day.hour format
-        if let Some(date) = vd.field_value("expire") {
-            let split = date.split('.');
-            if split.len() != 4 {
-                let msg = "expected year.month.day.hour";
-                warn(ErrorKey::Validation).msg(msg).loc(date).push();
-            }
-            // TODO: check ranges? months being 1-12 for example
-            for part in split {
-                part.expect_integer();
-            }
-        }
+        vd.field_date("expire");
         vd.field_integer("id");
     });
 
