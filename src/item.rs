@@ -1547,7 +1547,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::AdjacencyRule => "map/adjacency_rules.txt",
             #[cfg(feature = "hoi4")]
-            Item::AceModifier => "common/aces", // TODO HOI4
+            Item::AceModifier => "common/aces",
             #[cfg(feature = "hoi4")]
             Item::AdvisorSlot => "common/script_enums.txt",
             #[cfg(feature = "hoi4")]
