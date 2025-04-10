@@ -533,6 +533,7 @@ pub enum Item {
     #[cfg(feature = "imperator")] UnitAbility,
 
     #[cfg(feature = "hoi4")] Ability,
+    #[cfg(feature = "hoi4")] Acclimatation,
     #[cfg(feature = "hoi4")] AceModifier,
     #[cfg(feature = "hoi4")] AdjacencyRule,
     #[cfg(feature = "hoi4")] AdvisorSlot,
@@ -1541,6 +1542,8 @@ impl Item {
 
             #[cfg(feature = "hoi4")]
             Item::Ability => "common/abilities/",
+            #[cfg(feature = "hoi4")]
+            Item::Acclimatation => "common/acclimatation.txt",
             #[cfg(feature = "hoi4")]
             Item::AdjacencyRule => "map/adjacency_rules.txt",
             #[cfg(feature = "hoi4")]

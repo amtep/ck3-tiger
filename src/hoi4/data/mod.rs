@@ -1,4 +1,5 @@
 pub mod abilities;
+pub mod acclimatation;
 pub mod buildings;
 pub mod characters;
 pub mod countries;
