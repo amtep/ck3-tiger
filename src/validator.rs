@@ -1673,7 +1673,7 @@ impl<'a> Validator<'a> {
 
     /// Expect the block to contain any number of `key = { block }` fields where the key is a date.
     /// Run the closure `f(date, block, data)` for every matching field.
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
+    #[cfg(any(feature = "ck3", feature = "hoi4"))]
     pub fn validate_history_blocks<F>(&mut self, mut f: F)
     where
         F: FnMut(Date, &Token, &Block, &Everything),
