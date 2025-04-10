@@ -8,7 +8,7 @@ use std::mem::take;
 
 use as_any::AsAny;
 use rayon::prelude::*;
-use strum::IntoEnumIterator;
+use strum::EnumCount;
 
 use crate::block::Block;
 use crate::context::ScopeContext;
@@ -18,6 +18,8 @@ use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::token::Token;
 
+pub type FlagValidator = fn(&Token, &Everything);
+
 /// The main database of game items.
 #[derive(Debug)]
 pub struct Db {
@@ -25,8 +27,9 @@ pub struct Db {
     /// The `Vec` is indexed with an `Item` discriminant.
     database: Vec<TigerHashMap<&'static str, DbEntry>>,
     /// Items generated as side effects of the full items in `database`.
+    /// It allows only a limited form of validation.
     /// The `Vec` is indexed with an `Item` discriminant.
-    flags: Vec<TigerHashSet<Token>>,
+    flags: Vec<(TigerHashSet<Token>, Option<FlagValidator>)>,
     /// Items that have object identity but no usable name
     anonymous: Vec<DbEntry>,
     /// Lowercased registry of database items and flags, for case insensitive lookups
@@ -35,18 +38,12 @@ pub struct Db {
 
 impl Default for Db {
     fn default() -> Self {
-        let mut db = Self {
-            database: Vec::new(),
-            flags: Vec::new(),
+        Self {
+            database: (0..Item::COUNT).map(|_| TigerHashMap::default()).collect(),
+            flags: (0..Item::COUNT).map(|_| (TigerHashSet::default(), None)).collect(),
             anonymous: Vec::new(),
-            items_lc: Vec::new(),
-        };
-        for _ in Item::iter() {
-            db.database.push(TigerHashMap::default());
-            db.flags.push(TigerHashSet::default());
-            db.items_lc.push(TigerHashMap::default());
+            items_lc: (0..Item::COUNT).map(|_| TigerHashMap::default()).collect(),
         }
-        db
     }
 }
 
@@ -85,9 +82,13 @@ impl Db {
         self.database[item as usize].insert(key.as_str(), DbEntry { key, block, kind });
     }
 
+    pub fn set_flag_validator(&mut self, item: Item, f: FlagValidator) {
+        self.flags[item as usize].1 = Some(f);
+    }
+
     pub fn add_flag(&mut self, item: Item, key: Token) {
         self.items_lc[item as usize].insert(Lowercase::new(key.as_str()), key.as_str());
-        self.flags[item as usize].insert(key);
+        self.flags[item as usize].0.insert(key);
     }
 
     #[cfg(feature = "hoi4")]
@@ -96,26 +97,33 @@ impl Db {
     }
 
     pub fn add_subitems(&mut self) {
-        for itype in Item::iter() {
-            let queue = take(&mut self.database[itype as usize]);
+        for itype in 0..Item::COUNT {
+            let queue = take(&mut self.database[itype]);
             for entry in queue.values() {
                 entry.kind.add_subitems(&entry.key, &entry.block, self);
             }
-            if self.database[itype as usize].is_empty() {
+            if self.database[itype].is_empty() {
                 // The usual case. It should be extremely rare for `add_subitems` to add items of
                 // the same item type as its parent.
-                self.database[itype as usize] = queue;
+                self.database[itype] = queue;
             } else {
-                self.database[itype as usize].extend(queue);
+                self.database[itype].extend(queue);
             }
         }
     }
 
     pub fn validate(&self, data: &Everything) {
-        self.database.par_iter().for_each(|hash| {
-            hash.par_iter().for_each(|(_, entry)| {
+        self.database.par_iter().for_each(|map| {
+            map.par_iter().for_each(|(_, entry)| {
                 entry.kind.validate(&entry.key, &entry.block, data);
             });
+        });
+        self.flags.par_iter().for_each(|(map, fv)| {
+            if let Some(fv) = fv {
+                map.par_iter().for_each(|flag| {
+                    fv(flag, data);
+                });
+            }
         });
         self.anonymous.par_iter().for_each(|entry| {
             entry.kind.validate(&entry.key, &entry.block, data);
@@ -123,7 +131,7 @@ impl Db {
     }
 
     pub fn exists(&self, item: Item, key: &str) -> bool {
-        self.database[item as usize].contains_key(key) || self.flags[item as usize].contains(key)
+        self.database[item as usize].contains_key(key) || self.flags[item as usize].0.contains(key)
     }
 
     pub fn exists_lc(&self, item: Item, key: &Lowercase) -> bool {
@@ -217,7 +225,7 @@ impl Db {
         self.database[itype as usize]
             .values()
             .map(|entry| &entry.key)
-            .chain(self.flags[itype as usize].iter())
+            .chain(self.flags[itype as usize].0.iter())
     }
 }
 
