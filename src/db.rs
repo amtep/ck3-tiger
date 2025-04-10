@@ -82,6 +82,7 @@ impl Db {
         self.database[item as usize].insert(key.as_str(), DbEntry { key, block, kind });
     }
 
+    #[cfg(feature = "hoi4")]
     pub fn set_flag_validator(&mut self, item: Item, f: FlagValidator) {
         self.flags[item as usize].1 = Some(f);
     }
