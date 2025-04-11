@@ -148,15 +148,7 @@ impl DbKind for UnitLeaderTrait {
             "field_marshal_modifier",
         ] {
             vd.field_validated_block(field, |block, data| {
-                let mut vd = Validator::new(block, data);
-                vd.field_item("custom_modifier_tooltip", Item::Localization);
-                vd.unknown_block_fields(|key, block| {
-                    data.verify_exists(Item::Terrain, key);
-                    let mut vd = Validator::new(block, data);
-                    vd.field_numeric("attack");
-                    vd.field_numeric("movement");
-                    vd.field_numeric("defence");
-                });
+                let vd = Validator::new(block, data);
                 validate_modifs(block, data, mk, vd);
             });
         }
