@@ -141,7 +141,23 @@ pub fn validate_modifs<'a>(
         });
     });
 
+    #[cfg(feature = "hoi4")]
+    vd.field_item("custom_modifier_tooltip", Item::Localization);
+
     vd.unknown_fields(|key, bv| {
+        #[cfg(feature = "hoi4")]
+        if Game::is_hoi4()
+            && (key.is("fort") || key.is("river") || data.item_exists(Item::Terrain, key.as_str()))
+        {
+            if let Some(block) = bv.expect_block() {
+                let mut vd = Validator::new(block, data);
+                vd.field_numeric("attack");
+                vd.field_numeric("movement");
+                vd.field_numeric("defence");
+            }
+            return;
+        }
+
         if let Some(mk) = lookup_modif(key, data, Some(Severity::Error)) {
             kinds.require(mk, key);
             if Game::is_jomini() {

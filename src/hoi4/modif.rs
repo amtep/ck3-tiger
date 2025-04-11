@@ -2,8 +2,6 @@ use std::fmt::Formatter;
 
 use crate::modif::ModifKinds;
 
-// TODO
-
 pub fn display_fmt(mk: ModifKinds, f: &mut Formatter) -> Result<(), std::fmt::Error> {
     let mut vec = Vec::new();
     if mk.contains(ModifKinds::Aggressive) {
