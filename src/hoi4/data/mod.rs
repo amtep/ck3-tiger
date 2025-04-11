@@ -10,6 +10,7 @@ pub mod events;
 pub mod gfx;
 pub mod ideologies;
 pub mod map;
+pub mod modifiers;
 pub mod provinces;
 pub mod resources;
 pub mod scripted_enums;
