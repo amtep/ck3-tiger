@@ -59,9 +59,9 @@ impl DbKind for OpinionModifier {
         vd.field_bool("revoke_title_reason");
         vd.field_bool("divorce_reason");
 
-        vd.field_bool("disable_non_aggression_pacts");
-        vd.field_bool("non_aggression_pact");
-        vd.field_bool("obedient");
-        vd.field_bool("non_interference");
+        vd.advice_field("disable_non_aggression_pacts", "removed in 1.12");
+        vd.advice_field("non_aggression_pact", "removed in 1.12");
+        vd.advice_field("obedient", "removed in 1.12");
+        vd.advice_field("non_interference", "removed in 1.12");
     }
 }
