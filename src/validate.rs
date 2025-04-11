@@ -630,6 +630,24 @@ pub fn validate_inside_iterator(
             vd.ban_field("candidate", || format!("`{listtype}_succession_appointment_investors`"));
         }
     }
+
+    #[cfg(feature = "hoi4")]
+    if Game::is_hoi4() {
+        if listtype == ListType::Random
+            && matches!(
+                name.as_str(),
+                "controlled_state"
+                    | "core_state"
+                    | "owned_controlled_state"
+                    | "owned_state"
+                    | "state"
+            )
+        {
+            vd.field_list_items("prioritize", Item::State);
+        } else {
+            vd.ban_field("prioritize", || "state `random_` iterators");
+        }
+    }
 }
 
 pub fn validate_modifiers_with_base(block: &Block, data: &Everything, sc: &mut ScopeContext) {
