@@ -548,6 +548,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] EquipmentCategory,
     #[cfg(feature = "hoi4")] EquipmentStat,
     #[cfg(feature = "hoi4")] EquipmentModule,
+    #[cfg(feature = "hoi4")] GraphicalTerrain,
     #[cfg(feature = "hoi4")] IdeaCategory,
     #[cfg(feature = "hoi4")] IdeaGroup,
     #[cfg(feature = "hoi4")] IdeologyGroup,
@@ -566,6 +567,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] Sprite,
     #[cfg(feature = "hoi4")] State,
     #[cfg(feature = "hoi4")] StateCategory,
+    #[cfg(feature = "hoi4")] SubUnit,
     #[cfg(feature = "hoi4")] UnitLeaderTrait,
 }
 
@@ -779,7 +781,7 @@ impl Item {
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/terrain_types/",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/terrain/", // TODO HOI4
+                Game::Hoi4 => "common/terrain/",
             },
             Item::TextFormat => "gui/",
             Item::TextIcon => "gui/",
@@ -1574,6 +1576,8 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::EquipmentModule => "common/units/equipment/modules/", // TODO HOI4
             #[cfg(feature = "hoi4")]
+            Item::GraphicalTerrain => "common/terrain/",
+            #[cfg(feature = "hoi4")]
             Item::IdeaCategory => "", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::IdeaGroup => "common/ideas/", // TODO HOI4
@@ -1607,6 +1611,8 @@ impl Item {
             Item::State => "history/states/",
             #[cfg(feature = "hoi4")]
             Item::StateCategory => "common/state_category/",
+            #[cfg(feature = "hoi4")]
+            Item::SubUnit => "common/units/", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::UnitLeaderTrait => "common/unit_leader/", // TODO HOI4
         }
