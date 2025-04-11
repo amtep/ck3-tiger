@@ -564,10 +564,12 @@ pub enum Item {
     #[cfg(feature = "hoi4")] SpawnPoint,
     #[cfg(feature = "hoi4")] Specialization,
     #[cfg(feature = "hoi4")] SpecialProject,
+    #[cfg(feature = "hoi4")] ScientistTrait,
     #[cfg(feature = "hoi4")] Sprite,
     #[cfg(feature = "hoi4")] State,
     #[cfg(feature = "hoi4")] StateCategory,
     #[cfg(feature = "hoi4")] SubUnit,
+    #[cfg(feature = "hoi4")] UnitLeaderSkill,
     #[cfg(feature = "hoi4")] UnitLeaderTrait,
 }
 
@@ -1606,6 +1608,8 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::SpecialProject => "common/special_projects/projects/", // TODO: HOI4
             #[cfg(feature = "hoi4")]
+            Item::ScientistTrait => "common/scientist_traits/",
+            #[cfg(feature = "hoi4")]
             Item::Sprite => "gfx/",
             #[cfg(feature = "hoi4")]
             Item::State => "history/states/",
@@ -1614,7 +1618,9 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::SubUnit => "common/units/", // TODO HOI4
             #[cfg(feature = "hoi4")]
-            Item::UnitLeaderTrait => "common/unit_leader/", // TODO HOI4
+            Item::UnitLeaderSkill => "common/unit_leader/",
+            #[cfg(feature = "hoi4")]
+            Item::UnitLeaderTrait => "common/unit_leader/",
         }
     }
 

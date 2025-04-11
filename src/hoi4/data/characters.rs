@@ -125,7 +125,7 @@ fn validate_character(key: &Token, block: &Block, data: &Everything, vd: &mut Va
 
     vd.field_validated_block("scientist", |block, data| {
         let mut vd = Validator::new(block, data);
-        vd.field_list_items("traits", Item::CountryLeaderTrait);
+        vd.field_list_items("traits", Item::ScientistTrait);
         vd.field_trigger_full("visible", Scopes::Country, Tooltipped::No);
         vd.field_validated_block("skills", |block, data| {
             let mut vd = Validator::new(block, data);

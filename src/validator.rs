@@ -1094,7 +1094,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_validated_list`], but expect any number of `name` fields in the block.
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
+    #[cfg(any(feature = "ck3", feature = "hoi4"))]
     pub fn multi_field_validated_list<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, &Everything),
@@ -1109,7 +1109,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_list_items`], but expect any number of `name` fields in the block.
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
+    #[cfg(any(feature = "ck3", feature = "hoi4"))]
     pub fn multi_field_list_items(&mut self, name: &str, item: Item) -> bool {
         let sev = self.max_severity;
         self.multi_field_validated_list(name, |token, data| {
@@ -1757,6 +1757,7 @@ impl<'a> Validator<'a> {
         for Field(key, cmp, bv) in self.block.iter_fields() {
             self.expect_eq_qeq(key, *cmp);
             if !self.known_fields.contains(&key.as_str()) {
+                self.known_fields.push(key.as_str());
                 f(key, bv);
             }
         }
@@ -1770,6 +1771,7 @@ impl<'a> Validator<'a> {
             if let Some(block) = bv.get_block() {
                 self.expect_eq_qeq(key, *cmp);
                 if !self.known_fields.contains(&key.as_str()) {
+                    self.known_fields.push(key.as_str());
                     f(key, block);
                 }
             }
@@ -1784,6 +1786,7 @@ impl<'a> Validator<'a> {
             if let Some(value) = bv.get_value() {
                 self.expect_eq_qeq(key, *cmp);
                 if !self.known_fields.contains(&key.as_str()) {
+                    self.known_fields.push(key.as_str());
                     f(key, value);
                 }
             }
