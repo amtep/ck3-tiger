@@ -555,6 +555,8 @@ pub enum Item {
     #[cfg(feature = "hoi4")] IndustrialOrg,
     #[cfg(feature = "hoi4")] NationalFocus,
     #[cfg(feature = "hoi4")] Operation,
+    #[cfg(feature = "hoi4")] ProjectTag,
+    #[cfg(feature = "hoi4")] PrototypeReward,
     #[cfg(feature = "hoi4")] Resource,
     #[cfg(feature = "hoi4")] ScriptedConstant,
     #[cfg(feature = "hoi4")] ScriptedEnum,
@@ -1592,6 +1594,10 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::Operation => "common/operations/", // TODO HOI4
             #[cfg(feature = "hoi4")]
+            Item::ProjectTag => "common/special_projects/project_tags/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::PrototypeReward => "common/special_projects/prototype_rewards/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
             Item::Resource => "common/resources/",
             #[cfg(feature = "hoi4")]
             Item::ScriptedConstant => "common/scripted_constants/", // TODO HOI4
@@ -1606,7 +1612,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::Specialization => "common/special_projects/specialization/", // TODO: HOI4
             #[cfg(feature = "hoi4")]
-            Item::SpecialProject => "common/special_projects/projects/", // TODO: HOI4
+            Item::SpecialProject => "common/special_projects/projects/",
             #[cfg(feature = "hoi4")]
             Item::ScientistTrait => "common/scientist_traits/",
             #[cfg(feature = "hoi4")]
