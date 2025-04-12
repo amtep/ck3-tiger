@@ -1694,7 +1694,7 @@ impl<'a> Validator<'a> {
     /// where each key is a unique Item of type itype.
     /// Run the closure `f(key, bv, data)` for every matching block.
     #[allow(dead_code)]
-    fn validate_item_key_fields<F>(&mut self, itype: Item, mut f: F)
+    pub fn validate_item_key_fields<F>(&mut self, itype: Item, mut f: F)
     where
         F: FnMut(&Token, &BV, &Everything),
     {
