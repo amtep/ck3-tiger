@@ -166,3 +166,27 @@ fn validate_project_output(block: &Block, data: &Everything) {
         });
     });
 }
+
+#[derive(Clone, Debug)]
+pub struct ProjectTag {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Hoi4, Item::ProjectTag, ProjectTag::add)
+}
+
+impl ProjectTag {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        if key.is("project_tags") {
+            for value in block.iter_values_warn() {
+                db.add_flag(Item::ProjectTag, value.clone());
+            }
+        } else {
+            let msg = "unexpected key";
+            let info = "expected only `project_tags` here";
+            err(ErrorKey::UnknownField).msg(msg).info(info).loc(key).push();
+        }
+        db.set_flag_validator(Item::ProjectTag, |flag, data| {
+            data.verify_exists(Item::Localization, flag);
+        });
+    }
+}
