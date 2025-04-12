@@ -4,7 +4,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
-use crate::report::{err, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -28,20 +28,12 @@ impl DbKind for SpecialProject {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_validated_block("narrative", |block, data| {
-            let mut vd = Validator::new(block, data);
-            if !vd.field_item("name", Item::Localization) {
-                data.verify_exists(Item::Localization, key);
-            }
-            if !vd.field_item("desc", Item::Localization) {
-                let loca = format!("{key}_desc");
-                data.verify_exists_implied(Item::Localization, &loca, key);
-            }
-        });
+        validate_narrative(key, data, &mut vd, true);
 
         if !vd.field_item("icon", Item::Sprite) {
             let sprite = format!("GFX_{key}");
-            data.verify_exists_implied(Item::Sprite, &sprite, key);
+            data.mark_used(Item::Sprite, &sprite);
+            // There's a fallback icon GFX_PLACEHOLDER_sp_project_icon
         }
 
         vd.req_field("specialization");
@@ -99,8 +91,11 @@ impl DbKind for SpecialProject {
             validate_project_output(block, data);
         });
 
-        vd.field_validated_block("unique_prototype_rewards", |_block, _data| {
-            // TODO
+        vd.field_validated_block("unique_prototype_rewards", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.unknown_block_fields(|key, block| {
+                validate_prototype_reward(key, block, data);
+            });
         });
         vd.field_list_items("generic_prototype_rewards", Item::PrototypeReward);
     }
@@ -189,4 +184,96 @@ impl ProjectTag {
             data.verify_exists(Item::Localization, flag);
         });
     }
+}
+
+fn validate_narrative(key: &Token, data: &Everything, vd: &mut Validator, needs_desc: bool) {
+    let mut has_name = false;
+    let mut has_desc = false;
+    vd.field_validated_block("narrative", |block, data| {
+        let mut vd = Validator::new(block, data);
+        has_name = vd.field_item("name", Item::Localization);
+        if needs_desc {
+            has_desc = vd.field_item("desc", Item::Localization);
+        }
+    });
+    if !has_name {
+        data.verify_exists(Item::Localization, key);
+    }
+    if needs_desc && !has_desc {
+        let loca = format!("{key}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct PrototypeReward {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Hoi4, Item::PrototypeReward, PrototypeReward::add)
+}
+
+impl PrototypeReward {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::PrototypeReward, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for PrototypeReward {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        validate_prototype_reward(key, block, data);
+    }
+}
+
+fn validate_prototype_reward(key: &Token, block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+
+    validate_narrative(key, data, &mut vd, true);
+
+    if !vd.field_item("icon", Item::Sprite) {
+        let sprite = format!("GFX_{key}");
+        data.mark_used(Item::Sprite, &sprite);
+        // There's a fallback icon GFX_PLACEHOLDER_sp_project_picture
+    }
+
+    vd.field_bool("fire_only_once");
+    vd.field_bool("force_reward_if_available");
+
+    vd.field_validated_block("threshold", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.field_integer("min");
+        vd.field_integer("max");
+    });
+
+    let mut sc = ScopeContext::new(Scopes::SpecialProject, key);
+    vd.field_validated_block_sc("weight", &mut sc, validate_modifiers_with_base);
+    vd.field_trigger_full("allowed", Scopes::Country, Tooltipped::No);
+
+    vd.req_field("option");
+    let mut seen_default = false;
+    vd.multi_field_validated_block("option", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.req_field("token");
+        vd.field_identifier("token", "token");
+
+        vd.field_bool("default");
+        if block.get_field_bool("default").unwrap_or(false) {
+            if seen_default {
+                let msg = "only one option should have default = yes";
+                let key = block.get_key("default").unwrap();
+                warn(ErrorKey::DuplicateField).msg(msg).loc(key).push();
+            }
+            seen_default = true;
+        }
+
+        if let Some(token) = block.get_field_value("token") {
+            validate_narrative(token, data, &mut vd, false);
+        } else {
+            // token is mandatory, but here's a fallback
+            vd.field_block("narrative");
+        }
+
+        vd.field_validated_block("iteration_output", |block, data| {
+            validate_project_output(block, data);
+        });
+    });
 }

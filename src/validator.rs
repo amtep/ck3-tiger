@@ -1700,18 +1700,20 @@ impl<'a> Validator<'a> {
     {
         let mut visited_fields = TigerHashSet::default();
         for Field(key, _, bv) in self.block.iter_fields() {
-            self.data.verify_exists(itype, key);
+            if !self.known_fields.contains(&key.as_str()) {
+                self.data.verify_exists(itype, key);
 
-            match visited_fields.get(key.as_str()) {
-                Some(&duplicate) => dup_assign_error(key, duplicate),
-                None => {
-                    visited_fields.insert(key);
+                match visited_fields.get(key.as_str()) {
+                    Some(&duplicate) => dup_assign_error(key, duplicate),
+                    None => {
+                        visited_fields.insert(key);
+                    }
                 }
+
+                self.known_fields.push(key.as_str());
+
+                f(key, bv, self.data);
             }
-
-            self.known_fields.push(key.as_str());
-
-            f(key, bv, self.data);
         }
     }
 
