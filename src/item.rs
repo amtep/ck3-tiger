@@ -1596,7 +1596,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::ProjectTag => "common/special_projects/project_tags/",
             #[cfg(feature = "hoi4")]
-            Item::PrototypeReward => "common/special_projects/prototype_rewards/", // TODO HOI4
+            Item::PrototypeReward => "common/special_projects/prototype_rewards/",
             #[cfg(feature = "hoi4")]
             Item::Resource => "common/resources/",
             #[cfg(feature = "hoi4")]
