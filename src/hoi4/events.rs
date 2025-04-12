@@ -15,13 +15,14 @@ use crate::validator::Validator;
 
 // TODO
 
-const EVENT_TYPES: &[&str] = &["country_event", "news_event", "state_event", "unit_leader_event"];
+const EVENT_TYPES: &[&str] =
+    &["country_event", "news_event", "state_event", "unit_leader_event", "operative_leader_event"];
 
 pub fn get_event_scope(key: &Token, _block: &Block) -> (Scopes, Token) {
     match key.as_str() {
         "country_event" | "news_event" => (Scopes::Country, key.clone()),
         "state_event" => (Scopes::State, key.clone()),
-        "unit_leader_event" => (Scopes::Character, key.clone()),
+        "unit_leader_event" | "operative_leader_event" => (Scopes::Character, key.clone()),
         _ => (Scopes::Country, key.clone()),
     }
 }
@@ -33,7 +34,7 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     let mut tooltipped = Tooltipped::Yes;
 
     if !EVENT_TYPES.contains(&event.key.as_str()) {
-        let msg = format!("expected one = {}", EVENT_TYPES.join(", "));
+        let msg = format!("expected one of {}", EVENT_TYPES.join(", "));
         err(ErrorKey::Choice).msg(msg).loc(&event.key).push();
     }
 
