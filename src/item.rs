@@ -1610,7 +1610,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::SpawnPoint => "common/buildings/",
             #[cfg(feature = "hoi4")]
-            Item::Specialization => "common/special_projects/specialization/", // TODO: HOI4
+            Item::Specialization => "common/special_projects/specialization/",
             #[cfg(feature = "hoi4")]
             Item::SpecialProject => "common/special_projects/projects/",
             #[cfg(feature = "hoi4")]

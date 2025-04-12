@@ -8,7 +8,7 @@ use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::validate::validate_modifiers_with_base;
+use crate::validate::{validate_color, validate_modifiers_with_base};
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -276,4 +276,45 @@ fn validate_prototype_reward(key: &Token, block: &Block, data: &Everything) {
             validate_project_output(block, data);
         });
     });
+}
+
+#[derive(Clone, Debug)]
+pub struct Specialization {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Hoi4, Item::Specialization, Specialization::add)
+}
+
+impl Specialization {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::Specialization, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for Specialization {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
+
+        if !vd.field_item("icon", Item::Sprite) {
+            let sprite = format!("GFX_{key}");
+            data.mark_used(Item::Sprite, &sprite);
+            // There's a fallback icon GFX_PLACEHOLDER_sp_specialization_icon
+        }
+
+        if !vd.field_item("blueprint_image", Item::Sprite) {
+            let sprite = format!("GFX_{key}_blueprint");
+            data.mark_used(Item::Sprite, &sprite);
+            // There's a fallback icon GFX_PLACEHOLDER_sp_blueprint
+        }
+
+        if !vd.field_item("program_background", Item::Sprite) {
+            let sprite = format!("GFX_{key}_program_item");
+            data.mark_used(Item::Sprite, &sprite);
+            // There's a fallback icon GFX_tiled_plain_bg
+        }
+
+        vd.field_validated_block("color", validate_color);
+    }
 }
