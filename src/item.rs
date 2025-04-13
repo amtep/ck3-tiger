@@ -554,8 +554,12 @@ pub enum Item {
     #[cfg(feature = "hoi4")] IdeaGroup,
     #[cfg(feature = "hoi4")] IdeologyGroup,
     #[cfg(feature = "hoi4")] IndustrialOrg,
+    #[cfg(feature = "hoi4")] IndustrialOrgBonusWeight,
+    #[cfg(feature = "hoi4")] IndustrialOrgPolicy,
+    #[cfg(feature = "hoi4")] IndustrialOrgTrait,
     #[cfg(feature = "hoi4")] NationalFocus,
     #[cfg(feature = "hoi4")] Operation,
+    #[cfg(feature = "hoi4")] ProductionStat,
     #[cfg(feature = "hoi4")] ProjectTag,
     #[cfg(feature = "hoi4")] PrototypeReward,
     #[cfg(feature = "hoi4")] Resource,
@@ -1591,11 +1595,21 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::IdeologyGroup => "common/ideologies/",
             #[cfg(feature = "hoi4")]
-            Item::IndustrialOrg => "common/military_industrial_organization/", // TODO HOI4
+            Item::IndustrialOrg => "common/military_industrial_organization/organizations/",
+            #[cfg(feature = "hoi4")]
+            Item::IndustrialOrgBonusWeight => {
+                "common/military_industrial_organization/ai_bonus_weights/"
+            }
+            #[cfg(feature = "hoi4")]
+            Item::IndustrialOrgPolicy => "common/military_industrial_organization/policies/",
+            #[cfg(feature = "hoi4")]
+            Item::IndustrialOrgTrait => "common/military_industrial_organization/organizations/",
             #[cfg(feature = "hoi4")]
             Item::NationalFocus => "common/national_focus/", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::Operation => "common/operations/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::ProductionStat => "common/script_enum.txt",
             #[cfg(feature = "hoi4")]
             Item::ProjectTag => "common/special_projects/project_tags/",
             #[cfg(feature = "hoi4")]

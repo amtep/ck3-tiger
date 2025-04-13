@@ -28,6 +28,10 @@ impl ScriptedEnum {
             for value in block.iter_values() {
                 db.add_flag(Item::EquipmentStat, value.clone());
             }
+        } else if key.is("script_enum_production_stat") {
+            for value in block.iter_values() {
+                db.add_flag(Item::ProductionStat, value.clone());
+            }
         } else if key.is("script_enum_equipment_category") {
             for value in block.iter_values() {
                 db.add_flag(Item::EquipmentCategory, value.clone());
@@ -49,7 +53,7 @@ impl DbKind for ScriptedEnum {
         let mut vd = Validator::new(block, data);
         let check_loca =
             key.is("script_enum_advisor_slot_type") || key.is("script_enum_equipment_bonus_type");
-        let check_desc = key.is("cv_small_plane_airframe_0");
+        let check_desc = key.is("script_enum_equipment_bonus_type");
         for value in vd.values() {
             if check_loca {
                 data.verify_exists(Item::Localization, value);
