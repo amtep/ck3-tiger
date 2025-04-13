@@ -8,13 +8,13 @@ use crate::token::Token;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct ScriptedEnum {}
+pub struct ScriptEnum {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Hoi4, Item::ScriptedEnum, ScriptedEnum::add)
+    ItemLoader::Normal(GameFlags::Hoi4, Item::ScriptEnum, ScriptEnum::add)
 }
 
-impl ScriptedEnum {
+impl ScriptEnum {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if key.is("script_enum_operative_mission_type") {
             for value in block.iter_values() {
@@ -44,11 +44,11 @@ impl ScriptedEnum {
             let msg = "unexpected key";
             err(ErrorKey::UnknownField).msg(msg).loc(&key).push();
         }
-        db.add(Item::ScriptedEnum, key, block, Box::new(Self {}));
+        db.add(Item::ScriptEnum, key, block, Box::new(Self {}));
     }
 }
 
-impl DbKind for ScriptedEnum {
+impl DbKind for ScriptEnum {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         let check_loca =
