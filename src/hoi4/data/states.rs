@@ -102,11 +102,11 @@ fn validate_state_history(key: &Token, block: &Block, data: &Everything, mut vd:
                     err(ErrorKey::Validation).msg(msg).info(info).loc(value).push();
                 }
                 _ => (),
-            };
+            }
         }
     });
     validate_effect_internal(
-        &Lowercase::empty(),
+        Lowercase::empty(),
         ListType::None,
         block,
         data,

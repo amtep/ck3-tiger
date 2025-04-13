@@ -28,9 +28,7 @@ impl SoundEffect {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if key.is("category") {
             db.add_anonymous(key, block, Box::new(SoundCategory {}));
-        } else if key.is("master_compressor") {
-            db.add_anonymous(key, block, Box::new(SoundCompressor {}));
-        } else if key.is("music_compressor") {
+        } else if key.is("master_compressor") || key.is("music_compressor") {
             db.add_anonymous(key, block, Box::new(SoundCompressor {}));
         } else if key.is("sound") {
             if let Some(name) = block.get_field_value("name") {

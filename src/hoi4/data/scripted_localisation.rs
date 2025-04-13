@@ -88,7 +88,7 @@ fn validate_localization_key(key: &Token, data: &Everything, lang: Option<Langua
             // The formats are described in documentation/loc_formatter_documentation.md
             match format.as_str() {
                 "character_name" | "advisor_desc" | "country_leader_desc" => {
-                    data.verify_exists(Item::Character, &value)
+                    data.verify_exists(Item::Character, &value);
                 }
                 "country_culture" => (), // TODO (no examples)
                 "idea_name" | "idea_desc" => data.verify_exists(Item::Idea, &value),

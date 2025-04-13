@@ -16,7 +16,7 @@ pub mod modifiers;
 pub mod provinces;
 pub mod resources;
 pub mod scientist;
-pub mod scripted_enums;
+pub mod script_enums;
 pub mod scripted_localisation;
 pub mod sounds;
 pub mod special_projects;

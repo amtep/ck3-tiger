@@ -563,8 +563,8 @@ pub enum Item {
     #[cfg(feature = "hoi4")] ProjectTag,
     #[cfg(feature = "hoi4")] PrototypeReward,
     #[cfg(feature = "hoi4")] Resource,
+    #[cfg(feature = "hoi4")] ScriptEnum,
     #[cfg(feature = "hoi4")] ScriptedConstant,
-    #[cfg(feature = "hoi4")] ScriptedEnum,
     #[cfg(feature = "hoi4")] ScriptedLocalisation,
     #[cfg(feature = "hoi4")] SoundEffect,
     #[cfg(feature = "hoi4")] SoundFalloff,
@@ -1617,9 +1617,9 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::Resource => "common/resources/",
             #[cfg(feature = "hoi4")]
-            Item::ScriptedConstant => "common/scripted_constants/", // TODO HOI4
+            Item::ScriptEnum => "common/script_enums.txt",
             #[cfg(feature = "hoi4")]
-            Item::ScriptedEnum => "common/script_enums.txt",
+            Item::ScriptedConstant => "common/scripted_constants/", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::ScriptedLocalisation => "common/scripted_localisation/",
             #[cfg(feature = "hoi4")]
