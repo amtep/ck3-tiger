@@ -54,13 +54,14 @@ impl DbKind for Character {
 fn validate_character(key: &Token, block: &Block, data: &Everything, vd: &mut Validator) {
     let mut sc = ScopeContext::new(Scopes::Country, key);
 
-    if !block.has_key("name") {
+    if !vd.field_item("name", Item::Localization) {
         data.verify_exists(Item::Localization, key);
     }
-    vd.field_item("name", Item::Localization);
 
     vd.field_choice("gender", &["male", "female", "undefined"]);
 
+    vd.field_trigger_full("available", Scopes::Country, Tooltipped::Yes);
+    vd.field_trigger_full("allowed_civil_war", Scopes::Country, Tooltipped::No);
     vd.field_validated_block("portraits", |block, data| {
         let mut vd = Validator::new(block, data);
         for field in &["civilian", "army", "navy"] {
@@ -107,6 +108,7 @@ fn validate_character(key: &Token, block: &Block, data: &Everything, vd: &mut Va
         vd.field_item("slot", Item::AdvisorSlot);
         // TODO: register these as an item type
         vd.field_value("idea_token");
+        vd.field_item("name", Item::Localization);
         // TODO: only require this for theorist and high_command; ban for everyone else
         vd.field_choice(
             "ledger",
@@ -115,10 +117,17 @@ fn validate_character(key: &Token, block: &Block, data: &Everything, vd: &mut Va
         vd.field_trigger_full("allowed", Scopes::Country, Tooltipped::No);
         vd.field_trigger_full("visible", Scopes::Country, Tooltipped::No);
         vd.field_trigger_full("available", Scopes::Country, Tooltipped::Yes);
+        vd.field_validated_block("research_bonus", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.validate_item_key_values(Item::Technology, |_, mut vd| {
+                vd.numeric();
+            });
+        });
         vd.field_list_items("traits", Item::CountryLeaderTrait);
         vd.field_numeric("cost");
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
         vd.field_bool("can_be_fired");
+        vd.field_trigger_full("do_effect", Scopes::Country, Tooltipped::Yes);
         vd.field_effect_full("on_add", Scopes::Character, Tooltipped::Yes);
         vd.field_effect_full("on_remove", Scopes::Character, Tooltipped::Yes);
     });
