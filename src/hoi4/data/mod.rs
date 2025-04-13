@@ -6,6 +6,7 @@ pub mod characters;
 pub mod countries;
 pub mod country_leader;
 pub mod decisions;
+pub mod dynamic;
 pub mod events;
 pub mod gfx;
 pub mod ideologies;

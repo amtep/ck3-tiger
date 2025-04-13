@@ -96,7 +96,7 @@ impl DbKind for Building {
         vd.field_list_items("specialization", Item::Specialization);
         vd.field_list("tags");
         vd.field_list_items("province_damage_modifiers", Item::Modifier);
-        vd.field_list_items("state_damage_modifier", Item::Modifier);
+        vd.field_list_items("state_damage_modifier", Item::DynamicModifier);
 
         vd.field_choice("detecting_intel_type", &["navy", "airforce", "army", "civilian"]);
 

@@ -543,6 +543,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] CountryTag,
     #[cfg(feature = "hoi4")] CountryTagAlias,
     #[cfg(feature = "hoi4")] DecisionCategory,
+    #[cfg(feature = "hoi4")] DynamicModifier,
     #[cfg(feature = "hoi4")] Equipment,
     #[cfg(feature = "hoi4")] EquipmentBonusType,
     #[cfg(feature = "hoi4")] EquipmentCategory,
@@ -1569,6 +1570,8 @@ impl Item {
             Item::CountryTagAlias => "common/country_tag_aliases/",
             #[cfg(feature = "hoi4")]
             Item::DecisionCategory => "common/decisions/categories/",
+            #[cfg(feature = "hoi4")]
+            Item::DynamicModifier => "common/dynamic_modifiers/",
             #[cfg(feature = "hoi4")]
             Item::Equipment => "common/units/equipment/", // TODO HOI4
             #[cfg(feature = "hoi4")]
