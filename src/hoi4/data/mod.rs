@@ -11,6 +11,7 @@ pub mod events;
 pub mod gfx;
 pub mod ideologies;
 pub mod map;
+pub mod mio;
 pub mod modifiers;
 pub mod provinces;
 pub mod resources;
