@@ -174,5 +174,5 @@ impl Display for ActionOrEvent {
 }
 
 pub fn is_country_tag(part: &str) -> bool {
-    part.len() == 3 && part.chars().all(|c| c.is_ascii_uppercase())
+    part.len() == 3 && part != "NOT" && part.chars().all(|c| c.is_ascii_uppercase())
 }

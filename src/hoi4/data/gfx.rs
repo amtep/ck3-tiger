@@ -138,18 +138,27 @@ impl Sprite {
 
         vd.field_value("name");
         vd.field_item("texturefile", Item::File);
+        vd.field_item("effectfile", Item::File);
         vd.field_bool("legacy_lazy_load");
+        vd.field_integer("noofframes");
 
         if self.key.lowercase_is("corneredtilespritetype") {
-            vd.field_validated_block("bordersize", |block, data| {
-                let mut vd = Validator::new(block, data);
-                vd.set_case_sensitive(false);
+            for field in &["size", "bordersize"] {
+                vd.field_validated_block(field, |block, data| {
+                    let mut vd = Validator::new(block, data);
+                    vd.set_case_sensitive(false);
 
-                vd.field_integer("x");
-                vd.field_integer("y");
-            });
-            vd.field_item("effectfile", Item::File);
+                    vd.field_integer("x");
+                    vd.field_integer("y");
+                });
+            }
+            vd.field_bool("tilingcenter");
+            vd.field_bool("looping");
+            vd.field_integer("animation_rate_spf");
+            vd.field_bool("alwaystransparent");
         }
+
+        vd.multi_field_validated_block("animation", validate_animation);
     }
 }
 
@@ -199,4 +208,26 @@ impl Mesh {
             vd.field_item("pdxmesh", Item::Pdxmesh);
         });
     }
+}
+
+fn validate_animation(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.field_item("animationmaskfile", Item::File);
+    vd.field_item("animationtexturefile", Item::File);
+    vd.field_numeric("animationrotation");
+    vd.field_bool("animationlooping");
+    vd.field_numeric("animationtime");
+    vd.field_numeric("animationdelay");
+    vd.field_choice("animationblendmode", &["add", "multiply", "overlay", "normal"]);
+    vd.field_choice("animationtype", &["scrolling", "rotating", "pulsing", "rotating_ccw"]);
+    for field in &["animationrotationoffset", "animationtexturescale"] {
+        vd.field_validated_block(field, |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_numeric("x");
+            vd.field_numeric("y");
+        });
+    }
+    vd.field_validated_list("animationframes", |value, data| {
+        value.expect_integer();
+    });
 }

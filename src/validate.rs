@@ -414,6 +414,13 @@ pub fn validate_iterator_fields(
     } else {
         vd.ban_field("weight", || "`random_` lists");
     }
+
+    #[cfg(feature = "hoi4")]
+    if list_type == ListType::Every {
+        vd.field_integer("random_select_amount");
+    } else {
+        vd.ban_field("random_select_amount", || "`every_` lists");
+    }
 }
 
 /// This checks the special fields for certain iterators, like `type =` in `every_relation`.

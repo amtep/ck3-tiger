@@ -163,7 +163,7 @@ pub enum Item {
     Character,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     CharacterTemplate,
-    #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
+    #[cfg(any(feature = "vic3", feature = "imperator"))]
     CharacterTrait,
     #[cfg(any(feature = "imperator", feature = "hoi4"))]
     CombatTactic,
@@ -815,14 +815,12 @@ impl Item {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => "common/character_templates/",
             },
-            #[cfg(any(feature = "vic3", feature = "imperator", feature = "hoi4"))]
+            #[cfg(any(feature = "vic3", feature = "imperator"))]
             Item::CharacterTrait => match Game::game() {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => "common/character_traits/",
                 #[cfg(feature = "imperator")]
                 Game::Imperator => "common/traits/",
-                #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/unit_leader/", // TODO HOI4
             },
             #[cfg(any(feature = "imperator", feature = "hoi4"))]
             Item::CombatTactic => match Game::game() {
