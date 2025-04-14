@@ -134,6 +134,7 @@ pub fn validate_trigger_internal(
 ) -> bool {
     let mut side_effects = false;
     let max_sev = vd.max_severity();
+    vd.set_case_sensitive(false);
 
     #[cfg(feature = "hoi4")]
     let caller = if Game::is_hoi4() && tooltipped == Tooltipped::Inner {

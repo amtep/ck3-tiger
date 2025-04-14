@@ -558,6 +558,8 @@ pub enum Item {
     #[cfg(feature = "hoi4")] IndustrialOrgPolicy,
     #[cfg(feature = "hoi4")] IndustrialOrgTrait,
     #[cfg(feature = "hoi4")] NationalFocus,
+    #[cfg(feature = "hoi4")] NationalFocusStyle,
+    #[cfg(feature = "hoi4")] NationalFocusTree,
     #[cfg(feature = "hoi4")] Operation,
     #[cfg(feature = "hoi4")] ProductionStat,
     #[cfg(feature = "hoi4")] ProjectTag,
@@ -1603,7 +1605,11 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::IndustrialOrgTrait => "common/military_industrial_organization/organizations/",
             #[cfg(feature = "hoi4")]
-            Item::NationalFocus => "common/national_focus/", // TODO HOI4
+            Item::NationalFocus => "common/national_focus/",
+            #[cfg(feature = "hoi4")]
+            Item::NationalFocusStyle => "common/national_focus/",
+            #[cfg(feature = "hoi4")]
+            Item::NationalFocusTree => "common/national_focus/",
             #[cfg(feature = "hoi4")]
             Item::Operation => "common/operations/", // TODO HOI4
             #[cfg(feature = "hoi4")]
