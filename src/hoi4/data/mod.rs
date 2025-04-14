@@ -8,6 +8,7 @@ pub mod country_leader;
 pub mod decisions;
 pub mod dynamic;
 pub mod events;
+pub mod focus;
 pub mod gfx;
 pub mod ideologies;
 pub mod map;

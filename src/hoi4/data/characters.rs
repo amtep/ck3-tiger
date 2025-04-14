@@ -51,7 +51,7 @@ impl DbKind for Character {
     }
 }
 
-fn validate_character(key: &Token, block: &Block, data: &Everything, vd: &mut Validator) {
+fn validate_character(key: &Token, _block: &Block, data: &Everything, vd: &mut Validator) {
     let mut sc = ScopeContext::new(Scopes::Country, key);
 
     if !vd.field_item("name", Item::Localization) {

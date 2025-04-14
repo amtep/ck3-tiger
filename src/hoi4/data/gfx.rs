@@ -227,7 +227,7 @@ fn validate_animation(block: &Block, data: &Everything) {
             vd.field_numeric("y");
         });
     }
-    vd.field_validated_list("animationframes", |value, data| {
+    vd.field_validated_list("animationframes", |value, _| {
         value.expect_integer();
     });
 }

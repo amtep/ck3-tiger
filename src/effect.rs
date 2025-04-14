@@ -74,6 +74,7 @@ pub fn validate_effect_internal(
     vd: &mut Validator,
     mut tooltipped: Tooltipped,
 ) {
+    vd.set_case_sensitive(false);
     if caller == "if"
         || caller == "else_if"
         || caller == "else"
