@@ -62,6 +62,8 @@ use crate::game::Game;
 use crate::helpers::TigerHashSet;
 #[cfg(feature = "hoi4")]
 use crate::hoi4::data::{events::Hoi4Events, gfx::Gfx, provinces::Hoi4Provinces};
+#[cfg(feature = "hoi4")]
+use crate::hoi4::tables::misc::*;
 #[cfg(feature = "imperator")]
 use crate::imperator::data::{decisions::Decisions, provinces::ImperatorProvinces};
 #[cfg(feature = "imperator")]
@@ -737,6 +739,7 @@ impl Everything {
     #[cfg(feature = "hoi4")]
     fn item_exists_hoi4(&self, itype: Item, key: &str) -> bool {
         match itype {
+            Item::AiStrategyType => AI_STRATEGY_TYPES.contains(&key),
             Item::Event => self.events_hoi4.exists(key),
             Item::EventNamespace => self.events_hoi4.namespace_exists(key),
             Item::Pdxmesh => self.gfx.mesh_exists(key),

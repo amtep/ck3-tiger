@@ -1563,7 +1563,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::AdvisorSlot => "common/script_enums.txt",
             #[cfg(feature = "hoi4")]
-            Item::AiStrategyType => "",
+            Item::AiStrategyType => "common/ai_strategy/_documentation.md",
             #[cfg(feature = "hoi4")]
             Item::Continent => "map/continent.txt",
             #[cfg(feature = "hoi4")]
