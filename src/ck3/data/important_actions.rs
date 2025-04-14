@@ -80,7 +80,9 @@ impl DbKind for ImportantAction {
         vd.field_item("soundeffect", Item::Sound);
 
         // undocumented
-        vd.field_validated_block("unimportant", |block, data| {
+        vd.field_validated_key_block("unimportant", |key, block, data| {
+            sc.define_name("actor", Scopes::Character, key);
+            sc.define_name("recipient", Scopes::Character, key);
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
     }
