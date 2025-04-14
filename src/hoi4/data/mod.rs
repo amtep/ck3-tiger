@@ -14,6 +14,7 @@ pub mod ideologies;
 pub mod map;
 pub mod mio;
 pub mod modifiers;
+pub mod operations;
 pub mod provinces;
 pub mod resources;
 pub mod scientist;

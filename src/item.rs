@@ -561,6 +561,8 @@ pub enum Item {
     #[cfg(feature = "hoi4")] NationalFocusStyle,
     #[cfg(feature = "hoi4")] NationalFocusTree,
     #[cfg(feature = "hoi4")] Operation,
+    #[cfg(feature = "hoi4")] OperationPhase,
+    #[cfg(feature = "hoi4")] OperationToken,
     #[cfg(feature = "hoi4")] ProductionStat,
     #[cfg(feature = "hoi4")] ProjectTag,
     #[cfg(feature = "hoi4")] PrototypeReward,
@@ -1611,7 +1613,11 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::NationalFocusTree => "common/national_focus/",
             #[cfg(feature = "hoi4")]
-            Item::Operation => "common/operations/", // TODO HOI4
+            Item::Operation => "common/operations/",
+            #[cfg(feature = "hoi4")]
+            Item::OperationPhase => "common/operation_phases/",
+            #[cfg(feature = "hoi4")]
+            Item::OperationToken => "common/operation_tokens/",
             #[cfg(feature = "hoi4")]
             Item::ProductionStat => "common/script_enum.txt",
             #[cfg(feature = "hoi4")]
