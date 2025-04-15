@@ -580,6 +580,9 @@ pub enum Item {
     #[cfg(feature = "hoi4")] State,
     #[cfg(feature = "hoi4")] StateCategory,
     #[cfg(feature = "hoi4")] SubUnit,
+    #[cfg(feature = "hoi4")] TechnologyCategory,
+    #[cfg(feature = "hoi4")] TechnologyFolder,
+    #[cfg(feature = "hoi4")] TechnologySharing,
     #[cfg(feature = "hoi4")] UnitLeaderSkill,
     #[cfg(feature = "hoi4")] UnitLeaderTrait,
 }
@@ -888,7 +891,7 @@ impl Item {
                 #[cfg(feature = "vic3")]
                 Game::Vic3 => "common/technology/technologies/",
                 #[cfg(feature = "hoi4")]
-                Game::Hoi4 => "common/technologies/", // TODO HOI4
+                Game::Hoi4 => "common/technologies/",
             },
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::TutorialLesson => "common/tutorial_lessons",
@@ -1650,6 +1653,12 @@ impl Item {
             Item::StateCategory => "common/state_category/",
             #[cfg(feature = "hoi4")]
             Item::SubUnit => "common/units/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::TechnologyCategory => "common/technology_tags/",
+            #[cfg(feature = "hoi4")]
+            Item::TechnologyFolder => "common/technology_tags/",
+            #[cfg(feature = "hoi4")]
+            Item::TechnologySharing => "common/technology_sharing/",
             #[cfg(feature = "hoi4")]
             Item::UnitLeaderSkill => "common/unit_leader/",
             #[cfg(feature = "hoi4")]

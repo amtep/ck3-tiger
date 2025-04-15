@@ -154,7 +154,7 @@ impl DbKind for OperationToken {
 }
 
 impl DbKind for OperationPhase {
-    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
         vd.req_field("name");
