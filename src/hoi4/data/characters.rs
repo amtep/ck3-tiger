@@ -119,7 +119,7 @@ fn validate_character(key: &Token, _block: &Block, data: &Everything, vd: &mut V
         vd.field_trigger_full("available", Scopes::Country, Tooltipped::Yes);
         vd.field_validated_block("research_bonus", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.validate_item_key_values(Item::Technology, |_, mut vd| {
+            vd.validate_item_key_values(Item::TechnologyCategory, |_, mut vd| {
                 vd.numeric();
             });
         });

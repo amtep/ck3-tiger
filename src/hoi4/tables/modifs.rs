@@ -94,10 +94,14 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
 
     // module_$EquipmentModule$_design_cost_factor
+    // unit_$SubUnit$_design_cost_factor
     // $Equipment$_design_cost_factor
     if let Some(part) = name_lc.strip_suffix_unchecked("_design_cost_factor") {
         if let Some(part) = part.strip_prefix_unchecked("module_") {
             maybe_warn(Item::EquipmentModule, &part, name, data, warn);
+            return Some(ModifKinds::Naval | ModifKinds::Country | ModifKinds::Army);
+        } else if let Some(part) = part.strip_prefix_unchecked("unit_") {
+            maybe_warn(Item::SubUnit, &part, name, data, warn);
             return Some(ModifKinds::Naval | ModifKinds::Country | ModifKinds::Army);
         }
         maybe_warn(Item::Equipment, &part, name, data, warn);
