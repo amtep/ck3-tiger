@@ -46,6 +46,7 @@ impl Assets {
         self.assets.values().map(|item| &item.name)
     }
 
+    #[cfg(feature = "jomini")]
     pub fn mesh_exists(&self, key: &str) -> bool {
         if let Some(asset) = self.assets.get(key) {
             asset.key.is("pdxmesh")
@@ -54,6 +55,7 @@ impl Assets {
         }
     }
 
+    #[cfg(feature = "jomini")]
     pub fn iter_mesh_keys(&self) -> impl Iterator<Item = &Token> {
         self.assets.values().filter(|item| item.key.is("pdxmesh")).map(|item| &item.name)
     }
@@ -78,10 +80,12 @@ impl Assets {
         self.blend_shapes.iter()
     }
 
+    #[cfg(feature = "jomini")]
     pub fn attribute_exists(&self, key: &str) -> bool {
         self.attributes.contains(key)
     }
 
+    #[cfg(feature = "jomini")]
     pub fn iter_attribute_keys(&self) -> impl Iterator<Item = &Token> {
         self.attributes.iter()
     }

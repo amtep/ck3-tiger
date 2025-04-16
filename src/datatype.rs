@@ -218,6 +218,7 @@ pub struct Code {
 
 /// `CodeArg` represents a single argument of a [`Code`].
 #[derive(Clone, Debug)]
+#[allow(dead_code)] // hoi4 does not use CodeChain
 pub enum CodeArg {
     /// An argument that is itself a [`CodeChain`], though it doesn't need the `[` `]` around it.
     Chain(CodeChain),
@@ -370,6 +371,7 @@ fn validate_argument(
 /// * `expect_promote` is true iff the chain is expected to end on a promote rather than on a function.
 ///   Promotes and functions are very similar but they are defined separately in the datafunction tables
 ///   and usually only a function can end a chain.
+#[allow(unused_variables)] // TODO HOI4: use `format`
 pub fn validate_datatypes(
     chain: &CodeChain,
     data: &Everything,

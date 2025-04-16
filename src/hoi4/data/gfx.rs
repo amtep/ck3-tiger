@@ -28,8 +28,7 @@ impl Gfx {
                     dup_error(name, &other.key, "sprite");
                 }
             }
-            self.sprites
-                .insert(name.as_str(), Sprite::new(key.clone(), name.clone(), block.clone()));
+            self.sprites.insert(name.as_str(), Sprite::new(key, name.clone(), block));
         }
     }
 
@@ -40,7 +39,7 @@ impl Gfx {
                     dup_error(name, &other.key, "pdxmesh");
                 }
             }
-            self.meshes.insert(name.as_str(), Mesh::new(key.clone(), name.clone(), block.clone()));
+            self.meshes.insert(name.as_str(), Mesh::new(key, name.clone(), block));
         }
     }
 

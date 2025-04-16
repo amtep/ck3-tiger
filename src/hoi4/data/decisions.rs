@@ -41,6 +41,7 @@ inventory::submit! {
 }
 
 impl Decision {
+    #[allow(clippy::needless_pass_by_value)]
     pub fn add(db: &mut Db, key: Token, mut block: Block) {
         // Check depth to avoid scanning common/decisions/categories/ here
         if key.loc.pathname().iter().count() == 3 {

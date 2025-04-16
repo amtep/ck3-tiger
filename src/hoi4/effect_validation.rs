@@ -57,6 +57,7 @@ pub fn validate_add_advisor_role(
 
 pub fn validate_flag_name(name: &Token) {
     let v = name.split('@');
+    #[allow(clippy::comparison_chain)]
     if v.len() > 2 {
         let msg = "too many tags in flag name";
         let info = "each flag may only have one @-tag";

@@ -86,6 +86,7 @@ pub fn validate_trigger(
 /// validation. Used to validate triggers in item definitions that don't warrant the `Error` level.
 ///
 /// Returns true iff the trigger had side effects (such as saving scopes).
+#[allow(dead_code)]
 pub fn validate_trigger_max_sev(
     block: &Block,
     data: &Everything,

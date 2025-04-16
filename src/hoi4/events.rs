@@ -19,6 +19,7 @@ const EVENT_TYPES: &[&str] =
     &["country_event", "news_event", "state_event", "unit_leader_event", "operative_leader_event"];
 
 pub fn get_event_scope(key: &Token, _block: &Block) -> (Scopes, Token) {
+    #[allow(clippy::match_same_arms)]
     match key.as_str() {
         "country_event" | "news_event" => (Scopes::Country, key.clone()),
         "state_event" => (Scopes::State, key.clone()),

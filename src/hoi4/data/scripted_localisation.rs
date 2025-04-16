@@ -88,12 +88,12 @@ fn validate_localization_key(key: &Token, data: &Everything, lang: Option<Langua
             // The formats are described in documentation/loc_formatter_documentation.md
             match format.as_str() {
                 "character_name" | "advisor_desc" | "country_leader_desc" => {
-                    data.verify_exists(Item::Character, &value);
+                    data.verify_exists(Item::Character, value);
                 }
                 "country_culture" => (), // TODO (no examples)
-                "idea_name" | "idea_desc" => data.verify_exists(Item::Idea, &value),
-                "tech_effect" => data.verify_exists(Item::Technology, &value),
-                "building_state_modifier" => data.verify_exists(Item::Building, &value),
+                "idea_name" | "idea_desc" => data.verify_exists(Item::Idea, value),
+                "tech_effect" => data.verify_exists(Item::Technology, value),
+                "building_state_modifier" => data.verify_exists(Item::Building, value),
                 _ => {
                     let msg = "unknown format {format}";
                     warn(ErrorKey::Localization).msg(msg).loc(key).push();

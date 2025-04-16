@@ -163,6 +163,7 @@ pub fn validate_optional_duration_int(vd: &mut Validator) {
 }
 
 // Very similar to validate_days_weeks_months_years, but requires = instead of allowing comparators
+#[allow(dead_code)]
 pub fn validate_optional_duration(vd: &mut Validator, sc: &mut ScopeContext) {
     let mut count = 0;
 
@@ -252,6 +253,7 @@ pub fn validate_color(block: &Block, _data: &Everything) {
     }
 }
 
+#[cfg(feature = "jomini")]
 pub fn validate_possibly_named_color(bv: &BV, data: &Everything) {
     if Game::is_hoi4() {
         // no named colors
@@ -923,6 +925,7 @@ pub fn validate_ifelse_sequence(block: &Block, key_if: &str, key_elseif: &str, k
     }
 }
 
+#[allow(dead_code)]
 pub fn validate_numeric_range(
     block: &Block,
     data: &Everything,
