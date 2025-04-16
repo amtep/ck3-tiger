@@ -473,9 +473,8 @@ pub fn validate_trigger_key_bv(
                 } else if part_lc == "this" {
                     sc.replace_this();
                 } else if Game::is_hoi4() && part_lc == "from" {
-                    // TODO HOI4: is FROM always a country?
                     #[cfg(feature = "hoi4")]
-                    sc.replace(Scopes::Country, part.clone());
+                    sc.replace_from();
                 } else if data.script_value_exists(part.as_str()) {
                     // TODO: check side_effects
                     #[cfg(feature = "jomini")]
@@ -1211,9 +1210,8 @@ pub fn validate_target_ok_this(
                 } else if part_lc == "this" {
                     sc.replace_this();
                 } else if Game::is_hoi4() && part_lc == "from" {
-                    // TODO HOI4: is FROM always a country?
                     #[cfg(feature = "hoi4")]
-                    sc.replace(Scopes::Country, part.clone());
+                    sc.replace_from();
                 } else if data.script_value_exists(part.as_str()) {
                     // TODO: check side_effects
                     #[cfg(feature = "jomini")]
