@@ -812,7 +812,7 @@ fn normal_capitalization_for_name(name: &str) -> bool {
     true
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "ck3"))]
 mod tests {
     use super::*;
 
