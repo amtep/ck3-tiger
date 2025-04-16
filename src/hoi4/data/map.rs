@@ -94,3 +94,65 @@ fn validate_adjacency_rule(_key: &Token, block: &Block, data: &Everything) {
     vd.field_trigger_full("is_friend", Scopes::Country, Tooltipped::No);
     vd.field_trigger_full("is_neutral", Scopes::Country, Tooltipped::No);
 }
+
+#[derive(Clone, Debug)]
+pub struct StrategicRegion {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Hoi4, Item::StrategicRegion, StrategicRegion::add)
+}
+
+impl StrategicRegion {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        if key.is("strategic_region") {
+            if let Some(id) = block.get_field_value("id") {
+                db.add(Item::StrategicRegion, id.clone(), block, Box::new(Self {}));
+            } else {
+                warn(ErrorKey::FieldMissing)
+                    .msg("missing `id` field in strategic_region")
+                    .loc(key)
+                    .push();
+            }
+        } else {
+            warn(ErrorKey::UnknownField)
+                .msg("unexpected key")
+                .info("only `strategic_region` is a valid key here")
+                .loc(key)
+                .push();
+        }
+    }
+}
+
+impl DbKind for StrategicRegion {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        validate_strategic_region(key, block, data);
+    }
+}
+
+fn validate_strategic_region(_key: &Token, block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.field("id");
+    vd.field_item("name", Item::Localization);
+    vd.field_list_items("provinces", Item::Province);
+    vd.field_validated_block("weather", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.multi_field_validated_block("period", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_list_numeric_exactly("between", 2); // TODO: verify date
+            vd.field_list_numeric_exactly("temperature", 2);
+            for w in [
+                "no_phenomenon",
+                "rain_light",
+                "rain_heavy",
+                "snow",
+                "blizzard",
+                "arctic_water",
+                "mud",
+                "sandstorm",
+            ] {
+                vd.field_numeric(w);
+            }
+            vd.field_numeric("min_snow_level");
+        });
+    });
+}
