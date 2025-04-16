@@ -62,6 +62,7 @@ impl Db {
         self.database[item as usize].insert(key.as_str(), DbEntry { key, block, kind });
     }
 
+    #[allow(dead_code)]
     pub fn add_exact_dup_ok(
         &mut self,
         item: Item,
@@ -153,6 +154,7 @@ impl Db {
         self.database[item as usize].get(key).map(|entry| (&entry.key, &entry.block))
     }
 
+    #[allow(dead_code)]
     pub fn has_property(&self, item: Item, key: &str, property: &str, data: &Everything) -> bool {
         if let Some(entry) = self.database[item as usize].get(key) {
             entry.kind.has_property(&entry.key, &entry.block, property, data)
@@ -198,12 +200,14 @@ impl Db {
         }
     }
 
+    #[allow(dead_code)]
     pub fn validate_use(&self, item: Item, key: &Token, block: &Block, data: &Everything) {
         if let Some(entry) = self.database[item as usize].get(key.as_str()) {
             entry.kind.validate_use(&entry.key, &entry.block, data, key, block);
         }
     }
 
+    #[allow(dead_code)]
     pub fn validate_property_use(
         &self,
         item: Item,
@@ -217,7 +221,7 @@ impl Db {
         }
     }
 
-    #[cfg(not(feature = "imperator"))]
+    #[allow(dead_code)]
     pub fn iter_key_block(&self, itype: Item) -> impl Iterator<Item = (&Token, &Block)> {
         self.database[itype as usize].values().map(|entry| (&entry.key, &entry.block))
     }

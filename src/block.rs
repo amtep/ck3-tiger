@@ -68,6 +68,7 @@ impl Block {
 
     /// Add a `key = value` or `key = { ... }` field to this `Block`.
     /// Mostly used by the parser.
+    #[allow(dead_code)] // used only by json parser
     pub fn add_key_bv(&mut self, key: Token, cmp: Comparator, value: BV) {
         self.v.push(BlockItem::Field(Field(key, cmp, value)));
     }
@@ -398,6 +399,7 @@ impl Block {
     }
 
     /// Iterate over the loose sub-blocks in the block.
+    #[allow(dead_code)]
     pub fn iter_blocks(&self) -> IterBlocks {
         IterBlocks { iter: self.v.iter(), warn: false }
     }
@@ -516,6 +518,7 @@ impl Block {
     /// is used as the separator because it can't show up in normal parsing).
     ///
     /// This function is used as a last resort when validating awkward syntax.
+    #[allow(dead_code)]
     pub fn condense_tag(self, tag: &str) -> Self {
         let mut other = Block::new(self.loc);
         let mut reserve: Option<(Token, Comparator, Token)> = None;

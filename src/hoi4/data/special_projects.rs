@@ -170,6 +170,7 @@ inventory::submit! {
 }
 
 impl ProjectTag {
+    #[allow(clippy::needless_pass_by_value)]
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if key.is("project_tags") {
             for value in block.iter_values_warn() {

@@ -91,6 +91,7 @@ pub fn stringify_list(v: &[&str]) -> String {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[cfg(feature = "jomini")]
 pub enum TriBool {
     True,
     False,

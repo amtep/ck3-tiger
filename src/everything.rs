@@ -631,6 +631,7 @@ impl Everything {
         self.fileset.check_unused_dds(self);
     }
 
+    #[allow(dead_code)]
     pub(crate) fn item_has_property(&self, itype: Item, key: &str, property: &str) -> bool {
         self.database.has_property(itype, key, property, self)
     }
@@ -943,6 +944,7 @@ impl Everything {
         }
     }
 
+    #[allow(dead_code)]
     pub(crate) fn validate_use(&self, itype: Item, key: &Token, block: &Block) {
         self.database.validate_use(itype, key, block, self);
     }

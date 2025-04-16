@@ -17,6 +17,7 @@ inventory::submit! {
 }
 
 impl IdeologyGroup {
+    #[allow(clippy::needless_pass_by_value)]
     pub fn add(db: &mut Db, key: Token, mut block: Block) {
         if key.is("ideologies") {
             for (key, block) in block.drain_definitions_warn() {

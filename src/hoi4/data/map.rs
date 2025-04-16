@@ -17,6 +17,7 @@ inventory::submit! {
 }
 
 impl Continents {
+    #[allow(clippy::needless_pass_by_value)]
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if key.is("continents") {
             for continent in block.iter_values_warn() {

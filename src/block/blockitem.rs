@@ -38,6 +38,7 @@ impl BlockItem {
         }
     }
 
+    #[allow(dead_code)]
     pub fn is_field(&self) -> bool {
         matches!(self, BlockItem::Field(_))
     }
