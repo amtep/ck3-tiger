@@ -156,3 +156,45 @@ fn validate_strategic_region(_key: &Token, block: &Block, data: &Everything) {
         });
     });
 }
+
+#[derive(Clone, Debug)]
+pub struct SupplyArea {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Hoi4, Item::SupplyArea, SupplyArea::add)
+}
+
+impl SupplyArea {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        if key.is("supply_area") {
+            if let Some(id) = block.get_field_value("id") {
+                db.add(Item::SupplyArea, id.clone(), block, Box::new(Self {}));
+            } else {
+                warn(ErrorKey::FieldMissing)
+                    .msg("missing `id` field in supply_area")
+                    .loc(key)
+                    .push();
+            }
+        } else {
+            warn(ErrorKey::UnknownField)
+                .msg("unexpected key")
+                .info("only `supply_area` is a valid key here")
+                .loc(key)
+                .push();
+        }
+    }
+}
+
+impl DbKind for SupplyArea {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        validate_supply_area(key, block, data);
+    }
+}
+
+fn validate_supply_area(_key: &Token, block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.field("id");
+    vd.field_item("name", Item::Localization);
+    vd.field_integer("value");
+    vd.field_list_items("states", Item::State);
+}

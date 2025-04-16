@@ -581,6 +581,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] State,
     #[cfg(feature = "hoi4")] StateCategory,
     #[cfg(feature = "hoi4")] SubUnit,
+    #[cfg(feature = "hoi4")] SupplyArea,
     #[cfg(feature = "hoi4")] TechnologyCategory,
     #[cfg(feature = "hoi4")] TechnologyFolder,
     #[cfg(feature = "hoi4")] TechnologySharing,
@@ -1659,6 +1660,8 @@ impl Item {
             Item::StateCategory => "common/state_category/",
             #[cfg(feature = "hoi4")]
             Item::SubUnit => "common/units/", // TODO HOI4
+            #[cfg(feature = "hoi4")]
+            Item::SupplyArea => "map/supplyareas",
             #[cfg(feature = "hoi4")]
             Item::TechnologyCategory => "common/technology_tags/",
             #[cfg(feature = "hoi4")]
