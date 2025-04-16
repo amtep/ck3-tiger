@@ -27,6 +27,12 @@ pub struct ScopeContext {
     /// root is always a `ScopeEntry::Scope`
     root: ScopeEntry,
 
+    /// `from` is the previous event root, and can be stacked like `from.from`.
+    /// The topmost `from` is at index 0, the next older one is at index 1, etc.
+    /// A `from` entry is always a `ScopeEntry::Scope`.
+    #[cfg(feature = "hoi4")]
+    from: Vec<ScopeEntry>,
+
     /// Names of named scopes; the values are indices into the `named` vector.
     /// Names should only be added, never removed, and indices should stay consistent.
     /// This is because the indices are also used by `ScopeEntry::Named` values throughout this `ScopeContext`.
@@ -95,6 +101,11 @@ enum ScopeEntry {
     ///
     /// The backref number is 0 for 'this', 1 for 'prev'
     Backref(usize),
+
+    /// Fromref is for when the current scope is made with `from`.
+    /// The fromref number is 0 for a single `from`, 1 for `from.from`, etc.
+    #[cfg(feature = "hoi4")]
+    Fromref(usize),
 
     /// A Rootref is for when the current scope is made with `root`. Most of the time,
     /// we also start with `this` being a Rootref.
@@ -183,6 +194,8 @@ impl ScopeContext {
             prev: None,
             this: ScopeEntry::Rootref,
             root: ScopeEntry::Scope(root, Reason::Builtin(token.clone())),
+            #[cfg(feature = "hoi4")]
+            from: Vec::new(),
             names: TigerHashMap::default(),
             list_names: TigerHashMap::default(),
             named: Vec::new(),
@@ -210,6 +223,8 @@ impl ScopeContext {
             })),
             this: ScopeEntry::Scope(this, Reason::Token(token.clone())),
             root: ScopeEntry::Scope(Scopes::all(), Reason::Token(token.clone())),
+            #[cfg(feature = "hoi4")]
+            from: Vec::new(),
             names: TigerHashMap::default(),
             list_names: TigerHashMap::default(),
             named: Vec::new(),
@@ -264,6 +279,8 @@ impl ScopeContext {
                 *named = new_sc.root.clone();
             }
         }
+        #[cfg(feature = "hoi4")]
+        new_sc.from.insert(0, new_sc.root.clone());
         let (scopes, reason) = new_sc.scopes_reason();
         new_sc.root = ScopeEntry::Scope(scopes, reason.clone());
         new_sc.this = ScopeEntry::Rootref;
@@ -342,6 +359,8 @@ impl ScopeContext {
             Some(match self.named[idx] {
                 ScopeEntry::Scope(s, _) => s,
                 ScopeEntry::Backref(_) => unreachable!(),
+                #[cfg(feature = "hoi4")]
+                ScopeEntry::Fromref(_) => unreachable!(),
                 ScopeEntry::Rootref => self.resolve_root().0,
                 ScopeEntry::Named(idx, _) => self.resolve_named(idx).0,
             })
@@ -538,14 +557,23 @@ impl ScopeContext {
 
     /// Replace the `this` in a temporary scope level with a reference to the previous scope level.
     pub fn replace_prev(&mut self) {
-        if Game::is_imperator() {
-            // Allow `prev.prev` for imperator.
+        if Game::is_imperator() || Game::is_hoi4() {
+            // Allow `prev.prev` etc
             match self.this {
                 ScopeEntry::Backref(r) => self.this = ScopeEntry::Backref(r + 1),
                 _ => self.this = ScopeEntry::Backref(1),
             }
         } else {
             self.this = ScopeEntry::Backref(1);
+        }
+    }
+
+    /// Replace the `this` in a temporary scope level with a reference to its previous event root.
+    #[cfg(feature = "hoi4")]
+    pub fn replace_from(&mut self) {
+        match self.this {
+            ScopeEntry::Fromref(r) => self.this = ScopeEntry::Fromref(r + 1),
+            _ => self.this = ScopeEntry::Fromref(0),
         }
     }
 
@@ -661,6 +689,8 @@ impl ScopeContext {
             ScopeEntry::Rootref => self.resolve_root(),
             ScopeEntry::Named(idx, _) => self.resolve_named(idx),
             ScopeEntry::Backref(_) => unreachable!(),
+            #[cfg(feature = "hoi4")]
+            ScopeEntry::Fromref(_) => unreachable!(),
         }
     }
 
@@ -701,14 +731,36 @@ impl ScopeContext {
     pub fn scopes_reason(&self) -> (Scopes, &Reason) {
         match self.this {
             ScopeEntry::Scope(s, ref reason) => (s, reason),
-            ScopeEntry::Backref(r) => self.scopes_reason_internal(r),
+            ScopeEntry::Backref(r) => self.scopes_reason_backref(r),
+            #[cfg(feature = "hoi4")]
+            ScopeEntry::Fromref(r) => self.resolve_from(r),
             ScopeEntry::Rootref => self.resolve_root(),
             ScopeEntry::Named(idx, _) => self.resolve_named(idx),
         }
     }
 
+    /// Return the possible scope types for a `from` entry, together with the reason why we think
+    /// that.
+    #[cfg(feature = "hoi4")]
     #[doc(hidden)]
-    fn scopes_reason_internal(&self, mut back: usize) -> (Scopes, &Reason) {
+    fn resolve_from(&self, back: usize) -> (Scopes, &Reason) {
+        match self.from.get(back) {
+            None => {
+                // We went further up the FROM chain than we know about.
+                let scopes = if self.strict_scopes { Scopes::None } else { Scopes::all() };
+                // just nab the `reason` from root
+                match self.root {
+                    ScopeEntry::Scope(_, ref reason) => (scopes, reason),
+                    _ => unreachable!(),
+                }
+            }
+            Some(ScopeEntry::Scope(s, ref reason)) => (*s, reason),
+            Some(_) => unreachable!(),
+        }
+    }
+
+    #[doc(hidden)]
+    fn scopes_reason_backref(&self, mut back: usize) -> (Scopes, &Reason) {
         let mut ptr = &self.prev;
         loop {
             if let Some(entry) = ptr {
@@ -716,6 +768,8 @@ impl ScopeContext {
                     match entry.this {
                         ScopeEntry::Scope(s, ref reason) => return (s, reason),
                         ScopeEntry::Backref(r) => back = r + 1,
+                        #[cfg(feature = "hoi4")]
+                        ScopeEntry::Fromref(r) => return self.resolve_from(r),
                         ScopeEntry::Rootref => return self.resolve_root(),
                         ScopeEntry::Named(idx, _) => return self.resolve_named(idx),
                     }
@@ -797,6 +851,29 @@ impl ScopeContext {
         }
     }
 
+    #[doc(hidden)]
+    #[cfg(feature = "hoi4")]
+    fn expect_fromref(&mut self, idx: usize, scopes: Scopes, reason: &Reason) {
+        if idx < self.from.len() {
+            Self::expect_check(&mut self.from[idx], scopes, reason);
+        }
+    }
+
+    #[doc(hidden)]
+    #[cfg(feature = "hoi4")]
+    fn expect_fromref3(
+        &mut self,
+        idx: usize,
+        scopes: Scopes,
+        reason: &Reason,
+        key: &Token,
+        report: &str,
+    ) {
+        if idx < self.from.len() {
+            Self::expect_check3(&mut self.from[idx], scopes, reason, key, report);
+        }
+    }
+
     // TODO: find a way to report the chain of Named tokens to the user
     #[doc(hidden)]
     fn expect_named(&mut self, mut idx: usize, scopes: Scopes, reason: &Reason) {
@@ -813,6 +890,8 @@ impl ScopeContext {
                 }
                 ScopeEntry::Named(i, _) => idx = i,
                 ScopeEntry::Backref(_) => unreachable!(),
+                #[cfg(feature = "hoi4")]
+                ScopeEntry::Fromref(_) => unreachable!(),
             }
         }
     }
@@ -839,6 +918,8 @@ impl ScopeContext {
                 }
                 ScopeEntry::Named(i, _) => idx = i,
                 ScopeEntry::Backref(_) => unreachable!(),
+                #[cfg(feature = "hoi4")]
+                ScopeEntry::Fromref(_) => unreachable!(),
             }
         }
     }
@@ -858,6 +939,11 @@ impl ScopeContext {
                             return;
                         }
                         ScopeEntry::Backref(r) => back = r + 1,
+                        #[cfg(feature = "hoi4")]
+                        ScopeEntry::Fromref(r) => {
+                            self.expect_fromref(r, scopes, reason);
+                            return;
+                        }
                         ScopeEntry::Rootref => {
                             Self::expect_check(&mut self.root, scopes, reason);
                             return;
@@ -899,6 +985,11 @@ impl ScopeContext {
                             return;
                         }
                         ScopeEntry::Backref(r) => back = r + 1,
+                        #[cfg(feature = "hoi4")]
+                        ScopeEntry::Fromref(r) => {
+                            self.expect_fromref3(r, scopes, reason, key, report);
+                            return;
+                        }
                         ScopeEntry::Rootref => {
                             Self::expect_check3(&mut self.root, scopes, reason, key, report);
                             return;
@@ -929,6 +1020,8 @@ impl ScopeContext {
         match self.this {
             ScopeEntry::Scope(_, _) => Self::expect_check(&mut self.this, scopes, reason),
             ScopeEntry::Backref(r) => self.expect_internal(scopes, reason, r),
+            #[cfg(feature = "hoi4")]
+            ScopeEntry::Fromref(r) => self.expect_fromref(r, scopes, reason),
             ScopeEntry::Rootref => Self::expect_check(&mut self.root, scopes, reason),
             ScopeEntry::Named(idx, ref _t) => self.expect_named(idx, scopes, reason),
         }
@@ -948,6 +1041,8 @@ impl ScopeContext {
                 Self::expect_check3(&mut self.this, scopes, reason, key, "scope");
             }
             ScopeEntry::Backref(r) => self.expect3_internal(scopes, reason, r, key, "scope"),
+            #[cfg(feature = "hoi4")]
+            ScopeEntry::Fromref(r) => self.expect_fromref3(r, scopes, reason, key, "scope"),
             ScopeEntry::Rootref => {
                 Self::expect_check3(&mut self.root, scopes, reason, key, "scope");
             }
@@ -981,8 +1076,18 @@ impl ScopeContext {
 
         // Compare restrictions on `prev`
         // In practice, we don't need to go further than one `prev` back, because of how expect_compatibility is used.
-        let (scopes, reason) = other.scopes_reason_internal(0);
+        let (scopes, reason) = other.scopes_reason_backref(0);
         self.expect3_internal(scopes, reason, usize::from(self.is_builder), key, "prev");
+
+        // Compare restrictions on `from`
+        // TODO: go all the way back up the chains
+        #[cfg(feature = "hoi4")]
+        {
+            let (scopes, reason) = other.resolve_from(0);
+            self.expect_fromref3(0, scopes, reason, key, "from");
+            let (scopes, reason) = other.resolve_from(1);
+            self.expect_fromref3(1, scopes, reason, key, "from.from");
+        }
 
         // Compare restrictions on named scopes
         for (name, &oidx) in &other.names {

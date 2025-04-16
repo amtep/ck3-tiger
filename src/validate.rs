@@ -860,9 +860,8 @@ pub fn validate_scope_chain(
                 } else if part_lc == "this" {
                     sc.replace_this();
                 } else if Game::is_hoi4() && part_lc == "from" {
-                    // TODO HOI4: is FROM always a country?
                     #[cfg(feature = "hoi4")]
-                    sc.replace(Scopes::Country, part.clone());
+                    sc.replace_from();
                 } else if Game::is_hoi4() && is_country_tag(part.as_str()) {
                     if !part_flags.contains(PartFlags::First) {
                         warn_not_first(part);
