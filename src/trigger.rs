@@ -465,6 +465,14 @@ pub fn validate_trigger_key_bv(
                         sc.close();
                         return side_effects;
                     }
+                    if !part_flags.contains(PartFlags::First)
+                        && trigger_comparevalue(part, data).is_none()
+                    {
+                        let msg = format!("`{part}` should be the only part");
+                        warn(ErrorKey::Validation).msg(msg).loc(part).push();
+                        sc.close();
+                        return side_effects;
+                    }
                     validate_inscopes(part_flags, part, inscopes, sc);
                     sc.close();
                     side_effects |= match_trigger_bv(
