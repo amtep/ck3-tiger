@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::game::{Game, GameFlags};
 use crate::helpers::{dup_error, exact_dup_advice, TigerHashMap};
-use crate::item::{Item, ItemLoader};
+use crate::item::{Item, ItemLoader, LoadAsFile};
 use crate::parse::ParserMemory;
 use crate::pdxfile::{PdxEncoding, PdxFile};
 use crate::report::{untidy, warn, ErrorKey, Severity};
@@ -248,7 +248,7 @@ fn validate_coa_color(bv: &BV, block: Option<&Block>, data: &Everything) {
 pub struct CoaTemplateList {}
 
 inventory::submit! {
-    ItemLoader::Full(GameFlags::all(), Item::CoaTemplateList, PdxEncoding::Utf8OptionalBom, ".txt", false, CoaTemplateList::add)
+    ItemLoader::Full(GameFlags::all(), Item::CoaTemplateList, PdxEncoding::Utf8OptionalBom, ".txt", LoadAsFile::No, CoaTemplateList::add)
 }
 
 impl CoaTemplateList {

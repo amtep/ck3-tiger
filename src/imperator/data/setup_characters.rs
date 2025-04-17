@@ -4,7 +4,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::imperator::effect_validation::validate_create_character;
-use crate::item::{Item, ItemLoader};
+use crate::item::{Item, ItemLoader, LoadAsFile};
 use crate::pdxfile::PdxEncoding;
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -40,7 +40,7 @@ impl DbKind for SetupCharacters {
 pub struct PostSetupCharacters {}
 
 inventory::submit! {
-    ItemLoader::Full(GameFlags::all(), Item::PostSetupCharacters, PdxEncoding::Utf8OptionalBom, ".txt", true, PostSetupCharacters::add)
+    ItemLoader::Full(GameFlags::all(), Item::PostSetupCharacters, PdxEncoding::Utf8OptionalBom, ".txt", LoadAsFile::Yes, PostSetupCharacters::add)
 }
 
 impl PostSetupCharacters {

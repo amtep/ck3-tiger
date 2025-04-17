@@ -3,7 +3,7 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
-use crate::item::{Item, ItemLoader};
+use crate::item::{Item, ItemLoader, LoadAsFile};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::pdxfile::PdxEncoding;
 use crate::report::{untidy, warn, ErrorKey};
@@ -146,7 +146,7 @@ impl DbKind for TerrainManipulator {
 pub struct TerrainMaterial {}
 
 inventory::submit! {
-    ItemLoader::Full(GameFlags::Vic3, Item::TerrainMaterial, PdxEncoding::Utf8OptionalBom, ".settings", true, TerrainMaterial::add)
+    ItemLoader::Full(GameFlags::Vic3, Item::TerrainMaterial, PdxEncoding::Utf8OptionalBom, ".settings", LoadAsFile::Yes, TerrainMaterial::add)
 }
 
 impl TerrainMaterial {

@@ -1504,9 +1504,9 @@ pub(crate) enum ItemLoader {
     /// A variant that allows the full range of item loader behvavior.
     /// * [`PdxEncoding`] indicates whether to expect utf-8 and/or a BOM in the files.
     /// * The `&'static str` is the file extension to look for (including the dot).
-    /// * The `bool` is whether to load the whole file as one item, or treat it as normal with a
+    /// * [`LoadAsFile`] is whether to load the whole file as one item, or treat it as normal with a
     ///   series of items in one file.
-    Full(GameFlags, Item, PdxEncoding, &'static str, bool, ItemAdder),
+    Full(GameFlags, Item, PdxEncoding, &'static str, LoadAsFile, ItemAdder),
 }
 
 inventory::collect!(ItemLoader);
@@ -1544,7 +1544,9 @@ impl ItemLoader {
     pub fn whole_file(&self) -> bool {
         match self {
             ItemLoader::Normal(_, _, _) => false,
-            ItemLoader::Full(_, _, _, _, whole_file, _) => *whole_file,
+            ItemLoader::Full(_, _, _, _, load_as_file, _) => {
+                matches!(load_as_file, LoadAsFile::Yes)
+            }
         }
     }
 
@@ -1553,4 +1555,9 @@ impl ItemLoader {
             ItemLoader::Normal(_, _, adder) | ItemLoader::Full(_, _, _, _, _, adder) => *adder,
         }
     }
+}
+
+pub enum LoadAsFile {
+    Yes,
+    No,
 }

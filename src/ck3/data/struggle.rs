@@ -4,7 +4,7 @@ use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
-use crate::item::{Item, ItemLoader};
+use crate::item::{Item, ItemLoader, LoadAsFile};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::pdxfile::PdxEncoding;
 use crate::report::{warn, ErrorKey};
@@ -259,7 +259,7 @@ impl DbKind for Catalyst {
 pub struct StruggleHistory {}
 
 inventory::submit! {
-    ItemLoader::Full(GameFlags::Ck3, Item::StruggleHistory, PdxEncoding::Utf8Bom, ".txt", true, StruggleHistory::add)
+    ItemLoader::Full(GameFlags::Ck3, Item::StruggleHistory, PdxEncoding::Utf8Bom, ".txt", LoadAsFile::Yes, StruggleHistory::add)
 }
 
 impl StruggleHistory {

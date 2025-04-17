@@ -4,7 +4,7 @@ use crate::data::genes::{AccessoryGene, Gene};
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::{Game, GameFlags};
-use crate::item::{Item, ItemLoader};
+use crate::item::{Item, ItemLoader, LoadAsFile};
 use crate::pdxfile::PdxEncoding;
 use crate::report::{err, warn, Confidence, ErrorKey, Severity};
 use crate::scopes::Scopes;
@@ -270,7 +270,7 @@ fn validate_animation(block: &Block, data: &Everything) {
 pub struct PortraitModifierPack {}
 
 inventory::submit! {
-    ItemLoader::Full(GameFlags::all(), Item::PortraitModifierPack, PdxEncoding::Utf8Bom, ".modifierpack", false, PortraitModifierPack::add)
+    ItemLoader::Full(GameFlags::all(), Item::PortraitModifierPack, PdxEncoding::Utf8Bom, ".modifierpack", LoadAsFile::No, PortraitModifierPack::add)
 }
 
 impl PortraitModifierPack {

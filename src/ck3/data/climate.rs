@@ -3,7 +3,7 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::helpers::TigerHashSet;
-use crate::item::{Item, ItemLoader};
+use crate::item::{Item, ItemLoader, LoadAsFile};
 use crate::pdxfile::PdxEncoding;
 use crate::report::{untidy, warn, ErrorKey};
 use crate::token::Token;
@@ -13,7 +13,7 @@ use crate::validator::Validator;
 pub struct Climate {}
 
 inventory::submit! {
-    ItemLoader::Full(GameFlags::Ck3, Item::Climate, PdxEncoding::Utf8OptionalBom, ".txt", false, Climate::add)
+    ItemLoader::Full(GameFlags::Ck3, Item::Climate, PdxEncoding::Utf8OptionalBom, ".txt", LoadAsFile::No, Climate::add)
 }
 
 impl Climate {

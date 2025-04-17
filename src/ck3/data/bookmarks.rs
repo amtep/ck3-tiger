@@ -6,7 +6,7 @@ use crate::date::Date;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
-use crate::item::{Item, ItemLoader};
+use crate::item::{Item, ItemLoader, LoadAsFile};
 use crate::pdxfile::PdxEncoding;
 use crate::report::{fatal, warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -182,7 +182,7 @@ fn validate_bookmark_character(
 pub struct BookmarkPortrait {}
 
 inventory::submit! {
-    ItemLoader::Full(GameFlags::Ck3, Item::BookmarkPortrait, PdxEncoding::Utf8OptionalBom, ".txt", false, BookmarkPortrait::add)
+    ItemLoader::Full(GameFlags::Ck3, Item::BookmarkPortrait, PdxEncoding::Utf8OptionalBom, ".txt", LoadAsFile::No, BookmarkPortrait::add)
 }
 
 impl BookmarkPortrait {
