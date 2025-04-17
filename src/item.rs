@@ -565,7 +565,6 @@ pub enum Item {
     #[cfg(feature = "hoi4")] OperationPhase,
     #[cfg(feature = "hoi4")] OperationToken,
     #[cfg(feature = "hoi4")] ProductionStat,
-    #[cfg(feature = "hoi4")] ProjectTag,
     #[cfg(feature = "hoi4")] PrototypeReward,
     #[cfg(feature = "hoi4")] Resource,
     #[cfg(feature = "hoi4")] ScriptEnum,
@@ -576,6 +575,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] SpawnPoint,
     #[cfg(feature = "hoi4")] Specialization,
     #[cfg(feature = "hoi4")] SpecialProject,
+    #[cfg(feature = "hoi4")] SpecialProjectTag,
     #[cfg(feature = "hoi4")] ScientistTrait,
     #[cfg(feature = "hoi4")] Sprite,
     #[cfg(feature = "hoi4")] State,
@@ -1631,8 +1631,6 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::ProductionStat => "common/script_enum.txt",
             #[cfg(feature = "hoi4")]
-            Item::ProjectTag => "common/special_projects/project_tags/",
-            #[cfg(feature = "hoi4")]
             Item::PrototypeReward => "common/special_projects/prototype_rewards/",
             #[cfg(feature = "hoi4")]
             Item::Resource => "common/resources/",
@@ -1650,6 +1648,8 @@ impl Item {
             Item::Specialization => "common/special_projects/specialization/",
             #[cfg(feature = "hoi4")]
             Item::SpecialProject => "common/special_projects/projects/",
+            #[cfg(feature = "hoi4")]
+            Item::SpecialProjectTag => "common/special_projects/project_tags/",
             #[cfg(feature = "hoi4")]
             Item::ScientistTrait => "common/scientist_traits/",
             #[cfg(feature = "hoi4")]

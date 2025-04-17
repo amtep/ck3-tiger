@@ -125,7 +125,11 @@ impl DbKind for NationalFocus {
         vd.field_trigger_full("bypass", Scopes::Country, Tooltipped::Yes);
         vd.field_trigger_full("available", Scopes::Country, Tooltipped::Yes);
 
-        vd.field_list_choice("search_filters", SEARCH_FILTERS);
+        vd.field_validated_list("search_filters", |value, data| {
+            data.verify_exists(Item::Localization, value);
+            let sprite = format!("GFX_{value}");
+            data.verify_exists_implied(Item::Sprite, &sprite, value);
+        });
         vd.field_effect_full("completion_reward", Scopes::Country, Tooltipped::Yes);
     }
 }
@@ -142,43 +146,3 @@ impl DbKind for NationalFocusStyle {
         vd.field_item("current", Item::Sprite);
     }
 }
-
-// LAST UPDATED HOI4 VERSION 1.16
-// Taken from localisation/english/focus_filter_tag_l_english.yml
-pub const SEARCH_FILTERS: &[&str] = &[
-    "FOCUS_FILTER_AIR_XP",
-    "FOCUS_FILTER_ANNEXATION",
-    "FOCUS_FILTER_ARMY_XP",
-    "FOCUS_FILTER_BALANCE_OF_POWER",
-    "FOCUS_FILTER_CHI_INFLATION",
-    "FOCUS_FILTER_FOLKHEMMET",
-    "FOCUS_FILTER_FRA_OCCUPATION_COST",
-    "FOCUS_FILTER_FRA_POLITICAL_VIOLENCE",
-    "FOCUS_FILTER_GRE_DEBT_TO_IFC",
-    "FOCUS_FILTER_HISTORICAL",
-    "FOCUS_FILTER_INDUSTRY",
-    "FOCUS_FILTER_INNER_CIRCLE",
-    "FOCUS_FILTER_INTERNAL_AFFAIRS",
-    "FOCUS_FILTER_INTERNATIONAL_TRADE",
-    "FOCUS_FILTER_ITA_MISSIOLINI",
-    "FOCUS_FILTER_MANPOWER",
-    "FOCUS_FILTER_MEX_CAUDILLO_REBELLION",
-    "FOCUS_FILTER_MEX_CHURCH_AUTHORITY",
-    "FOCUS_FILTER_MILITARY_CHARACTER",
-    "FOCUS_FILTER_NAVY_XP",
-    "FOCUS_FILTER_POLITICAL",
-    "FOCUS_FILTER_POLITICAL_CHARACTER",
-    "FOCUS_FILTER_PROPAGANDA",
-    "FOCUS_FILTER_RESEARCH",
-    "FOCUS_FILTER_SOV_POLITICAL_PARANOIA",
-    "FOCUS_FILTER_SPA_CARLIST_UPRISING",
-    "FOCUS_FILTER_SPA_CIVIL_WAR",
-    "FOCUS_FILTER_STABILITY",
-    "FOCUS_FILTER_SWI_MILITARY_READINESS",
-    "FOCUS_FILTER_TFV_AUTONOMY",
-    "FOCUS_FILTER_TUR_KEMALISM",
-    "FOCUS_FILTER_TUR_KURDISTAN",
-    "FOCUS_FILTER_TUR_TRADITIONALISM",
-    "FOCUS_FILTER_USA_CONGRESS",
-    "FOCUS_FILTER_WAR_SUPPORT",
-];

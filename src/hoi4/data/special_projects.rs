@@ -39,7 +39,7 @@ impl DbKind for SpecialProject {
         vd.req_field("specialization");
         vd.field_item("specialization", Item::Specialization);
 
-        vd.field_list_items("project_tags", Item::ProjectTag);
+        vd.field_list_items("project_tags", Item::SpecialProjectTag);
 
         // TODO: "only tag, original_tag and has_dlc allowed"
         vd.field_trigger_full("allowed", Scopes::Country, Tooltipped::No);
@@ -163,25 +163,25 @@ fn validate_project_output(block: &Block, data: &Everything) {
 }
 
 #[derive(Clone, Debug)]
-pub struct ProjectTag {}
+pub struct SpecialProjectTag {}
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Hoi4, Item::ProjectTag, ProjectTag::add)
+    ItemLoader::Normal(GameFlags::Hoi4, Item::SpecialProjectTag, SpecialProjectTag::add)
 }
 
-impl ProjectTag {
+impl SpecialProjectTag {
     #[allow(clippy::needless_pass_by_value)]
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if key.is("project_tags") {
             for value in block.iter_values_warn() {
-                db.add_flag(Item::ProjectTag, value.clone());
+                db.add_flag(Item::SpecialProjectTag, value.clone());
             }
         } else {
             let msg = "unexpected key";
             let info = "expected only `project_tags` here";
             err(ErrorKey::UnknownField).msg(msg).info(info).loc(key).push();
         }
-        db.set_flag_validator(Item::ProjectTag, |flag, data| {
+        db.set_flag_validator(Item::SpecialProjectTag, |flag, data| {
             data.verify_exists(Item::Localization, flag);
         });
     }
