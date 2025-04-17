@@ -23,6 +23,7 @@ pub mod scripted_localisation;
 pub mod sounds;
 pub mod special_projects;
 pub mod states;
+pub mod subunits;
 pub mod technology;
 pub mod terrain;
 pub mod unit_leader;
