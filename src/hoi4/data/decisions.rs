@@ -43,11 +43,8 @@ inventory::submit! {
 impl Decision {
     #[allow(clippy::needless_pass_by_value)]
     pub fn add(db: &mut Db, key: Token, mut block: Block) {
-        // Check depth to avoid scanning common/decisions/categories/ here
-        if key.loc.pathname().iter().count() == 3 {
-            for (decision, block) in block.drain_definitions_warn() {
-                db.add(Item::Decision, decision, block, Box::new(Self { category: key.clone() }));
-            }
+        for (decision, block) in block.drain_definitions_warn() {
+            db.add(Item::Decision, decision, block, Box::new(Self { category: key.clone() }));
         }
     }
 }
