@@ -4,7 +4,7 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
-use crate::item::{Item, ItemLoader, LoadAsFile};
+use crate::item::{Item, ItemLoader, LoadAsFile, Recursive};
 use crate::pdxfile::PdxEncoding;
 use crate::report::{warn, ErrorKey};
 use crate::token::Token;
@@ -73,7 +73,7 @@ impl DbKind for Theme {
 pub struct Skin {}
 
 inventory::submit! {
-    ItemLoader::Full(GameFlags::Vic3, Item::Skin, PdxEncoding::Utf8Bom, ".skin", LoadAsFile::Yes, Skin::add)
+    ItemLoader::Full(GameFlags::Vic3, Item::Skin, PdxEncoding::Utf8Bom, ".skin", LoadAsFile::Yes, Recursive::No, Skin::add)
 }
 
 impl Skin {

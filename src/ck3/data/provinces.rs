@@ -11,7 +11,7 @@ use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::game::GameFlags;
 use crate::helpers::{TigerHashMap, TigerHashSet};
-use crate::item::{Item, ItemLoader, LoadAsFile};
+use crate::item::{Item, ItemLoader, LoadAsFile, Recursive};
 use crate::parse::csv::{parse_csv, read_csv};
 use crate::parse::ParserMemory;
 use crate::pdxfile::{PdxEncoding, PdxFile};
@@ -488,7 +488,7 @@ impl Province {
 pub struct ProvinceMapping {}
 
 inventory::submit! {
-    ItemLoader::Full(GameFlags::Ck3, Item::ProvinceMapping, PdxEncoding::Utf8Bom, ".txt", LoadAsFile::Yes, ProvinceMapping::add)
+    ItemLoader::Full(GameFlags::Ck3, Item::ProvinceMapping, PdxEncoding::Utf8Bom, ".txt", LoadAsFile::Yes, Recursive::No, ProvinceMapping::add)
 }
 
 impl ProvinceMapping {

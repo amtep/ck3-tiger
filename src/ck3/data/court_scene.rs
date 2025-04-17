@@ -8,7 +8,7 @@ use crate::db::{Db, DbKind};
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
-use crate::item::{Item, ItemLoader, LoadAsFile};
+use crate::item::{Item, ItemLoader, LoadAsFile, Recursive};
 use crate::pdxfile::PdxEncoding;
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -100,7 +100,7 @@ impl DbKind for CourtSceneCulture {
 pub struct CourtSceneSetting {}
 
 inventory::submit! {
-    ItemLoader::Full(GameFlags::Ck3, Item::CourtSceneSetting, PdxEncoding::Utf8OptionalBom, ".txt", LoadAsFile::Yes, CourtSceneSetting::add)
+    ItemLoader::Full(GameFlags::Ck3, Item::CourtSceneSetting, PdxEncoding::Utf8OptionalBom, ".txt", LoadAsFile::Yes, Recursive::No, CourtSceneSetting::add)
 }
 
 impl CourtSceneSetting {

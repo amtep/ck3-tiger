@@ -1484,7 +1484,7 @@ pub(crate) type ItemAdder = fn(&mut Db, Token, Block);
 
 /// The specification for loading an [`Item`] type into the [`Db`].
 ///
-/// An instance of this can be placed in every `data` module using the `inventory::collect!` macro.
+/// An instance of this can be placed in every `data` module using the `inventory::submit!` macro.
 /// This will register the loader so that the [`Everything`] object can load all defined items.
 // Note that this is an enum so that users can more conveniently construct it. It used to be a
 // struct with various constructor functions, but that didn't work because the ItemAdder type has a
@@ -1500,13 +1500,18 @@ pub(crate) enum ItemLoader {
     /// The [`ItemAdder`] function does not have to load exclusively this type of item.
     /// Related items are ok. The main use of the [`Item`] field is to get the path for this item
     /// type, so that files are loaded from that folder.
+    ///
+    /// `Normal` loaders have extension `.txt`, `LoadAsFile::No`, and `Recursive::Maybe`. They default
+    /// to a [`PdxEncoding`] appropriate to the game being validated.
     Normal(GameFlags, Item, ItemAdder),
     /// A variant that allows the full range of item loader behvavior.
     /// * [`PdxEncoding`] indicates whether to expect utf-8 and/or a BOM in the files.
     /// * The `&'static str` is the file extension to look for (including the dot).
     /// * [`LoadAsFile`] is whether to load the whole file as one item, or treat it as normal with a
     ///   series of items in one file.
-    Full(GameFlags, Item, PdxEncoding, &'static str, LoadAsFile, ItemAdder),
+    /// * [`Recursive`] indicates whether to load subfolders of the item's main folder.
+    ///   `Recursive::Maybe` means apply game-dependent logic.
+    Full(GameFlags, Item, PdxEncoding, &'static str, LoadAsFile, Recursive, ItemAdder),
 }
 
 inventory::collect!(ItemLoader);
@@ -1514,45 +1519,57 @@ inventory::collect!(ItemLoader);
 impl ItemLoader {
     pub fn for_game(&self, game: Game) -> bool {
         let game_flags = match self {
-            ItemLoader::Normal(game_flags, _, _) | ItemLoader::Full(game_flags, _, _, _, _, _) => {
-                game_flags
-            }
+            ItemLoader::Normal(game_flags, _, _)
+            | ItemLoader::Full(game_flags, _, _, _, _, _, _) => game_flags,
         };
         game_flags.contains(GameFlags::from(game))
     }
 
     pub fn itype(&self) -> Item {
         match self {
-            ItemLoader::Normal(_, itype, _) | ItemLoader::Full(_, itype, _, _, _, _) => *itype,
+            ItemLoader::Normal(_, itype, _) | ItemLoader::Full(_, itype, _, _, _, _, _) => *itype,
         }
     }
 
     pub fn encoding(&self) -> PdxEncoding {
         match self {
             ItemLoader::Normal(_, _, _) => PdxEncoding::Utf8Bom,
-            ItemLoader::Full(_, _, encoding, _, _, _) => *encoding,
+            ItemLoader::Full(_, _, encoding, _, _, _, _) => *encoding,
         }
     }
 
     pub fn extension(&self) -> &'static str {
         match self {
             ItemLoader::Normal(_, _, _) => ".txt",
-            ItemLoader::Full(_, _, _, extension, _, _) => extension,
+            ItemLoader::Full(_, _, _, extension, _, _, _) => extension,
         }
     }
 
     pub fn whole_file(&self) -> bool {
         match self {
             ItemLoader::Normal(_, _, _) => false,
-            ItemLoader::Full(_, _, _, _, load_as_file, _) => {
+            ItemLoader::Full(_, _, _, _, load_as_file, _, _) => {
                 matches!(load_as_file, LoadAsFile::Yes)
             }
         }
     }
 
+    pub fn recursive(&self) -> bool {
+        match self {
+            ItemLoader::Normal(_, _, _) => {
+                Game::is_ck3() && self.itype().path().starts_with("common/")
+            }
+            ItemLoader::Full(_, _, _, _, _, recursive, _) => match recursive {
+                Recursive::Yes => true,
+                Recursive::No => false,
+                Recursive::Maybe => Game::is_ck3() && self.itype().path().starts_with("common/"),
+            },
+        }
+    }
+
     pub fn adder(&self) -> ItemAdder {
         match self {
-            ItemLoader::Normal(_, _, adder) | ItemLoader::Full(_, _, _, _, _, adder) => *adder,
+            ItemLoader::Normal(_, _, adder) | ItemLoader::Full(_, _, _, _, _, _, adder) => *adder,
         }
     }
 }
@@ -1560,4 +1577,10 @@ impl ItemLoader {
 pub enum LoadAsFile {
     Yes,
     No,
+}
+
+pub enum Recursive {
+    Yes,
+    No,
+    Maybe,
 }

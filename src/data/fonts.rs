@@ -2,7 +2,7 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
-use crate::item::{Item, ItemLoader, LoadAsFile};
+use crate::item::{Item, ItemLoader, LoadAsFile, Recursive};
 use crate::pdxfile::PdxEncoding;
 use crate::report::{untidy, warn, ErrorKey, Severity};
 use crate::token::Token;
@@ -12,7 +12,7 @@ use crate::validator::Validator;
 pub struct Font {}
 
 inventory::submit! {
-    ItemLoader::Full(GameFlags::all(), Item::Font, PdxEncoding::Utf8OptionalBom, ".font", LoadAsFile::No, Font::add)
+    ItemLoader::Full(GameFlags::all(), Item::Font, PdxEncoding::Utf8OptionalBom, ".font", LoadAsFile::No, Recursive::Yes, Font::add)
 }
 
 impl Font {
