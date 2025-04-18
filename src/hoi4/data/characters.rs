@@ -33,6 +33,21 @@ impl Character {
 }
 
 impl DbKind for Character {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for block in block.get_field_blocks("instance") {
+            if let Some(block) = block.get_field_block("advisor") {
+                if let Some(token) = block.get_field_value("idea_token") {
+                    db.add_flag(Item::CharacterIdeaToken, token.clone());
+                }
+            }
+        }
+        if let Some(block) = block.get_field_block("advisor") {
+            if let Some(token) = block.get_field_value("idea_token") {
+                db.add_flag(Item::CharacterIdeaToken, token.clone());
+            }
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
@@ -106,7 +121,6 @@ fn validate_character(key: &Token, _block: &Block, data: &Everything, vd: &mut V
         vd.req_field("slot");
         vd.req_field("idea_token");
         vd.field_item("slot", Item::AdvisorSlot);
-        // TODO: register these as an item type
         vd.field_value("idea_token");
         vd.field_item("name", Item::Localization);
         // TODO: only require this for theorist and high_command; ban for everyone else
