@@ -539,6 +539,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] AdjacencyRule,
     #[cfg(feature = "hoi4")] AdvisorSlot,
     #[cfg(feature = "hoi4")] AiStrategyType,
+    #[cfg(feature = "hoi4")] CombatTacticPhase,
     #[cfg(feature = "hoi4")] Continent,
     #[cfg(feature = "hoi4")] CountryLeaderTrait,
     #[cfg(feature = "hoi4")] CountryTag,
@@ -1577,6 +1578,8 @@ impl Item {
             Item::AdvisorSlot => "common/script_enums.txt",
             #[cfg(feature = "hoi4")]
             Item::AiStrategyType => "common/ai_strategy/_documentation.md",
+            #[cfg(feature = "hoi4")]
+            Item::CombatTacticPhase => "common/combat_tactics.txt",
             #[cfg(feature = "hoi4")]
             Item::Continent => "map/continent.txt",
             #[cfg(feature = "hoi4")]

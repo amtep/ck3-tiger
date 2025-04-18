@@ -24,6 +24,7 @@ pub mod sounds;
 pub mod special_projects;
 pub mod states;
 pub mod subunits;
+pub mod tactics;
 pub mod technology;
 pub mod terrain;
 pub mod unit_leader;

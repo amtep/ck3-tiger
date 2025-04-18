@@ -204,13 +204,15 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // $SpecialProject$_speed_factor
     // undocumented: $SpecialProjectTag$_speed_factor
+    // undocumented: $Specialization$_speed_factor
     if let Some(part) = name_lc.strip_suffix_unchecked("_speed_factor") {
         if let Some(sev) = warn {
             if !data.item_exists(Item::SpecialProject, part.as_str())
                 && !data.item_exists(Item::SpecialProjectTag, part.as_str())
+                && !data.item_exists(Item::Specialization, part.as_str())
             {
                 let msg =
-                    format!("could not find {part} as special project or special project tag");
+                    format!("could not find {part} as special project, special project tag or specialization");
                 let info = format!("so the modifier {name} does not exist");
                 report(ErrorKey::MissingItem, sev).strong().msg(msg).info(info).loc(name).push();
             }
