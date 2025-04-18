@@ -554,7 +554,6 @@ pub enum Item {
     #[cfg(feature = "hoi4")] EquipmentModule,
     #[cfg(feature = "hoi4")] GraphicalTerrain,
     #[cfg(feature = "hoi4")] IdeaCategory,
-    #[cfg(feature = "hoi4")] IdeaGroup,
     #[cfg(feature = "hoi4")] IdeologyGroup,
     #[cfg(feature = "hoi4")] IndustrialOrg,
     #[cfg(feature = "hoi4")] IndustrialOrgBonusWeight,
@@ -1608,9 +1607,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::GraphicalTerrain => "common/terrain/",
             #[cfg(feature = "hoi4")]
-            Item::IdeaCategory => "", // TODO HOI4
-            #[cfg(feature = "hoi4")]
-            Item::IdeaGroup => "common/ideas/", // TODO HOI4
+            Item::IdeaCategory => "common/idea_tags/",
             #[cfg(feature = "hoi4")]
             Item::IdeologyGroup => "common/ideologies/",
             #[cfg(feature = "hoi4")]
