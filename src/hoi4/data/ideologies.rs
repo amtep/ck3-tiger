@@ -21,11 +21,6 @@ impl IdeologyGroup {
     pub fn add(db: &mut Db, key: Token, mut block: Block) {
         if key.is("ideologies") {
             for (key, block) in block.drain_definitions_warn() {
-                if let Some(block) = block.get_field_block("types") {
-                    for (key, _) in block.iter_definitions() {
-                        db.add_flag(Item::Ideology, key.clone());
-                    }
-                }
                 db.add(Item::IdeologyGroup, key, block, Box::new(Self {}));
             }
         } else {
@@ -37,6 +32,14 @@ impl IdeologyGroup {
 }
 
 impl DbKind for IdeologyGroup {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        if let Some(block) = block.get_field_block("types") {
+            for (key, _) in block.iter_definitions() {
+                db.add_flag(Item::Ideology, key.clone());
+            }
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
