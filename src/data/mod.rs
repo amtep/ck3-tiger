@@ -38,6 +38,7 @@ pub mod portrait;
 #[cfg(feature = "jomini")]
 pub mod script_values;
 pub mod scripted_effects;
+#[cfg(feature = "jomini")]
 pub mod scripted_guis;
 #[cfg(feature = "jomini")]
 pub mod scripted_lists;
