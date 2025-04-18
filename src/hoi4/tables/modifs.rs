@@ -108,14 +108,16 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
         return Some(ModifKinds::Country);
     }
 
-    // $IdeaGroup$_cost_factor
+    // $IdeaCategory$_cost_factor
+    // undocumented: advisor slots also count as idea categories
     // $Technology$_cost_factor
     if let Some(part) = name_lc.strip_suffix_unchecked("_cost_factor") {
         if let Some(sev) = warn {
-            if !data.item_exists_lc(Item::IdeaGroup, &part)
+            if !data.item_exists_lc(Item::IdeaCategory, &part)
                 && !data.item_exists_lc(Item::Technology, &part)
+                && !data.item_exists_lc(Item::AdvisorSlot, &part)
             {
-                let msg = format!("{part} not found as idea group or technology");
+                let msg = format!("{part} not found as idea category or technology");
                 let info = format!("so the modifier {name} does not exist");
                 report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();
             }
@@ -140,7 +142,8 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
 
     // production_cost_max_$NavalEquipment$
     if let Some(part) = name_lc.strip_prefix_unchecked("production_cost_max_") {
-        maybe_warn(Item::CombatTactic, &part, name, data, warn);
+        // TODO: how to tell whether it's specifically naval equipment?
+        maybe_warn(Item::EquipmentBonusType, &part, name, data, warn);
         return Some(ModifKinds::Naval);
     }
 

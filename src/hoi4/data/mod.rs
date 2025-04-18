@@ -10,6 +10,7 @@ pub mod dynamic;
 pub mod events;
 pub mod focus;
 pub mod gfx;
+pub mod ideas;
 pub mod ideologies;
 pub mod map;
 pub mod mio;
