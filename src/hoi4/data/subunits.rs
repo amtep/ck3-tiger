@@ -1,15 +1,10 @@
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::report::{err, ErrorKey};
-use crate::scopes::Scopes;
 use crate::token::Token;
-use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_target;
-use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -39,6 +34,7 @@ impl SubUnit {
 }
 
 impl SubUnitCategory {
+    #[allow(clippy::needless_pass_by_value)]
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if key.is("sub_unit_categories") {
             for value in block.iter_values_warn() {
