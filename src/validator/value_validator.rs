@@ -56,6 +56,7 @@ impl<'a> ValueValidator<'a> {
     }
 
     /// Construct a new `ValueValidator` for an owned `Token`.
+    #[allow(dead_code)]
     pub fn new_owned(value: Token, data: &'a Everything) -> Self {
         Self { value: Cow::Owned(value), data, validated: false, max_severity: Severity::Fatal }
     }
@@ -68,6 +69,7 @@ impl<'a> ValueValidator<'a> {
     }
 
     /// Make a descendant validator from this one, usually for a sub-token.
+    #[allow(dead_code)]
     fn value_validator(&self, token: Token) -> Self {
         let mut vd = ValueValidator::new_owned(token, self.data);
         vd.set_max_severity(self.max_severity);
@@ -84,6 +86,7 @@ impl<'a> ValueValidator<'a> {
         self.validated = true;
     }
 
+    #[allow(dead_code)]
     pub fn identifier(&mut self, kind: &'static str) {
         if self.validated {
             return;
@@ -168,6 +171,7 @@ impl<'a> ValueValidator<'a> {
     }
 
     #[must_use]
+    #[allow(dead_code)]
     pub fn split(&mut self, c: char) -> Vec<ValueValidator> {
         self.validated = true;
         self.value.split(c).into_iter().map(|value| self.value_validator(value)).collect()
@@ -377,6 +381,7 @@ impl<'a> ValueValidator<'a> {
     }
 
     /// Expect the value to be one of the listed strings in `choices`.
+    #[allow(dead_code)]
     pub fn choice(&mut self, choices: &[&str]) {
         if self.validated {
             return;

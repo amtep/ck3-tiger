@@ -1899,5 +1899,6 @@ pub enum LoadAsFile {
 pub enum Recursive {
     Yes,
     No,
+    #[allow(dead_code)]
     Maybe,
 }

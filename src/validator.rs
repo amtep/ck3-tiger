@@ -145,14 +145,6 @@ impl<'a> Validator<'a> {
         }
     }
 
-    /// Construct a new `Validator` for a [`Block`] that is subordinate to the current `Validator`.
-    #[cfg(feature = "hoi4")]
-    pub fn sub_validator(&self, block: &'a Block, data: &'a Everything) -> Self {
-        let mut vd = Self::new(block, data);
-        vd.set_max_severity(self.max_severity);
-        vd
-    }
-
     /// Control whether the fields in this `Block` will be matched case-sensitively or not.
     /// Whether this should be on or off depends on what the game engine allows, which is not always known.
     pub fn set_case_sensitive(&mut self, cs: bool) {
@@ -462,6 +454,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_validated_value`], but expect any number of `name` fields in the block.
+    #[allow(dead_code)]
     pub fn multi_field_validated_value<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token, ValueValidator),
@@ -512,6 +505,7 @@ impl<'a> Validator<'a> {
     /// If it would be useful, validate the event with the given `ScopeContext`.
     /// Expect no more than one `name` field in the block.
     /// Returns true iff the field is present.
+    #[allow(dead_code)]
     pub fn field_event(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
         let sev = self.max_severity;
         self.field_check(name, |_, bv| {
@@ -594,6 +588,7 @@ impl<'a> Validator<'a> {
 
     /// Just like [`Validator::field_target`], but allows the value to be simply "`this`".
     /// It is expected to be used judiciously in cases where "`this`" can be correct.
+    #[allow(dead_code)]
     pub fn field_target_ok_this(
         &mut self,
         name: &str,
@@ -611,6 +606,7 @@ impl<'a> Validator<'a> {
     /// This is a combination of [`Validator::field_item`] and [`Validator::field_target`]. If the field is present
     /// and is not a known `itype` item, then it is evaluated as a target.
     /// Returns true iff the field is present.
+    #[allow(dead_code)]
     pub fn field_item_or_target(
         &mut self,
         name: &str,
@@ -1304,6 +1300,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Just like [`Validator::field_validated_block_sc`], but expect any number of `name` fields in the block.
+    #[allow(dead_code)]
     pub fn multi_field_validated_block_sc<F>(
         &mut self,
         name: &str,
@@ -1363,6 +1360,7 @@ impl<'a> Validator<'a> {
         found.is_some()
     }
 
+    #[allow(dead_code)]
     pub fn field_validated_block_build_sc<B, F>(&mut self, name: &str, mut b: B, mut f: F) -> bool
     where
         B: FnMut(&Token) -> ScopeContext,
@@ -1422,6 +1420,7 @@ impl<'a> Validator<'a> {
     /// to be used for the `root` of a [`ScopeContext`] that is made on the spot. This is a convenient way to associate the
     /// `root` type with the key of this field, for clearer warnings. A passed-in [`ScopeContext`] would have to be associated
     /// with a key that is further away.
+    #[allow(dead_code)]
     pub fn field_validated_block_rooted<F>(&mut self, name: &str, scopes: Scopes, f: F) -> bool
     where
         F: FnMut(&Block, &Everything, &mut ScopeContext),
@@ -1541,6 +1540,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Like [`Validator::req_tokens_numbers_exactly`] but the numbers can have any number of decimals.
+    #[allow(dead_code)]
     pub fn req_tokens_precise_numbers_exactly(&mut self, expect: usize) {
         self.accepted_tokens = true;
         let mut found = 0;
@@ -1557,6 +1557,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Like [`Validator::field_list_numeric_exactly`] but the numbers can have any number of decimals.
+    #[allow(dead_code)]
     pub fn field_list_precise_numeric_exactly(&mut self, name: &str, expect: usize) {
         self.field_validated_block(name, |block, data| {
             let mut vd = Validator::new(block, data);
@@ -1594,6 +1595,7 @@ impl<'a> Validator<'a> {
     /// Expect the block to contain any number of loose sub-blocks (possibly in addition to other things).
     /// Return a vector of those blocks.
     /// TODO: make callers use `validated_blocks` instead.
+    #[allow(dead_code)]
     pub fn blocks(&mut self) -> Vec<&Block> {
         self.accepted_blocks = true;
         self.block.iter_blocks().collect()
@@ -1647,6 +1649,7 @@ impl<'a> Validator<'a> {
     }
 
     /// Expect the block to contain any number of `key = value` or `key = { block }` fields where the key is an integer.
+    #[allow(dead_code)]
     pub fn integer_keys<F: FnMut(&Token, &BV)>(&mut self, mut f: F) {
         for Field(key, cmp, bv) in self.block.iter_fields() {
             if key.is_integer() {
