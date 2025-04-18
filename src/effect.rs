@@ -612,6 +612,7 @@ pub fn validate_effect_control(
 /// of the variants that currently have very few users, and it could remove some of the special
 /// cases.
 #[derive(Copy, Clone)]
+#[allow(dead_code)] // TODO: remove when hoi4 is complete
 pub enum Effect {
     /// No special value, just `effect = yes`.
     Yes,

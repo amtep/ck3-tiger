@@ -1620,6 +1620,7 @@ pub fn validate_argument(
 /// It is used recursively in variants like [`Trigger::Block`], where each of the sub fields have
 /// their own `Trigger`.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[allow(dead_code)] // TODO: remove when hoi4 is complete
 pub enum Trigger {
     /// trigger = no or trigger = yes
     Boolean,
