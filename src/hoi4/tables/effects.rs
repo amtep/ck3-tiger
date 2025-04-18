@@ -30,7 +30,7 @@ static SCOPE_EFFECT_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Effect)>> 
 // See `documentation/effects_documentation.md` from the game files.
 // TODO HOI4
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
-    (Scopes::Country, "activate_advisor", Item(Item::Character)),
+    (Scopes::Country, "activate_advisor", Item(Item::CharacterIdeaToken)),
     (Scopes::Country, "activate_decision", Item(Item::Decision)),
     // TODO: figure out how to distinguish decisions from missions
     (Scopes::Country, "activate_mission", Item(Item::Decision)),
@@ -220,7 +220,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "custom_override_tooltip", UncheckedTodo),
     (Scopes::State.union(Scopes::Country), "damage_building", UncheckedTodo),
     (Scopes::None, "damage_units", UncheckedTodo),
-    (Scopes::Country, "deactivate_advisor", UncheckedTodo),
+    (Scopes::Country, "deactivate_advisor", Item(Item::CharacterIdeaToken)),
     (Scopes::Country, "deactivate_shine_on_focus", UncheckedTodo),
     (Scopes::Country, "declare_war_on", UncheckedTodo),
     (Scopes::Country, "delete_unit", UncheckedTodo),
