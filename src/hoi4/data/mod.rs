@@ -7,6 +7,7 @@ pub mod countries;
 pub mod country_leader;
 pub mod decisions;
 pub mod dynamic;
+pub mod equipment;
 pub mod events;
 pub mod focus;
 pub mod gfx;
