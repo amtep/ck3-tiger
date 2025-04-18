@@ -26,19 +26,6 @@ impl NationalFocusTree {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         if key.is("focus_tree") {
             if let Some(id) = block.get_field_value("id") {
-                for block in block.get_field_blocks("focus") {
-                    if let Some(id) = block.get_field_value("id") {
-                        db.add(
-                            Item::NationalFocus,
-                            id.clone(),
-                            block.clone(),
-                            Box::new(NationalFocus {}),
-                        );
-                    } else {
-                        let msg = "focus without id";
-                        err(ErrorKey::FieldMissing).msg(msg).loc(block).push();
-                    }
-                }
                 db.add(Item::NationalFocusTree, id.clone(), block, Box::new(Self {}));
             } else {
                 let msg = "focus tree without id";
@@ -71,6 +58,17 @@ impl NationalFocusTree {
 }
 
 impl DbKind for NationalFocusTree {
+    fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
+        for block in block.get_field_blocks("focus") {
+            if let Some(id) = block.get_field_value("id") {
+                db.add(Item::NationalFocus, id.clone(), block.clone(), Box::new(NationalFocus {}));
+            } else {
+                let msg = "focus without id";
+                err(ErrorKey::FieldMissing).msg(msg).loc(block).push();
+            }
+        }
+    }
+
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
