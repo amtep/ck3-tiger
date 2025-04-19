@@ -94,7 +94,7 @@ impl DbKind for NationalFocusTree {
 }
 
 impl DbKind for NationalFocus {
-    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
         vd.field_value("id");
@@ -123,12 +123,19 @@ impl DbKind for NationalFocus {
         vd.field_trigger_full("bypass", Scopes::Country, Tooltipped::Yes);
         vd.field_trigger_full("available", Scopes::Country, Tooltipped::Yes);
 
+        vd.field_bool("cancel_if_invalid");
+        vd.field_bool("continue_if_invalid");
+        vd.field_bool("available_if_capitulated");
+
         vd.field_validated_list("search_filters", |value, data| {
             data.verify_exists(Item::Localization, value);
             let sprite = format!("GFX_{value}");
             data.verify_exists_implied(Item::Sprite, &sprite, value);
         });
         vd.field_effect_full("completion_reward", Scopes::Country, Tooltipped::Yes);
+
+        let mut sc = ScopeContext::new(Scopes::Country, key);
+        vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
     }
 }
 

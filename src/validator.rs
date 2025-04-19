@@ -9,6 +9,8 @@ use crate::date::Date;
 use crate::effect::validate_effect_internal;
 use crate::everything::Everything;
 use crate::helpers::{dup_assign_error, TigerHashSet};
+#[cfg(feature = "hoi4")]
+use crate::hoi4::validate::validate_variable;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 #[cfg(feature = "ck3")]
@@ -490,31 +492,27 @@ impl<'a> Validator<'a> {
         let sev = Severity::Error.at_most(self.max_severity);
         self.field_check(name, |_, bv| {
             if let Some(token) = bv.expect_value() {
-                let mut reference = token;
-                let stripped;
-                if let Some(sfx) = token.strip_prefix("var:") {
-                    stripped = sfx;
-                    reference = &stripped;
-                }
-
-                let parts = reference.split('.');
-                match parts.len() {
-                    1 => (),
-                    2 => {
-                        if !parts[0].is("global") {
-                            // TODO: are there scopes that can't have variables?
-                            validate_target(&parts[0], self.data, sc, Scopes::all_but_none());
-                        }
-                    }
-                    _ => {
-                        let msg = "could not parse variable reference";
-                        report(ErrorKey::Validation, sev).msg(msg).loc(reference).push();
-                    }
-                }
+                validate_variable(token, self.data, sc, sev);
             }
         })
     }
 
+    /// Expect field `name`, if present, to be a variable reference or an integer.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    #[cfg(feature = "hoi4")]
+    pub fn field_variable_or_integer(&mut self, name: &str, sc: &mut ScopeContext) -> bool {
+        let sev = Severity::Error.at_most(self.max_severity);
+        self.field_check(name, |_, bv| {
+            if let Some(token) = bv.expect_value() {
+                if token.is_number() {
+                    token.expect_integer();
+                } else {
+                    validate_variable(token, self.data, sc, sev);
+                }
+            }
+        })
+    }
     /// Expect field `name`, if present, to be set to the key of an `on_action`.
     /// The action is looked up and must exist.
     /// If it would be useful, validate the action with the given `ScopeContext`.

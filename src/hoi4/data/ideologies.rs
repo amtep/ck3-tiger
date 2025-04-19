@@ -2,6 +2,7 @@ use crate::block::Block;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
+use crate::hoi4::validate::validate_rules;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{err, ErrorKey};
@@ -71,20 +72,7 @@ impl DbKind for IdeologyGroup {
         vd.field_list_items("dynamic_faction_names", Item::Localization);
         vd.field_validated_block("color", validate_color);
 
-        vd.field_validated_block("rules", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_bool("can_create_collaboration_government");
-            vd.field_bool("can_declare_war_on_same_ideology");
-            vd.req_field("can_force_government");
-            vd.field_bool("can_force_government");
-            vd.req_field("can_send_volunteers");
-            vd.field_bool("can_send_volunteers");
-            vd.req_field("can_puppet");
-            vd.field_bool("can_puppet");
-            vd.field_bool("can_lower_tension");
-            vd.field_bool("can_only_justify_war_on_threat_country");
-            vd.field_bool("can_guarantee_other_ideologies");
-        });
+        vd.field_validated_block("rules", validate_rules);
 
         vd.field_bool("can_host_government_in_exile");
         vd.field_numeric("war_impact_on_world_tension");

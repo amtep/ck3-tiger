@@ -1,13 +1,16 @@
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
+use crate::hoi4::validate::validate_rules;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
+use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -59,6 +62,7 @@ impl IdeaCategory {
 impl DbKind for Idea {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
+        let mut sc = ScopeContext::new(Scopes::Country, key);
 
         if !data.item_exists(Item::IdeaCategory, self.category.as_str())
             && !data.item_exists(Item::AdvisorSlot, self.category.as_str())
@@ -84,14 +88,35 @@ impl DbKind for Idea {
 
         vd.field_trigger_full("allowed", Scopes::Country, Tooltipped::No);
         vd.field_trigger_full("allowed_civil_war", Scopes::Country, Tooltipped::No);
+        vd.field_trigger_full("visible", Scopes::Country, Tooltipped::No);
         vd.field_trigger_full("available", Scopes::Country, Tooltipped::Yes);
+        vd.field_integer("cost");
         vd.field_integer("removal_cost");
 
         vd.field_trigger_full("cancel", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger_full("do_effect", Scopes::Country, Tooltipped::No);
+        vd.field_effect_full("on_add", Scopes::Country, Tooltipped::Yes);
         vd.field_effect_full("on_remove", Scopes::Country, Tooltipped::Yes);
+
+        vd.field_validated_block("research_bonus", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.validate_item_key_values(Item::TechnologyCategory, |_, mut vd| {
+                vd.numeric();
+            });
+        });
+        vd.field_list_items("traits", Item::CountryLeaderTrait);
 
         vd.field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::all(), vd);
+        });
+
+        vd.multi_field_validated_block("targeted_modifier", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_value("tag", |_, mut vd| {
+                vd.maybe_item(Item::CountryTag);
+                vd.variable(&mut sc);
+            });
             validate_modifs(block, data, ModifKinds::all(), vd);
         });
 
@@ -105,6 +130,10 @@ impl DbKind for Idea {
                 });
             });
         });
+
+        vd.field_validated_block("rule", validate_rules);
+
+        vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
     }
 }
 

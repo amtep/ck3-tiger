@@ -7,6 +7,8 @@ use std::str::FromStr;
 use crate::context::ScopeContext;
 use crate::date::Date;
 use crate::everything::Everything;
+#[cfg(feature = "hoi4")]
+use crate::hoi4::validate::validate_variable;
 use crate::item::Item;
 use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
@@ -392,6 +394,17 @@ impl<'a> ValueValidator<'a> {
             let msg = format!("expected one of {}", choices.join(", "));
             report(ErrorKey::Choice, sev).msg(msg).loc(self).push();
         }
+    }
+
+    /// Expect the value to be a variable reference
+    #[cfg(feature = "hoi4")]
+    pub fn variable(&mut self, sc: &mut ScopeContext) {
+        if self.validated {
+            return;
+        }
+        self.validated = true;
+        let sev = Severity::Error.at_most(self.max_severity);
+        validate_variable(&self.value, self.data, sc, sev);
     }
 
     /// Check if the value is equal to the given string.
