@@ -223,6 +223,12 @@ impl Trait {
             validate_trigger(b, data, &mut sc, Tooltipped::No);
         });
 
+        vd.field_validated_block("monthly_track_xp_degradation", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_numeric("min");
+            vd.field_numeric("change");
+        });
+
         vd.field_integer("minimum_age");
         vd.field_integer("maximum_age");
         vd.field_choice("valid_sex", &["all", "male", "female"]);
