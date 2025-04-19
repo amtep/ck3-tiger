@@ -6,3 +6,4 @@ pub mod events;
 pub mod modif;
 pub mod scopes;
 pub mod tables;
+pub mod validate;

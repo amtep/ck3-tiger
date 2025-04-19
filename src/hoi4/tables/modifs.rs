@@ -88,8 +88,15 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     }
 
     // $IdeaCategory$_category_type_cost_factor
+    // Despite the "IdeaCategory" doc, this modifier only takes 3 specific values.
     if let Some(part) = name_lc.strip_suffix_unchecked("_category_type_cost_factor") {
-        maybe_warn(Item::IdeaCategory, &part, name, data, warn);
+        if let Some(sev) = warn {
+            if part != "air_spirit" && part != "navy_spirit" && part != "army_spirit" {
+                let msg = format!("{part} is not air_spirit, navy_spirit, or army_spirit");
+                let info = format!("so the modifier {name} does not exist");
+                report(ErrorKey::MissingItem, sev).strong().msg(msg).info(info).loc(name).push();
+            }
+        }
         return Some(ModifKinds::Country);
     }
 
@@ -151,11 +158,11 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // experience_gain_$Unit$_combat_factor
     if let Some(part) = name_lc.strip_prefix_unchecked("experience_gain_") {
         if let Some(part) = part.strip_suffix_unchecked("_training_factor") {
-            maybe_warn(Item::Unit, &part, name, data, warn);
+            maybe_warn(Item::SubUnit, &part, name, data, warn);
             return Some(ModifKinds::Naval | ModifKinds::Country);
         }
         if let Some(part) = part.strip_suffix_unchecked("_combat_factor") {
-            maybe_warn(Item::Unit, &part, name, data, warn);
+            maybe_warn(Item::SubUnit, &part, name, data, warn);
             return Some(ModifKinds::Naval | ModifKinds::Country);
         }
     }
@@ -163,7 +170,7 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // unit_$Unit$_design_cost_factor
     if let Some(part) = name_lc.strip_prefix_unchecked("unit_") {
         if let Some(part) = part.strip_suffix_unchecked("_design_cost_factor") {
-            maybe_warn(Item::Unit, &part, name, data, warn);
+            maybe_warn(Item::SubUnit, &part, name, data, warn);
             return Some(ModifKinds::Naval | ModifKinds::Country | ModifKinds::Army);
         }
     }
@@ -1089,6 +1096,7 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("supply_factor", ModifKinds::Country.union(ModifKinds::State)),
     ("supply_node_range", ModifKinds::Country),
     ("surrender_limit", ModifKinds::Country),
+    ("target_sabotage_cost", ModifKinds::IntelligenceAgency), // undocumented
     ("target_sabotage_factor", ModifKinds::IntelligenceAgency),
     ("targeted_legitimacy_daily", ModifKinds::GovernmentInExile),
     ("tech_air_damage_factor", ModifKinds::Country.union(ModifKinds::WarProduction)),

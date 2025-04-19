@@ -201,8 +201,6 @@ pub enum Item {
     TutorialLessonChain,
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     TutorialLessonStep,
-    #[cfg(any(feature = "imperator", feature = "hoi4"))]
-    Unit,
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     Wargoal,
 
@@ -531,6 +529,7 @@ pub enum Item {
     #[cfg(feature = "imperator")] TechnologyTable,
     #[cfg(feature = "imperator")] TradeGood,
     #[cfg(feature = "imperator")] Treasure,
+    #[cfg(feature = "imperator")] Unit,
     #[cfg(feature = "imperator")] UnitAbility,
 
     #[cfg(feature = "hoi4")] Ability,
@@ -912,8 +911,6 @@ impl Item {
             Item::TutorialLessonChain => "common/tutorial_lesson_chains",
             #[cfg(any(feature = "ck3", feature = "vic3"))]
             Item::TutorialLessonStep => "common/tutorial_lessons",
-            #[cfg(any(feature = "imperator", feature = "hoi4"))]
-            Item::Unit => "common/units/", // TODO HOI4
             #[cfg(any(feature = "vic3", feature = "imperator"))]
             Item::Wargoal => match Game::game() {
                 #[cfg(feature = "vic3")]
@@ -1566,6 +1563,8 @@ impl Item {
             #[cfg(feature = "imperator")]
             Item::Treasure => "setup/main/",
             #[cfg(feature = "imperator")]
+            Item::Unit => "common/units/",
+            #[cfg(feature = "imperator")]
             Item::UnitAbility => "common/unit_abilities/",
 
             #[cfg(feature = "hoi4")]
@@ -1671,7 +1670,7 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::SubUnit => "common/units/",
             #[cfg(feature = "hoi4")]
-            Item::SubUnitCategory => "common/unit_tags/", // TODO HOI4
+            Item::SubUnitCategory => "common/unit_tags/",
             #[cfg(feature = "hoi4")]
             Item::SupplyArea => "map/supplyareas",
             #[cfg(feature = "hoi4")]

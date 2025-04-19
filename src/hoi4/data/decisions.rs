@@ -5,6 +5,7 @@ use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
+use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -152,5 +153,14 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
             &["map_only", "decision_view_only", "map_and_decisions_view"],
         );
         vd.field_value("target_array"); // TODO
+
+        vd.field_validated_block("modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::all(), vd);
+        });
+        vd.field_variable_or_integer("days_remove", &mut sc);
+        vd.field_variable_or_integer("days_re_enable", &mut sc);
+        vd.field_variable_or_integer("cost", &mut sc);
+        vd.field_bool("fixed_random_seed");
     }
 }
