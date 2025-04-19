@@ -3,6 +3,7 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
+use crate::hoi4::validate::validate_equipment_bonus;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::report::{err, ErrorKey};
@@ -61,18 +62,7 @@ impl DbKind for CountryLeaderTrait {
             vd.field_item("tag", Item::CountryTag);
             validate_modifs(block, data, ModifKinds::Country | ModifKinds::Army, vd);
         });
-        vd.multi_field_validated_block("equipment_bonus", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.unknown_block_fields(|key, block| {
-                data.verify_exists(Item::EquipmentBonusType, key);
-                let mut vd = Validator::new(block, data);
-                vd.field_bool("instant");
-                vd.unknown_value_fields(|key, value| {
-                    data.verify_exists(Item::EquipmentStat, key);
-                    value.expect_number();
-                });
-            });
-        });
+        vd.multi_field_validated_block("equipment_bonus", validate_equipment_bonus);
         validate_modifs(block, data, ModifKinds::Country, vd);
     }
 }

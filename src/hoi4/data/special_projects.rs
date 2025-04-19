@@ -3,6 +3,7 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
+use crate::hoi4::validate::validate_equipment_bonus;
 use crate::item::{Item, ItemLoader};
 use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
@@ -150,16 +151,7 @@ fn validate_project_output(block: &Block, data: &Everything) {
         });
     });
 
-    vd.field_validated_block("equipment_bonus", |block, data| {
-        let mut vd = Validator::new(block, data);
-        vd.validate_item_key_blocks(Item::EquipmentBonusType, |_, block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.field_bool("instant");
-            vd.validate_item_key_values(Item::EquipmentStat, |_, mut vd| {
-                vd.numeric();
-            });
-        });
-    });
+    vd.field_validated_block("equipment_bonus", validate_equipment_bonus);
 }
 
 #[derive(Clone, Debug)]

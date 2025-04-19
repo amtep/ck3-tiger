@@ -549,7 +549,9 @@ pub enum Item {
     #[cfg(feature = "hoi4")] Equipment,
     #[cfg(feature = "hoi4")] EquipmentBonusType,
     #[cfg(feature = "hoi4")] EquipmentCategory,
+    #[cfg(feature = "hoi4")] EquipmentGroup,
     #[cfg(feature = "hoi4")] EquipmentModule,
+    #[cfg(feature = "hoi4")] EquipmentModuleCategory,
     #[cfg(feature = "hoi4")] EquipmentSearchFilter,
     #[cfg(feature = "hoi4")] EquipmentStat,
     #[cfg(feature = "hoi4")] EquipmentUpgrade,
@@ -1602,7 +1604,11 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::EquipmentCategory => "common/script_enums.txt",
             #[cfg(feature = "hoi4")]
-            Item::EquipmentModule => "common/units/equipment/modules/", // TODO HOI4
+            Item::EquipmentGroup => "common/equipment_groups/",
+            #[cfg(feature = "hoi4")]
+            Item::EquipmentModule => "common/units/equipment/modules/",
+            #[cfg(feature = "hoi4")]
+            Item::EquipmentModuleCategory => "common/units/equipment/modules/",
             #[cfg(feature = "hoi4")]
             Item::EquipmentSearchFilter => "common/units/equipment/",
             #[cfg(feature = "hoi4")]

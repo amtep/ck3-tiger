@@ -3,6 +3,7 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
+use crate::hoi4::validate::validate_equipment_bonus;
 use crate::hoi4::validate::validate_rules;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
@@ -120,16 +121,7 @@ impl DbKind for Idea {
             validate_modifs(block, data, ModifKinds::all(), vd);
         });
 
-        vd.field_validated_block("equipment_bonus", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.validate_item_key_blocks(Item::EquipmentBonusType, |_, block, data| {
-                let mut vd = Validator::new(block, data);
-                vd.field_bool("instant");
-                vd.validate_item_key_values(Item::EquipmentStat, |_, mut vd| {
-                    vd.numeric();
-                });
-            });
-        });
+        vd.field_validated_block("equipment_bonus", validate_equipment_bonus);
 
         vd.field_validated_block("rule", validate_rules);
 

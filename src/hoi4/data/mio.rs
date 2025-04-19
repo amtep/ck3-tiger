@@ -6,7 +6,7 @@ use crate::game::GameFlags;
 use crate::hoi4::tables::modifs::lookup_modif;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
-use crate::report::{warn, ErrorKey};
+use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -77,11 +77,23 @@ impl DbKind for IndustrialOrg {
         vd.field_trigger_full("visible", Scopes::IndustrialOrg, Tooltipped::No);
         vd.field_trigger_full("available", Scopes::IndustrialOrg, Tooltipped::Yes);
 
-        // TODO: "This also works with equipment groups that can be found in
-        // game/common/equipment_groups"
-        vd.field_list_items("equipment_type", Item::EquipmentBonusType);
+        vd.field_validated_list("equipment_type", |value, data| {
+            if !data.item_exists(Item::EquipmentBonusType, value.as_str())
+                && !data.item_exists(Item::EquipmentGroup, value.as_str())
+            {
+                let msg = format!("{value} not found as equipment bonus type or equipment group");
+                err(ErrorKey::MissingItem).msg(msg).loc(value).push();
+            }
+        });
 
-        vd.field_list_items("research_categories", Item::Technology);
+        vd.field_validated_list("research_categories", |value, data| {
+            if !data.item_exists(Item::Technology, value.as_str())
+                && !data.item_exists(Item::TechnologyCategory, value.as_str())
+            {
+                let msg = format!("{value} not found as technology or technology category");
+                err(ErrorKey::MissingItem).msg(msg).loc(value).push();
+            }
+        });
 
         for field in &[
             "on_design_team_assigned_to_tech",
@@ -179,11 +191,15 @@ impl DbKind for IndustrialOrgPolicy {
                 });
             });
 
-            vd.validate_item_key_blocks(Item::EquipmentCategory, |_, block, data| {
-                let mut vd = Validator::new(block, data);
-                vd.validate_item_key_values(Item::EquipmentBonusType, |_, mut vd| {
-                    vd.numeric();
-                });
+            vd.unknown_block_fields(|key, block| {
+                if !data.item_exists(Item::EquipmentGroup, key.as_str())
+                    && !data.item_exists(Item::EquipmentCategory, key.as_str())
+                {
+                    let mut vd = Validator::new(block, data);
+                    vd.validate_item_key_values(Item::EquipmentBonusType, |_, mut vd| {
+                        vd.numeric();
+                    });
+                }
             });
         });
 
@@ -195,11 +211,15 @@ impl DbKind for IndustrialOrgPolicy {
                     vd.numeric();
                 });
             });
-            vd.validate_item_key_blocks(Item::EquipmentCategory, |_, block, data| {
-                let mut vd = Validator::new(block, data);
-                vd.validate_item_key_values(Item::ProductionStat, |_, mut vd| {
-                    vd.numeric();
-                });
+            vd.unknown_block_fields(|key, block| {
+                if !data.item_exists(Item::EquipmentGroup, key.as_str())
+                    && !data.item_exists(Item::EquipmentCategory, key.as_str())
+                {
+                    let mut vd = Validator::new(block, data);
+                    vd.validate_item_key_values(Item::ProductionStat, |_, mut vd| {
+                        vd.numeric();
+                    });
+                }
             });
         });
 
@@ -268,7 +288,14 @@ fn validate_mio_trait(mio: &Token, block: &Block, data: &Everything) {
     vd.field_trigger_full("available", Scopes::IndustrialOrg, Tooltipped::Yes);
     vd.field_effect_full("on_complete", Scopes::IndustrialOrg, Tooltipped::Yes);
 
-    vd.field_list_items("limit_to_equipment_type", Item::Equipment);
+    vd.field_validated_list("limit_to_equipment_type", |value, data| {
+        if !data.item_exists(Item::Equipment, value.as_str())
+            && !data.item_exists(Item::EquipmentGroup, value.as_str())
+        {
+            let msg = format!("{value} not found as equipment or equipment group");
+            err(ErrorKey::MissingItem).msg(msg).loc(value).push();
+        }
+    });
 
     vd.field_validated_block("equipment_bonus", |block, data| {
         let mut vd = Validator::new(block, data);

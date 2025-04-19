@@ -1,6 +1,7 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
+use crate::item::Item;
 use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -49,4 +50,15 @@ pub fn validate_rules(block: &Block, data: &Everything) {
     vd.field_bool("can_puppet");
     vd.field_bool("can_lower_tension");
     vd.field_bool("can_only_justify_war_on_threat_country");
+}
+
+pub fn validate_equipment_bonus(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.validate_item_key_blocks(Item::EquipmentBonusType, |_, block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.field_bool("instant");
+        vd.validate_item_key_values(Item::EquipmentStat, |_, mut vd| {
+            vd.numeric();
+        });
+    });
 }
