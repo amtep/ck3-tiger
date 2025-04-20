@@ -42,16 +42,16 @@ impl DbKind for ScriptedGui {
         vd.field_value("notification_key");
         vd.field_validated_sc("confirm_title", &mut sc.clone(), validate_desc);
         vd.field_validated_sc("confirm_text", &mut sc.clone(), validate_desc);
-        vd.field_trigger_full("ai_is_valid", &mut sc.clone(), Tooltipped::No);
+        vd.field_trigger("ai_is_valid", &mut sc.clone(), Tooltipped::No);
         vd.field_validated_block_sc("ai_chance", &mut sc.clone(), validate_modifiers_with_base);
         vd.field_validated("ai_frequency", validate_non_dynamic_script_value);
 
         vd.field_validated_list("saved_scopes", |token, _| {
             sc.define_name(token.as_str(), Scopes::all_but_none(), token);
         });
-        vd.field_trigger_full("is_shown", &mut sc.clone(), Tooltipped::No);
-        vd.field_trigger_full("is_valid", &mut sc.clone(), Tooltipped::No);
+        vd.field_trigger("is_shown", &mut sc.clone(), Tooltipped::No);
+        vd.field_trigger("is_valid", &mut sc.clone(), Tooltipped::No);
         // TODO: whether this is tooltipped depends on whether the gui calls for it
-        vd.field_effect_full("effect", &mut sc.clone(), Tooltipped::No);
+        vd.field_effect("effect", &mut sc.clone(), Tooltipped::No);
     }
 }

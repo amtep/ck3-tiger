@@ -43,12 +43,12 @@ impl DbKind for SpecialProject {
         vd.field_list_items("project_tags", Item::SpecialProjectTag);
 
         // TODO: "only tag, original_tag and has_dlc allowed"
-        vd.field_trigger_full("allowed", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("allowed", Scopes::Country, Tooltipped::No);
 
         // FROM: country
-        vd.field_trigger_full("available", Scopes::SpecialProject, Tooltipped::Yes);
+        vd.field_trigger("available", Scopes::SpecialProject, Tooltipped::Yes);
         // FROM: country
-        vd.field_trigger_full("visible", Scopes::SpecialProject, Tooltipped::No);
+        vd.field_trigger("visible", Scopes::SpecialProject, Tooltipped::No);
 
         vd.field_validated_block("breakthrough_cost", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -106,18 +106,18 @@ fn validate_project_output(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
 
     // TODO: FROM = SpecialProject
-    vd.field_effect_full("country_effects", Scopes::Country, Tooltipped::Yes);
+    vd.field_effect("country_effects", Scopes::Country, Tooltipped::Yes);
 
     // TODO: FROM = SpecialProject
-    vd.field_effect_full("facility_state_effects", Scopes::State, Tooltipped::Yes);
+    vd.field_effect("facility_state_effects", Scopes::State, Tooltipped::Yes);
 
     // TODO: FROM = SpecialProject
-    vd.field_effect_full("scientist_effects", Scopes::Character, Tooltipped::Yes);
+    vd.field_effect("scientist_effects", Scopes::Character, Tooltipped::Yes);
 
     vd.field_validated_block("enable_equipments", |block, data| {
         let mut vd = Validator::new(block, data);
         // TODO: only has_dlc is allowed
-        vd.field_trigger_full("limit", Scopes::None, Tooltipped::No);
+        vd.field_trigger("limit", Scopes::None, Tooltipped::No);
         for token in vd.values() {
             data.verify_exists(Item::Equipment, token);
         }
@@ -126,7 +126,7 @@ fn validate_project_output(block: &Block, data: &Everything) {
     vd.field_validated_block("enable_equipment_modules", |block, data| {
         let mut vd = Validator::new(block, data);
         // TODO: scope not mentioned in docs
-        vd.field_trigger_full("limit", Scopes::None, Tooltipped::No);
+        vd.field_trigger("limit", Scopes::None, Tooltipped::No);
         for token in vd.values() {
             data.verify_exists(Item::EquipmentModule, token);
         }
@@ -135,7 +135,7 @@ fn validate_project_output(block: &Block, data: &Everything) {
     vd.field_validated_block("enable_subunits", |block, data| {
         let mut vd = Validator::new(block, data);
         // TODO: scope not mentioned in docs
-        vd.field_trigger_full("limit", Scopes::None, Tooltipped::No);
+        vd.field_trigger("limit", Scopes::None, Tooltipped::No);
         for token in vd.values() {
             data.verify_exists(Item::SubUnit, token);
         }
@@ -239,7 +239,7 @@ fn validate_prototype_reward(key: &Token, block: &Block, data: &Everything) {
 
     let mut sc = ScopeContext::new(Scopes::SpecialProject, key);
     vd.field_validated_block_sc("weight", &mut sc, validate_modifiers_with_base);
-    vd.field_trigger_full("allowed", Scopes::Country, Tooltipped::No);
+    vd.field_trigger("allowed", Scopes::Country, Tooltipped::No);
 
     vd.req_field("option");
     let mut seen_default = false;

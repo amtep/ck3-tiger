@@ -28,8 +28,8 @@ impl DbKind for DynamicModifier {
 
         data.verify_exists(Item::Localization, key);
 
-        vd.field_trigger_full("enable", Scopes::all_but_none(), Tooltipped::No);
-        vd.field_trigger_full("remove_trigger", Scopes::all_but_none(), Tooltipped::No);
+        vd.field_trigger("enable", Scopes::all_but_none(), Tooltipped::No);
+        vd.field_trigger("remove_trigger", Scopes::all_but_none(), Tooltipped::No);
         vd.field_item("icon", Item::Sprite);
         vd.field_bool("attacker_modifier");
         validate_modifs(block, data, ModifKinds::all(), vd);

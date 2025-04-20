@@ -45,6 +45,6 @@ impl DbKind for ScientistTrait {
         });
 
         vd.field_list_items("specialization", Item::Specialization);
-        vd.field_trigger_full("available", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("available", Scopes::Country, Tooltipped::No);
     }
 }

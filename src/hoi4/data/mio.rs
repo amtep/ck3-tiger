@@ -72,10 +72,10 @@ impl DbKind for IndustrialOrg {
         if !has_include {
             vd.req_field("allowed");
         }
-        vd.field_trigger_full("allowed", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("allowed", Scopes::Country, Tooltipped::No);
 
-        vd.field_trigger_full("visible", Scopes::IndustrialOrg, Tooltipped::No);
-        vd.field_trigger_full("available", Scopes::IndustrialOrg, Tooltipped::Yes);
+        vd.field_trigger("visible", Scopes::IndustrialOrg, Tooltipped::No);
+        vd.field_trigger("available", Scopes::IndustrialOrg, Tooltipped::Yes);
 
         vd.field_validated_list("equipment_type", |value, data| {
             if !data.item_exists(Item::EquipmentBonusType, value.as_str())
@@ -103,7 +103,7 @@ impl DbKind for IndustrialOrg {
             "on_tech_research_completed",
             "on_industrial_manufacturer_unassigned",
         ] {
-            vd.field_trigger_full(field, Scopes::IndustrialOrg, Tooltipped::No);
+            vd.field_trigger(field, Scopes::IndustrialOrg, Tooltipped::No);
         }
 
         vd.field_numeric("research_bonus");
@@ -178,9 +178,9 @@ impl DbKind for IndustrialOrgPolicy {
         vd.field_integer("cost");
         vd.field_integer("cooldown");
 
-        vd.field_trigger_full("allowed", Scopes::IndustrialOrg, Tooltipped::No);
-        vd.field_trigger_full("visible", Scopes::IndustrialOrg, Tooltipped::No);
-        vd.field_trigger_full("available", Scopes::IndustrialOrg, Tooltipped::Yes);
+        vd.field_trigger("allowed", Scopes::IndustrialOrg, Tooltipped::No);
+        vd.field_trigger("visible", Scopes::IndustrialOrg, Tooltipped::No);
+        vd.field_trigger("available", Scopes::IndustrialOrg, Tooltipped::Yes);
 
         vd.field_validated_block("equipment_bonus", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -227,8 +227,8 @@ impl DbKind for IndustrialOrgPolicy {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::WarProduction, vd);
         });
-        vd.field_effect_full("on_add", Scopes::IndustrialOrg, Tooltipped::Yes);
-        vd.field_effect_full("on_remove", Scopes::IndustrialOrg, Tooltipped::Yes);
+        vd.field_effect("on_add", Scopes::IndustrialOrg, Tooltipped::Yes);
+        vd.field_effect("on_remove", Scopes::IndustrialOrg, Tooltipped::Yes);
 
         let mut sc = ScopeContext::new(Scopes::IndustrialOrg, key);
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
@@ -284,9 +284,9 @@ fn validate_mio_trait(mio: &Token, block: &Block, data: &Everything) {
     vd.field_list_items("all_parents", Item::IndustrialOrgTrait);
     vd.field_list_items("mutually_exclusive", Item::IndustrialOrgTrait);
 
-    vd.field_trigger_full("visible", Scopes::IndustrialOrg, Tooltipped::No);
-    vd.field_trigger_full("available", Scopes::IndustrialOrg, Tooltipped::Yes);
-    vd.field_effect_full("on_complete", Scopes::IndustrialOrg, Tooltipped::Yes);
+    vd.field_trigger("visible", Scopes::IndustrialOrg, Tooltipped::No);
+    vd.field_trigger("available", Scopes::IndustrialOrg, Tooltipped::Yes);
+    vd.field_effect("on_complete", Scopes::IndustrialOrg, Tooltipped::Yes);
 
     vd.field_validated_list("limit_to_equipment_type", |value, data| {
         if !data.item_exists(Item::Equipment, value.as_str())

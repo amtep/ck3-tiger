@@ -57,7 +57,7 @@ impl DbKind for Character {
             vd.multi_field_validated_block("instance", |block, data| {
                 let mut vd = Validator::new(block, data);
                 vd.req_field("allowed");
-                vd.field_trigger_full("allowed", Scopes::Country, Tooltipped::No);
+                vd.field_trigger("allowed", Scopes::Country, Tooltipped::No);
                 validate_character(key, block, data, &mut vd);
             });
         } else {
@@ -75,8 +75,8 @@ fn validate_character(key: &Token, _block: &Block, data: &Everything, vd: &mut V
 
     vd.field_choice("gender", &["male", "female", "undefined"]);
 
-    vd.field_trigger_full("available", Scopes::Country, Tooltipped::Yes);
-    vd.field_trigger_full("allowed_civil_war", Scopes::Country, Tooltipped::No);
+    vd.field_trigger("available", Scopes::Country, Tooltipped::Yes);
+    vd.field_trigger("allowed_civil_war", Scopes::Country, Tooltipped::No);
     vd.field_validated_block("portraits", |block, data| {
         let mut vd = Validator::new(block, data);
         for field in &["civilian", "army", "navy"] {
@@ -112,7 +112,7 @@ fn validate_character(key: &Token, _block: &Block, data: &Everything, vd: &mut V
             // TODO: only for navy
             vd.field_integer("maneuvering_skill");
             vd.field_integer("legacy_id");
-            vd.field_trigger_full("visible", Scopes::Country, Tooltipped::No);
+            vd.field_trigger("visible", Scopes::Country, Tooltipped::No);
         });
     }
 
@@ -128,9 +128,9 @@ fn validate_character(key: &Token, _block: &Block, data: &Everything, vd: &mut V
             "ledger",
             &["army", "navy", "air", "military", "civilian", "all", "hidden"],
         );
-        vd.field_trigger_full("allowed", Scopes::Country, Tooltipped::No);
-        vd.field_trigger_full("visible", Scopes::Country, Tooltipped::No);
-        vd.field_trigger_full("available", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger("allowed", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("visible", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("available", Scopes::Country, Tooltipped::Yes);
         vd.field_validated_block("research_bonus", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.validate_item_key_values(Item::TechnologyCategory, |_, mut vd| {
@@ -141,15 +141,15 @@ fn validate_character(key: &Token, _block: &Block, data: &Everything, vd: &mut V
         vd.field_numeric("cost");
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
         vd.field_bool("can_be_fired");
-        vd.field_trigger_full("do_effect", Scopes::Country, Tooltipped::Yes);
-        vd.field_effect_full("on_add", Scopes::Character, Tooltipped::Yes);
-        vd.field_effect_full("on_remove", Scopes::Character, Tooltipped::Yes);
+        vd.field_trigger("do_effect", Scopes::Country, Tooltipped::Yes);
+        vd.field_effect("on_add", Scopes::Character, Tooltipped::Yes);
+        vd.field_effect("on_remove", Scopes::Character, Tooltipped::Yes);
     });
 
     vd.field_validated_block("scientist", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_list_items("traits", Item::ScientistTrait);
-        vd.field_trigger_full("visible", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("visible", Scopes::Country, Tooltipped::No);
         vd.field_validated_block("skills", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.unknown_value_fields(|key, value| {

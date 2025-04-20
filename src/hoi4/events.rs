@@ -50,7 +50,7 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
             vd.field_item("text", Item::Localization);
-            vd.field_trigger_full("trigger", &mut *sc, Tooltipped::No);
+            vd.field_trigger("trigger", &mut *sc, Tooltipped::No);
         }
     });
     vd.field_item("picture", Item::Sprite);

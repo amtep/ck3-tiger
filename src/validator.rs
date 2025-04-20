@@ -866,7 +866,7 @@ impl<'a> Validator<'a> {
     /// The scope context may be a full `ScopeContext`, a rooted `Scopes` or a closure that builds
     /// one from the field key token.
     #[allow(dead_code)]
-    pub fn field_trigger_full<'b, T>(&mut self, name: &str, fsc: T, tooltipped: Tooltipped) -> bool
+    pub fn field_trigger<'b, T>(&mut self, name: &str, fsc: T, tooltipped: Tooltipped) -> bool
     where
         T: Into<FieldScopeContext<'b>>,
     {
@@ -895,7 +895,7 @@ impl<'a> Validator<'a> {
     /// The scope context may be a full `ScopeContext`, a rooted `Scopes` or a closure that builds
     /// one from the field key token.
     #[allow(dead_code)]
-    pub fn field_effect_full<'b, T>(&mut self, name: &str, fsc: T, tooltipped: Tooltipped) -> bool
+    pub fn field_effect<'b, T>(&mut self, name: &str, fsc: T, tooltipped: Tooltipped) -> bool
     where
         T: Into<FieldScopeContext<'b>>,
     {

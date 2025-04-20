@@ -50,13 +50,13 @@ impl DbKind for PoliticalLobby {
         vd.field_choice("category", &["foreign_pro_country", "foreign_anti_country", "foreign"]);
         vd.field_item("texture", Item::File);
 
-        vd.field_trigger_full("can_create", sc_no_lobby, Tooltipped::No);
-        vd.field_effect_full("on_created", sc_with_lobby, Tooltipped::No);
+        vd.field_trigger("can_create", sc_no_lobby, Tooltipped::No);
+        vd.field_effect("on_created", sc_with_lobby, Tooltipped::No);
 
         vd.field_validated_block("requirement_to_maintain", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_trigger_full("trigger", sc_with_lobby, Tooltipped::No);
-            vd.field_effect_full("on_failed", sc_with_lobby, Tooltipped::No);
+            vd.field_trigger("trigger", sc_with_lobby, Tooltipped::No);
+            vd.field_effect("on_failed", sc_with_lobby, Tooltipped::No);
             vd.field_item("swap_type_on_failed", Item::PoliticalLobby);
         });
 
@@ -75,11 +75,7 @@ impl DbKind for PoliticalLobby {
         vd.field_validated_list("appeasement_factors_pro", appeasement_factors_validation);
         vd.field_validated_list("appeasement_factors_anti", appeasement_factors_validation);
 
-        vd.field_trigger_full(
-            "available_for_interest_group",
-            Scopes::InterestGroup,
-            Tooltipped::No,
-        );
+        vd.field_trigger("available_for_interest_group", Scopes::InterestGroup, Tooltipped::No);
 
         vd.field_script_value_full("join_weight", sc_with_lobby, false);
     }

@@ -123,14 +123,14 @@ impl DbKind for UnitLeaderTrait {
 
         vd.field_integer("gui_row");
         vd.field_integer("gui_column");
-        vd.field_trigger_full("allowed", Scopes::Character, Tooltipped::Yes);
-        vd.field_trigger_full("prerequisites", Scopes::Character, Tooltipped::Yes);
-        vd.field_trigger_full("gain_xp", Scopes::Combatant, Tooltipped::No);
+        vd.field_trigger("allowed", Scopes::Character, Tooltipped::Yes);
+        vd.field_trigger("prerequisites", Scopes::Character, Tooltipped::Yes);
+        vd.field_trigger("gain_xp", Scopes::Combatant, Tooltipped::No);
         // TODO: scope is a unit leader. ROOT is country you are from and FROM is any target nationality for agents
-        vd.field_trigger_full("gain_xp_leader", Scopes::Character, Tooltipped::No);
+        vd.field_trigger("gain_xp_leader", Scopes::Character, Tooltipped::No);
         vd.field_integer("gain_xp_on_spotting");
 
-        vd.field_trigger_full("unit_trigger", Scopes::Division, Tooltipped::No);
+        vd.field_trigger("unit_trigger", Scopes::Division, Tooltipped::No);
         vd.field_validated_block("unit_type", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.multi_field_item("type", Item::SubUnit);
@@ -169,9 +169,9 @@ impl DbKind for UnitLeaderTrait {
             });
         });
 
-        vd.field_effect_full("on_add", Scopes::Character, Tooltipped::Yes);
-        vd.field_effect_full("on_remove", Scopes::Character, Tooltipped::Yes);
-        vd.field_effect_full("daily_effect", Scopes::Character, Tooltipped::No);
+        vd.field_effect("on_add", Scopes::Character, Tooltipped::Yes);
+        vd.field_effect("on_remove", Scopes::Character, Tooltipped::Yes);
+        vd.field_effect("daily_effect", Scopes::Character, Tooltipped::No);
 
         vd.field_integer("cost");
 

@@ -85,7 +85,7 @@ fn validate_state_history(key: &Token, block: &Block, data: &Everything, mut vd:
                 data.verify_exists(Item::Building, key);
                 let mut vd = Validator::new(block, data);
                 vd.field_integer("level");
-                vd.field_trigger_full("allowed", &mut sc, Tooltipped::No);
+                vd.field_trigger("allowed", &mut sc, Tooltipped::No);
             });
         });
     });

@@ -87,17 +87,17 @@ impl DbKind for Idea {
             data.verify_exists_implied(Item::File, &pathname, token);
         }
 
-        vd.field_trigger_full("allowed", Scopes::Country, Tooltipped::No);
-        vd.field_trigger_full("allowed_civil_war", Scopes::Country, Tooltipped::No);
-        vd.field_trigger_full("visible", Scopes::Country, Tooltipped::No);
-        vd.field_trigger_full("available", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger("allowed", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("allowed_civil_war", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("visible", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("available", Scopes::Country, Tooltipped::Yes);
         vd.field_integer("cost");
         vd.field_integer("removal_cost");
 
-        vd.field_trigger_full("cancel", Scopes::Country, Tooltipped::Yes);
-        vd.field_trigger_full("do_effect", Scopes::Country, Tooltipped::No);
-        vd.field_effect_full("on_add", Scopes::Country, Tooltipped::Yes);
-        vd.field_effect_full("on_remove", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger("cancel", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger("do_effect", Scopes::Country, Tooltipped::No);
+        vd.field_effect("on_add", Scopes::Country, Tooltipped::Yes);
+        vd.field_effect("on_remove", Scopes::Country, Tooltipped::Yes);
 
         vd.field_validated_block("research_bonus", |block, data| {
             let mut vd = Validator::new(block, data);

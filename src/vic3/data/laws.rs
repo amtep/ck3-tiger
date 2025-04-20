@@ -132,8 +132,8 @@ impl DbKind for LawType {
             sc.define_name("law", Scopes::LawType, key);
             sc
         };
-        vd.field_trigger_full("can_impose", sc_impose, Tooltipped::Yes);
-        vd.field_effect_full("on_impose", sc_impose, Tooltipped::Yes);
+        vd.field_trigger("can_impose", sc_impose, Tooltipped::Yes);
+        vd.field_effect("on_impose", sc_impose, Tooltipped::Yes);
 
         let sc_impose_chance: &Builder = &|key: &Token| {
             let mut sc = ScopeContext::new(Scopes::Country, key);

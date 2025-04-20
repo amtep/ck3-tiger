@@ -94,8 +94,8 @@ impl DbKind for Technology {
         vd.field_list_items("enable_equipment_modules", Item::EquipmentModule);
         vd.field_list_items("enable_subunits", Item::SubUnit);
 
-        vd.field_trigger_full("on_research_complete_limit", Scopes::Country, Tooltipped::No);
-        vd.field_effect_full("on_research_complete", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger("on_research_complete_limit", Scopes::Country, Tooltipped::No);
+        vd.field_effect("on_research_complete", Scopes::Country, Tooltipped::Yes);
 
         vd.multi_field_validated_block("path", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -140,7 +140,7 @@ impl DbKind for TechnologyFolder {
         data.verify_exists(Item::Localization, key);
 
         vd.field_choice("ledger", &["army", "navy", "air", "civilian", "hidden"]);
-        vd.field_trigger_full("available", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("available", Scopes::Country, Tooltipped::No);
         vd.field_bool("doctrine");
     }
 }
@@ -155,6 +155,6 @@ impl DbKind for TechnologySharing {
         vd.field_item("picture", Item::Sprite);
 
         vd.field_numeric("research_sharing_per_country_bonus");
-        vd.field_trigger_full("available", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("available", Scopes::Country, Tooltipped::No);
     }
 }

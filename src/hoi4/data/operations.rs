@@ -79,8 +79,8 @@ impl DbKind for Operation {
         let mut sc = ScopeContext::new(Scopes::Country, key);
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
 
-        vd.field_trigger_full("allowed", Scopes::Country, Tooltipped::No);
-        vd.field_trigger_full("available", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger("allowed", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("available", Scopes::Country, Tooltipped::Yes);
         vd.field_list_items("awarded_tokens", Item::OperationToken);
 
         vd.field_list("cost_modifiers"); // TODO what are these?
@@ -110,13 +110,13 @@ impl DbKind for Operation {
         });
         vd.field_list_items("required_tokens", Item::OperationToken);
         vd.field_bool("return_on_complete");
-        vd.field_effect_full("on_start", Scopes::Country, Tooltipped::Yes);
-        vd.field_effect_full("outcome_potential", Scopes::Country, Tooltipped::Yes);
+        vd.field_effect("on_start", Scopes::Country, Tooltipped::Yes);
+        vd.field_effect("outcome_potential", Scopes::Country, Tooltipped::Yes);
         vd.field_numeric("outcome_extra_chance");
         vd.field_list("outcome_modifiers"); // TODO what are these?
-        vd.field_effect_full("outcome_execute", Scopes::Country, Tooltipped::Yes);
-        vd.field_effect_full("outcome_extra_execute", Scopes::Country, Tooltipped::Yes);
-        vd.field_trigger_full("visible", Scopes::Country, Tooltipped::No);
+        vd.field_effect("outcome_execute", Scopes::Country, Tooltipped::Yes);
+        vd.field_effect("outcome_extra_execute", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger("visible", Scopes::Country, Tooltipped::No);
         vd.field_bool("will_lead_to_war_with");
 
         vd.field_bool("prevent_captured_operative_to_die");
@@ -126,7 +126,7 @@ impl DbKind for Operation {
         vd.field_numeric("risk_chance");
         vd.field_numeric("experience");
         vd.field_numeric("cost_multiplier");
-        vd.field_trigger_full("requirements", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger("requirements", Scopes::Country, Tooltipped::Yes);
         vd.field_item("map_icon", Item::Sprite);
     }
 }
@@ -171,7 +171,7 @@ impl DbKind for OperationPhase {
         vd.field_item("map_icon", Item::Sprite);
         vd.field_item("outcome_extra", Item::Localization);
         vd.field_item("risk_extra", Item::Localization);
-        vd.field_trigger_full("requirements", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger("requirements", Scopes::Country, Tooltipped::Yes);
         vd.field_bool("return_on_complete");
         vd.field_validated_block("equipment", |block, data| {
             let mut vd = Validator::new(block, data);

@@ -40,7 +40,7 @@ impl DbKind for AiStrategy {
         vd.field_item("icon", Item::File);
 
         // TODO verify scope type
-        vd.field_trigger_full("will_form_power_bloc", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("will_form_power_bloc", Scopes::Country, Tooltipped::No);
 
         vd.field_item("desired_tax_level", Item::Level);
         vd.field_item("max_tax_level", Item::Level);
