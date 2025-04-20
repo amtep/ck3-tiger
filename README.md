@@ -13,6 +13,8 @@ These games are grand strategy games made by Paradox Interactive, and user mods 
 
 Tiger is mature but will still warn about some things that are actually correct. It will also often take a few days or even weeks to catch up with the latest updates to the games it supports.
 
+Support for Hearts of Iron IV (`hoi4-tiger`) is in the works but it is **unfinished** and in its current state will produce thousands of false positives.
+
 ## Features
 
 `ck3-tiger` (or `vic3-tiger` or `imperator-tiger`) will read the relevant vanilla files and your mod's files, and it will complain about everything in your mod that looks wrong. Where possible, it will tell you why it thinks the thing is wrong.
