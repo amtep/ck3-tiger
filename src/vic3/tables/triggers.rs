@@ -233,7 +233,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
         Block(&[("target", Scope(Scopes::CombatUnitType)), ("value", CompareValue)]),
     ),
     (Scopes::Country, "country_or_subject_owns_entire_state_region", Item(Item::StateRegion)),
-    (Scopes::Country, "country_ownership_fraction", CompareValue),
+    (Scopes::Building, "country_ownership_fraction", CompareValue),
     (Scopes::Country, "country_pm_usage", Removed("1.6", "")),
     (Scopes::Country, "country_rank", CompareValue),
     (Scopes::Country, "country_tier", ItemOrCompareValue(Item::CountryTier)),

@@ -811,7 +811,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
             Scopes::Value,
             Scope(Scopes::Country),
         ),
-        (Scopes::InterestGroup, "lobby_join_weight", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::InterestGroup, "lobby_join_weight", Scopes::Value, Scope(Scopes::PoliticalLobby)),
         (Scopes::None, "lobby_type", Scopes::PoliticalLobbyType, Item(Item::PoliticalLobby)),
         (Scopes::Country, "lobby_war_opposition", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::Country, "lobby_war_support", Scopes::Value, Scope(Scopes::Country)),

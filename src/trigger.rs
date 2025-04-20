@@ -804,9 +804,7 @@ fn match_trigger_bv(
             must_be_eq = false;
             if let Some(token) = bv.expect_value() {
                 if !token.is_number() && !choices.contains(&token.as_str()) {
-                    let msg =
-                        format!("{name} expects a number or one of {}", stringify_choices(choices));
-                    warn(ErrorKey::Validation).msg(msg).loc(token).push();
+                    validate_target(token, data, sc, Scopes::Value);
                 }
             }
         }

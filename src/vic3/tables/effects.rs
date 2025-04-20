@@ -215,7 +215,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::StateRegion, "finish_harvest_condition", Item(Item::HarvestConditionType)),
     (Scopes::State, "force_resource_depletion", Item(Item::BuildingGroup)),
     (Scopes::State, "force_resource_discovery", Item(Item::BuildingGroup)),
-    (Scopes::Character, "free_character_from_void", Yes),
+    (Scopes::Character, "free_character_from_void", Boolean),
     (Scopes::MilitaryFormation, "fully_mobilize_army", Yes),
     (Scopes::None, "hidden_effect", Control),
     (Scopes::None, "if", Control),

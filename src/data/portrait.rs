@@ -137,6 +137,12 @@ fn validate_portrait_modifier(
     });
 
     vd.multi_field_validated_block("dna_modifiers", validate_dna_modifiers);
+
+    #[cfg(feature = "vic3")]
+    if Game::is_vic3() {
+        sc.define_name("character", Scopes::Character, key);
+        sc.define_name("pop", Scopes::Pop, key);
+    }
     vd.multi_field_validated_block_sc("weight", sc, validate_modifiers_with_base);
 }
 

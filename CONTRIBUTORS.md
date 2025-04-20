@@ -1,5 +1,5 @@
 # Contributors
-These are the people that made `ck3-tiger` what it is.
+These are the people that made Tiger what it is.
 
 ## Founder and lead developer
 * Richard Braakman
@@ -11,6 +11,7 @@ These are the people that made `ck3-tiger` what it is.
 ## Contributors
 * Jazarro (output format and filtering system)
 * Kazarion (testing and suggestions for checks)
+* kaiser-chris (bugreports and suggestions)
 
 ## Bugfixes
 * Jazarro
