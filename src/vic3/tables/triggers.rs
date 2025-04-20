@@ -1286,7 +1286,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (
         Scopes::State,
         "state_has_building_type_levels",
-        Block(&[("target", Item(Item::BuildingType)), ("value", CompareValue)]),
+        Block(&[("target", Scope(Scopes::BuildingType)), ("value", CompareValue)]),
     ),
     (Scopes::State, "state_has_goods_shortage", Boolean),
     (Scopes::State, "state_is_eligible_as_mass_migration_target", Boolean),
