@@ -10,7 +10,9 @@ use crate::validate::validate_color;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
-pub struct Terrain {}
+pub struct Terrain {
+    is_water: bool,
+}
 
 inventory::submit! {
     ItemLoader::Normal(GameFlags::Hoi4, Item::Terrain, Terrain::add)
@@ -21,7 +23,8 @@ impl Terrain {
     pub fn add(db: &mut Db, key: Token, mut block: Block) {
         if key.is("categories") {
             for (key, block) in block.drain_definitions_warn() {
-                db.add(Item::Terrain, key, block, Box::new(Self {}));
+                let is_water = block.get_field_bool("is_water").unwrap_or(false);
+                db.add(Item::Terrain, key, block, Box::new(Self { is_water }));
             }
         } else if key.is("terrain") {
             for (key, block) in block.drain_definitions_warn() {
@@ -74,6 +77,16 @@ impl DbKind for Terrain {
         });
 
         validate_modifs(block, data, ModifKinds::all(), vd);
+    }
+
+    fn has_property(
+        &self,
+        _key: &Token,
+        _block: &Block,
+        _property: &str,
+        _data: &Everything,
+    ) -> bool {
+        self.is_water
     }
 }
 

@@ -1,7 +1,7 @@
 //! Parsers for the various kinds of game script.
 
 pub mod cob;
-#[cfg(any(feature = "ck3", feature = "imperator"))]
+#[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
 pub mod csv;
 #[cfg(feature = "vic3")]
 pub mod json;

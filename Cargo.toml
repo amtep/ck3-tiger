@@ -27,7 +27,7 @@ ck3 = ["jomini"]
 vic3 = ["jomini"]
 imperator = ["jomini"]
 jomini = []
-hoi4 = []
+hoi4 = ["image/bmp"]
 
 [build-dependencies]
 lalrpop = "0.22.0"

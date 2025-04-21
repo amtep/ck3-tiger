@@ -34,6 +34,7 @@ pub enum ErrorKey {
     WrongGender,
     Conflict,
     ImageFormat,
+    ImageSize,
     Unneeded,
     Scopes,
     /// This seems like it solves the same problem that `Confidence` solves.
