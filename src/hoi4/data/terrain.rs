@@ -11,7 +11,7 @@ use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Terrain {
-    is_water: bool,
+    pub(super) is_water: bool,
 }
 
 inventory::submit! {
@@ -77,16 +77,6 @@ impl DbKind for Terrain {
         });
 
         validate_modifs(block, data, ModifKinds::all(), vd);
-    }
-
-    fn has_property(
-        &self,
-        _key: &Token,
-        _block: &Block,
-        _property: &str,
-        _data: &Everything,
-    ) -> bool {
-        self.is_water
     }
 }
 

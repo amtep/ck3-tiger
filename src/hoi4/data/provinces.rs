@@ -20,6 +20,8 @@ use crate::parse::ParserMemory;
 use crate::report::{err, report, untidy, warn, ErrorKey, Severity};
 use crate::token::Token;
 
+use super::terrain::Terrain;
+
 pub type ProvId = u16;
 
 const COLOUR_COUNT: usize = 256 * 256 * 256;
@@ -562,7 +564,10 @@ impl Province {
                 }
 
                 data.verify_exists_implied(Item::Terrain, self.terrain, &self.key);
-                if data.item_has_property(Item::Terrain, self.terrain, "is_water") {
+                if data
+                    .get_item::<Terrain>(Item::Terrain, self.terrain)
+                    .is_some_and(|(_, _, t)| t.is_water)
+                {
                     let msg = "land province must have a land terrain";
                     err(ErrorKey::Validation).msg(msg).loc(&self.key).push();
                 }
