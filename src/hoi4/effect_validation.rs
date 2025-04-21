@@ -47,7 +47,8 @@ pub fn validate_add_advisor_role(
         let mut vd = Validator::new(block, data);
         vd.field_item("slot", Item::AdvisorSlot);
         vd.field_numeric("cost");
-        vd.field_item("idea_token", Item::Character); // TODO what is this
+        vd.field_bool("can_be_fired");
+        vd.field_value("idea_token"); // TODO does this need to be registered or validated
         vd.field_list_items("traits", Item::CountryLeaderTrait);
         vd.field_validated_block("allowed", |block, data| {
             validate_trigger(block, data, sc, Tooltipped::No);

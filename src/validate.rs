@@ -423,6 +423,11 @@ pub fn validate_iterator_fields(
     } else {
         vd.ban_field("random_select_amount", || "`every_` lists");
     }
+
+    #[cfg(feature = "hoi4")]
+    if list_type != ListType::None {
+        vd.field_item("tooltip", Item::Localization);
+    }
 }
 
 /// This checks the special fields for certain iterators, like `type =` in `every_relation`.

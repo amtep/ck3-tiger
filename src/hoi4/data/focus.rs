@@ -108,6 +108,7 @@ impl DbKind for NationalFocus {
                 vd.field_trigger("trigger", Scopes::Country, Tooltipped::No);
             }
         });
+        vd.field_item("text_icon", Item::NationalFocusStyle);
 
         vd.field_trigger("allow_branch", Scopes::Country, Tooltipped::Yes);
         for field in &["mutually_exclusive", "prerequisite"] {
@@ -119,9 +120,16 @@ impl DbKind for NationalFocus {
         vd.field_integer("x");
         vd.field_integer("y");
         vd.field_item("relative_position_id", Item::NationalFocus);
+        vd.multi_field_validated_block("offset", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_integer("x");
+            vd.field_integer("y");
+            vd.field_trigger("trigger", Scopes::Country, Tooltipped::No);
+        });
         vd.field_integer("cost");
         vd.field_trigger("bypass", Scopes::Country, Tooltipped::Yes);
         vd.field_trigger("available", Scopes::Country, Tooltipped::Yes);
+        vd.field_effect("select_effect", Scopes::Country, Tooltipped::Yes);
 
         vd.field_bool("cancel_if_invalid");
         vd.field_bool("continue_if_invalid");
@@ -132,10 +140,14 @@ impl DbKind for NationalFocus {
             let sprite = format!("GFX_{value}");
             data.verify_exists_implied(Item::Sprite, &sprite, value);
         });
+        vd.field_effect("complete_tooltip", Scopes::Country, Tooltipped::Yes);
         vd.field_effect("completion_reward", Scopes::Country, Tooltipped::Yes);
 
         let mut sc = ScopeContext::new(Scopes::Country, key);
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
+
+        vd.field_bool("dynamic");
+        vd.field_item("will_lead_to_war_with", Item::CountryTag);
     }
 }
 

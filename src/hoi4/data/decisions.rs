@@ -90,7 +90,7 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
         }
     });
     vd.field_item("picture", Item::Sprite);
-    vd.field_bool("visble_when_empty");
+    vd.field_bool("visible_when_empty");
     vd.field_bool("cancel_if_not_visible");
     vd.field_validated_block("allowed", |block, data| {
         validate_trigger(block, data, &mut sc, Tooltipped::No);
@@ -122,7 +122,7 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
         vd.field_bool("is_good");
         vd.field_bool("fire_only_once");
         vd.field_bool("selectable_mission");
-        vd.field_integer("days_mission_timeout");
+        vd.field_variable_or_integer("days_mission_timeout", &mut sc);
         vd.field_validated_block("activation", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
@@ -134,7 +134,7 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
         });
         vd.field_localization("custom_cost_text", &mut sc);
         vd.field_numeric("ai_hint_pp_cost");
-        vd.field_integer("days_remove");
+        vd.field_variable_or_integer("days_remove", &mut sc);
         vd.field_validated_block("cancel_trigger", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });

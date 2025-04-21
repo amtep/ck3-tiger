@@ -1,5 +1,6 @@
 #![allow(non_upper_case_globals)]
 
+use std::borrow::Cow;
 use std::sync::LazyLock;
 
 use crate::everything::Everything;
@@ -254,9 +255,15 @@ fn maybe_warn(itype: Item, s: &Lowercase, name: &Token, data: &Everything, warn:
 }
 
 /// Return the modifier localization key
-pub fn modif_loc_hoi4(name: &Token, _data: &Everything) -> String {
-    // TODO: check hoi4 exceptions
-    format!("MODIFIER_{}", name.as_str().to_uppercase())
+pub fn modif_loc_hoi4(name: &Token, _data: &Everything) -> Cow<'static, str> {
+    let name_lc = Lowercase::new(name.as_str());
+    if let Some(body) = SPECIAL_MODIF_LOC_MAP.get(&name_lc).copied() {
+        Cow::Borrowed(body)
+    } else if MODIF_MAP.contains_key(&name_lc) {
+        Cow::Owned(format!("MODIFIER_{}", name_lc.to_uppercase()))
+    } else {
+        name_lc.into_cow()
+    }
 }
 
 static MODIF_MAP: LazyLock<TigerHashMap<Lowercase<'static>, ModifKinds>> = LazyLock::new(|| {
@@ -1131,6 +1138,19 @@ const MODIF_TABLE: &[(&str, ModifKinds)] = &[
     ("winter_attrition_factor", ModifKinds::Aggressive.union(ModifKinds::Army)),
     ("wounded_chance_factor", ModifKinds::UnitLeader),
 ];
+
+static SPECIAL_MODIF_LOC_MAP: LazyLock<TigerHashMap<Lowercase<'static>, &'static str>> =
+    LazyLock::new(|| {
+        let mut hash = TigerHashMap::default();
+        for (s, loc) in SPECIAL_MODIF_LOC_TABLE.iter().copied() {
+            hash.insert(Lowercase::new_unchecked(s), loc);
+        }
+        hash
+    });
+
+/// LAST UPDATED HOI4 VERSION 1.16
+/// Special cases for static modifs defined in `modifiers_l_english.yml`
+const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[];
 
 static MODIF_REMOVED_MAP: LazyLock<TigerHashMap<Lowercase<'static>, &'static str>> =
     LazyLock::new(|| {

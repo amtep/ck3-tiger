@@ -60,9 +60,9 @@ impl DbKind for CountryLeaderTrait {
         vd.multi_field_validated_block("targeted_modifier", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_item("tag", Item::CountryTag);
-            validate_modifs(block, data, ModifKinds::Country | ModifKinds::Army, vd);
+            validate_modifs(block, data, ModifKinds::all(), vd);
         });
         vd.multi_field_validated_block("equipment_bonus", validate_equipment_bonus);
-        validate_modifs(block, data, ModifKinds::Country, vd);
+        validate_modifs(block, data, ModifKinds::all(), vd);
     }
 }
