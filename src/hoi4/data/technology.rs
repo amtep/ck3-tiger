@@ -122,12 +122,8 @@ impl DbKind for Technology {
 
         let mut sc = ScopeContext::new(Scopes::Country, key);
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
-        vd.field_validated_block("ai_research_weights", |block, data| {
-            let mut vd = Validator::new(block, data);
-            vd.validate_item_key_values(Item::TechnologyCategory, |_, mut vd| {
-                vd.numeric();
-            });
-        });
+        // TODO: this seems to contain a variety of different items. Not sure what the rules are.
+        vd.field_block("ai_research_weights");
 
         validate_modifs(block, data, ModifKinds::all(), vd);
     }

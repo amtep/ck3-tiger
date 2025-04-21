@@ -1,4 +1,5 @@
 use crate::block::{Block, BV};
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
@@ -8,6 +9,7 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
+use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -18,6 +20,8 @@ pub struct EquipmentGroup {}
 pub struct EquipmentModule {}
 #[derive(Clone, Debug)]
 pub struct EquipmentSearchFilter {}
+#[derive(Clone, Debug)]
+pub struct EquipmentUpgrade {}
 
 inventory::submit! {
     ItemLoader::Normal(GameFlags::Hoi4, Item::Equipment, Equipment::add)
@@ -27,6 +31,9 @@ inventory::submit! {
 }
 inventory::submit! {
     ItemLoader::Normal(GameFlags::Hoi4, Item::EquipmentModule, EquipmentModule::add)
+}
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Hoi4, Item::EquipmentUpgrade, EquipmentUpgrade::add)
 }
 
 impl Equipment {
@@ -63,6 +70,19 @@ impl EquipmentModule {
                 if !key.is("limit") {
                     db.add(Item::EquipmentModule, key, block, Box::new(Self {}));
                 }
+            }
+        } else {
+            let msg = "unexpected key";
+            err(ErrorKey::UnknownField).msg(msg).loc(key).push();
+        }
+    }
+}
+
+impl EquipmentUpgrade {
+    pub fn add(db: &mut Db, key: Token, mut block: Block) {
+        if key.is("upgrades") {
+            for (key, block) in block.drain_definitions_warn() {
+                db.add(Item::EquipmentUpgrade, key, block, Box::new(Self {}));
             }
         } else {
             let msg = "unexpected key";
@@ -265,6 +285,58 @@ impl DbKind for EquipmentSearchFilter {
 
         vd.field_value("name");
         vd.field_list_items("values", Item::Equipment);
+    }
+}
+
+impl DbKind for EquipmentUpgrade {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
+        // TODO: is the _desc required?
+        let loca = format!("{key}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        vd.field_value("abbreviation");
+
+        vd.field_integer("max_level");
+        vd.field_choice("cost", &["air", "land", "naval"]);
+        vd.field_validated_block("linear_cost", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_integer("cost_by_level");
+            vd.field_integer("cost_by_level_for_licensed_equipment");
+        });
+        vd.field_validated_key_block("level_requirements", |key, block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.integer_keys(|_, bv| {
+                if let Some(block) = bv.expect_block() {
+                    let mut sc = ScopeContext::new(Scopes::Country, key);
+                    validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+                }
+            });
+        });
+        vd.field_validated_block("resource_cost_thresholds", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.integer_keys(|_, bv| {
+                if let Some(block) = bv.expect_block() {
+                    let mut vd = Validator::new(block, data);
+                    vd.validate_item_key_values(Item::Resource, |_, mut vd| {
+                        vd.integer();
+                    });
+                }
+            });
+        });
+
+        vd.field_validated_block("add_stats", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.validate_item_key_values(Item::EquipmentStat, |_, mut vd| {
+                vd.numeric();
+            });
+        });
+
+        vd.validate_item_key_values(Item::EquipmentStat, |_, mut vd| {
+            vd.numeric();
+        });
     }
 }
 
