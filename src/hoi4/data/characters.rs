@@ -35,13 +35,13 @@ impl Character {
 impl DbKind for Character {
     fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         for block in block.get_field_blocks("instance") {
-            if let Some(block) = block.get_field_block("advisor") {
+            for block in block.get_field_blocks("advisor") {
                 if let Some(token) = block.get_field_value("idea_token") {
                     db.add_flag(Item::CharacterIdeaToken, token.clone());
                 }
             }
         }
-        if let Some(block) = block.get_field_block("advisor") {
+        for block in block.get_field_blocks("advisor") {
             if let Some(token) = block.get_field_value("idea_token") {
                 db.add_flag(Item::CharacterIdeaToken, token.clone());
             }
@@ -66,12 +66,10 @@ impl DbKind for Character {
     }
 }
 
-fn validate_character(key: &Token, _block: &Block, data: &Everything, vd: &mut Validator) {
+fn validate_character(key: &Token, _block: &Block, _data: &Everything, vd: &mut Validator) {
     let mut sc = ScopeContext::new(Scopes::Country, key);
 
-    if !vd.field_item("name", Item::Localization) {
-        data.verify_exists(Item::Localization, key);
-    }
+    vd.field_item("name", Item::Localization);
 
     vd.field_choice("gender", &["male", "female", "undefined"]);
 
@@ -116,7 +114,7 @@ fn validate_character(key: &Token, _block: &Block, data: &Everything, vd: &mut V
         });
     }
 
-    vd.field_validated_block("advisor", |block, data| {
+    vd.multi_field_validated_block("advisor", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.req_field("slot");
         vd.req_field("idea_token");
@@ -149,7 +147,8 @@ fn validate_character(key: &Token, _block: &Block, data: &Everything, vd: &mut V
     vd.field_validated_block("scientist", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_list_items("traits", Item::ScientistTrait);
-        vd.field_trigger("visible", Scopes::Country, Tooltipped::No);
+        // The 'visible' for scientist is different from the others, in that it has character scope
+        vd.field_trigger("visible", Scopes::Character, Tooltipped::No);
         vd.field_validated_block("skills", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.unknown_value_fields(|key, value| {

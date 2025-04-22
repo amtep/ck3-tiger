@@ -99,6 +99,8 @@ impl DbKind for Equipment {
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
+        vd.field_value("abbreviation");
+        vd.field_item("derived_variant_name", Item::Equipment);
         vd.field_integer("year");
 
         let is_archetype = block.get_field_bool("is_archetype").unwrap_or(false);
@@ -106,6 +108,7 @@ impl DbKind for Equipment {
         vd.field_bool("is_buildable");
         vd.field_bool("is_convertable");
         vd.field_bool("can_license");
+        vd.field_bool("carrier_capable");
         vd.field_integer("priority");
         vd.field_item("archetype", Item::Equipment);
         vd.field_item("parent", Item::Equipment);
@@ -164,6 +167,7 @@ impl DbKind for Equipment {
         vd.field_numeric("fuel_consumption");
 
         vd.field_integer("visual_level");
+        vd.field_integer("visual_tech_level_addition");
 
         // These can be either a list or a single value
         for field in &["allow_mission_type", "forbid_mission_type"] {

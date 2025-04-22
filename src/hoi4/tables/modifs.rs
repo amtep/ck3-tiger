@@ -261,6 +261,10 @@ pub fn modif_loc_hoi4(name: &Token, _data: &Everything) -> Cow<'static, str> {
         Cow::Borrowed(body)
     } else if MODIF_MAP.contains_key(&name_lc) {
         Cow::Owned(format!("MODIFIER_{}", name_lc.to_uppercase()))
+    } else if name_lc.contains_unchecked("production_speed_")
+        || name_lc.contains_unchecked("repair_speed_")
+    {
+        Cow::Owned(format!("modifier_{name_lc}"))
     } else {
         name_lc.into_cow()
     }
@@ -1150,7 +1154,21 @@ static SPECIAL_MODIF_LOC_MAP: LazyLock<TigerHashMap<Lowercase<'static>, &'static
 
 /// LAST UPDATED HOI4 VERSION 1.16
 /// Special cases for static modifs defined in `modifiers_l_english.yml`
-const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[];
+const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[
+    ("army_attack_factor", "MODIFIERS_ARMY_ATTACK_FACTOR"),
+    ("army_core_attack_factor", "MODIFIERS_ARMY_CORE_ATTACK_FACTOR"),
+    ("army_core_defence_factor", "MODIFIERS_ARMY_CORE_DEFENCE_FACTOR"),
+    ("army_defence_against_major_factor", "MODIFIERS_ARMY_DEFENCE_AGAINST_MAJOR_FACTOR"),
+    ("army_defence_factor", "MODIFIERS_ARMY_DEFENCE_FACTOR"),
+    ("breakthrough_factor", "MODIFIER_BREAKTHROUGH"),
+    ("generate_wargoal_tension", "MODIFIER_GENERATE_WARGOAL_TENSION_LIMIT"),
+    (
+        "generate_wargoal_tension_against_country",
+        "MODIFIER_GENERATE_WARGOAL_TENSION_LIMIT_AGAINST_COUNTRY",
+    ),
+    ("min_export", "MODIFIER_MIN_EXPORT_FACTOR"),
+    ("supply_combat_penalties_on_core_factor", "supply_combat_penalties_on_core_factor"),
+];
 
 static MODIF_REMOVED_MAP: LazyLock<TigerHashMap<Lowercase<'static>, &'static str>> =
     LazyLock::new(|| {

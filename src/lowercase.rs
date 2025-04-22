@@ -69,6 +69,11 @@ impl<'a> Lowercase<'a> {
         self.0.strip_suffix(suffix.borrow()).map(|s| Self(Cow::Borrowed(s)))
     }
 
+    #[allow(dead_code)]
+    pub fn contains_unchecked<S: Borrow<str>>(&self, infix: S) -> bool {
+        self.0.contains(infix.borrow())
+    }
+
     #[cfg(any(feature = "vic3", feature = "imperator"))]
     pub fn rmatch_indices_unchecked(&self, separator: char) -> RMatchIndices<char> {
         self.0.rmatch_indices(separator)

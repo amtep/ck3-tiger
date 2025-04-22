@@ -54,8 +54,7 @@ impl IdeaCategory {
             // TODO
         } else {
             let msg = "unexpected key";
-            let info = "only `idea_categories` is expected here";
-            err(ErrorKey::UnknownField).msg(msg).info(info).loc(key).push();
+            err(ErrorKey::UnknownField).msg(msg).loc(key).push();
         }
     }
 }
@@ -78,15 +77,15 @@ impl DbKind for Idea {
             data.verify_exists(Item::Localization, name);
             let loca = format!("{name}_desc");
             data.verify_exists_implied(Item::Localization, &loca, name);
-        } else {
+        } else if !data.item_exists(Item::AdvisorSlot, self.category.as_str()) {
             data.verify_exists(Item::Localization, key);
             let loca = format!("{key}_desc");
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
 
         if let Some(token) = vd.field_value("picture") {
-            let pathname = format!("gfx/interface/ideas/{token}.dds");
-            data.verify_exists_implied(Item::File, &pathname, token);
+            let sprite = format!("GFX_idea_{token}");
+            data.verify_exists_implied(Item::Sprite, &sprite, token);
         }
 
         vd.field_trigger("allowed", Scopes::Country, Tooltipped::No);

@@ -70,7 +70,9 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
     let mut vd = Validator::new(block, data);
     let mut sc = ScopeContext::new(Scopes::Country, key);
 
-    data.verify_exists(Item::Localization, key);
+    if !vd.field_item("name", Item::Localization) {
+        data.verify_exists(Item::Localization, key);
+    }
 
     vd.field_integer("priority");
     vd.multi_field_validated("icon", |bv, data| match bv {

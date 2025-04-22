@@ -662,12 +662,13 @@ pub fn validate_datatypes(
             found = true;
             // TODO HOI4: this could be just the scope types.
             rtype = Datatype::Unknown;
+            let reference = code.name.strip_prefix("?").unwrap();
             // Is it a two-part reference?
-            if code.name.lowercase_is("?global") || code.name.is("?FROM") || code.name.is("?PREV") {
+            if reference.lowercase_is("global") || reference.is("FROM") || reference.is("PREV") {
                 in_variable = true;
-            } else if is_country_tag(code.name.as_str()) {
+            } else if is_country_tag(reference.as_str()) {
                 in_variable = true;
-                data.verify_exists(Item::CountryTag, &code.name);
+                data.verify_exists(Item::CountryTag, &reference);
             }
         }
 
