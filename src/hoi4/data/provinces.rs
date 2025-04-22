@@ -6,6 +6,7 @@ use std::num::NonZero;
 use std::path::PathBuf;
 use std::str::FromStr;
 
+use ahash::HashMapExt;
 use bitvec::bitbox;
 use bitvec::boxed::BitBox;
 use image::{DynamicImage, Rgb, RgbImage};
@@ -24,9 +25,11 @@ use super::terrain::Terrain;
 
 pub type ProvId = u16;
 
+type BorderingColorMap = TigerHashMap<Rgb<u8>, Vec<Rgb<u8>>>;
+
 const COLOUR_COUNT: usize = 256 * 256 * 256;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 struct ColorBitArray(BitBox);
 
 impl Default for ColorBitArray {
@@ -68,6 +71,11 @@ impl std::ops::DerefMut for ColorBitArray {
 pub struct Hoi4Provinces {
     /// Colors in the provinces.bmp
     colors: ColorBitArray,
+
+    /// Colors that are bordering in bitmap, including around the horizontal edges.
+    /// If p1 and p2 are bordering, p2's color is added to the list of p1's color, and vice versa.
+    /// The number of provinces each borders is most likely low (<=8) and hence using a `Vec`.
+    bordering_colors: BorderingColorMap,
 
     /// Provinces defined in definition.csv.
     /// HOI4 requires uninterrupted indices starting at 0, but we want to be able to warn
@@ -133,12 +141,108 @@ impl Hoi4Provinces {
         self.provinces.iter().map(|item| &item.key)
     }
 
+    fn is_colors_bordering(&self, c1: Rgb<u8>, c2: Rgb<u8>) -> bool {
+        self.bordering_colors.get(&c1).is_some_and(|v| v.contains(&c2))
+    }
+
+    fn validate_provinces(&self) {
+        if self.definition_csv.is_none() {
+            // Shouldn't happen, it should come from vanilla if not from the mod
+            eprintln!("map/definition.csv is missing?!?");
+            return;
+        }
+
+        let definition_csv = self.definition_csv.as_ref().unwrap();
+
+        let len = self.provinces.len();
+        if len > 20_000 {
+            // A fail-early error (HOI4 wiki):
+            // "No more than 65536 different province borders can be displayed at the same time
+            // before an integer overflow causes the in-game engine to stop displaying any
+            // additional ones. In-game, this is usually hit at about 21000 provinces."
+            let msg = format!("too many ({len}) provinces defined");
+            warn(ErrorKey::Validation).msg(msg).loc(definition_csv).push();
+        }
+
+        let mut seen_colors = TigerHashMap::with_capacity(len);
+
+        #[allow(clippy::cast_possible_truncation)]
+        for i in 1..=len as u16 {
+            if let Some(province) = self.provinces.get(&i) {
+                if let Some(key) = seen_colors.get(&province.color) {
+                    warn(ErrorKey::Colors)
+                        .msg("duplicate province color")
+                        .loc(&province.key)
+                        .loc_msg(key, "previously defined here")
+                        .push();
+                } else {
+                    seen_colors.insert(province.color, province.key.clone());
+                }
+            } else {
+                let msg = format!("province ids must be sequential, but {i} is missing");
+                err(ErrorKey::Validation).msg(msg).loc(definition_csv).push();
+                return;
+            }
+        }
+
+        for color_index in self.colors.iter_ones() {
+            let color = ColorBitArray::get_color(color_index);
+            if !seen_colors.contains_key(&color) {
+                let Rgb(rgb) = color;
+                let msg = format!(
+                    "definition.csv lacks entry for color ({}, {}, {})",
+                    rgb[0], rgb[1], rgb[2]
+                );
+                untidy(ErrorKey::Colors).msg(msg).loc(definition_csv).push();
+            }
+        }
+    }
+
     pub fn validate(&self, data: &Everything) {
+        self.validate_provinces();
+
         for item in &self.adjacencies {
             item.validate(self, data);
         }
         for item in &self.provinces {
             item.validate(self, data);
+        }
+    }
+
+    fn handle_colors(&mut self, img: &RgbImage) {
+        let (width, height) = img.dimensions();
+
+        for (x, y, &color) in img.enumerate_pixels() {
+            fn add_bordering_colors(map: &mut BorderingColorMap, c1: Rgb<u8>, c2: Rgb<u8>) {
+                if c1 != c2 {
+                    let vec1 = map.entry(c1).or_insert_with(|| Vec::with_capacity(8));
+
+                    // Since we always add to both vecs at the same time, we only need to check for
+                    // existence in one.
+                    if !vec1.contains(&c2) {
+                        vec1.push(c2);
+
+                        let vec2 = map.entry(c2).or_insert_with(|| Vec::with_capacity(8));
+                        vec2.push(c1);
+                    }
+                }
+            }
+
+            unsafe {
+                // SAFETY: `ColorBitArray::index` is guaranteed to return a valid index
+                self.colors.set_unchecked(ColorBitArray::get_index(color), true);
+            }
+
+            // Wrapping round the map horizontally
+            let right = if x + 1 < width { x + 1 } else { 0 };
+            let right_color = *img.get_pixel(right, y);
+            add_bordering_colors(&mut self.bordering_colors, color, right_color);
+
+            let down = y + 1;
+            if down < height {
+                let down_color = *img.get_pixel(x, down);
+                add_bordering_colors(&mut self.bordering_colors, color, down_color);
+            }
         }
     }
 }
@@ -271,63 +375,7 @@ impl FileHandler<FileContent> for Hoi4Provinces {
                 }
             }
             FileContent::Provinces(img) => {
-                for pixel in img.pixels().copied() {
-                    unsafe {
-                        // SAFETY: `ColorBitArray::index` is guaranteed to return a valid index
-                        self.colors.get_unchecked_mut(ColorBitArray::get_index(pixel)).commit(true);
-                    }
-                }
-            }
-        }
-    }
-
-    fn finalize(&mut self) {
-        if self.definition_csv.is_none() {
-            // Shouldn't happen, it should come from vanilla if not from the mod
-            eprintln!("map/definition.csv is missing?!?");
-            return;
-        }
-        let definition_csv = self.definition_csv.as_ref().unwrap();
-
-        let mut seen_colors = TigerHashMap::default();
-
-        let len = self.provinces.len();
-        if len > 20_000 {
-            // A fail-early error (HOI4 wiki):
-            // "No more than 65536 different province borders can be displayed at the same time
-            // before an integer overflow causes the in-game engine to stop displaying any
-            // additional ones. In-game, this is usually hit at about 21000 provinces."
-            let msg = format!("too many ({len}) provinces defined");
-            warn(ErrorKey::Validation).msg(msg).loc(definition_csv).push();
-        }
-
-        #[allow(clippy::cast_possible_truncation)]
-        for i in 1..=len as u16 {
-            if let Some(province) = self.provinces.get(&i) {
-                if let Some(key) = seen_colors.get(&province.color) {
-                    warn(ErrorKey::Colors)
-                        .msg("duplicate province color")
-                        .loc(&province.key)
-                        .loc_msg(key, "previously defined here")
-                        .push();
-                } else {
-                    seen_colors.insert(province.color, province.key.clone());
-                }
-            } else {
-                let msg = format!("province ids must be sequential, but {i} is missing");
-                err(ErrorKey::Validation).msg(msg).loc(definition_csv).push();
-                return;
-            }
-        }
-        for color_index in self.colors.iter_ones() {
-            let color = ColorBitArray::get_color(color_index);
-            if !seen_colors.contains_key(&color) {
-                let Rgb(rgb) = color;
-                let msg = format!(
-                    "definition.csv lacks entry for color ({}, {}, {})",
-                    rgb[0], rgb[1], rgb[2]
-                );
-                untidy(ErrorKey::Colors).msg(msg).loc(definition_csv).push();
+                self.handle_colors(&img);
             }
         }
     }
@@ -381,7 +429,6 @@ pub struct Adjacency {
     to: ProvId,
     kind: AdjacencyKind,
     through: Option<ProvId>,
-    // TODO: check start and stop are map coordinates and have the right color on province.bmp
     start_x: Coord,
     start_y: Coord,
     stop_x: Coord,
@@ -436,20 +483,37 @@ impl Adjacency {
             return;
         }
 
+        // SAFETY: both `from` and `to` have been checked to exist.
+        let from = provinces.provinces.get(&self.from).unwrap();
+        let to = provinces.provinces.get(&self.to).unwrap();
+        let is_bordering = provinces.is_colors_bordering(from.color, to.color);
+
         match self.kind {
             AdjacencyKind::Sea => {
-                // TODO: Verify two land provinces are not touching
-                let from_kind = provinces.provinces.get(&self.from).unwrap().kind;
-                let to_kind = provinces.provinces.get(&self.to).unwrap().kind;
+                if from.kind != to.kind {
+                    let msg = "from and to provinces must have the same type for sea adjacency";
+                    err(ErrorKey::Validation).msg(msg).loc(&self.key).push();
+                } else if from.kind == ProvinceKind::Land {
+                    // to_kind must be land too
+                    if is_bordering {
+                        let msg =
+                            "from and to land provinces must not be bordering for sea adjacency";
+                        err(ErrorKey::Validation).msg(msg).loc(&self.key).push();
+                    }
+                }
 
-                if from_kind != to_kind {
-                    let msg = "from and to provinces must have the same type";
+                if !is_bordering && self.through.is_none() {
+                    let msg =
+                        "from and to non-bordering provinces must have a through province for sea adjacency";
                     err(ErrorKey::Validation).msg(msg).loc(&self.key).push();
                 }
-                // TODO: Verify non-touching provinces have a through province
             }
             AdjacencyKind::Impassable => {
-                // TODO: Verify provinces are touching
+                if !is_bordering {
+                    let msg = "from and to provinces must be bordering for impassable adjacency";
+                    err(ErrorKey::Validation).msg(msg).loc(&self.key).push();
+                }
+
                 for (s, coord) in [
                     ("start_x", self.start_x),
                     ("start_y", self.start_y),
