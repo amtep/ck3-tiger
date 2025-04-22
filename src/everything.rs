@@ -744,6 +744,7 @@ impl Everything {
             Item::Event => self.events_hoi4.exists(key),
             Item::EventNamespace => self.events_hoi4.namespace_exists(key),
             Item::Pdxmesh => self.gfx.mesh_exists(key),
+            Item::Province => self.provinces_hoi4.exists(key),
             Item::Sprite => self.gfx.sprite_exists(key),
             _ => self.database.exists(itype, key),
         }
@@ -1111,6 +1112,7 @@ impl Everything {
             Item::Event => Box::new(self.events_hoi4.iter_keys()),
             Item::EventNamespace => Box::new(self.events_hoi4.iter_namespace_keys()),
             Item::Pdxmesh => Box::new(self.gfx.iter_mesh_keys()),
+            Item::Province => Box::new(self.provinces_hoi4.iter_keys()),
             Item::Sprite => Box::new(self.gfx.iter_sprite_keys()),
             _ => Box::new(self.database.iter_keys(itype)),
         }
