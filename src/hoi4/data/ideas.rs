@@ -72,6 +72,8 @@ impl DbKind for Idea {
             warn(ErrorKey::MissingItem).msg(msg).loc(&self.category).push();
         }
 
+        vd.field_choice("ledger", &["army", "navy", "air"]);
+
         if let Some(name) = vd.field_value("name") {
             data.verify_exists(Item::Localization, name);
             let loca = format!("{name}_desc");

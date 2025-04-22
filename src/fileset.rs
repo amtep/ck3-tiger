@@ -510,7 +510,11 @@ impl Fileset {
 
     pub fn exists(&self, key: &str) -> bool {
         let key = key.strip_prefix('/').unwrap_or(key);
-        let filepath = PathBuf::from(key);
+        let filepath = if Game::is_hoi4() && key.contains('\\') {
+            PathBuf::from(key.replace('\\', "/"))
+        } else {
+            PathBuf::from(key)
+        };
         self.filenames.contains(&filepath)
     }
 

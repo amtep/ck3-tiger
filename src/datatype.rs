@@ -473,6 +473,18 @@ pub fn validate_datatypes(
             }
         }
 
+        if Game::is_hoi4() && !found && !is_first && code.name.is("FROM") {
+            // FROM can be chained, regardless of datatype
+            found = true;
+            // TODO HOI4: this could be just the scope types.
+            rtype = Datatype::Unknown;
+        } else if Game::is_hoi4() && !found && !is_first && code.name.is("OWNER") {
+            // OWNER can be chained off of FROM
+            found = true;
+            // TODO HOI4: this could be just the scope types.
+            rtype = Datatype::Unknown;
+        }
+
         if !found {
             // Properly reporting these errors is tricky because `code.name`
             // might be found in any or all of the functions and promotes tables.
@@ -638,6 +650,7 @@ pub fn validate_datatypes(
         #[cfg(feature = "hoi4")]
         if Game::is_hoi4() && !found && code.name.starts_with("?") {
             // It's a variable reference
+            // TODO HOI4: properly parse variable reference
             found = true;
             rtype = Datatype::Unknown;
         }

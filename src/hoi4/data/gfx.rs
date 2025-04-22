@@ -11,6 +11,7 @@ use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
+use crate::validate::validate_color;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug, Default)]
@@ -94,7 +95,10 @@ impl FileHandler<Block> for Gfx {
         for (key, mut block) in block.drain_definitions_warn() {
             if key.lowercase_is("spritetypes") {
                 for (key, block) in block.drain_definitions_warn() {
-                    if key.lowercase_is("spritetype") || key.lowercase_is("corneredtilespritetype")
+                    if key.lowercase_is("spritetype")
+                        || key.lowercase_is("corneredtilespritetype")
+                        || key.lowercase_is("textspritetype")
+                        || key.lowercase_is("progressbartype")
                     {
                         self.load_sprite(key, block);
                     } else {
@@ -136,25 +140,29 @@ impl Sprite {
         vd.set_case_sensitive(false);
 
         vd.field_value("name");
-        vd.field_item("texturefile", Item::File);
+
+        if self.key.lowercase_is("progressbartype") {
+            vd.field_item("texturefile1", Item::File);
+            vd.field_item("texturefile2", Item::File);
+        } else {
+            vd.field_item("texturefile", Item::File);
+        }
+
         vd.field_item("effectfile", Item::File);
         vd.field_bool("legacy_lazy_load");
         vd.field_integer("noofframes");
 
         if self.key.lowercase_is("corneredtilespritetype") {
-            for field in &["size", "bordersize"] {
-                vd.field_validated_block(field, |block, data| {
-                    let mut vd = Validator::new(block, data);
-                    vd.set_case_sensitive(false);
-
-                    vd.field_integer("x");
-                    vd.field_integer("y");
-                });
-            }
+            vd.field_validated_block("size", validate_size);
+            vd.field_validated_block("bordersize", validate_size);
             vd.field_bool("tilingcenter");
             vd.field_bool("looping");
             vd.field_integer("animation_rate_spf");
             vd.field_bool("alwaystransparent");
+        } else if self.key.lowercase_is("progressbartype") {
+            vd.field_validated_block("color", validate_color);
+            vd.field_validated_block("colortwo", validate_color);
+            vd.field_validated_block("size", validate_size);
         }
 
         vd.multi_field_validated_block("animation", validate_animation);
@@ -229,4 +237,12 @@ fn validate_animation(block: &Block, data: &Everything) {
     vd.field_validated_list("animationframes", |value, _| {
         value.expect_integer();
     });
+}
+
+fn validate_size(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.set_case_sensitive(false);
+
+    vd.field_integer("x");
+    vd.field_integer("y");
 }
