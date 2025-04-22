@@ -190,7 +190,7 @@ impl Hoi4Provinces {
             if !seen_colors.contains_key(&color) {
                 let Rgb(rgb) = color;
                 let msg = format!(
-                    "definition.csv lacks entry for color ({}, {}, {})",
+                    "definition.csv lacks entry for color ({}, {}, {}) found in `provinces.bmp`",
                     rgb[0], rgb[1], rgb[2]
                 );
                 untidy(ErrorKey::Colors).msg(msg).loc(definition_csv).push();
@@ -209,22 +209,20 @@ impl Hoi4Provinces {
         }
     }
 
-    fn handle_colors(&mut self, img: &RgbImage) {
+    fn handle_colors(&mut self, img: &RgbImage, entry: &FileEntry) {
         let (width, height) = img.dimensions();
 
         for (x, y, &color) in img.enumerate_pixels() {
             fn add_bordering_colors(map: &mut BorderingColorMap, c1: Rgb<u8>, c2: Rgb<u8>) {
-                if c1 != c2 {
-                    let vec1 = map.entry(c1).or_insert_with(|| Vec::with_capacity(8));
+                let vec1 = map.entry(c1).or_insert_with(|| Vec::with_capacity(8));
 
-                    // Since we always add to both vecs at the same time, we only need to check for
-                    // existence in one.
-                    if !vec1.contains(&c2) {
-                        vec1.push(c2);
+                // Since we always add to both vecs at the same time, we only need to check for
+                // existence in one.
+                if !vec1.contains(&c2) {
+                    vec1.push(c2);
 
-                        let vec2 = map.entry(c2).or_insert_with(|| Vec::with_capacity(8));
-                        vec2.push(c1);
-                    }
+                    let vec2 = map.entry(c2).or_insert_with(|| Vec::with_capacity(8));
+                    vec2.push(c1);
                 }
             }
 
@@ -236,12 +234,29 @@ impl Hoi4Provinces {
             // Wrapping round the map horizontally
             let right = if x + 1 < width { x + 1 } else { 0 };
             let right_color = *img.get_pixel(right, y);
-            add_bordering_colors(&mut self.bordering_colors, color, right_color);
+            let right_bordering = color != right_color;
+            if right_bordering {
+                add_bordering_colors(&mut self.bordering_colors, color, right_color);
+            }
 
             let down = y + 1;
             if down < height {
                 let down_color = *img.get_pixel(x, down);
-                add_bordering_colors(&mut self.bordering_colors, color, down_color);
+                if color != down_color {
+                    add_bordering_colors(&mut self.bordering_colors, color, down_color);
+
+                    if right_bordering && right_color != down_color {
+                        let down_right_color = *img.get_pixel(right, down);
+                        if down_color != down_right_color
+                            && right_color != down_right_color
+                            && color != down_right_color
+                        {
+                            let msg = format!("four provinces share a common corner in `provinces.bmp` around [({x},{y}), ({right}, {down})]");
+                            let info = "the game connects the bottom left and the top right provinces but this can be confusing";
+                            warn(ErrorKey::Validation).msg(msg).info(info).loc(entry).push();
+                        }
+                    }
+                }
             }
         }
     }
@@ -375,7 +390,7 @@ impl FileHandler<FileContent> for Hoi4Provinces {
                 }
             }
             FileContent::Provinces(img) => {
-                self.handle_colors(&img);
+                self.handle_colors(&img, entry);
             }
         }
     }
