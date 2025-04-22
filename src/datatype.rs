@@ -388,6 +388,7 @@ pub fn validate_datatypes(
     let mut macro_count = 0;
     // Have to loop with `while` instead of `for` because the array can mutate during the loop because of macro substitution
     let mut i = 0;
+    let mut in_variable = false;
     while i < codes.len() {
         #[cfg(any(feature = "ck3", feature = "vic3"))]
         if Game::is_ck3() || Game::is_vic3() {
@@ -595,6 +596,14 @@ pub fn validate_datatypes(
             rtype = Datatype::CString;
         }
 
+        if Game::is_hoi4() && !found && in_variable {
+            // The second part of a variable reference. We don't validate variable names yet.
+            in_variable = false;
+            found = true;
+            // TODO HOI4: this could be just the scope types.
+            rtype = Datatype::Unknown;
+        }
+
         // TODO HOI4: see about disabling the scope-related logic below.
 
         // See if it's a passed-in scope.
@@ -650,9 +659,16 @@ pub fn validate_datatypes(
         #[cfg(feature = "hoi4")]
         if Game::is_hoi4() && !found && code.name.starts_with("?") {
             // It's a variable reference
-            // TODO HOI4: properly parse variable reference
             found = true;
+            // TODO HOI4: this could be just the scope types.
             rtype = Datatype::Unknown;
+            // Is it a two-part reference?
+            if code.name.lowercase_is("?global") || code.name.is("?FROM") || code.name.is("?PREV") {
+                in_variable = true;
+            } else if is_country_tag(code.name.as_str()) {
+                in_variable = true;
+                data.verify_exists(Item::CountryTag, &code.name);
+            }
         }
 
         // If it's still not found, warn and exit.

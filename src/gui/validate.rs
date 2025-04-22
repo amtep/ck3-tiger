@@ -384,6 +384,7 @@ pub fn validate_datatype_field(
     }
 }
 
+// TODO: can this be merged with check_loca code in localization?
 fn validate_gui_loca(key: &Token, loca_value: LocaValue, data: &Everything) {
     match loca_value {
         LocaValue::Concat(v) => {
@@ -418,6 +419,12 @@ fn validate_gui_loca(key: &Token, loca_value: LocaValue, data: &Everything) {
         }
         LocaValue::Icon(token) => {
             data.verify_exists(Item::TextIcon, &token);
+        }
+        LocaValue::Flag(token) => {
+            #[cfg(feature = "hoi4")]
+            data.verify_exists(Item::CountryTag, &token);
+            let pathname = format!("gfx/flags/{token}.tga");
+            data.verify_exists_implied(Item::File, &pathname, &token);
         }
         _ => (),
     }

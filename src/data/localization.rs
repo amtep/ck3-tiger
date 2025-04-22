@@ -251,6 +251,7 @@ pub enum LocaValue {
     // The optional token is the formatting
     Code(CodeChain, Option<Token>),
     Icon(Token),
+    Flag(Token),
     #[default]
     Error,
 }
@@ -479,6 +480,17 @@ impl Localization {
             LocaValue::Icon(token) => {
                 if !is_builtin_macro(token) && !token.is("ICONKEY_icon") && !token.is("KEY_icon") {
                     data.verify_exists(Item::TextIcon, token);
+                }
+            }
+            #[allow(unused_variables)]
+            LocaValue::Flag(token) => {
+                // TODO: Instead of this awkward 'contains TAG' heuristic, mark macros in the text
+                // somehow.
+                #[cfg(feature = "hoi4")]
+                if !is_builtin_macro(token) && !token.as_str().contains("TAG") {
+                    data.verify_exists(Item::CountryTag, token);
+                    let pathname = format!("gfx/flags/{token}.tga");
+                    data.verify_exists_implied(Item::File, &pathname, token);
                 }
             }
             _ => (),
