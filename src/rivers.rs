@@ -31,11 +31,11 @@ fn river_image_path() -> &'static str {
 /// used in the pixels matter. Pixels that are not among the values defined here are ignored when
 /// the game processes the `rivers.png/bmp`.
 struct RiverPixels {}
-// TODO: Test if HOI4 supports up to 15 (wiki says 11)
 impl RiverPixels {
     /// Normal rivers of various widths (usually blue through greenish).
     /// They are still all one pixel wide in the `rivers.png/bmp`; this just controls how they are painted on the map.
     /// River pixels must be adjacent to each other horizontally or vertically; together they form river segments.
+    /// River widths go up to 15 even though the vanilla maps only use up to 11 (confirmed for CK3 and Hoi4).
     const NORMAL: RangeInclusive<u8> = (RiverPixels::FIRST_NORMAL..=RiverPixels::LAST_NORMAL);
     const FIRST_NORMAL: u8 = 3;
     const LAST_NORMAL: u8 = 15;
