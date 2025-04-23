@@ -2,8 +2,7 @@
 //!
 //! The `rivers.png/bmp` file has detailed requirements for its image format and the layout of every pixel.
 
-use std::fs::File;
-use std::io::Read;
+use std::fs;
 use std::ops::{RangeInclusive, RangeToInclusive};
 use std::path::PathBuf;
 
@@ -392,12 +391,15 @@ impl FileHandler<Vec<u8>> for Rivers {
     }
 
     fn load_file(&self, entry: &FileEntry, _parser: &ParserMemory) -> Option<Vec<u8>> {
-        let mut loaded = Vec::with_capacity(1024 * 1024);
-        if let Err(e) = File::open(entry.fullpath()).and_then(|mut f| f.read_to_end(&mut loaded)) {
-            err(ErrorKey::ReadError).msg(format!("could not read file: {e:#}")).loc(entry).push();
-            None
-        } else {
-            Some(loaded)
+        match fs::read(entry.fullpath()) {
+            Err(e) => {
+                err(ErrorKey::ReadError)
+                    .msg(format!("could not read file: {e:#}"))
+                    .loc(entry)
+                    .push();
+                None
+            }
+            Ok(loaded) => Some(loaded),
         }
     }
 
