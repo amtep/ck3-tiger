@@ -213,6 +213,9 @@ bitflags! {
         #[cfg(feature = "hoi4")] const RaidInstance = 0x0040_0000;
         #[cfg(feature = "hoi4")] const SpecialProject = 0x0080_0000;
         #[cfg(feature = "hoi4")] const StrategicRegion = 0x0100_0000;
+        // These two "combined" ones represent the odd scopes created for events.
+        #[cfg(feature = "hoi4")] const CombinedCountryAndState = 0x0200_0000;
+        #[cfg(feature = "hoi4")] const CombinedCountryAndCharacter = 0x0200_0000;
     }
 }
 

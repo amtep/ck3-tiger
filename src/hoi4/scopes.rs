@@ -4,7 +4,7 @@ use std::fmt::Formatter;
 use std::sync::LazyLock;
 
 use crate::everything::Everything;
-use crate::helpers::{display_choices, TigerHashMap};
+use crate::helpers::{display_choices, expand_scopes_hoi4, TigerHashMap};
 use crate::scopes::{ArgumentValue, Scopes};
 
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
@@ -78,6 +78,12 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::StrategicRegion) {
         vec.push("strategic region");
     }
+    if s.contains(Scopes::CombinedCountryAndState) {
+        vec.push("combined country and state");
+    }
+    if s.contains(Scopes::CombinedCountryAndCharacter) {
+        vec.push("combined country and character");
+    }
     display_choices(f, &vec, "or")
 }
 
@@ -95,7 +101,7 @@ static SCOPE_TO_SCOPE_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>
     LazyLock::new(|| {
         let mut hash = TigerHashMap::default();
         for (from, s, to) in SCOPE_TO_SCOPE.iter().copied() {
-            hash.insert(s, (from, to));
+            hash.insert(s, (expand_scopes_hoi4(from), to));
         }
         hash
     });
@@ -129,7 +135,7 @@ static SCOPE_PREFIX_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes, Ar
     LazyLock::new(|| {
         let mut hash = TigerHashMap::default();
         for (from, s, to, argument) in SCOPE_PREFIX.iter().copied() {
-            hash.insert(s, (from, to, argument));
+            hash.insert(s, (expand_scopes_hoi4(from), to, argument));
         }
         hash
     });
@@ -161,7 +167,7 @@ static SCOPE_ITERATOR_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>
     LazyLock::new(|| {
         let mut hash = TigerHashMap::default();
         for (from, s, to) in SCOPE_ITERATOR.iter().copied() {
-            hash.insert(s, (from, to));
+            hash.insert(s, (expand_scopes_hoi4(from), to));
         }
         hash
     });

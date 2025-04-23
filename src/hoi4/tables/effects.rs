@@ -2,6 +2,7 @@ use std::sync::LazyLock;
 
 use crate::effect::Effect;
 use crate::everything::Everything;
+use crate::helpers::expand_scopes_hoi4;
 use crate::helpers::TigerHashMap;
 use crate::hoi4::effect_validation::*;
 use crate::item::Item;
@@ -21,7 +22,7 @@ static SCOPE_EFFECT_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Effect)>> 
     LazyLock::new(|| {
         let mut hash = TigerHashMap::default();
         for (from, s, effect) in SCOPE_EFFECT.iter().copied() {
-            hash.insert(s, (from, effect));
+            hash.insert(s, (expand_scopes_hoi4(from), effect));
         }
         hash
     });

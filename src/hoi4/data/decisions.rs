@@ -94,7 +94,8 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
     let has_state_target = block.get_field_value("state_target").is_some_and(|v| !v.is("no"));
     let sc_builder: &Builder = &move |key| {
         let mut sc = ScopeContext::new(Scopes::Country, key);
-        let scope = if has_state_target { Scopes::State } else { Scopes::Country };
+        let scope =
+            if has_state_target { Scopes::CombinedCountryAndState } else { Scopes::Country };
         sc.push_as_from(scope, key);
         sc
     };

@@ -1,6 +1,7 @@
 use std::sync::LazyLock;
 
 use crate::everything::Everything;
+use crate::helpers::expand_scopes_hoi4;
 use crate::helpers::TigerHashMap;
 use crate::item::Item;
 use crate::scopes::*;
@@ -12,13 +13,16 @@ use Trigger::*;
 
 pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger)> {
     if data.item_exists(Item::Building, name.as_str()) {
-        return Some((Scopes::State | Scopes::Country, Trigger::CompareValueInt));
+        return Some((
+            expand_scopes_hoi4(Scopes::State | Scopes::Country),
+            Trigger::CompareValueInt,
+        ));
     }
     if data.item_exists(Item::IdeologyGroup, name.as_str()) {
-        return Some((Scopes::Country, Trigger::CompareValue));
+        return Some((expand_scopes_hoi4(Scopes::Country), Trigger::CompareValue));
     }
     if data.item_exists(Item::Resource, name.as_str()) {
-        return Some((Scopes::Country, Trigger::CompareValue));
+        return Some((expand_scopes_hoi4(Scopes::Country), Trigger::CompareValue));
     }
     let name_lc = name.as_str().to_ascii_lowercase();
     TRIGGER_MAP.get(&*name_lc).copied()
@@ -27,7 +31,7 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
 static TRIGGER_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Trigger)>> = LazyLock::new(|| {
     let mut hash = TigerHashMap::default();
     for (from, s, trigger) in TRIGGER.iter().copied() {
-        hash.insert(s, (from, trigger));
+        hash.insert(s, (expand_scopes_hoi4(from), trigger));
     }
     hash
 });

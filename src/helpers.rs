@@ -6,6 +6,8 @@ use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 use crate::report::{tips, warn, ErrorKey};
+#[cfg(feature = "hoi4")]
+use crate::scopes::Scopes;
 use crate::token::Token;
 
 pub type TigerHashMap<K, V> = HashMap<K, V>;
@@ -176,4 +178,15 @@ impl Display for ActionOrEvent {
 
 pub fn is_country_tag(part: &str) -> bool {
     part.len() == 3 && part != "NOT" && part.chars().all(|c| c.is_ascii_uppercase())
+}
+
+#[cfg(feature = "hoi4")]
+pub fn expand_scopes_hoi4(mut scopes: Scopes) -> Scopes {
+    if scopes.contains(Scopes::Country) || scopes.contains(Scopes::State) {
+        scopes |= Scopes::CombinedCountryAndState;
+    }
+    if scopes.contains(Scopes::Country) || scopes.contains(Scopes::Character) {
+        scopes |= Scopes::CombinedCountryAndCharacter;
+    }
+    scopes
 }

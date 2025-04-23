@@ -22,8 +22,10 @@ pub fn get_event_scope(key: &Token, _block: &Block) -> (Scopes, Token) {
     #[allow(clippy::match_same_arms)]
     match key.as_str() {
         "country_event" | "news_event" => (Scopes::Country, key.clone()),
-        "state_event" => (Scopes::State, key.clone()),
-        "unit_leader_event" | "operative_leader_event" => (Scopes::Character, key.clone()),
+        "state_event" => (Scopes::CombinedCountryAndState, key.clone()),
+        "unit_leader_event" | "operative_leader_event" => {
+            (Scopes::CombinedCountryAndCharacter, key.clone())
+        }
         _ => (Scopes::Country, key.clone()),
     }
 }
