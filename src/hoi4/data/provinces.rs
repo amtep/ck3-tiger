@@ -146,13 +146,11 @@ impl Hoi4Provinces {
     }
 
     fn validate_provinces(&self) {
-        if self.definition_csv.is_none() {
+        let Some(definition_csv) = self.definition_csv.as_ref() else {
             // Shouldn't happen, it should come from vanilla if not from the mod
             eprintln!("map/definition.csv is missing?!?");
             return;
-        }
-
-        let definition_csv = self.definition_csv.as_ref().unwrap();
+        };
 
         let len = self.provinces.len();
         if len > 20_000 {
@@ -373,8 +371,8 @@ impl FileHandler<FileContent> for Hoi4Provinces {
                         let msg = "the line with all `-1;` should be the last line in the file";
                         warn(ErrorKey::ParseError).msg(msg).loc(&csv[0]).push();
                         break;
-                    } else {
-                        self.adjacencies.extend(Adjacency::parse(&csv));
+                    } else if let Some(adjacency) = Adjacency::parse(&csv) {
+                        self.adjacencies.push(adjacency);
                     }
                 }
                 if !seen_terminator {

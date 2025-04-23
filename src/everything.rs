@@ -611,12 +611,9 @@ impl Everything {
     }
 
     pub fn check_rivers(&mut self) {
-        if !Game::is_hoi4() {
-            // TODO HOI4
-            let mut rivers = Rivers::default();
-            self.fileset.handle(&mut rivers, &self.parser);
-            rivers.validate(self);
-        }
+        let mut rivers = Rivers::default();
+        self.fileset.handle(&mut rivers, &self.parser);
+        rivers.validate(self);
     }
 
     #[cfg(feature = "ck3")]
