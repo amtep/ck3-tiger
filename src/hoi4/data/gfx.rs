@@ -99,6 +99,7 @@ impl FileHandler<Block> for Gfx {
                         || key.lowercase_is("corneredtilespritetype")
                         || key.lowercase_is("textspritetype")
                         || key.lowercase_is("progressbartype")
+                        || key.lowercase_is("frameanimatedspritetype")
                     {
                         self.load_sprite(key, block);
                     } else {
@@ -163,6 +164,14 @@ impl Sprite {
             vd.field_validated_block("color", validate_color);
             vd.field_validated_block("colortwo", validate_color);
             vd.field_validated_block("size", validate_size);
+        } else if self.key.lowercase_is("frameanimatedspritetype") {
+            vd.field_numeric("animation_rate_fps");
+            vd.field_numeric("pause_on_loop");
+            vd.field_bool("looping");
+            vd.field_bool("play_on_show");
+            vd.field_bool("transparencecheck");
+            vd.field_bool("alwaystransparent");
+            vd.field_value("loadtype"); // TODO: only known value is "INGAME"
         }
 
         vd.multi_field_validated_block("animation", validate_animation);

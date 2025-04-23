@@ -238,6 +238,32 @@ impl ScopeContext {
         }
     }
 
+    /// Make a new `ScopeContext`, with `this` and `root` unconnected
+    /// and of separate scope types.
+    /// `token` is used when reporting errors about the use of `this` or `root`.
+    ///
+    /// This function is useful in specialized contexts where the game engine
+    /// provides different `this` and `root`.
+    #[cfg(feature = "hoi4")]
+    pub fn new_separate_root<T: Into<Token>>(root: Scopes, this: Scopes, token: T) -> Self {
+        let token = token.into();
+        let mut sc = ScopeContext::new(root, token.clone());
+        sc.this = ScopeEntry::Scope(this, Reason::Builtin(token));
+        sc
+    }
+
+    #[cfg(feature = "hoi4")]
+    pub fn new_with_prev<T: Into<Token>>(root: Scopes, prev: Scopes, token: T) -> Self {
+        let token = token.into();
+        let mut sc = ScopeContext::new(root, token.clone());
+        sc.prev = Some(Box::new(ScopeHistory {
+            prev: None,
+            this: ScopeEntry::Scope(prev, Reason::Token(token)),
+        }));
+        sc.is_unrooted = true; // This is a kludge to avoid errors on Drop
+        sc
+    }
+
     /// Declare whether all the named scopes in this scope context are known. Default is true.
     ///
     /// Set this to false in for example events, which start with the scopes defined by their
@@ -367,6 +393,13 @@ impl ScopeContext {
         } else {
             None
         }
+    }
+
+    /// Put a scope entry on the FROM chain. It becomes the new FROM, and the old one (if any)
+    /// becomes FROM.FROM, etc.
+    #[cfg(feature = "hoi4")]
+    pub fn push_as_from<T: Into<Token>>(&mut self, scopes: Scopes, token: T) {
+        self.from.insert(0, ScopeEntry::Scope(scopes, Reason::Builtin(token.into())));
     }
 
     /// This is called when the script does `exists = scope:name`.

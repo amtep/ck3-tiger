@@ -86,7 +86,7 @@ fn validate_character(key: &Token, _block: &Block, _data: &Everything, vd: &mut 
         }
     });
 
-    vd.field_validated_block("country_leader", |block, data| {
+    vd.multi_field_validated_block("country_leader", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_item("ideology", Item::Ideology);
         vd.field_list_items("traits", Item::CountryLeaderTrait);

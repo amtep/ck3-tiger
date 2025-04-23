@@ -10,6 +10,8 @@ use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::game::Game;
 use crate::helpers::TigerHashMap;
+#[cfg(feature = "hoi4")]
+use crate::hoi4::tables::on_action::on_action_scopecontext_hoi4;
 #[cfg(feature = "ck3")]
 use crate::item::Item;
 use crate::parse::pdxfile::parse_pdx_internal;
@@ -37,7 +39,7 @@ static ON_ACTION_SCOPES_MAP: LazyLock<TigerHashMap<String, OnActionScopeContext>
         })
     });
 
-#[allow(unused_variables)] // only ck3 uses `data`
+#[allow(unused_variables)] // only ck3 and hoi4 use `data`
 pub fn on_action_scopecontext(key: &Token, data: &Everything) -> Option<ScopeContext> {
     if let Some(oa_sc) = ON_ACTION_SCOPES_MAP.get(key.as_str()) {
         let mut sc = ScopeContext::new(oa_sc.root, key);
@@ -68,6 +70,13 @@ pub fn on_action_scopecontext(key: &Token, data: &Everything) -> Option<ScopeCon
                     }
                 }
             }
+        }
+    }
+
+    #[cfg(feature = "hoi4")]
+    if Game::is_hoi4() {
+        if let Some(sc) = on_action_scopecontext_hoi4(key, data) {
+            return Some(sc);
         }
     }
     None

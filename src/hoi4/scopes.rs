@@ -109,7 +109,15 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::State, "controller", Scopes::Country),
     (Scopes::Country, "faction_leader", Scopes::Country),
     (Scopes::Country, "overlord", Scopes::Country),
-    (Scopes::State.union(Scopes::Character).union(Scopes::Division), "owner", Scopes::Country),
+    (
+        Scopes::State
+            .union(Scopes::Character)
+            .union(Scopes::Division)
+            .union(Scopes::IndustrialOrg)
+            .union(Scopes::Ace),
+        "owner",
+        Scopes::Country,
+    ),
 ];
 
 #[inline]

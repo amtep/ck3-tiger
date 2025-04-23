@@ -248,7 +248,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
         "every_operative",
         Iterator(ListType::Every, Scopes::Character),
     ),
-    (Scopes::Country, "every_possible_country", Iterator(ListType::Every, Scopes::Country)),
+    (Scopes::None, "every_possible_country", Iterator(ListType::Every, Scopes::Country)),
     (
         Scopes::Country,
         "every_purchase_contract",

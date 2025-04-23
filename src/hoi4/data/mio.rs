@@ -11,7 +11,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::validate_modifiers_with_base;
-use crate::validator::Validator;
+use crate::validator::{Builder, Validator};
 
 #[derive(Clone, Debug)]
 pub struct IndustrialOrg {}
@@ -103,7 +103,12 @@ impl DbKind for IndustrialOrg {
             "on_tech_research_completed",
             "on_industrial_manufacturer_unassigned",
         ] {
-            vd.field_trigger(field, Scopes::IndustrialOrg, Tooltipped::No);
+            let sc_builder: &Builder = &|key| {
+                let mut sc = ScopeContext::new(Scopes::IndustrialOrg, key);
+                sc.push_as_from(Scopes::Country, key);
+                sc
+            };
+            vd.field_effect(field, sc_builder, Tooltipped::No);
         }
 
         vd.field_numeric("research_bonus");
