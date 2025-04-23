@@ -26,7 +26,7 @@ default = ["ck3"]
 ck3 = ["jomini"]
 vic3 = ["jomini"]
 imperator = ["jomini"]
-jomini = ["dep:png"]
+jomini = ["image/png", "dep:png"]
 hoi4 = ["image/bmp", "dep:tinybmp"]
 
 [build-dependencies]
@@ -42,10 +42,7 @@ bitflags = "2.8"
 bitvec = "1.0"
 bumpalo = "3.16"
 encoding_rs = "0.8.32"
-image = { version = "0.25", features = [
-    "dds",
-    "png",
-], default-features = false }
+image = { version = "0.25", features = ["dds"], default-features = false, optional = true }
 inventory = "0.3.11"
 lalrpop-util = { version = "0.22.0", features = ["unicode"] }
 phf = { version = "0.11", features = ["macros"] }
