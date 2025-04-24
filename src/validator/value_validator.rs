@@ -8,7 +8,7 @@ use crate::context::ScopeContext;
 use crate::date::Date;
 use crate::everything::Everything;
 #[cfg(feature = "hoi4")]
-use crate::hoi4::validate::validate_variable;
+use crate::hoi4::variables::validate_variable;
 use crate::item::Item;
 use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;

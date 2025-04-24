@@ -111,6 +111,7 @@ static SCOPE_TO_SCOPE_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 // TODO
 const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
+    (Scopes::Country, "capital", Scopes::State), // undocumented
     (Scopes::Country, "capital_scope", Scopes::State), // undocumented
     (Scopes::State, "controller", Scopes::Country),
     (Scopes::Country, "faction_leader", Scopes::Country),

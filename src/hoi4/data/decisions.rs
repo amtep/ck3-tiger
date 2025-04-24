@@ -8,6 +8,7 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
+use crate::trigger::validate_target;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::{Builder, Validator, ValueValidator};
 
@@ -111,22 +112,10 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
         } else {
             for value in vd.values() {
                 if !value.is("host") {
-                    data.verify_exists(Item::CountryTag, value);
+                    validate_target(value, data, &mut sc, Scopes::Country);
                 }
             }
         }
-    });
-    vd.field_bool("targets_dynamic");
-    vd.field_bool("target_non_existing");
-    vd.field_trigger("target_root_trigger", Scopes::Country, Tooltipped::No);
-    vd.field_trigger("target_trigger", sc_builder, Tooltipped::No);
-    vd.advice_field("state_trigger", "docs say state_trigger but it's state_target");
-    vd.field_validated_value("state_target", |_, mut vd| {
-        vd.maybe_bool();
-        vd.maybe_is("any");
-        vd.maybe_is("any_owned_state");
-        vd.maybe_is("any_controlled_state");
-        vd.item(Item::Continent);
     });
     vd.field_item("scripted_gui", Item::ScriptedGui);
 
@@ -161,5 +150,35 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
         vd.field_variable_or_integer("days_re_enable", &mut sc);
         vd.field_variable_or_integer("cost", &mut sc);
         vd.field_bool("fixed_random_seed");
+
+        vd.field_bool("targets_dynamic");
+        vd.field_bool("target_non_existing");
+        vd.field_trigger("target_root_trigger", Scopes::Country, Tooltipped::No);
+        vd.field_trigger("target_trigger", sc_builder, Tooltipped::No);
+        vd.advice_field("state_trigger", "docs say state_trigger but it's state_target");
+        vd.field_validated_value("state_target", |_, mut vd| {
+            vd.maybe_bool();
+            vd.maybe_is("any");
+            vd.maybe_is("any_owned_state");
+            vd.maybe_is("any_controlled_state");
+            vd.item(Item::Continent);
+        });
+        vd.field_validated_block("highlight_states", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_validated_key_block("highlight_state_targets", |key, block, data| {
+                let mut vd = Validator::new(block, data);
+                let mut sc = ScopeContext::new(Scopes::Country, key);
+                sc.push_as_from(Scopes::State, key);
+                vd.multi_field_validated_value("state", |_, mut vvd| {
+                    vvd.maybe_integer();
+                    vvd.target(&mut sc, Scopes::State);
+                });
+            });
+            vd.field_trigger("highlight_states_trigger", Scopes::State, Tooltipped::No);
+            vd.field_list_items("highlight_provinces", Item::Province);
+            vd.field_bool("highlight_only_provinces");
+            vd.field_integer("highlight_color_while_active");
+            vd.field_integer("highlight_color_before_active");
+        });
     }
 }

@@ -7,6 +7,8 @@ use crate::data::effect_localization::EffectLocalization;
 use crate::desc::validate_desc;
 use crate::everything::Everything;
 use crate::game::Game;
+#[cfg(feature = "hoi4")]
+use crate::hoi4::variables::validate_variable;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::report::{err, fatal, tips, warn, ErrorKey, Severity};
@@ -421,11 +423,22 @@ pub fn validate_effect_field(
         }
     }
 
+    #[cfg(feature = "hoi4")]
+    if Game::is_hoi4() && key.starts_with("var:") {
+        validate_variable(key, data, sc, Severity::Error);
+        if let Some(block) = bv.expect_block() {
+            sc.open_scope(Scopes::all_but_none(), key.clone());
+            validate_effect(block, data, sc, tooltipped);
+            sc.close();
+        }
+        return;
+    }
+
     // Check if it's a target = { target_scope } block.
     sc.open_builder();
     if validate_scope_chain(key, data, sc, matches!(cmp, Comparator::Equals(Question))) {
         sc.finalize_builder();
-        if key.starts_with("flag:") {
+        if Game::is_ck3() && key.starts_with("flag:") {
             let msg = "as of 1.9, flag literals cannot be used on the left-hand side";
             err(ErrorKey::Scopes).msg(msg).loc(key).push();
         }

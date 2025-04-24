@@ -1,36 +1,7 @@
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{report, ErrorKey, Severity};
-use crate::scopes::Scopes;
-use crate::token::Token;
-use crate::trigger::validate_target;
 use crate::validator::Validator;
-
-pub fn validate_variable(token: &Token, data: &Everything, sc: &mut ScopeContext, sev: Severity) {
-    let mut reference = token;
-    let stripped;
-    if let Some(sfx) = token.strip_prefix("var:") {
-        stripped = sfx;
-        reference = &stripped;
-    }
-
-    let parts = reference.split('.');
-    match parts.len() {
-        1 => (),
-        2 => {
-            if !parts[0].is("global") {
-                // TODO: are there scopes that can't have variables?
-                validate_target(&parts[0], data, sc, Scopes::all_but_none());
-            }
-        }
-        _ => {
-            let msg = "could not parse variable reference";
-            report(ErrorKey::Validation, sev).msg(msg).loc(reference).push();
-        }
-    }
-}
 
 pub fn validate_rules(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);

@@ -18,6 +18,8 @@ use crate::helpers::is_country_tag;
 use crate::helpers::stringify_choices;
 #[cfg(feature = "hoi4")]
 use crate::hoi4::effect_validation::validate_flag_name;
+#[cfg(feature = "hoi4")]
+use crate::hoi4::variables::validate_variable;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 #[cfg(feature = "vic3")]
@@ -425,6 +427,15 @@ pub fn validate_trigger_key_bv(
         return side_effects;
     }
 
+    #[cfg(feature = "hoi4")]
+    if Game::is_hoi4() && key.starts_with("var:") {
+        validate_variable(key, data, sc, Severity::Error);
+        sc.open_builder();
+        sc.replace(Scopes::all_but_none(), key.clone());
+        side_effects |= validate_trigger_rhs(key, cmp, bv, data, sc, tooltipped, negated, max_sev);
+        return side_effects;
+    }
+
     let part_vec = partition(key);
     sc.open_builder();
     for i in 0..part_vec.len() {
@@ -557,6 +568,23 @@ pub fn validate_trigger_key_bv(
         }
     }
 
+    side_effects |= validate_trigger_rhs(key, cmp, bv, data, sc, tooltipped, negated, max_sev);
+    side_effects
+}
+
+#[allow(clippy::too_many_arguments)] // nothing can be cut
+pub fn validate_trigger_rhs(
+    key: &Token,
+    cmp: Comparator,
+    bv: &BV,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    tooltipped: Tooltipped,
+    negated: bool,
+    max_sev: Severity,
+) -> bool {
+    let mut side_effects = false;
+
     if !matches!(cmp, Comparator::Equals(Single | Question)) {
         // At this point we don't know whether to expect a script value or a target at the
         // right-hand side. Check for target first; a target can be a script value so that
@@ -605,6 +633,7 @@ pub fn validate_trigger_key_bv(
             sc.close();
         }
     }
+
     side_effects
 }
 
@@ -1163,6 +1192,11 @@ pub fn validate_target_ok_this(
         }
         return Scopes::Value;
     }
+    #[cfg(feature = "hoi4")]
+    if Game::is_hoi4() && token.starts_with("var:") {
+        validate_variable(token, data, sc, Severity::Error);
+        return Scopes::all_but_none();
+    }
     let part_vec = partition(token);
     sc.open_builder();
     for i in 0..part_vec.len() {
@@ -1250,6 +1284,11 @@ pub fn validate_target_ok_this(
                 } else if is_character_token(part.as_str(), data) {
                     #[cfg(feature = "hoi4")]
                     sc.replace(Scopes::Character, part.clone());
+                } else if Game::is_hoi4() && part.is_integer() {
+                    #[cfg(feature = "hoi4")]
+                    data.verify_exists(Item::State, part);
+                    #[cfg(feature = "hoi4")]
+                    sc.replace(Scopes::State, part.clone());
                 } else {
                     // See if the user forgot a prefix like `faith:` or `culture:`
                     let mut opt_info = None;

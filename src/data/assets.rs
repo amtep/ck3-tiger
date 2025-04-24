@@ -359,6 +359,15 @@ impl Asset {
         });
     }
 
+    pub fn validate_animation(&self, data: &Everything) {
+        let mut vd = Validator::new(&self.block, data);
+        vd.field_value("name");
+        if let Some(token) = vd.field_value("file") {
+            let path = self.key.loc.pathname().smart_join_parent(token.as_str());
+            data.verify_exists_implied(Item::File, &path.to_string_lossy(), token);
+        }
+    }
+
     pub fn validate_animation_set(&self, data: &Everything) {
         let mut vd = Validator::new(&self.block, data);
         vd.field_value("name");
@@ -381,6 +390,8 @@ impl Asset {
             self.validate_mesh(data);
         } else if self.key.is("entity") {
             self.validate_entity(data);
+        } else if Game::is_hoi4() && self.key.is("animation") {
+            self.validate_animation(data);
         } else if self.key.is("skeletal_animation_set") {
             self.validate_animation_set(data);
         } else if self.key.is("arrowType") {

@@ -250,7 +250,7 @@ impl CharExt for char {
             || self.is_ascii_digit()
             // %, [, ] added for parsing .gui files
             || matches!(self, '.' | ':' | '_' | '-' | '&' | '/' | '|' | '\'' | '%' | '[' | ']')
-            || (Game::is_hoi4() && (self == '?' || self == '@'))
+            || (Game::is_hoi4() && (self == '?' || self == '@' || self == '^'))
     }
 
     fn is_local_value_char(self) -> bool {

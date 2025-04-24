@@ -10,7 +10,7 @@ use crate::effect::validate_effect_internal;
 use crate::everything::Everything;
 use crate::helpers::{dup_assign_error, TigerHashSet};
 #[cfg(feature = "hoi4")]
-use crate::hoi4::validate::validate_variable;
+use crate::hoi4::variables::validate_variable;
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 #[cfg(feature = "ck3")]
@@ -602,7 +602,7 @@ impl<'a> Validator<'a> {
 
     /// Returns true iff the field is present.
     /// Just like [`Validator::field_target`], but allows multiple fields.
-    #[cfg(feature = "vic3")]
+    #[allow(dead_code)]
     pub fn multi_field_target(
         &mut self,
         name: &str,
