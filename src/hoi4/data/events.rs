@@ -110,7 +110,7 @@ impl FileHandler<Block> for Hoi4Events {
             return None;
         }
 
-        PdxFile::read(entry, parser)
+        PdxFile::read_optional_bom(entry, parser)
     }
 
     fn handle_file(&mut self, _entry: &FileEntry, mut block: Block) {

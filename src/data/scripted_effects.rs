@@ -6,6 +6,8 @@ use crate::context::ScopeContext;
 use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+#[cfg(feature = "hoi4")]
+use crate::game::Game;
 use crate::helpers::{dup_error, exact_dup_error, TigerHashMap, BANNED_NAMES};
 use crate::macros::{MacroCache, MACRO_MAP};
 use crate::parse::ParserMemory;
@@ -94,6 +96,10 @@ impl FileHandler<Block> for Effects {
             return None;
         }
 
+        #[cfg(feature = "hoi4")]
+        if Game::is_hoi4() {
+            return PdxFile::read_no_bom(entry, parser);
+        }
         PdxFile::read(entry, parser)
     }
 

@@ -25,6 +25,8 @@ use crate::hoi4::data::scripted_localisation::ScriptedLocalisation;
 use crate::item::Item;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::report::err;
+#[cfg(feature = "hoi4")]
+use crate::report::Severity;
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -638,7 +640,7 @@ pub fn validate_datatypes(
         #[cfg(feature = "hoi4")]
         if Game::is_hoi4() && !found && is_country_tag(code.name.as_str()) {
             found = true;
-            data.verify_exists(Item::CountryTag, &code.name);
+            data.verify_exists_max_sev(Item::CountryTag, &code.name, Severity::Warning);
             rtype = Datatype::Hoi4(Hoi4Datatype::Country);
         }
 
@@ -668,7 +670,7 @@ pub fn validate_datatypes(
                 in_variable = true;
             } else if is_country_tag(reference.as_str()) {
                 in_variable = true;
-                data.verify_exists(Item::CountryTag, &reference);
+                data.verify_exists_max_sev(Item::CountryTag, &reference, Severity::Warning);
             }
         }
 

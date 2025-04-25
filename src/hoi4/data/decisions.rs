@@ -168,7 +168,8 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
             vd.field_validated_key_block("highlight_state_targets", |key, block, data| {
                 let mut vd = Validator::new(block, data);
                 let mut sc = ScopeContext::new(Scopes::Country, key);
-                sc.push_as_from(Scopes::State, key);
+                let from_scope = if has_state_target { Scopes::State } else { Scopes::Country };
+                sc.push_as_from(from_scope, key);
                 vd.multi_field_validated_value("state", |_, mut vvd| {
                     vvd.maybe_integer();
                     vvd.target(&mut sc, Scopes::State);

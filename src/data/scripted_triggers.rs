@@ -4,6 +4,8 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
+#[cfg(feature = "hoi4")]
+use crate::game::Game;
 use crate::helpers::{dup_error, exact_dup_error, TigerHashMap, BANNED_NAMES};
 use crate::lowercase::Lowercase;
 use crate::macros::{MacroCache, MACRO_MAP};
@@ -100,6 +102,10 @@ impl FileHandler<Block> for Triggers {
             return None;
         }
 
+        #[cfg(feature = "hoi4")]
+        if Game::is_hoi4() {
+            return PdxFile::read_no_bom(entry, parser);
+        }
         PdxFile::read(entry, parser)
     }
 

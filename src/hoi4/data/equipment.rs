@@ -44,7 +44,12 @@ impl Equipment {
             }
         } else if key.is("search_filters") {
             if let Some(name) = block.get_field_value("name") {
-                db.add(Item::EquipmentSearchFilter, name.clone(), block, Box::new(Self {}));
+                db.add(
+                    Item::EquipmentSearchFilter,
+                    name.clone(),
+                    block,
+                    Box::new(EquipmentSearchFilter {}),
+                );
             } else {
                 let msg = "search filter without `name` field";
                 err(ErrorKey::FieldMissing).msg(msg).loc(key).push();
