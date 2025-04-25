@@ -31,6 +31,7 @@ pub mod fonts;
 pub mod genes;
 pub mod gui;
 pub mod localization;
+#[cfg(feature = "jomini")]
 pub mod music;
 pub mod on_actions;
 #[cfg(feature = "jomini")]

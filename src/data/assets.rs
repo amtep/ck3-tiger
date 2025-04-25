@@ -23,6 +23,7 @@ pub struct Assets {
     assets: TigerHashMap<&'static str, Asset>,
     attributes: TigerHashSet<Token>,
     blend_shapes: TigerHashSet<Token>,
+    musics: TigerHashSet<Token>,
     textures: TigerHashMap<String, (FileEntry, Token)>,
 }
 
@@ -88,6 +89,16 @@ impl Assets {
     #[cfg(feature = "jomini")]
     pub fn iter_attribute_keys(&self) -> impl Iterator<Item = &Token> {
         self.attributes.iter()
+    }
+
+    #[cfg(feature = "hoi4")]
+    pub fn music_exists(&self, key: &str) -> bool {
+        self.musics.contains(key)
+    }
+
+    #[cfg(feature = "hoi4")]
+    pub fn iter_music_keys(&self) -> impl Iterator<Item = &Token> {
+        self.musics.iter()
     }
 
     pub fn texture_exists(&self, key: &str) -> bool {
@@ -168,6 +179,8 @@ impl FileHandler<Option<Block>> for Assets {
                         }
                     }
                 }
+            } else if asset.key.is("music") {
+                self.musics.insert(asset.name.clone());
             }
         }
     }
@@ -385,6 +398,20 @@ impl Asset {
         });
     }
 
+    pub fn validate_music(&self, data: &Everything) {
+        if !Game::is_hoi4() {
+            let msg = "`music` assets are only used in Hoi4";
+            warn(ErrorKey::WrongGame).msg(msg).loc(&self.key).push();
+        }
+        let mut vd = Validator::new(&self.block, data);
+        vd.field_item("name", Item::Localization);
+        if let Some(token) = vd.field_value("file") {
+            let path = self.key.loc.pathname().smart_join_parent(token.as_str());
+            data.verify_exists_implied(Item::File, &path.to_string_lossy(), token);
+        }
+        vd.field_numeric("volume");
+    }
+
     pub fn validate(&self, data: &Everything) {
         if self.key.is("pdxmesh") {
             self.validate_mesh(data);
@@ -396,6 +423,8 @@ impl Asset {
             self.validate_animation_set(data);
         } else if self.key.is("arrowType") {
             // TODO: arrowType
+        } else if self.key.is("music") {
+            self.validate_music(data);
         } else {
             warn(ErrorKey::UnknownField).msg("unknown asset type").loc(&self.key).push();
         }

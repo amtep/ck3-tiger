@@ -104,6 +104,7 @@ impl DbKind for Technology {
         });
 
         vd.field_bool("doctrine");
+        vd.field_bool("show_effect_as_desc");
         vd.field_numeric("research_cost");
         vd.field_integer("start_year");
 

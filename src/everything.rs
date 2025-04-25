@@ -44,15 +44,14 @@ use crate::data::{
     defines::Defines,
     gui::Gui,
     localization::Localization,
-    music::Musics,
     on_actions::OnActions,
     scripted_effects::{Effect, Effects},
     scripted_triggers::{Trigger, Triggers},
 };
 #[cfg(feature = "jomini")]
 use crate::data::{
-    coa::Coas, events::Events, script_values::ScriptValues, scripted_lists::ScriptedLists,
-    scripted_modifiers::ScriptedModifiers,
+    coa::Coas, events::Events, music::Musics, script_values::ScriptValues,
+    scripted_lists::ScriptedLists, scripted_modifiers::ScriptedModifiers,
 };
 use crate::db::{Db, DbKind};
 use crate::dds::DdsFiles;
@@ -61,7 +60,9 @@ use crate::game::Game;
 #[cfg(any(feature = "ck3", feature = "vic3"))]
 use crate::helpers::TigerHashSet;
 #[cfg(feature = "hoi4")]
-use crate::hoi4::data::{events::Hoi4Events, gfx::Gfx, provinces::Hoi4Provinces};
+use crate::hoi4::data::{
+    events::Hoi4Events, gfx::Gfx, music::Hoi4Musics, provinces::Hoi4Provinces,
+};
 #[cfg(feature = "hoi4")]
 use crate::hoi4::tables::misc::*;
 #[cfg(feature = "imperator")]
@@ -204,6 +205,9 @@ pub struct Everything {
     #[cfg(feature = "hoi4")]
     pub(crate) gfx: Gfx,
     pub(crate) assets: Assets,
+    #[cfg(feature = "hoi4")]
+    pub(crate) music_hoi4: Hoi4Musics,
+    #[cfg(feature = "jomini")]
     pub(crate) music: Musics,
 
     #[cfg(feature = "jomini")]
@@ -323,6 +327,9 @@ impl Everything {
             #[cfg(feature = "hoi4")]
             gfx: Gfx::default(),
             assets: Assets::default(),
+            #[cfg(feature = "hoi4")]
+            music_hoi4: Hoi4Musics::default(),
+            #[cfg(feature = "jomini")]
             music: Musics::default(),
             #[cfg(feature = "jomini")]
             coas: Coas::default(),
@@ -444,7 +451,6 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.assets, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.gui, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.on_actions, &self.parser));
-            s.spawn(|_| self.fileset.handle(&mut self.music, &self.parser));
         });
 
         self.load_all_normal_pdx_files();
@@ -465,6 +471,7 @@ impl Everything {
             s.spawn(|_| self.fileset.handle(&mut self.title_history, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.doctrines, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.menatarmstypes, &self.parser));
+            s.spawn(|_| self.fileset.handle(&mut self.music, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.data_bindings, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.provinces_ck3, &self.parser));
             s.spawn(|_| self.fileset.handle(&mut self.scripted_lists, &self.parser));
@@ -486,6 +493,7 @@ impl Everything {
         self.fileset.handle(&mut self.scripted_lists, &self.parser);
         self.fileset.handle(&mut self.scripted_modifiers, &self.parser);
         self.fileset.handle(&mut self.script_values, &self.parser);
+        self.fileset.handle(&mut self.music, &self.parser);
         self.load_json(Item::TerrainMask, TerrainMask::add_json);
     }
 
@@ -498,6 +506,7 @@ impl Everything {
         self.fileset.handle(&mut self.scripted_lists, &self.parser);
         self.fileset.handle(&mut self.scripted_modifiers, &self.parser);
         self.fileset.handle(&mut self.script_values, &self.parser);
+        self.fileset.handle(&mut self.music, &self.parser);
     }
 
     #[cfg(feature = "hoi4")]
@@ -505,6 +514,7 @@ impl Everything {
         self.fileset.handle(&mut self.events_hoi4, &self.parser);
         self.fileset.handle(&mut self.gfx, &self.parser);
         self.fileset.handle(&mut self.provinces_hoi4, &self.parser);
+        self.fileset.handle(&mut self.music_hoi4, &self.parser);
     }
 
     pub fn load_all(&mut self) {
@@ -532,7 +542,6 @@ impl Everything {
         s.spawn(|_| self.assets.validate(self));
         s.spawn(|_| self.gui.validate(self));
         s.spawn(|_| self.on_actions.validate(self));
-        s.spawn(|_| self.music.validate(self));
     }
 
     #[cfg(feature = "ck3")]
@@ -556,6 +565,7 @@ impl Everything {
         s.spawn(|_| self.scripted_lists.validate(self));
         s.spawn(|_| self.scripted_modifiers.validate(self));
         s.spawn(|_| self.script_values.validate(self));
+        s.spawn(|_| self.music.validate(self));
         s.spawn(|_| Climate::validate_all(&self.database, self));
     }
 
@@ -569,6 +579,7 @@ impl Everything {
         s.spawn(|_| self.scripted_lists.validate(self));
         s.spawn(|_| self.scripted_modifiers.validate(self));
         s.spawn(|_| self.script_values.validate(self));
+        s.spawn(|_| self.music.validate(self));
         s.spawn(|_| StrategicRegion::crosscheck(self));
         s.spawn(|_| BuyPackage::crosscheck(self));
     }
@@ -582,6 +593,7 @@ impl Everything {
         s.spawn(|_| self.scripted_lists.validate(self));
         s.spawn(|_| self.scripted_modifiers.validate(self));
         s.spawn(|_| self.script_values.validate(self));
+        s.spawn(|_| self.music.validate(self));
     }
 
     #[cfg(feature = "hoi4")]
@@ -589,6 +601,7 @@ impl Everything {
         s.spawn(|_| self.events_hoi4.validate(self));
         s.spawn(|_| self.provinces_hoi4.validate(self));
         s.spawn(|_| self.gfx.validate(self));
+        s.spawn(|_| self.music_hoi4.validate(self));
     }
 
     pub fn validate_all(&self) {
@@ -665,6 +678,7 @@ impl Everything {
             Item::GeneticConstraint => self.traits.constraint_exists(key),
             Item::MenAtArms => self.menatarmstypes.exists(key),
             Item::MenAtArmsBase => self.menatarmstypes.base_exists(key),
+            Item::Music => self.music.exists(key),
             Item::PrisonType => PRISON_TYPES.contains(&key),
             Item::Province => self.provinces_ck3.exists(key),
             Item::RewardItem => REWARD_ITEMS.contains(&key),
@@ -701,6 +715,7 @@ impl Everything {
             Item::GeneAttribute => self.assets.attribute_exists(key),
             Item::InfamyThreshold => INFAMY_THRESHOLDS.contains(&key),
             Item::Level => LEVELS.contains(&key),
+            Item::Music => self.music.exists(key),
             Item::RelationsThreshold => RELATIONS.contains(&key),
             Item::ScriptedList => self.scripted_lists.exists(key),
             Item::ScriptedModifier => self.scripted_modifiers.exists(key),
@@ -725,6 +740,7 @@ impl Everything {
             Item::Event => self.events.exists(key),
             Item::EventNamespace => self.events.namespace_exists(key),
             Item::GeneAttribute => self.assets.attribute_exists(key),
+            Item::Music => self.music.exists(key),
             Item::Province => self.provinces_imperator.exists(key),
             Item::ScriptedList => self.scripted_lists.exists(key),
             Item::ScriptedModifier => self.scripted_modifiers.exists(key),
@@ -740,6 +756,8 @@ impl Everything {
             Item::AiStrategyType => AI_STRATEGY_TYPES.contains(&key),
             Item::Event => self.events_hoi4.exists(key),
             Item::EventNamespace => self.events_hoi4.namespace_exists(key),
+            Item::Music => self.music_hoi4.exists(key),
+            Item::MusicAsset => self.assets.music_exists(key),
             Item::Pdxmesh => self.gfx.mesh_exists(key),
             Item::Province => self.provinces_hoi4.exists(key),
             Item::Sprite => self.gfx.sprite_exists(key),
@@ -759,7 +777,6 @@ impl Everything {
             Item::GuiTemplate => self.gui.template_exists(key),
             Item::GuiType => self.gui.type_exists(&Lowercase::new(key)),
             Item::Localization => self.localization.exists(key),
-            Item::Music => self.music.exists(key),
             Item::OnAction => self.on_actions.exists(key),
             #[cfg(feature = "jomini")]
             Item::Pdxmesh => self.assets.mesh_exists(key),
@@ -875,7 +892,16 @@ impl Everything {
             Item::Entry => self.fileset.verify_entry_exists(key, token, max_sev),
             Item::File => self.fileset.verify_exists_implied(key, token, max_sev),
             Item::Localization => self.localization.verify_exists_implied(key, token, max_sev),
-            Item::Music => self.music.verify_exists_implied(key, token, max_sev),
+            Item::Music => match Game::game() {
+                #[cfg(feature = "ck3")]
+                Game::Ck3 => self.music.verify_exists_implied(key, token, max_sev),
+                #[cfg(feature = "vic3")]
+                Game::Vic3 => self.music.verify_exists_implied(key, token, max_sev),
+                #[cfg(feature = "imperator")]
+                Game::Imperator => self.music.verify_exists_implied(key, token, max_sev),
+                #[cfg(feature = "hoi4")]
+                Game::Hoi4 => self.music_hoi4.verify_exists_implied(key, token, max_sev),
+            },
             Item::Province => match Game::game() {
                 #[cfg(feature = "ck3")]
                 Game::Ck3 => self.provinces_ck3.verify_exists_implied(key, token, max_sev),
@@ -1058,6 +1084,7 @@ impl Everything {
             Item::GeneticConstraint => Box::new(self.traits.iter_constraint_keys()),
             Item::MenAtArms => Box::new(self.menatarmstypes.iter_keys()),
             Item::MenAtArmsBase => Box::new(self.menatarmstypes.iter_base_keys()),
+            Item::Music => Box::new(self.music.iter_keys()),
             Item::Province => Box::new(self.provinces_ck3.iter_keys()),
             Item::ScriptedList => Box::new(self.scripted_lists.iter_keys()),
             Item::ScriptedModifier => Box::new(self.scripted_modifiers.iter_keys()),
@@ -1078,6 +1105,7 @@ impl Everything {
             Item::CoaTemplate => Box::new(self.coas.iter_template_keys()),
             Item::Event => Box::new(self.events.iter_keys()),
             Item::EventNamespace => Box::new(self.events.iter_namespace_keys()),
+            Item::Music => Box::new(self.music.iter_keys()),
             Item::GeneAttribute => Box::new(self.assets.iter_attribute_keys()),
             Item::ScriptedList => Box::new(self.scripted_lists.iter_keys()),
             Item::ScriptedModifier => Box::new(self.scripted_modifiers.iter_keys()),
@@ -1095,6 +1123,7 @@ impl Everything {
             Item::Event => Box::new(self.events.iter_keys()),
             Item::EventNamespace => Box::new(self.events.iter_namespace_keys()),
             Item::GeneAttribute => Box::new(self.assets.iter_attribute_keys()),
+            Item::Music => Box::new(self.music.iter_keys()),
             Item::Province => Box::new(self.provinces_imperator.iter_keys()),
             Item::ScriptedList => Box::new(self.scripted_lists.iter_keys()),
             Item::ScriptedModifier => Box::new(self.scripted_modifiers.iter_keys()),
@@ -1108,6 +1137,8 @@ impl Everything {
         match itype {
             Item::Event => Box::new(self.events_hoi4.iter_keys()),
             Item::EventNamespace => Box::new(self.events_hoi4.iter_namespace_keys()),
+            Item::Music => Box::new(self.music_hoi4.iter_keys()),
+            Item::MusicAsset => Box::new(self.assets.iter_music_keys()),
             Item::Pdxmesh => Box::new(self.gfx.iter_mesh_keys()),
             Item::Province => Box::new(self.provinces_hoi4.iter_keys()),
             Item::Sprite => Box::new(self.gfx.iter_sprite_keys()),
@@ -1126,7 +1157,6 @@ impl Everything {
             Item::GuiTemplate => Box::new(self.gui.iter_template_keys()),
             Item::GuiType => Box::new(self.gui.iter_type_keys()),
             Item::Localization => Box::new(self.localization.iter_keys()),
-            Item::Music => Box::new(self.music.iter_keys()),
             Item::OnAction => Box::new(self.on_actions.iter_keys()),
             #[cfg(feature = "jomini")]
             Item::Pdxmesh => Box::new(self.assets.iter_mesh_keys()),

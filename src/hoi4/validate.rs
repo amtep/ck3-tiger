@@ -1,6 +1,7 @@
 use crate::block::Block;
 use crate::everything::Everything;
 use crate::item::Item;
+use crate::report::{err, ErrorKey};
 use crate::validator::Validator;
 
 pub fn validate_rules(block: &Block, data: &Everything) {
@@ -25,7 +26,13 @@ pub fn validate_rules(block: &Block, data: &Everything) {
 
 pub fn validate_equipment_bonus(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    vd.validate_item_key_blocks(Item::EquipmentBonusType, |_, block, data| {
+    vd.unknown_block_fields(|key, block| {
+        if !data.item_exists(Item::EquipmentBonusType, key.as_str())
+            && !data.item_exists(Item::EquipmentGroup, key.as_str())
+        {
+            let msg = format!("`{key}` not found as equipment bonus type or equipment group");
+            err(ErrorKey::MissingItem).msg(msg).loc(key).push();
+        }
         let mut vd = Validator::new(block, data);
         vd.field_bool("instant");
         vd.validate_item_key_values(Item::EquipmentStat, |_, mut vd| {

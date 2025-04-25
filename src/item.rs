@@ -117,6 +117,7 @@ pub enum Item {
     MapMode,
     Modifier,
     Music,
+    #[cfg(feature = "jomini")]
     MusicPlayerCategory,
     #[cfg(feature = "jomini")]
     NamedColor,
@@ -562,6 +563,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] IndustrialOrgBonusWeight,
     #[cfg(feature = "hoi4")] IndustrialOrgPolicy,
     #[cfg(feature = "hoi4")] IndustrialOrgTrait,
+    #[cfg(feature = "hoi4")] MusicAsset,
     #[cfg(feature = "hoi4")] NationalFocus,
     #[cfg(feature = "hoi4")] NationalFocusStyle,
     #[cfg(feature = "hoi4")] NationalFocusTree,
@@ -735,6 +737,7 @@ impl Item {
                 Game::Hoi4 => "common/modifiers/", // TODO HOI4
             },
             Item::Music => "music/",
+            #[cfg(feature = "jomini")]
             Item::MusicPlayerCategory => "music/music_player_categories/",
             #[cfg(feature = "jomini")]
             Item::NamedColor => "common/named_colors/",
@@ -1631,6 +1634,8 @@ impl Item {
             Item::IndustrialOrgPolicy => "common/military_industrial_organization/policies/",
             #[cfg(feature = "hoi4")]
             Item::IndustrialOrgTrait => "common/military_industrial_organization/organizations/",
+            #[cfg(feature = "hoi4")]
+            Item::MusicAsset => "music/",
             #[cfg(feature = "hoi4")]
             Item::NationalFocus => "common/national_focus/",
             #[cfg(feature = "hoi4")]
