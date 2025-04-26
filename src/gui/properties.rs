@@ -850,7 +850,7 @@ impl WidgetProperty {
             wrap_count => GameFlags::Vic3,
 
             frame_tier | ondatacontextchanged | dragdropid | dragdropargs | forcedown | url
-            | bottomtotop | onleave_signal | onenter_signal => GameFlags::Imperator,
+            | onleave_signal | onenter_signal => GameFlags::Imperator,
 
             _ => GameFlags::all(),
         }
