@@ -383,6 +383,12 @@ pub fn validate_effect_field(
                     validate_identifier(token, kind, Severity::Error);
                 }
             }
+            #[cfg(feature = "hoi4")]
+            Effect::Value => {
+                if let Some(token) = bv.expect_value() {
+                    validate_target(token, data, sc, Scopes::Value);
+                }
+            }
             Effect::Removed(version, explanation) => {
                 let msg = format!("`{key}` was removed in {version}");
                 warn(ErrorKey::Removed).msg(msg).info(explanation).loc(key).push();
@@ -733,6 +739,11 @@ pub enum Effect {
     Vbv(fn(&Token, &BV, &Everything, &mut ScopeContext, Tooltipped)),
     /// The effect takes a value that will be validated by this function
     Vv(fn(&Token, ValueValidator, &mut ScopeContext, Tooltipped)),
-    /// The effect takes a single word
+    /// The effect takes a single word.
+    /// The parameter is a description of what kind of identifier is expected.
     Identifier(&'static str),
+    /// The effect takes a number or an expression that produces a value.
+    /// This is for Hoi4 which doesn't have script values.
+    #[cfg(feature = "hoi4")]
+    Value,
 }

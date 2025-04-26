@@ -730,15 +730,14 @@ fn match_trigger_bv(
         Trigger::CompareValue => {
             must_be_eq = false;
             // TODO: check side_effects
-            #[cfg(feature = "jomini")]
-            validate_script_value(bv, data, sc);
-            // TODO HOI4
-        }
-        #[cfg(feature = "hoi4")]
-        Trigger::CompareValueInt => {
-            must_be_eq = false;
-            if let Some(value) = bv.expect_value() {
-                value.expect_integer();
+            if Game::is_jomini() {
+                #[cfg(feature = "jomini")]
+                validate_script_value(bv, data, sc);
+            } else {
+                #[cfg(feature = "hoi4")]
+                if let Some(token) = bv.expect_value() {
+                    validate_target(token, data, sc, Scopes::Value);
+                }
             }
         }
         #[cfg(any(feature = "ck3", feature = "hoi4"))]
@@ -1663,9 +1662,6 @@ pub enum Trigger {
     Boolean,
     /// can be a script value
     CompareValue,
-    /// value must be an integer
-    #[cfg(feature = "hoi4")]
-    CompareValueInt,
     /// can be a script value; warn if =
     #[cfg(any(feature = "ck3", feature = "hoi4"))]
     CompareValueWarnEq,
@@ -1763,13 +1759,9 @@ pub fn trigger_comparevalue(name: &Token, data: &Everything) -> Option<Scopes> {
         #[cfg(feature = "imperator")]
         Some((s, Trigger::CompareValue | Trigger::CompareDate)) => Some(s),
         #[cfg(feature = "hoi4")]
-        Some((
-            s,
-            Trigger::CompareValue
-            | Trigger::CompareValueWarnEq
-            | Trigger::CompareValueInt
-            | Trigger::CompareDate,
-        )) => Some(s),
+        Some((s, Trigger::CompareValue | Trigger::CompareValueWarnEq | Trigger::CompareDate)) => {
+            Some(s)
+        }
         _ => std::option::Option::None,
     }
 }
