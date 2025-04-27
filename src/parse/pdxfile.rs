@@ -181,7 +181,7 @@ fn define_var(memory: &mut CombinedMemory, token: &Token, cmp: Comparator, value
     if memory.has_variable(name) {
         let msg = format!("`{name}` is already defined as a reader variable");
         err(ErrorKey::ReaderDirectives).msg(msg).loc(token).push();
-    } else if !name.starts_with(|c: char| c.is_ascii_alphabetic()) {
+    } else if Game::is_jomini() && !name.starts_with(|c: char| c.is_ascii_alphabetic()) {
         let msg = "reader variable names must start with an ascii letter";
         err(ErrorKey::ReaderDirectives).msg(msg).loc(token).push();
     } else {

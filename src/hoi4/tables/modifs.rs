@@ -119,13 +119,17 @@ pub fn lookup_modif(name: &Token, data: &Everything, warn: Option<Severity>) -> 
     // $IdeaCategory$_cost_factor
     // undocumented: advisor slots also count as idea categories
     // $Technology$_cost_factor
+    // undocumented: $TechnologyCategory$_cost_factor
     if let Some(part) = name_lc.strip_suffix_unchecked("_cost_factor") {
         if let Some(sev) = warn {
             if !data.item_exists_lc(Item::IdeaCategory, &part)
-                && !data.item_exists_lc(Item::Technology, &part)
                 && !data.item_exists_lc(Item::AdvisorSlot, &part)
+                && !data.item_exists_lc(Item::Technology, &part)
+                && !data.item_exists_lc(Item::TechnologyCategory, &part)
             {
-                let msg = format!("{part} not found as idea category or technology");
+                let msg = format!(
+                    "{part} not found as idea category, technology, or technology category"
+                );
                 let info = format!("so the modifier {name} does not exist");
                 report(ErrorKey::MissingItem, sev).msg(msg).info(info).loc(name).push();
             }
@@ -1161,6 +1165,12 @@ const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[
     ("army_defence_against_major_factor", "MODIFIERS_ARMY_DEFENCE_AGAINST_MAJOR_FACTOR"),
     ("army_defence_factor", "MODIFIERS_ARMY_DEFENCE_FACTOR"),
     ("breakthrough_factor", "MODIFIER_BREAKTHROUGH"),
+    ("experience_gain_air", "MODIFIER_XP_GAIN_AIR"),
+    ("experience_gain_air_factor", "MODIFIER_XP_GAIN_AIR_FACTOR"),
+    ("experience_gain_army", "MODIFIER_XP_GAIN_AIR"),
+    ("experience_gain_army_factor", "MODIFIER_XP_GAIN_AIR_FACTOR"),
+    ("experience_gain_navy", "MODIFIER_XP_GAIN_AIR"),
+    ("experience_gain_navy_factor", "MODIFIER_XP_GAIN_AIR_FACTOR"),
     ("generate_wargoal_tension", "MODIFIER_GENERATE_WARGOAL_TENSION_LIMIT"),
     (
         "generate_wargoal_tension_against_country",

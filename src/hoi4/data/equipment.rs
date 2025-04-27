@@ -114,11 +114,17 @@ impl DbKind for Equipment {
         vd.field_bool("is_convertable");
         vd.field_bool("can_license");
         vd.field_bool("carrier_capable");
+        vd.field_bool("mountaineers");
+        vd.field_numeric("default_carrier_composition_weight");
         vd.field_integer("priority");
         vd.field_item("archetype", Item::Equipment);
         vd.field_item("parent", Item::Equipment);
         vd.field_bool("is_frame");
         vd.field_choice("type", TYPES);
+        vd.field_value("type_override"); // TODO: where are these defined?
+        vd.field_value("model"); // TODO: what is this?
+        vd.field_item("alias", Item::Equipment);
+        vd.field_item("derived_variant_name", Item::Equipment);
 
         if is_archetype {
             if let Some(picture) = vd.field_value("picture") {
@@ -167,9 +173,12 @@ impl DbKind for Equipment {
         vd.field_integer("interface_overview_category_index");
         vd.field_item("substitute", Item::Equipment);
 
+        vd.field_bool("offensive_weapons");
         vd.field_integer("build_cost_ic");
         vd.field_integer("lend_lease_cost");
         vd.field_numeric("fuel_consumption");
+        vd.field_numeric("naval_supremacy_factor");
+        vd.field_numeric("naval_weather_penalty_factor");
 
         vd.field_integer("visual_level");
         vd.field_integer("visual_tech_level_addition");
@@ -185,6 +194,8 @@ impl DbKind for Equipment {
                 }
             });
         }
+
+        vd.field_bool("supply_truck");
 
         vd.advice_field("max_organization", "it's max_organisation with an s");
         vd.unknown_value_fields(|key, value| {

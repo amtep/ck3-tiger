@@ -58,14 +58,23 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     vd.field_item("picture", Item::Sprite);
 
     vd.field_bool("fire_only_once");
+    vd.field_bool("fire_for_sender");
     vd.field_bool("minor_flavor");
     vd.field_bool("major");
     vd.field_bool("is_triggered_only");
     vd.field_bool("hidden");
-    let hidden = event.block.field_value_is("hidden", "yes");
+    let hidden = event.block.get_field_bool("hidden").unwrap_or(false);
     if hidden {
         tooltipped_immediate = Tooltipped::No;
         tooltipped = Tooltipped::No;
+    }
+
+    if event.block.get_field_bool("major").unwrap_or(false) {
+        vd.field_validated_block("show_major", |block, data| {
+            validate_trigger(block, data, sc, Tooltipped::No);
+        });
+    } else {
+        vd.ban_field("show_major", || "major = yes");
     }
 
     vd.field_item("dlc", Item::Dlc);
@@ -85,6 +94,7 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
         vd.multi_field_numeric("factor");
         validate_modifiers(&mut vd, sc);
     });
+    vd.field_integer("timeout_days");
 
     if !hidden {
         vd.req_field("option");

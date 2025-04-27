@@ -4,7 +4,9 @@ use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
+use crate::lowercase::Lowercase;
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::report::Severity;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
@@ -51,7 +53,13 @@ impl Decision {
 
 impl DbKind for Decision {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        data.verify_exists(Item::DecisionCategory, &self.category);
+        // verified that the comparison is case insensitive here
+        data.verify_exists_implied_max_sev_lc(
+            Item::DecisionCategory,
+            &Lowercase::new(self.category.as_str()),
+            &self.category,
+            Severity::Error,
+        );
         validate_decision(key, block, data, false);
     }
 }

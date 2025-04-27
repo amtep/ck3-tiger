@@ -947,6 +947,29 @@ impl Everything {
         }
     }
 
+    #[allow(dead_code)]
+    pub(crate) fn verify_exists_implied_max_sev_lc(
+        &self,
+        itype: Item,
+        key: &Lowercase,
+        token: &Token,
+        max_sev: Severity,
+    ) {
+        if !self.item_exists_lc(itype, key) {
+            let path = itype.path();
+            let msg = if path.is_empty() {
+                format!("unknown {itype} {key}")
+            } else {
+                format!("{itype} {key} not defined in {path}")
+            };
+            report(ErrorKey::MissingItem, itype.severity().at_most(max_sev))
+                .conf(itype.confidence())
+                .msg(msg)
+                .loc(token)
+                .push();
+        }
+    }
+
     pub(crate) fn verify_exists_implied(&self, itype: Item, key: &str, token: &Token) {
         self.verify_exists_implied_max_sev(itype, key, token, Severity::Error);
     }
