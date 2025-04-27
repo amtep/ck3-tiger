@@ -712,7 +712,7 @@ impl<'a> ValueParser<'a> {
                     }
                 }
             }
-            if self.peek().map_or(true, char::is_whitespace) {
+            if self.peek().is_none_or(char::is_whitespace) {
                 self.next_char();
             } else {
                 let msg = "#markup should be followed by a space";
