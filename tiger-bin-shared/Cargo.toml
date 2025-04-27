@@ -7,7 +7,7 @@ description = "Shared binary library for ck3-tiger, vic3-tiger, and imperator-ti
 homepage = "https://github.com/amtep/ck3-tiger"
 repository = "https://github.com/amtep/ck3-tiger"
 readme = "../README.md"
-rust-version = "1.80"
+rust-version = "1.84"
 
 [dependencies]
 tiger-lib = { path = "..", version = "1.6.1", default-features = false }
