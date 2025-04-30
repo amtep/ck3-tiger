@@ -41,9 +41,11 @@ pub fn validate_scripted_animation(bv: &BV, data: &Everything, sc: &mut ScopeCon
                     validate_trigger(block, data, sc, Tooltipped::No);
                 });
                 vd.field_validated("animation", validate_animation);
+                vd.field_item("camera", Item::PortraitCamera);
             });
             vd.field_validated("animation", validate_animation);
             vd.field_item("scripted_animation", Item::ScriptedAnimation);
+            vd.field_item("camera", Item::PortraitCamera);
         }
     }
 }

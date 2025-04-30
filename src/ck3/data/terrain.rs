@@ -86,8 +86,8 @@ impl DbKind for Terrain {
         vd.field_block("defender_combat_effects"); // TODO
 
         vd.field_numeric("combat_width");
-        vd.field_bool("is_desert");
-        vd.field_bool("is_jungle");
+        vd.advice_field("is_desert", "removed in 1.16");
+        vd.advice_field("is_jungle", "removed in 1.16");
         vd.field_numeric("audio_parameter"); // TODO: ??
 
         vd.field_validated_block("province_modifier", |block, data| {
@@ -100,7 +100,7 @@ impl DbKind for Terrain {
         });
         vd.field_numeric("provision_cost");
 
-        // undocumented
+        vd.field_numeric("county_fertility");
 
         vd.field_item("entity", Item::Entity);
     }

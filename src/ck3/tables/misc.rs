@@ -1,12 +1,13 @@
 //! Miscellaneous tables used to back `Item` variants.
 
-// LAST UPDATED CK3 VERSION 1.15
+// LAST UPDATED CK3 VERSION 1.16
 // Taken from common/character_interactions/_character_interactions.info
 pub const AI_TARGETS: &[&str] = &[
     "known_secrets",
     "scheme_targets",
     "hooked_characters",
     "neighboring_rulers",
+    "neighboring_rulers_including_tributary_borders",
     "peer_vassals",
     "guests",
     "dynasty",
@@ -16,7 +17,9 @@ pub const AI_TARGETS: &[&str] = &[
     "sub_realm_characters",
     "realm_characters",
     "vassals",
+    "tributaries",
     "liege",
+    "suzerain",
     "self",
     "head_of_faith",
     "spouses",
@@ -70,7 +73,7 @@ pub const ARTIFACT_HISTORY: &[&str] = &[
     "reforged",
 ];
 
-/// LAST UPDATED CK3 VERSION 1.13.0.1
+/// LAST UPDATED CK3 VERSION 1.16
 /// Taken from `has_dlc_feature` in triggers.log
 pub const DLC_FEATURES_CK3: &[&str] = &[
     "garments_of_the_hre",
@@ -100,8 +103,11 @@ pub const DLC_FEATURES_CK3: &[&str] = &[
     "wandering_nobles",
     "west_slavic_attire",
     "medieval_monuments",
+    "khans_of_the_steppe",
+    "nomads",
     "arctic_attire",
     "crowns_of_the_world",
+    "landless_adventurer",
 ];
 
 /// A list of music provided by DLCs, for people who don't have them
@@ -232,6 +238,9 @@ pub const GOVERNMENT_RULES: &[&str] = &[
     "mercenary",
     "use_title_tier_modifiers",
     "inherit_from_dynastic_government",
+    "dynasty_named_realms",
+    "deny_powerful_vassal",
+    "use_maa_maintenance",
     "state_faith",                    // undocumented
     "allow_out_of_realm_inheritance", // undocumented
 ];
@@ -437,6 +446,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/pool_character_selectors",
     "common/portrait_types",
     "common/province_terrain",
+    "common/raids/intents",
     "common/religion/doctrines",
     "common/religion/fervor_modifiers",
     "common/religion/holy_sites",
@@ -458,9 +468,13 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/scripted_rules",
     "common/scripted_triggers",
     "common/secret_types",
+    "common/situation/catalysts",
+    "common/situation/situations",
     "common/story_cycles",
     "common/struggle/catalysts",
     "common/struggle/struggles",
+    "common/subject_contracts/contracts",
+    "common/subject_contracts/groups",
     "common/succession_appointment",
     "common/succession_election",
     "common/suggestions",
@@ -474,7 +488,6 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/trigger_localization",
     "common/tutorial_lesson_chains",
     "common/tutorial_lessons",
-    "common/vassal_contracts",
     "common/vassal_stances",
 ];
 

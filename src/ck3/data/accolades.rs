@@ -1,5 +1,7 @@
 use crate::block::Block;
-use crate::ck3::data::maa::{validate_terrain_bonus, validate_winter_bonus};
+use crate::ck3::data::maa::{
+    validate_holding_bonus, validate_terrain_bonus, validate_winter_bonus,
+};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
@@ -170,6 +172,13 @@ impl DbKind for AccoladeType {
                     vd.unknown_block_fields(|key, block| {
                         data.verify_exists(Item::MenAtArms, key);
                         validate_terrain_bonus(block, data);
+                    });
+                });
+                vd.field_validated_block("holding_bonus", |block, data| {
+                    let mut vd = Validator::new(block, data);
+                    vd.unknown_block_fields(|key, block| {
+                        data.verify_exists(Item::MenAtArms, key);
+                        validate_holding_bonus(block, data);
                     });
                 });
                 vd.field_validated_block("winter_bonus", |block, data| {

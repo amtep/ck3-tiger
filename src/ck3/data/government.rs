@@ -88,6 +88,7 @@ impl DbKind for Government {
         vd.field_item("primary_holding", Item::HoldingType);
         vd.field_list_items("valid_holdings", Item::HoldingType);
         vd.field_list_items("required_county_holdings", Item::HoldingType);
+        vd.field_item("generated_character_template", Item::CharacterTemplate);
 
         vd.field_list_items("primary_heritages", Item::CultureHeritage);
         vd.field_list_items("preferred_religions", Item::Religion);

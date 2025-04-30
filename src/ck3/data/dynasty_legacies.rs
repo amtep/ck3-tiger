@@ -92,7 +92,7 @@ impl DbKind for DynastyPerk {
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
 
-        vd.multi_field_item("unlock_maa", Item::MenAtArms);
+        vd.advice_field("unlock_maa", "removed in 1.16");
         vd.field_item("trait", Item::Trait);
         vd.field_validated_block("traits", |block, data| {
             let mut vd = Validator::new(block, data);

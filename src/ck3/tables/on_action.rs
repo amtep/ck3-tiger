@@ -607,4 +607,86 @@ pub const ON_ACTION_SCOPES: &str = "
 		root = character
 		old_liege = character
 	}
+
+	on_mercenary_company_hired = {
+		root = mercenary_company
+		employer = character
+	}
+	on_mercenary_company_dismissed = {
+		root = mercenary_company
+		old_employer = character
+	}
+
+	on_confederation_join = {
+		root = character
+		confederation = confederation
+	}
+	on_confederation_leave = on_confederation_join
+
+	on_combat_unit_join_side = {
+		root = combat_side
+		army = army
+	}
+	on_combat_start = {
+		root = combat
+	}
+
+	on_scheme_opportunity_changed = {
+		root = scheme
+		scheme = scheme
+		old_value = value
+		new_value = value
+	}
+
+	on_become_independent_after_grant_title_at_vassal_limit = {
+		root = character
+		actor = character
+		recipient = character
+	}
+
+	on_migration_travel_end = {
+		root = character
+		actor = character
+		recipient = character
+		target_title = landed_title
+		domain = landed_title
+	}
+	on_migration_war_end = {
+		root = character
+		actor = character
+		recipient = character
+		target_title = landed_title
+		domain = landed_title
+		war = war
+	}
+
+	on_holding_razed = {
+		root = character
+		province = province
+	}
+
+	on_government_change = {
+		root = character
+		old_government = government_type
+	}
+
+	on_kurultai_succession_stable = {
+		root = character
+		was_kurultai = bool
+		list = { kurultai_members = character }
+		list = { obedient_kurultai = character }
+		list = { disobedient_kurultai = character }
+	}
+	on_kurultai_succession_chaotic = on_kurultai_succession_stable
+
+	on_raid_intent_invalidated = {
+		root = army
+		raider = character
+	}
+
+	on_county_auto_granted_to_herder = {
+		root = landed_title
+		actor = character
+		recipient = character
+	}
 ";

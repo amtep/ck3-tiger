@@ -171,6 +171,7 @@ impl DbKind for Law {
                 ],
             );
             vd.field_choice("title_division", &["partition", "single_heir"]);
+            // TODO: children may only be used if title_division == partition
             vd.field_choice("traversal_order", &["children", "dynasty_house", "dynasty"]);
             vd.field_choice("rank", &["oldest", "youngest"]);
             if let Some(title_division) = block.get_field_value("title_division") {

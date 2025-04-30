@@ -119,6 +119,7 @@ impl DbKind for Culture {
         vd.field_item("heritage", Item::CultureHeritage);
         vd.field_item("language", Item::Language);
         vd.field_item("martial_custom", Item::MartialCustom);
+        vd.field_item("head_determination", Item::HeadDetermination);
 
         vd.field_list_items("traditions", Item::CultureTradition);
         vd.multi_field_item("name_list", Item::NameList);
@@ -179,13 +180,18 @@ impl DbKind for CulturePillar {
                 db.add_flag(Item::CultureHeritage, key.clone());
             } else if pillar.is("martial_custom") {
                 db.add_flag(Item::MartialCustom, key.clone());
+            } else if pillar.is("head_determination") {
+                db.add_flag(Item::HeadDetermination, key.clone());
             }
         }
     }
 
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        vd.field_choice("type", &["ethos", "heritage", "language", "martial_custom"]);
+        vd.field_choice(
+            "type",
+            &["ethos", "heritage", "language", "martial_custom", "head_determination"],
+        );
         vd.field_item("name", Item::Localization);
         if !block.has_key("name") {
             let loca = format!("{key}_name");
@@ -227,6 +233,11 @@ impl DbKind for CulturePillar {
             vd.field_value("audio_parameter");
         } else {
             vd.ban_field("audio_parameter", || "heritages");
+        }
+        if block.field_value_is("type", "head_determination") {
+            vd.field_value("head_determination_type");
+        } else {
+            vd.ban_field("head_determination_type", || "head_determination");
         }
         vd.field_validated_block("parameters", validate_parameters);
     }

@@ -1153,7 +1153,6 @@ fn match_trigger_bv(
             bv.expect_value();
             side_effects = true; // have to assume it's possible
         }
-        #[cfg(feature = "hoi4")]
         Trigger::UncheckedTodo => {
             side_effects = true; // have to assume it's possible
         }
@@ -1730,7 +1729,7 @@ pub enum Trigger {
     Special,
 
     UncheckedValue,
-    #[cfg(feature = "hoi4")]
+    #[allow(dead_code)]
     UncheckedTodo,
 }
 

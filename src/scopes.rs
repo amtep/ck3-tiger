@@ -11,10 +11,10 @@ use crate::item::Item;
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
 
-/// vic3 needs more than 64 bits, but the others don't.
-#[cfg(feature = "vic3")]
+/// vic3 and ck3 need more than 64 bits, but the others don't.
+#[cfg(any(feature = "vic3", feature = "ck3"))]
 type ScopesBits = u128;
-#[cfg(not(feature = "vic3"))]
+#[cfg(not(any(feature = "vic3", feature = "ck3")))]
 type ScopesBits = u64;
 
 bitflags! {
@@ -23,7 +23,7 @@ bitflags! {
     ///
     /// The available scope types depend on the game.
     /// They are listed in `event_scopes.log` from the game data dumps.
-    // LAST UPDATED CK3 VERSION 1.15.0
+    // LAST UPDATED CK3 VERSION 1.16.0
     // LAST UPDATED VIC3 VERSION 1.8.1
     // LAST UPDATED IR VERSION 2.0.4
     //
@@ -60,7 +60,6 @@ bitflags! {
         const State = 0x0000_1000;
         #[cfg(any(feature = "ck3", feature = "vic3", feature = "imperator"))]
         const War = 0x0000_2000;
-        // 0x0000_8000 is allocated for ck3
 
         // Scope types for CK3
         #[cfg(feature = "ck3")] const Accolade = 0x0001_0000;
@@ -115,7 +114,13 @@ bitflags! {
         #[cfg(feature = "ck3")] const CasusBelliType = 0x4000_0000_0000_0000;
         // CK3 1.15
         #[cfg(feature = "ck3")] const CourtPosition = 0x8000_0000_0000_0000;
-        #[cfg(feature = "ck3")] const CourtPositionType = 0x0000_8000; // avoid going to 128 bits
+        #[cfg(feature = "ck3")] const CourtPositionType = 0x0000_0000_0000_0001_0000_0000_0000_0000;
+        // CK3 1.16
+        #[cfg(feature = "ck3")] const Situation = 0x0000_0000_0000_0002_0000_0000_0000_0000;
+        #[cfg(feature = "ck3")] const SituationParticipantGroup = 0x0000_0000_0000_0004_0000_0000_0000_0000;
+        #[cfg(feature = "ck3")] const SituationSubRegion = 0x0000_0000_0000_0008_0000_0000_0000_0000;
+        #[cfg(feature = "ck3")] const Confederation = 0x0000_0000_0000_0010_0000_0000_0000_0000;
+
 
         #[cfg(feature = "vic3")] const Battle = 0x0001_0000;
         #[cfg(feature = "vic3")] const BattleSide = 0x0002_0000;

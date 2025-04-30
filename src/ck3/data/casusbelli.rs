@@ -171,18 +171,19 @@ impl DbKind for CasusBelli {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
-        // "claim" and "de_jure" choices are undocumented
         let choices = &[
             "none",
             "neighbor_land",
-            "neighbor_water",
             "neighbor_land_or_water",
+            "neighbor_land_tributary",
+            "neighbor_land_or_water_tributary",
             "de_jure_claim",
             "title_claim",
             "all",
+            // undocumented after here
             "claim",
             "de_jure",
-            "independence_domain", // undocumented
+            "independence_domain",
         ];
         vd.field_choice("target_titles", choices);
         let choices = &["all", "barony", "county", "duchy", "kingdom", "empire"];

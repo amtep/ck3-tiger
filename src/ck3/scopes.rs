@@ -7,7 +7,7 @@ use crate::everything::Everything;
 use crate::helpers::{display_choices, TigerHashMap};
 use crate::scopes::{ArgumentValue, Scopes};
 
-// LAST UPDATED CK3 VERSION 1.15.0
+// LAST UPDATED CK3 VERSION 1.16.0
 pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
     Some(match s {
         "none" => Scopes::None,
@@ -68,11 +68,15 @@ pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
         "casus_belli_type" => Scopes::CasusBelliType,
         "court_position" => Scopes::CourtPosition,
         "court_position_type" => Scopes::CourtPositionType,
+        "situation" => Scopes::Situation,
+        "situation_participant_group" => Scopes::SituationParticipantGroup,
+        "situation_sub_region" => Scopes::SituationSubRegion,
+        "confederation" => Scopes::Confederation,
         _ => return std::option::Option::None,
     })
 }
 
-// LAST UPDATED CK3 VERSION 1.15.0
+// LAST UPDATED CK3 VERSION 1.16.0
 pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
     let mut vec = Vec::new();
     if s.contains(Scopes::None) {
@@ -249,10 +253,22 @@ pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> 
     if s.contains(Scopes::CourtPositionType) {
         vec.push("court position type");
     }
+    if s.contains(Scopes::Situation) {
+        vec.push("situation");
+    }
+    if s.contains(Scopes::SituationParticipantGroup) {
+        vec.push("situation participant group");
+    }
+    if s.contains(Scopes::SituationSubRegion) {
+        vec.push("situation sub-region");
+    }
+    if s.contains(Scopes::Confederation) {
+        vec.push("confederation");
+    }
     display_choices(f, &vec, "or")
 }
 
-// LAST UPDATED CK3 VERSION 1.15.0
+// LAST UPDATED CK3 VERSION 1.16.0
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
     use crate::item::Item;
     if scopes == Scopes::AccoladeType && data.item_exists(Item::AccoladeType, arg) {
@@ -338,7 +354,7 @@ static SCOPE_TO_SCOPE_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.15.0
+/// LAST UPDATED CK3 VERSION 1.16.0
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
@@ -372,6 +388,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "commanding_army", Scopes::Army),
     (Scopes::Value, "compare_value", Scopes::Value), // special
     (Scopes::Character, "concubinist", Scopes::Character),
+    (Scopes::Character, "confederation", Scopes::Confederation),
     (Scopes::Character, "council_task", Scopes::CouncilTask), // also has a prefix form
     (Scopes::CouncilTask, "councillor", Scopes::Character),
     (Scopes::Character, "councillor_task_target", Scopes::all()), // output scope depends on task
@@ -398,6 +415,8 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "diarch", Scopes::Character),
     (Scopes::Character, "diarchy_successor", Scopes::Character),
     (Scopes::Character, "domicile", Scopes::Domicile),
+    (Scopes::Domicile, "domicile_culture", Scopes::Culture),
+    (Scopes::Domicile, "domicile_faith", Scopes::Faith),
     (Scopes::Domicile, "domicile_location", Scopes::Province),
     (Scopes::LandedTitle.union(Scopes::Province), "duchy", Scopes::LandedTitle),
     (Scopes::Dynasty, "dynasty_founder", Scopes::Character),
@@ -435,8 +454,10 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::GreatHolyWar, "ghw_title_recipient", Scopes::Character),
     (Scopes::GreatHolyWar, "ghw_war", Scopes::War),
     (Scopes::GreatHolyWar, "ghw_war_declarer", Scopes::Character),
+    (Scopes::Character, "government_type", Scopes::GovernmentType),
     (Scopes::Faith, "great_holy_war", Scopes::GreatHolyWar),
     (Scopes::LandedTitle, "holder", Scopes::Character),
+    (Scopes::Character, "holding_type", Scopes::HoldingType),
     (Scopes::HolyOrder, "holy_order_patron", Scopes::Character),
     (Scopes::Character, "home_court", Scopes::Character),
     (Scopes::Character, "host", Scopes::Character),
@@ -473,8 +494,12 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::TravelPlan, "next_destination_province", Scopes::Province),
     (Scopes::TravelPlan, "next_location", Scopes::Province),
     (Scopes::None, "no", Scopes::Bool),
+    (Scopes::Character, "obedience_target", Scopes::Character),
     (Scopes::Epidemic, "outbreak_province", Scopes::Province),
+    (Scopes::Character, "overlord", Scopes::Character),
     (Scopes::Domicile, "owner", Scopes::Character),
+    (Scopes::SituationParticipantGroup, "participant_group_situation", Scopes::Situation),
+    (Scopes::SituationParticipantGroup, "participant_group_sub_region", Scopes::SituationSubRegion),
     (Scopes::Character, "player_heir", Scopes::Character),
     (Scopes::Character, "pregnancy_assumed_father", Scopes::Character),
     (Scopes::Character, "pregnancy_real_father", Scopes::Character),
@@ -526,11 +551,17 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Secret, "secret_target", Scopes::Character),
     (Scopes::CombatSide, "side_commander", Scopes::Character),
     (Scopes::CombatSide, "side_primary_participant", Scopes::Character),
+    (Scopes::Situation, "situation_top_gold", Scopes::Character),
+    (Scopes::Situation, "situation_top_herd", Scopes::Character),
+    (Scopes::Situation, "situation_top_provisions", Scopes::Character),
+    (Scopes::Situation, "situation_top_sub_region", Scopes::SituationSubRegion),
     (Scopes::AgentSlot, "slot_character", Scopes::Character),
     (Scopes::Faction, "special_character", Scopes::Character),
     (Scopes::Faction, "special_title", Scopes::LandedTitle),
     (Scopes::LandedTitle, "state_faith", Scopes::Faith),
     (Scopes::StoryCycle, "story_owner", Scopes::Character),
+    (Scopes::VassalObligationLevel, "subject_contract_type", Scopes::VassalContract),
+    (Scopes::Character, "suzerain", Scopes::Character),
     (Scopes::Scheme, "task_contract", Scopes::TaskContract),
     (Scopes::TaskContract, "task_contract_destination", Scopes::Province),
     (Scopes::TaskContract, "task_contract_employer", Scopes::Character),
@@ -543,11 +574,14 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::TaxSlot, "tax_slot_liege", Scopes::Character),
     (Scopes::HolyOrder, "title", Scopes::LandedTitle),
     (Scopes::LandedTitle, "title_capital_county", Scopes::LandedTitle),
+    (Scopes::LandedTitle, "title_domicile", Scopes::Domicile),
     (Scopes::LandedTitle, "title_province", Scopes::Province),
     (Scopes::TravelPlan, "travel_leader", Scopes::Character),
     (Scopes::TravelPlan, "travel_plan_activity", Scopes::Activity),
     (Scopes::TravelPlan, "travel_plan_owner", Scopes::Character),
     (Scopes::Character, "top_liege", Scopes::Character),
+    (Scopes::Character, "top_overlord", Scopes::Character),
+    (Scopes::Character, "top_suzerain", Scopes::Character),
     // "value" special
     (Scopes::VassalObligationLevel, "vassal_contract_type", Scopes::VassalContract),
     (Scopes::Character, "vassal_tax_collector", Scopes::Character),
@@ -570,7 +604,7 @@ static SCOPE_PREFIX_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes, Ar
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.15.0
+/// LAST UPDATED CK3 VERSION 1.16.0
 /// See `event_targets.log` from the game data dumps
 /// These are absolute scopes (like character:100000) and scope transitions that require
 /// a key (like `root.cp:councillor_steward`)
@@ -585,6 +619,19 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "array_define", Scopes::Value, UncheckedValue),
         (Scopes::None, "casus_belli_type", Scopes::CasusBelliType, Item(Item::CasusBelli)),
         (Scopes::None, "character", Scopes::Character, Item(Item::Character)),
+        (
+            Scopes::SituationSubRegion,
+            "character_participant_group",
+            Scopes::SituationParticipantGroup,
+            Scope(Scopes::Character),
+        ),
+        (
+            Scopes::Situation,
+            "character_top_participant_group",
+            Scopes::SituationParticipantGroup,
+            Scope(Scopes::Character),
+        ),
+        (Scopes::None, "contract_type", Scopes::VassalContract, Item(Item::VassalContract)),
         (Scopes::Character, "council_task", Scopes::CouncilTask, Item(Item::CouncilPosition)),
         (Scopes::Character, "court_position", Scopes::Character, Item(Item::CourtPosition)),
         (Scopes::None, "court_position_type", Scopes::CourtPositionType, Item(Item::CourtPosition)),
@@ -652,8 +699,28 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "province", Scopes::Province, Item(Item::Province)),
         (Scopes::None, "religion", Scopes::Religion, Item(Item::Religion)),
         (Scopes::None, "scope", Scopes::all(), UncheckedValue),
+        // TODO: "only available if the situation has is_unique = yes"
+        (Scopes::None, "situation", Scopes::Situation, Item(Item::Situation)),
+        (
+            Scopes::Situation,
+            "situation_participant_group",
+            Scopes::SituationParticipantGroup,
+            Item(Item::SituationParticipantGroup),
+        ),
+        (
+            Scopes::Situation,
+            "situation_sub_region",
+            Scopes::SituationSubRegion,
+            Item(Item::SituationSubRegion),
+        ),
         (Scopes::Activity, "special_guest", Scopes::Character, Item(Item::SpecialGuest)),
         (Scopes::None, "struggle", Scopes::Struggle, Item(Item::Struggle)),
+        (
+            Scopes::SituationSubRegion,
+            "sub_region_participant_group",
+            Scopes::SituationParticipantGroup,
+            Item(Item::SituationParticipantGroup),
+        ),
         (
             Scopes::None,
             "task_contract_type",
@@ -688,7 +755,7 @@ static SCOPE_ITERATOR_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>
         hash
     });
 
-/// LAST UPDATED CK3 VERSION 1.15.0
+/// LAST UPDATED CK3 VERSION 1.16.0
 /// See `effects.log` from the game data dumps
 /// These are the list iterators. Every entry represents
 /// a every_, ordered_, random_, and any_ version.
@@ -720,6 +787,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "character_artifact", Scopes::Artifact),
     (Scopes::Character, "character_epidemic", Scopes::Epidemic),
     (Scopes::Province, "character_in_location", Scopes::Character),
+    (Scopes::Character, "character_situation", Scopes::Situation),
     (Scopes::Character, "character_struggle", Scopes::Struggle),
     (Scopes::Character, "character_task_contract", Scopes::TaskContract),
     (
@@ -758,6 +826,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Combat, "combat_side", Scopes::CombatSide),
     (Scopes::None, "completed_legend", Scopes::Legend),
     (Scopes::Character, "concubine", Scopes::Character),
+    (Scopes::Confederation, "confederation_member", Scopes::Character),
     (Scopes::LandedTitle, "connected_county", Scopes::LandedTitle),
     (Scopes::Character, "consort", Scopes::Character),
     (Scopes::Character, "contact", Scopes::Character),
@@ -767,6 +836,8 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "county", Scopes::LandedTitle),
     (Scopes::None, "county_in_region", Scopes::LandedTitle),
     (Scopes::LandedTitle, "county_province", Scopes::Province),
+    (Scopes::LandedTitle, "county_situation", Scopes::Situation),
+    (Scopes::LandedTitle, "county_situation_sub_region", Scopes::SituationSubRegion),
     (Scopes::LandedTitle, "county_struggle", Scopes::Struggle),
     (Scopes::Character, "court_position_candidate", Scopes::Character),
     (Scopes::Character, "court_position_employer", Scopes::Character),
@@ -858,6 +929,8 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "kingdom", Scopes::LandedTitle),
     (Scopes::Character, "knight", Scopes::Character),
     (Scopes::Character, "known_secret", Scopes::Secret),
+    (Scopes::Character, "land_neighboring_realm_with_tributaries", Scopes::LandedTitle),
+    (Scopes::Character, "land_neighboring_realm_with_tributaries_owner", Scopes::Character),
     (Scopes::Character, "learning_councillor", Scopes::Character),
     (Scopes::HolyOrder, "leased_title", Scopes::LandedTitle),
     (Scopes::None, "legend", Scopes::Legend),
@@ -873,11 +946,15 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "neighboring_and_across_water_realm_same_rank_owner", Scopes::Character),
     (Scopes::Character, "neighboring_and_across_water_top_liege_realm", Scopes::LandedTitle),
     (Scopes::Character, "neighboring_and_across_water_top_liege_realm_owner", Scopes::Character),
+    (Scopes::Character, "neighboring_and_across_water_top_suzerain_realm", Scopes::LandedTitle),
+    (Scopes::Character, "neighboring_and_across_water_top_suzerain_realm_owner", Scopes::Character),
     (Scopes::LandedTitle, "neighboring_county", Scopes::LandedTitle),
     (Scopes::Province, "neighboring_province", Scopes::Province),
     (Scopes::Character, "neighboring_realm_same_rank_owner", Scopes::Character),
     (Scopes::Character, "neighboring_top_liege_realm", Scopes::LandedTitle),
     (Scopes::Character, "neighboring_top_liege_realm_owner", Scopes::Character),
+    (Scopes::Character, "neighboring_top_suzerain_realm", Scopes::LandedTitle),
+    (Scopes::Character, "neighboring_top_suzerain_realm_owner", Scopes::Character),
     (Scopes::Character, "noble_family", Scopes::LandedTitle),
     (Scopes::None, "open_invite_activity", Scopes::Activity),
     (Scopes::Character, "opposite_sex_spouse_candidate", Scopes::Character),
@@ -887,6 +964,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "parent", Scopes::Character),
     (Scopes::Culture, "parent_culture", Scopes::Culture),
     (Scopes::Culture, "parent_culture_or_above", Scopes::Culture),
+    (Scopes::Situation, "participant_group", Scopes::SituationParticipantGroup),
     (Scopes::LandedTitle, "past_holder", Scopes::Character),
     (Scopes::LandedTitle, "past_holder_reversed", Scopes::Character),
     (Scopes::Character, "patroned_holy_order", Scopes::HolyOrder),
@@ -921,6 +999,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "realm_province", Scopes::Province),
     (Scopes::Character, "relation", Scopes::Character), // TODO takes a type
     (Scopes::None, "religion_global", Scopes::Religion),
+    (Scopes::HoldingType, "required_heir_government_type", Scopes::GovernmentType),
     (Scopes::None, "ruler", Scopes::Character),
     (Scopes::Character, "same_sex_spouse_candidate", Scopes::Character),
     (Scopes::Character, "scheme", Scopes::Scheme),
@@ -932,6 +1011,23 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Character, "sibling", Scopes::Character),
     (Scopes::CombatSide, "side_commander", Scopes::Character),
     (Scopes::CombatSide, "side_knight", Scopes::Character),
+    (Scopes::CombatSide, "side_participant", Scopes::Character),
+    (Scopes::Situation, "situation_county", Scopes::LandedTitle),
+    (Scopes::Situation, "situation_participant", Scopes::Character),
+    (Scopes::Situation, "situation_sub_region", Scopes::SituationSubRegion),
+    (Scopes::SituationParticipantGroup, "situation_group_participant", Scopes::Character),
+    (Scopes::SituationSubRegion, "situation_sub_region_county", Scopes::LandedTitle),
+    (
+        Scopes::SituationSubRegion,
+        "situation_sub_region_geographical_region",
+        Scopes::GeographicalRegion,
+    ),
+    (Scopes::SituationSubRegion, "situation_sub_region_participant", Scopes::Character),
+    (
+        Scopes::SituationSubRegion,
+        "situation_sub_region_participant_group",
+        Scopes::SituationParticipantGroup,
+    ),
     (Scopes::None, "special_building_province", Scopes::Province),
     (Scopes::Activity, "special_guest", Scopes::Character),
     (Scopes::Character, "sponsored_inspiration", Scopes::Inspiration),
@@ -988,6 +1084,7 @@ const SCOPE_ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::None, "trait", Scopes::Trait),
     (Scopes::None, "trait_in_category", Scopes::Trait),
     (Scopes::Character, "traveling_family_member", Scopes::Character),
+    (Scopes::Character, "tributary", Scopes::Character),
     (Scopes::Character, "truce_holder", Scopes::Character),
     (Scopes::Character, "truce_target", Scopes::Character),
     (Scopes::Character, "unassigned_taxpayers", Scopes::Character),

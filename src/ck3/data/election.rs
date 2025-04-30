@@ -82,4 +82,6 @@ const CANDIDATE_TYPES: &[&str] = &[
     "holder_close_family",
     "holder_close_or_extended_family",
     "holder_dynasty",
+    "holder_council_members",
+    "holder_tributaries",
 ];

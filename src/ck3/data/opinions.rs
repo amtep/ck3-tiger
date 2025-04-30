@@ -30,6 +30,8 @@ impl DbKind for OpinionModifier {
 
         vd.field_integer("opinion");
 
+        // TODO: if true, must define either monthly_change or delay duration
+        // TODO: mutually exclusive with growing
         vd.field_bool("decaying");
         if block.get_field_bool("decaying").unwrap_or(false) {
             vd.field_integer("delay_days");
@@ -58,6 +60,8 @@ impl DbKind for OpinionModifier {
         vd.field_bool("execute_reason");
         vd.field_bool("revoke_title_reason");
         vd.field_bool("divorce_reason");
+
+        vd.field_bool("obedient");
 
         vd.advice_field("disable_non_aggression_pacts", "removed in 1.12");
         vd.advice_field("non_aggression_pact", "removed in 1.12");

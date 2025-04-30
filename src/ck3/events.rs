@@ -319,6 +319,7 @@ fn validate_triggered_animation(block: &Block, data: &Everything, sc: &mut Scope
     vd.field_validated_block("trigger", |b, data| {
         validate_trigger(b, data, sc, Tooltipped::No);
     });
+    vd.field_item("camera", Item::PortraitCamera);
     vd.req_field_one_of(&["animation", "scripted_animation"]);
     validate_animations(&mut vd);
 }

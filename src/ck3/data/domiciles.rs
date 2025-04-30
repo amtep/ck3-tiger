@@ -47,6 +47,11 @@ impl DbKind for DomicileType {
         vd.field_choice("map_pin_anchor", &["up", "right"]);
         vd.field_bool("map_pin_lobby");
         vd.field_bool("provisions");
+        vd.field_bool("travel");
+        vd.field_bool("herd");
+        vd.field_bool("culture_and_faith");
+        vd.field_bool("move_with_realm_capital");
+        vd.field_bool("can_move_manually");
         vd.field_validated_block_sc("move_cooldown", &mut sc, validate_duration);
         vd.field_validated_block_sc("move_cost", &mut sc, validate_cost);
         vd.multi_field_validated_key_block(
@@ -197,6 +202,11 @@ impl DbKind for DomicileBuilding {
         vd.field_validated_block("character_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+
+        vd.field_validated_block("province_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Province, vd);
         });
 
         // TODO: verify scope type

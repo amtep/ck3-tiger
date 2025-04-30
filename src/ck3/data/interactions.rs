@@ -135,7 +135,10 @@ impl DbKind for CharacterInteraction {
         vd.field_integer("ai_max_reply_days");
 
         vd.field_value("interface"); // TODO
-        vd.field_list_choice("custom_character_sort", &["candidate_score", "governor_efficiency"]);
+        vd.field_list_choice(
+            "custom_character_sort",
+            &["candidate_score", "governor_efficiency", "obedience"],
+        );
         vd.field_item("scheme", Item::Scheme);
         vd.field_bool("popup_on_receive");
         vd.field_bool("pause_on_receive");

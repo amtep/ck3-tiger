@@ -20,7 +20,8 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_target_ok_this, validate_trigger};
 use crate::validate::{
     validate_duration, validate_identifier, validate_mandatory_duration,
-    validate_optional_duration, validate_optional_duration_int, ListType,
+    validate_optional_duration, validate_optional_duration_int, validate_possibly_named_color,
+    ListType,
 };
 use crate::validator::{Builder, Validator, ValueValidator};
 
@@ -655,6 +656,18 @@ pub fn validate_create_character_memory(
     sc.define_name("new_memory", Scopes::CharacterMemory, key);
 }
 
+pub fn validate_create_confederation(
+    key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_validated_sc("name", sc, validate_desc);
+    sc.define_name("new_confederation", Scopes::Confederation, key);
+}
+
 pub fn validate_create_dynamic_title(
     key: &Token,
     _block: &Block,
@@ -669,7 +682,27 @@ pub fn validate_create_dynamic_title(
     vd.field_validated_sc("name", sc, validate_desc);
     vd.advice_field("adjective", "changed to adj in 1.13");
     vd.field_validated_sc("adj", sc, validate_desc);
+    vd.field_validated_sc("pre", sc, validate_desc);
+    vd.field_validated_sc("article", sc, validate_desc);
     sc.define_name("new_title", Scopes::LandedTitle, key);
+}
+
+pub fn validate_create_nomad_title(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_validated_sc("name", sc, validate_desc);
+    vd.field_validated_sc("prefix", sc, validate_desc);
+    vd.field_validated_sc("adjective", sc, validate_desc);
+    vd.field_target("holder", sc, Scopes::Character);
+    vd.field_item("government", Item::GovernmentType);
+    if let Some(name) = vd.field_identifier("save_scope_as", "scope name") {
+        sc.define_name_token(name.as_str(), Scopes::LandedTitle, name);
+    }
 }
 
 pub fn validate_create_holy_order(
@@ -1286,7 +1319,7 @@ pub fn validate_try_create_suggestion(
     vd.field_target_ok_this("landed_title", sc, Scopes::LandedTitle);
 }
 
-pub fn validate_vassal_contract_set_obligation_level(
+pub fn validate_contract_set_obligation_level(
     _key: &Token,
     _block: &Block,
     data: &Everything,
@@ -1866,6 +1899,7 @@ pub fn validate_create_adventurer_title(
     vd.field_target("holder", sc, Scopes::Character);
     vd.field_validated_sc("prefix", sc, validate_desc);
     vd.field_validated_sc("adjective", sc, validate_desc);
+    vd.field_item("government", Item::GovernmentType);
     if let Some(name) = vd.field_identifier("save_scope_as", "scope name") {
         sc.define_name_token(name.as_str(), Scopes::LandedTitle, name);
     }
@@ -1967,6 +2001,7 @@ pub fn validate_give_noble_family_title(
 ) {
     vd.field_validated_sc("name", sc, validate_desc);
     vd.field_validated_sc("article", sc, validate_desc);
+    vd.field_item("government", Item::GovernmentType);
     if let Some(name) = vd.field_identifier("save_scope_as", "scope name") {
         sc.define_name_token(name.as_str(), Scopes::LandedTitle, name);
     }
@@ -2041,4 +2076,118 @@ pub fn validate_appoint_court_position(
     vd.req_field("recipient");
     vd.field_item_or_target("court_position", sc, Item::CourtPosition, Scopes::CourtPositionType);
     vd.field_target("recipient", sc, Scopes::Character);
+}
+
+pub fn validate_add_takeover_phase_duration(
+    _key: &Token,
+    block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_item("phase", Item::SituationPhase);
+    validate_mandatory_duration(block, &mut vd, sc);
+}
+
+pub fn validate_add_takeover_phase_points(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_item("phase", Item::SituationPhase);
+    vd.field_script_value("points", sc);
+}
+
+pub fn validate_change_phase(
+    _key: &Token,
+    bv: &BV,
+    data: &Everything,
+    _sc: &mut ScopeContext,
+    _tooltipped: Tooltipped,
+) {
+    match bv {
+        BV::Value(value) => {
+            data.verify_exists(Item::SituationPhase, value);
+        }
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.field_item("phase", Item::SituationPhase);
+        }
+    }
+}
+
+pub fn validate_raze_county(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    _sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_item("holding_type", Item::HoldingType);
+    vd.field_bool("purge_secondary_holdings");
+    vd.multi_field_item("excluded_holding_type", Item::HoldingType);
+}
+
+pub fn validate_start_tributary(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_item("contract_group", Item::ContractGroup);
+    vd.field_target("suzerain", sc, Scopes::Character);
+}
+
+pub fn validate_start_situation(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.req_field("type");
+    vd.field_item("type", Item::Situation);
+    vd.field_item("start_phase", Item::SituationPhase);
+    if let Some(name) = vd.field_identifier("save_scope_as", "scope name") {
+        sc.define_name_token(name.as_str(), Scopes::Situation, name);
+    }
+    if let Some(name) = vd.field_identifier("save_temporary_scope_as", "scope name") {
+        sc.define_name_token(name.as_str(), Scopes::Situation, name);
+    }
+    vd.multi_field_validated_block("sub_region", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.req_field("key");
+        vd.field_item("key", Item::SituationSubRegion);
+        vd.field_item("start_phase", Item::SituationPhase);
+        vd.field_list_items("geographical_regions", Item::Region);
+        vd.field_validated("color", validate_possibly_named_color);
+    });
+}
+
+pub fn validate_situation_catalyst(
+    _key: &Token,
+    bv: &BV,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    _tooltipped: Tooltipped,
+) {
+    match bv {
+        BV::Value(value) => {
+            data.verify_exists(Item::SituationCatalyst, value);
+        }
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("catalyst");
+            vd.field_item("catalyst", Item::SituationCatalyst);
+            vd.field_target("character", sc, Scopes::Character);
+        }
+    }
 }

@@ -251,6 +251,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] CoaDynamicDefinition,
     #[cfg(feature = "ck3")] CombatEffect,
     #[cfg(feature = "ck3")] CombatPhaseEvent,
+    #[cfg(feature = "ck3")] ContractGroup,
     #[cfg(feature = "ck3")] CouncilPosition,
     #[cfg(feature = "ck3")] CouncilTask,
     #[cfg(feature = "ck3")] Countermeasure,
@@ -304,7 +305,8 @@ pub enum Item {
     #[cfg(feature = "ck3")] GuestInviteRule,
     #[cfg(feature = "ck3")] GuestSubset,
     #[cfg(feature = "ck3")] GuestSystem,
-    #[cfg(feature = "ck3")] HoldingFlag,
+    #[cfg(feature = "ck3")] HeadDetermination,
+    #[cfg(feature = "ck3")] HoldingParameter,
     #[cfg(feature = "ck3")] HoldingType,
     #[cfg(feature = "ck3")] HolySite,
     #[cfg(feature = "ck3")] HolySiteFlag,
@@ -351,6 +353,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] PortraitType,
     #[cfg(feature = "ck3")] PrisonType,
     #[cfg(feature = "ck3")] ProvinceMapping,
+    #[cfg(feature = "ck3")] RaidIntent,
     #[cfg(feature = "ck3")] Relation,
     #[cfg(feature = "ck3")] RelationFlag,
     #[cfg(feature = "ck3")] ReligionFamily,
@@ -362,6 +365,12 @@ pub enum Item {
     #[cfg(feature = "ck3")] ScriptedIllustration,
     #[cfg(feature = "ck3")] Secret,
     #[cfg(feature = "ck3")] Sexuality,
+    #[cfg(feature = "ck3")] Situation,
+    #[cfg(feature = "ck3")] SituationCatalyst,
+    #[cfg(feature = "ck3")] SituationParticipantGroup,
+    #[cfg(feature = "ck3")] SituationPhase,
+    #[cfg(feature = "ck3")] SituationPhaseParameter,
+    #[cfg(feature = "ck3")] SituationSubRegion,
     #[cfg(feature = "ck3")] Skill,
     #[cfg(feature = "ck3")] SpecialBuilding,
     #[cfg(feature = "ck3")] SpecialGuest,
@@ -1015,6 +1024,8 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::CombatPhaseEvent => "common/combat_phase_events/",
             #[cfg(feature = "ck3")]
+            Item::ContractGroup => "common/subject_contracts/groups/",
+            #[cfg(feature = "ck3")]
             Item::CouncilPosition => "common/council_positions/",
             #[cfg(feature = "ck3")]
             Item::CouncilTask => "common/council_tasks/",
@@ -1121,7 +1132,9 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::GuestSystem => "common/guest_system/",
             #[cfg(feature = "ck3")]
-            Item::HoldingFlag => "common/holdings/",
+            Item::HeadDetermination => "common/culture/pillars/",
+            #[cfg(feature = "ck3")]
+            Item::HoldingParameter => "common/holdings/",
             #[cfg(feature = "ck3")]
             Item::HoldingType => "common/holdings/",
             #[cfg(feature = "ck3")]
@@ -1215,6 +1228,8 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::PrisonType => "",
             #[cfg(feature = "ck3")]
+            Item::RaidIntent => "common/raids/intents/",
+            #[cfg(feature = "ck3")]
             Item::Relation => "common/scripted_relations/",
             #[cfg(feature = "ck3")]
             Item::RelationFlag => "common/scripted_relations/",
@@ -1236,6 +1251,18 @@ impl Item {
             Item::Secret => "common/secret_types/",
             #[cfg(feature = "ck3")]
             Item::Sexuality => "",
+            #[cfg(feature = "ck3")]
+            Item::Situation => "common/situation/situations/",
+            #[cfg(feature = "ck3")]
+            Item::SituationCatalyst => "common/situation/catalysts/",
+            #[cfg(feature = "ck3")]
+            Item::SituationParticipantGroup => "common/situation/situations/",
+            #[cfg(feature = "ck3")]
+            Item::SituationPhase => "common/situation/situations/",
+            #[cfg(feature = "ck3")]
+            Item::SituationPhaseParameter => "common/situation/situations/",
+            #[cfg(feature = "ck3")]
+            Item::SituationSubRegion => "common/situation/situations/",
             #[cfg(feature = "ck3")]
             Item::Skill => "",
             #[cfg(feature = "ck3")]

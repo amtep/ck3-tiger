@@ -239,6 +239,15 @@ pub fn validate_terrain_bonus(block: &Block, data: &Everything) {
     });
 }
 
+pub fn validate_holding_bonus(block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    vd.unknown_block_fields(|key, block| {
+        data.verify_exists(Item::HoldingType, key);
+        let mut vd = Validator::new(block, data);
+        validate_maa_stats(&mut vd);
+    });
+}
+
 pub fn validate_winter_bonus(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.unknown_block_fields(|key, block| {

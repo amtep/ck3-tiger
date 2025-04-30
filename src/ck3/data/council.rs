@@ -192,6 +192,8 @@ impl DbKind for CouncilTask {
         vd.field_bool("restart_on_finish");
         vd.field_bool("highlight_own_realm");
 
+        vd.multi_field_validated_block_sc("asset", &mut sc, validate_asset);
+
         vd.multi_field_validated_block_rooted(
             "councillor_modifier",
             Scopes::Character,
@@ -334,4 +336,13 @@ fn validate_yes_no_trigger(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
             validate_trigger(block, data, sc, Tooltipped::No);
         }
     }
+}
+
+fn validate_asset(block: &Block, data: &Everything, sc: &mut ScopeContext) {
+    let mut vd = Validator::new(block, data);
+    vd.field_trigger("trigger", sc, Tooltipped::No);
+    vd.field_item("icon", Item::File);
+    vd.field_item("background", Item::File);
+    vd.field_item("frame", Item::File);
+    vd.field_item("glow", Item::File);
 }

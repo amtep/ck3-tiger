@@ -61,6 +61,7 @@ impl DbKind for CourtSceneRole {
         sc.define_name("ruler", Scopes::Character, key);
 
         vd.field_validated_sc("scripted_animation", &mut sc, validate_scripted_animation);
+        vd.field_item("camera", Item::PortraitCamera);
 
         vd.field_validated_key_block("effect", |key, block, data| {
             sc.define_list("characters", Scopes::Character, key);
