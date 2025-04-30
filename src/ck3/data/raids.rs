@@ -1,0 +1,57 @@
+use crate::block::Block;
+use crate::db::{Db, DbKind};
+use crate::effect::validate_effect;
+use crate::everything::Everything;
+use crate::game::GameFlags;
+use crate::item::{Item, ItemLoader};
+use crate::modif::{validate_modifs, ModifKinds};
+use crate::scopes::Scopes;
+use crate::token::Token;
+use crate::tooltipped::Tooltipped;
+use crate::validator::Validator;
+
+#[derive(Clone, Debug)]
+pub struct RaidIntent {}
+
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Ck3, Item::RaidIntent, RaidIntent::add)
+}
+
+impl RaidIntent {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::RaidIntent, key, block, Box::new(Self {}));
+    }
+}
+
+impl DbKind for RaidIntent {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
+        let loca = format!("{key}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+        let loca = format!("{key}_loot");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+        let loca = format!("{key}_flavor");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        vd.field_validated_block_rooted("on_return_raid_loot", Scopes::Army, |block, data, sc| {
+            sc.define_name("raid_loot", Scopes::Value, key);
+            sc.define_name("raider", Scopes::Character, key);
+            validate_effect(block, data, sc, Tooltipped::Yes);
+        });
+
+        vd.field_validated_block("modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::Character, vd);
+        });
+
+        vd.field_script_value_rooted("ai_will_do", Scopes::Character);
+        vd.field_trigger("is_shown", Scopes::Character, Tooltipped::No);
+        vd.field_trigger("is_valid", Scopes::Character, Tooltipped::Yes);
+        vd.field_validated_block_rooted("on_invalidated", Scopes::Army, |block, data, sc| {
+            sc.define_name("raider", Scopes::Character, key);
+            validate_effect(block, data, sc, Tooltipped::No);
+        });
+    }
+}

@@ -70,6 +70,7 @@ pub mod portrait_types;
 pub mod prov_history;
 pub mod prov_terrain;
 pub mod provinces;
+pub mod raids;
 pub mod regions;
 pub mod relations;
 pub mod religions;
