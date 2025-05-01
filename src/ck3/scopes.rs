@@ -334,7 +334,7 @@ pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'st
     if scopes == Scopes::LandedTitle && data.item_exists(Item::Title, arg) {
         return Some("title");
     }
-    if scopes == Scopes::VassalContract && data.item_exists(Item::VassalContract, arg) {
+    if scopes == Scopes::VassalContract && data.item_exists(Item::SubjectContract, arg) {
         return Some("vassal_contract");
     }
     None
@@ -631,7 +631,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
             Scopes::SituationParticipantGroup,
             Scope(Scopes::Character),
         ),
-        (Scopes::None, "contract_type", Scopes::VassalContract, Item(Item::VassalContract)),
+        (Scopes::None, "contract_type", Scopes::VassalContract, Item(Item::SubjectContract)),
         (Scopes::Character, "council_task", Scopes::CouncilTask, Item(Item::CouncilPosition)),
         (Scopes::Character, "court_position", Scopes::Character, Item(Item::CourtPosition)),
         (Scopes::None, "court_position_type", Scopes::CourtPositionType, Item(Item::CourtPosition)),
@@ -731,12 +731,12 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "title", Scopes::LandedTitle, Item(Item::Title)),
         (Scopes::None, "trait", Scopes::Trait, Item(Item::Trait)),
         (Scopes::all(), "var", Scopes::all(), UncheckedValue),
-        (Scopes::None, "vassal_contract", Scopes::VassalContract, Item(Item::VassalContract)),
+        (Scopes::None, "vassal_contract", Scopes::VassalContract, Item(Item::SubjectContract)),
         (
             Scopes::Character,
             "vassal_contract_obligation_level",
             Scopes::Value,
-            Item(Item::VassalContract),
+            Item(Item::SubjectContract),
         ),
     ]
 };

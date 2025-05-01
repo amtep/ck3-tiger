@@ -251,7 +251,6 @@ pub enum Item {
     #[cfg(feature = "ck3")] CoaDynamicDefinition,
     #[cfg(feature = "ck3")] CombatEffect,
     #[cfg(feature = "ck3")] CombatPhaseEvent,
-    #[cfg(feature = "ck3")] ContractGroup,
     #[cfg(feature = "ck3")] CouncilPosition,
     #[cfg(feature = "ck3")] CouncilTask,
     #[cfg(feature = "ck3")] Countermeasure,
@@ -331,6 +330,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] LegitimacyFlag,
     #[cfg(feature = "ck3")] LegitimacyType,
     #[cfg(feature = "ck3")] Lifestyle,
+    #[cfg(feature = "ck3")] LineType,
     #[cfg(feature = "ck3")] MartialCustom,
     #[cfg(feature = "ck3")] MemoryCategory,
     #[cfg(feature = "ck3")] MemoryType,
@@ -379,13 +379,16 @@ pub enum Item {
     #[cfg(feature = "ck3")] StruggleHistory,
     #[cfg(feature = "ck3")] StrugglePhase,
     #[cfg(feature = "ck3")] StrugglePhaseParameter,
+    #[cfg(feature = "ck3")] SubjectContract,
+    #[cfg(feature = "ck3")] SubjectContractFlag,
+    #[cfg(feature = "ck3")] SubjectContractGroup,
+    #[cfg(feature = "ck3")] SubjectContractObligationLevel,
     #[cfg(feature = "ck3")] SuccessionAppointment,
     #[cfg(feature = "ck3")] SuccessionElection,
     #[cfg(feature = "ck3")] Suggestion,
     #[cfg(feature = "ck3")] TaskContractGroup,
     #[cfg(feature = "ck3")] TaskContractReward,
     #[cfg(feature = "ck3")] TaskContractType,
-    #[cfg(feature = "ck3")] TaxSlotFlag,
     #[cfg(feature = "ck3")] TaxSlotObligation,
     #[cfg(feature = "ck3")] TaxSlotType,
     #[cfg(feature = "ck3")] Title,
@@ -398,9 +401,6 @@ pub enum Item {
     #[cfg(feature = "ck3")] TraitTrack,
     #[cfg(feature = "ck3")] TravelOption,
     #[cfg(feature = "ck3")] UnitGfx,
-    #[cfg(feature = "ck3")] VassalContract,
-    #[cfg(feature = "ck3")] VassalContractFlag,
-    #[cfg(feature = "ck3")] VassalObligationLevel,
     #[cfg(feature = "ck3")] VassalStance,
 
     // Items specific to vic3
@@ -1024,8 +1024,6 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::CombatPhaseEvent => "common/combat_phase_events/",
             #[cfg(feature = "ck3")]
-            Item::ContractGroup => "common/subject_contracts/groups/",
-            #[cfg(feature = "ck3")]
             Item::CouncilPosition => "common/council_positions/",
             #[cfg(feature = "ck3")]
             Item::CouncilTask => "common/council_tasks/",
@@ -1184,6 +1182,8 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::Lifestyle => "common/lifestyles/",
             #[cfg(feature = "ck3")]
+            Item::LineType => "gfx/lines/lines.lines",
+            #[cfg(feature = "ck3")]
             Item::MartialCustom => "common/culture/pillars/",
             #[cfg(feature = "ck3")]
             Item::MemoryCategory => "common/character_memory_types/",
@@ -1237,6 +1237,14 @@ impl Item {
             Item::ReligionFamily => "common/religion/religion_families/",
             #[cfg(feature = "ck3")]
             Item::RewardItem => "",
+            #[cfg(feature = "ck3")]
+            Item::SubjectContract => "common/subject_contracts/contracts/",
+            #[cfg(feature = "ck3")]
+            Item::SubjectContractFlag => "common/subject_contracts/contracts/",
+            #[cfg(feature = "ck3")]
+            Item::SubjectContractGroup => "common/subject_contracts/groups/",
+            #[cfg(feature = "ck3")]
+            Item::SubjectContractObligationLevel => "common/subject_contracts/contracts/",
             #[cfg(feature = "ck3")]
             Item::Scheme => "common/schemes/scheme_types",
             #[cfg(feature = "ck3")]
@@ -1292,8 +1300,6 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::TaskContractType => "common/task_contracts/",
             #[cfg(feature = "ck3")]
-            Item::TaxSlotFlag => "common/tax_slots/obligations",
-            #[cfg(feature = "ck3")]
             Item::TaxSlotObligation => "common/tax_slots/obligations",
             #[cfg(feature = "ck3")]
             Item::TaxSlotType => "common/tax_slots/types",
@@ -1317,12 +1323,6 @@ impl Item {
             Item::TravelOption => "common/travel/travel_options/",
             #[cfg(feature = "ck3")]
             Item::UnitGfx => "common/culture/cultures/",
-            #[cfg(feature = "ck3")]
-            Item::VassalContract => "common/vassal_contracts/",
-            #[cfg(feature = "ck3")]
-            Item::VassalContractFlag => "common/vassal_contracts/",
-            #[cfg(feature = "ck3")]
-            Item::VassalObligationLevel => "common/vassal_contracts/",
             #[cfg(feature = "ck3")]
             Item::VassalStance => "common/vassal_stances/",
 

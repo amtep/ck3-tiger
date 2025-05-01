@@ -883,8 +883,8 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::GreatHolyWar, "unpledge_defender", Scope(Scopes::Character)),
     (Scopes::LandedTitle, "update_dynamic_coa", Yes),
     (Scopes::Character, "use_hook", Scope(Scopes::Character)),
-    (Scopes::Character, "vassal_contract_decrease_obligation_level", Item(Item::VassalContract)),
-    (Scopes::Character, "vassal_contract_increase_obligation_level", Item(Item::VassalContract)),
+    (Scopes::Character, "vassal_contract_decrease_obligation_level", Item(Item::SubjectContract)),
+    (Scopes::Character, "vassal_contract_increase_obligation_level", Item(Item::SubjectContract)),
     (
         Scopes::Character,
         "vassal_contract_set_obligation_level",

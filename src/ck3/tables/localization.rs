@@ -487,7 +487,7 @@ const COMPLEX_TOOLTIPS: &[(&str, Option<Item>)] = &[
     ("lifestyle", Some(Item::Lifestyle)),
     ("men_at_arms_type", Some(Item::MenAtArms)),
     ("nickname", Some(Item::Nickname)),
-    ("obligation_level", Some(Item::VassalContract)),
+    ("obligation_level", Some(Item::SubjectContract)),
     ("perk", Some(Item::Perk)),
     ("province", Some(Item::Province)),
     ("religion", Some(Item::Religion)),

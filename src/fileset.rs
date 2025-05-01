@@ -675,7 +675,7 @@ impl Fileset {
                 let msg = "file should be in common/static_modifiers since 1.7";
                 err(ErrorKey::Filename).msg(msg).loc(entry).push();
             } else if Game::is_ck3() && entry.path.starts_with("common/vassal_contracts") {
-                let msg = "vassal_contracts was replaced with subject_contracts in 1.16";
+                let msg = "common/vassal_contracts was replaced with common/subject_contracts/contracts/ in 1.16";
                 err(ErrorKey::Filename).msg(msg).loc(entry).push();
             } else {
                 let msg = format!("file in unexpected directory `{}`", dirname.display());

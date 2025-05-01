@@ -103,7 +103,8 @@ impl TaxSlotObligation {
 impl DbKind for TaxSlotObligation {
     fn add_subitems(&self, _key: &Token, block: &Block, db: &mut Db) {
         for token in block.get_field_values("flag") {
-            db.add_flag(Item::VassalContractFlag, token.clone());
+            // TODO: not 100% sure of this.
+            db.add_flag(Item::SubjectContractFlag, token.clone());
         }
     }
 

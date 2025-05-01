@@ -1330,12 +1330,14 @@ pub fn validate_contract_set_obligation_level(
     vd.req_field("type");
     vd.req_field("level");
     if let Some(token) = vd.field_value("type") {
-        if !data.item_exists(Item::VassalContract, token.as_str()) {
+        if !data.item_exists(Item::SubjectContract, token.as_str()) {
             validate_target(token, data, sc, Scopes::VassalContract);
         }
     }
     if let Some(token) = vd.field_value("level") {
-        if !token.is_integer() && !data.item_exists(Item::VassalObligationLevel, token.as_str()) {
+        if !token.is_integer()
+            && !data.item_exists(Item::SubjectContractObligationLevel, token.as_str())
+        {
             validate_target(token, data, sc, Scopes::VassalObligationLevel);
         }
     }
@@ -2141,7 +2143,7 @@ pub fn validate_start_tributary(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    vd.field_item("contract_group", Item::ContractGroup);
+    vd.field_item("contract_group", Item::SubjectContractGroup);
     vd.field_target("suzerain", sc, Scopes::Character);
 }
 
