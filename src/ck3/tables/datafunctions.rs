@@ -119,7 +119,7 @@ const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
     (Ck3(HoldingType), Scopes::HoldingType),
     (Ck3(Trait), Scopes::Trait),
     (Ck3(TaxSlot), Scopes::TaxSlot),
-    (Ck3(VassalContract), Scopes::VassalContract),
+    (Ck3(SubjectContract), Scopes::VassalContract),
     (Ck3(ObligationLevel), Scopes::VassalObligationLevel),
 ];
 
