@@ -1,4 +1,4 @@
-use crate::block::Block;
+use crate::block::{Block, BV};
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
@@ -54,8 +54,8 @@ impl DbKind for LineType {
             vd.field_value("shader"); // TODO what are the options here
             vd.field_integer("priority");
             vd.field_validated_block("tintcolor", validate_color);
-            vd.field_validated_block("width", validate_zoom_levels);
-            vd.field_validated_block("opacity", validate_zoom_levels);
+            vd.field_validated("width", validate_zoom_levels);
+            vd.field_validated("opacity", validate_zoom_levels);
             vd.field_list_numeric_exactly("mask_uv_scale", 2);
             vd.field_list_numeric_exactly("uv_scale", 2);
             vd.field_list_numeric_exactly("animation_speed", 2);
@@ -63,11 +63,18 @@ impl DbKind for LineType {
     }
 }
 
-fn validate_zoom_levels(block: &Block, data: &Everything) {
-    let mut vd = Validator::new(block, data);
-    for block in vd.blocks() {
-        let mut vd = Validator::new(block, data);
-        vd.field_integer("zoom_step");
-        vd.field_numeric("value");
+fn validate_zoom_levels(bv: &BV, data: &Everything) {
+    match bv {
+        BV::Value(value) => {
+            value.expect_number();
+        }
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            for block in vd.blocks() {
+                let mut vd = Validator::new(block, data);
+                vd.field_integer("zoom_step");
+                vd.field_numeric("value");
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
 default_job = "build_lib"
+ignore = "**/.*.swp"
 
 [jobs.build_lib]
 command = ["cargo", "build", "--color", "always", "-p", "tiger-lib"]

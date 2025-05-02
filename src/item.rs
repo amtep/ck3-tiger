@@ -352,6 +352,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] PoolSelector,
     #[cfg(feature = "ck3")] PortraitType,
     #[cfg(feature = "ck3")] PrisonType,
+    #[cfg(feature = "ck3")] ProvinceEffect,
     #[cfg(feature = "ck3")] ProvinceMapping,
     #[cfg(feature = "ck3")] RaidIntent,
     #[cfg(feature = "ck3")] Relation,
@@ -369,6 +370,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] SituationCatalyst,
     #[cfg(feature = "ck3")] SituationParticipantGroup,
     #[cfg(feature = "ck3")] SituationPhase,
+    #[cfg(feature = "ck3")] SituationPhaseCatalyst,
     #[cfg(feature = "ck3")] SituationPhaseParameter,
     #[cfg(feature = "ck3")] SituationSubRegion,
     #[cfg(feature = "ck3")] Skill,
@@ -1224,6 +1226,8 @@ impl Item {
             #[cfg(feature = "ck3")]
             Item::PortraitType => "common/portrait_types/",
             #[cfg(feature = "ck3")]
+            Item::ProvinceEffect => "gfx/map/province_effects/",
+            #[cfg(feature = "ck3")]
             Item::ProvinceMapping => "history/province_mapping/",
             #[cfg(feature = "ck3")]
             Item::PrisonType => "",
@@ -1267,6 +1271,8 @@ impl Item {
             Item::SituationParticipantGroup => "common/situation/situations/",
             #[cfg(feature = "ck3")]
             Item::SituationPhase => "common/situation/situations/",
+            #[cfg(feature = "ck3")]
+            Item::SituationPhaseCatalyst => "common/situation/catalysts/",
             #[cfg(feature = "ck3")]
             Item::SituationPhaseParameter => "common/situation/situations/",
             #[cfg(feature = "ck3")]
