@@ -489,11 +489,10 @@ fn validate_meshsettings(block: &Block, data: &Everything) {
         vd.field_bool("srgb");
     });
     vd.field_value("shader"); // TODO
-    if let Some(token) = vd.field_value("shader_file") {
-        data.verify_exists(Item::File, token);
-    }
+    vd.field_item("shader_file", Item::File);
     vd.field_value("subpass");
     vd.field_value("shadow_shader");
+    vd.field_value("rasterizerstate"); // TODO, choices?
     if Game::is_vic3() || Game::is_ck3() {
         vd.field_list("additional_shader_defines");
     }

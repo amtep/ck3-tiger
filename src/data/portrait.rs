@@ -201,6 +201,8 @@ impl DbKind for PortraitAnimation {
         }
         let has_default = Game::is_ck3() && block.has_key("default");
 
+        vd.field_bool("barbershop");
+
         let types = if Game::is_vic3() { TYPES_VIC3 } else { TYPES };
         for field in types {
             if !has_default {

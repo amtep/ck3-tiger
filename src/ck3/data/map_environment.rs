@@ -45,6 +45,7 @@ impl DbKind for MapEnvironment {
         vd.field_list_precise_numeric_exactly("shadow_direction_offset", 3);
         vd.field_precise_numeric("cubemap_intensity");
         vd.field_item("cubemap", Item::File);
+        vd.field_numeric_range("cubemap_y_rotation", 0.0..360.0);
 
         vd.field_validated_block("fog_color", validate_camera_color);
         vd.field_precise_numeric("fog_begin");

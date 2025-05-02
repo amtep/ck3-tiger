@@ -111,7 +111,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "add_focus_progress", ScriptValue),
     (Scopes::CasusBelli, "add_from_contribution_attackers", Vb(validate_add_from_contribution)),
     (Scopes::CasusBelli, "add_from_contribution_defenders", Vb(validate_add_from_contribution)),
-    (Scopes::SituationSubRegion, "add_geographical_region", Scope(Scopes::GeographicalRegion)),
+    (Scopes::SituationSubRegion, "add_geographical_region", Item(Item::Region)),
     (Scopes::Accolade, "add_glory", ScriptValue),
     (Scopes::Character, "add_gold", NonNegativeValue),
     (Scopes::Character, "add_hook", Vb(validate_add_hook)),

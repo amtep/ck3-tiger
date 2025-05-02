@@ -110,7 +110,13 @@ impl DbKind for Government {
             }
         });
 
-        vd.field_list_items("vassal_contract", Item::SubjectContract);
+        vd.field_integer("max_dread");
+
+        vd.advice_field(
+            "vassal_contract",
+            "docs say vassal_contract but it's vassal_contract_group",
+        );
+        vd.field_item("vassal_contract_group", Item::SubjectContractGroup);
         vd.field_item("house_unity", Item::HouseUnity);
         vd.field_item("domicile_type", Item::DomicileType);
         vd.field_validated_block("ai", validate_ai);

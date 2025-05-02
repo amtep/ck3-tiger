@@ -78,6 +78,10 @@ impl DbKind for Law {
         let loca = format!("{key}_effects_not_in_prev");
         data.mark_used(Item::Localization, &loca);
 
+        vd.field_item("pass_phrase", Item::Localization);
+        vd.field_item("confirmation_title", Item::Localization);
+        vd.field_item("confirmation_button_text", Item::Localization);
+
         vd.field_validated_block_rooted("can_keep", Scopes::Character, |block, data, sc| {
             validate_trigger(block, data, sc, Tooltipped::No);
         });

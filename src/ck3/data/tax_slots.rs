@@ -151,7 +151,8 @@ impl DbKind for TaxSlotObligation {
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
 
-        vd.field_validated_block("vassal_modifier", |block, data| {
+        vd.advice_field("vassal_modifier", "was changed to subject_modifier in 1.16");
+        vd.field_validated_block("subject_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
         });

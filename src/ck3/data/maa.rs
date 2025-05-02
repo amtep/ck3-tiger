@@ -196,6 +196,9 @@ impl MenAtArmsType {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
+        vd.field_trigger("should_show_when_unavailable", Scopes::Character, Tooltipped::No);
+        vd.field_trigger("access_through_subject", Scopes::Character, Tooltipped::No);
+
         vd.field_integer("max");
         validate_maa_stats(&mut vd);
         vd.field_integer("siege_tier");
@@ -209,6 +212,7 @@ impl MenAtArmsType {
         }
 
         vd.field_validated_block("terrain_bonus", validate_terrain_bonus);
+        vd.field_validated_block("holding_bonus", validate_holding_bonus);
         vd.field_validated_block("winter_bonus", validate_winter_bonus);
         vd.field_validated_block("era_bonus", validate_era_bonus);
         vd.field_validated_block("counters", validate_counters);

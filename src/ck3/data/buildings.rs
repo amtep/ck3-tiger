@@ -291,6 +291,8 @@ fn validate_asset(block: &Block, data: &Everything) {
     vd.field_item("name", itype);
     vd.field_list_items("names", itype);
 
+    vd.field_item("domicile_building", Item::DomicileBuilding);
+
     vd.field_item("illustration", Item::File);
 
     vd.field_validated("soundeffect", |bv, data| {

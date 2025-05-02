@@ -196,6 +196,7 @@ impl DbKind for BookmarkPortrait {
         let mut vd = Validator::new(block, data);
         vd.field_choice("type", &["male", "female", "boy", "girl"]);
         vd.field_value("id"); // TODO
+        vd.field_value("random_seed");
         vd.field_precise_numeric("age");
         vd.field_list_integers_exactly("entity", 2);
         vd.field_validated_block("genes", validate_genes);

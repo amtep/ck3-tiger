@@ -2170,7 +2170,7 @@ pub fn validate_start_situation(
         vd.field_item("key", Item::SituationSubRegion);
         vd.field_item("start_phase", Item::SituationPhase);
         vd.field_list_items("geographical_regions", Item::Region);
-        vd.field_validated("color", validate_possibly_named_color);
+        vd.field_validated("map_color", validate_possibly_named_color);
     });
 }
 

@@ -241,8 +241,17 @@ pub const GOVERNMENT_RULES: &[&str] = &[
     "dynasty_named_realms",
     "deny_powerful_vassal",
     "use_maa_maintenance",
-    "state_faith",                    // undocumented
-    "allow_out_of_realm_inheritance", // undocumented
+    // undocumented below
+    "state_faith",
+    "allow_out_of_realm_inheritance",
+    "sticky_government",
+    "uses_county_fertility",
+    "replenishes_county_fertility",
+    "uses_culture_and_house_head_named_realms",
+    "obedience",
+    "subject_men_at_arms",
+    "no_capital_movement_cooldown",
+    "redirects_wars_to_overlord",
 ];
 
 // LAST UPDATED CK3 VERSION 1.12.1

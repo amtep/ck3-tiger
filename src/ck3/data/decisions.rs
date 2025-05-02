@@ -266,5 +266,6 @@ impl DbKind for DecisionGroup {
 
         vd.field_integer("sort_order");
         vd.field_list("gui_tags");
+        vd.field_bool("important_decision_group");
     }
 }

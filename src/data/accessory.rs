@@ -113,7 +113,8 @@ impl DbKind for AccessoryVariation {
         vd.multi_field_validated_block("pattern", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.field_numeric("weight");
-            for field in &["r", "g", "b", "a"] {
+            // TODO: can you have properties_g etc and normal_r etc
+            for field in &["r", "g", "b", "a", "properties_r", "normal_b"] {
                 vd.field_validated_block(field, |block, data| {
                     let mut vd = Validator::new(block, data);
                     vd.field_item("textures", Item::AccessoryVariationTextures);
