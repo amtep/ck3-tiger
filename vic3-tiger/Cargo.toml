@@ -1,6 +1,6 @@
 [package]
 name = "vic3-tiger"
-version = "1.7.9"
+version = "1.7.0"
 edition = "2021"
 license = "GPL-3.0-or-later"
 default-run = "vic3-tiger"
