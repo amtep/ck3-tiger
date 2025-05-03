@@ -57,6 +57,6 @@ impl DbKind for ScriptedButton {
 
         // undocumented
 
-        vd.field_trigger("selected", &mut sc, Tooltipped::No);
+        vd.field_trigger("selected", Tooltipped::No, &mut sc);
     }
 }

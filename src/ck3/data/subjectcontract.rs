@@ -70,7 +70,7 @@ impl DbKind for SubjectContract {
 
         vd.field_choice("display_mode", &["tree", "list", "radiobutton", "checkbox"]);
         vd.field_item("icon", Item::TextIcon);
-        vd.field_trigger("is_shown", &mut sc, Tooltipped::No);
+        vd.field_trigger("is_shown", Tooltipped::No, &mut sc);
 
         vd.field_validated_block("obligation_levels", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -118,8 +118,8 @@ impl DbKind for SubjectContract {
                     let vd = Validator::new(block, data);
                     validate_modifs(block, data, ModifKinds::Character, vd);
                 });
-                vd.field_trigger("is_shown", &mut sc, Tooltipped::No);
-                vd.field_trigger("is_valid", &mut sc, Tooltipped::Yes);
+                vd.field_trigger("is_shown", Tooltipped::No, &mut sc);
+                vd.field_trigger("is_valid", Tooltipped::Yes, &mut sc);
                 vd.field_script_value("tax_factor", &mut sc);
                 vd.field_script_value("levies_factor", &mut sc);
                 vd.field_script_value("herd_factor", &mut sc);
@@ -143,8 +143,8 @@ impl DbKind for SubjectContractGroup {
         sc.define_name("suzerain", Scopes::Character, key);
 
         if block.get_field_bool("is_tributary").unwrap_or(false) {
-            vd.field_trigger("is_valid_tributary_contract", &mut sc, Tooltipped::Yes);
-            vd.field_trigger("tributary_can_break_free", &mut sc, Tooltipped::Yes);
+            vd.field_trigger("is_valid_tributary_contract", Tooltipped::Yes, &mut sc);
+            vd.field_trigger("tributary_can_break_free", Tooltipped::Yes, &mut sc);
             vd.field_item("suzerain_line_type", Item::LineType);
             vd.field_item("tributary_line_type", Item::LineType);
             vd.field_bool("should_show_as_suzerain_realm_name");

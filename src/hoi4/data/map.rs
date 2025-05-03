@@ -86,13 +86,13 @@ fn validate_adjacency_rule(_key: &Token, block: &Block, data: &Everything) {
     }
 
     vd.field_list_items("required_provinces", Item::Province);
-    vd.field_trigger_rooted("is_disabled", Scopes::Country, Tooltipped::Inner);
+    vd.field_trigger_rooted("is_disabled", Tooltipped::Inner, Scopes::Country);
     vd.field_item("icon", Item::Province);
     vd.field_list_numeric_exactly("offset", 3);
 
-    vd.field_trigger_rooted("is_enemy", Scopes::Country, Tooltipped::No);
-    vd.field_trigger_rooted("is_friend", Scopes::Country, Tooltipped::No);
-    vd.field_trigger_rooted("is_neutral", Scopes::Country, Tooltipped::No);
+    vd.field_trigger_rooted("is_enemy", Tooltipped::No, Scopes::Country);
+    vd.field_trigger_rooted("is_friend", Tooltipped::No, Scopes::Country);
+    vd.field_trigger_rooted("is_neutral", Tooltipped::No, Scopes::Country);
 }
 
 #[derive(Clone, Debug)]

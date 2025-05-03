@@ -140,8 +140,8 @@ impl DbKind for LawType {
             validate_script_value(bv, data, &mut sc);
         });
 
-        vd.field_trigger_builder("can_impose", sc_impose, Tooltipped::Yes);
-        vd.field_effect_builder("on_impose", sc_impose, Tooltipped::Yes);
+        vd.field_trigger_builder("can_impose", Tooltipped::Yes, sc_impose);
+        vd.field_effect_builder("on_impose", Tooltipped::Yes, sc_impose);
 
         vd.field_script_value_no_breakdown_builder("ai_impose_chance", sc_impose_chance);
     }

@@ -53,8 +53,8 @@ impl DbKind for Ability {
         vd.field_integer("cooldown");
         vd.field_bool("cancelable");
 
-        vd.field_trigger_rooted("allowed", Scopes::Character, Tooltipped::Yes);
-        vd.field_effect_rooted("one_time_effect", Scopes::Character, Tooltipped::Yes);
+        vd.field_trigger_rooted("allowed", Tooltipped::Yes, Scopes::Character);
+        vd.field_effect_rooted("one_time_effect", Tooltipped::Yes, Scopes::Character);
 
         vd.field_validated_block("unit_modifiers", |block, data| {
             let vd = Validator::new(block, data);

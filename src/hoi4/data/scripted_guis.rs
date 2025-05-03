@@ -63,7 +63,7 @@ impl DbKind for ScriptedGui {
         vd.field_item("parent_scripted_gui", Item::ScriptedGui);
         vd.field_item("map_mode", Item::MapMode);
 
-        vd.field_trigger("visible", &mut sc, Tooltipped::No);
+        vd.field_trigger("visible", Tooltipped::No, &mut sc);
         vd.field_validated_block("effects", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.unknown_block_fields(|_, block| {
@@ -85,12 +85,12 @@ impl DbKind for ScriptedGui {
 
         vd.field_variable("dirty", &mut sc);
 
-        vd.field_trigger_rooted("ai_enabled", Scopes::Country, Tooltipped::No);
+        vd.field_trigger_rooted("ai_enabled", Tooltipped::No, Scopes::Country);
         vd.field_integer("ai_test_interval");
         vd.field_integer("ai_test_variance");
-        vd.field_trigger_rooted("ai_check", Scopes::Country, Tooltipped::No);
+        vd.field_trigger_rooted("ai_check", Tooltipped::No, Scopes::Country);
         vd.field_choice("ai_test_scopes", AI_TEST);
-        vd.field_trigger("ai_check_scope", &mut sc, Tooltipped::No);
+        vd.field_trigger("ai_check_scope", Tooltipped::No, &mut sc);
         vd.field_validated_block("ai_weights", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.unknown_block_fields(|_, block| {

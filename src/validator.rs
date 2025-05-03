@@ -818,8 +818,8 @@ impl<'a> Validator<'a> {
     pub fn field_trigger(
         &mut self,
         name: &str,
-        sc: &mut ScopeContext,
         tooltipped: Tooltipped,
+        sc: &mut ScopeContext,
     ) -> bool {
         let max_sev = self.max_severity;
         self.field_validated_block(name, |block, data| {
@@ -847,8 +847,8 @@ impl<'a> Validator<'a> {
     pub fn field_trigger_rooted(
         &mut self,
         name: &str,
-        scope: Scopes,
         tooltipped: Tooltipped,
+        scope: Scopes,
     ) -> bool {
         let max_sev = self.max_severity;
         self.field_validated_key_block(name, |key, block, data| {
@@ -877,8 +877,8 @@ impl<'a> Validator<'a> {
     pub fn field_trigger_builder<F>(
         &mut self,
         name: &str,
-        mut sc_builder: F,
         tooltipped: Tooltipped,
+        mut sc_builder: F,
     ) -> bool
     where
         F: FnMut(&Token) -> ScopeContext,
@@ -909,8 +909,8 @@ impl<'a> Validator<'a> {
     pub fn field_effect(
         &mut self,
         name: &str,
-        sc: &mut ScopeContext,
         tooltipped: Tooltipped,
+        sc: &mut ScopeContext,
     ) -> bool {
         let max_sev = self.max_severity;
         self.field_validated_block(name, |block, data| {
@@ -937,8 +937,8 @@ impl<'a> Validator<'a> {
     pub fn field_effect_rooted(
         &mut self,
         name: &str,
-        scope: Scopes,
         tooltipped: Tooltipped,
+        scope: Scopes,
     ) -> bool {
         let max_sev = self.max_severity;
         self.field_validated_key_block(name, |key, block, data| {
@@ -966,8 +966,8 @@ impl<'a> Validator<'a> {
     pub fn field_effect_builder<F>(
         &mut self,
         name: &str,
-        mut sc_builder: F,
         tooltipped: Tooltipped,
+        mut sc_builder: F,
     ) -> bool
     where
         F: FnMut(&Token) -> ScopeContext,

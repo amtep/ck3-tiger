@@ -129,7 +129,7 @@ impl DbKind for Building {
         });
 
         let mut sc = ScopeContext::new(Scopes::None, key);
-        vd.field_trigger("dlc_allowed", &mut sc, Tooltipped::No);
+        vd.field_trigger("dlc_allowed", Tooltipped::No, &mut sc);
     }
 }
 

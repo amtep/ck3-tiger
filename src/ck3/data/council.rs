@@ -340,7 +340,7 @@ fn validate_yes_no_trigger(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
 
 fn validate_asset(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
-    vd.field_trigger("trigger", sc, Tooltipped::No);
+    vd.field_trigger("trigger", Tooltipped::No, sc);
     vd.field_item("icon", Item::File);
     vd.field_item("background", Item::File);
     vd.field_item("frame", Item::File);

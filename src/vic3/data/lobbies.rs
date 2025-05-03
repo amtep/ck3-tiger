@@ -50,13 +50,13 @@ impl DbKind for PoliticalLobby {
         vd.field_choice("category", &["foreign_pro_country", "foreign_anti_country", "foreign"]);
         vd.field_item("texture", Item::File);
 
-        vd.field_trigger_builder("can_create", sc_no_lobby, Tooltipped::No);
-        vd.field_effect_builder("on_created", sc_with_lobby, Tooltipped::No);
+        vd.field_trigger_builder("can_create", Tooltipped::No, sc_no_lobby);
+        vd.field_effect_builder("on_created", Tooltipped::No, sc_with_lobby);
 
         vd.field_validated_block("requirement_to_maintain", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_trigger_builder("trigger", sc_with_lobby, Tooltipped::No);
-            vd.field_effect_builder("on_failed", sc_with_lobby, Tooltipped::No);
+            vd.field_trigger_builder("trigger", Tooltipped::No, sc_with_lobby);
+            vd.field_effect_builder("on_failed", Tooltipped::No, sc_with_lobby);
             vd.field_item("swap_type_on_failed", Item::PoliticalLobby);
         });
 
@@ -77,8 +77,8 @@ impl DbKind for PoliticalLobby {
 
         vd.field_trigger_rooted(
             "available_for_interest_group",
-            Scopes::InterestGroup,
             Tooltipped::No,
+            Scopes::InterestGroup,
         );
 
         vd.field_script_value_no_breakdown_builder("join_weight", sc_with_lobby);

@@ -139,12 +139,12 @@ impl DbKind for Situation {
             }
         });
 
-        vd.field_effect_rooted("on_start", Scopes::Situation, Tooltipped::No);
-        vd.field_effect_rooted("on_end", Scopes::Situation, Tooltipped::No);
-        vd.field_effect_rooted("on_monthly", Scopes::Situation, Tooltipped::No);
-        vd.field_effect_rooted("on_yearly", Scopes::Situation, Tooltipped::No);
-        vd.field_effect_rooted("on_join", Scopes::Situation, Tooltipped::Yes);
-        vd.field_effect_rooted("on_leave", Scopes::Situation, Tooltipped::Yes);
+        vd.field_effect_rooted("on_start", Tooltipped::No, Scopes::Situation);
+        vd.field_effect_rooted("on_end", Tooltipped::No, Scopes::Situation);
+        vd.field_effect_rooted("on_monthly", Tooltipped::No, Scopes::Situation);
+        vd.field_effect_rooted("on_yearly", Tooltipped::No, Scopes::Situation);
+        vd.field_effect_rooted("on_join", Tooltipped::Yes, Scopes::Situation);
+        vd.field_effect_rooted("on_leave", Tooltipped::Yes, Scopes::Situation);
 
         vd.field_bool("is_unique");
         vd.field_bool("migration");
@@ -187,9 +187,9 @@ fn validate_participant_group(key: &Token, block: &Block, data: &Everything, sit
     vd.field_bool("require_domain_in_sub_region");
     vd.field_bool("require_realm_in_sub_region");
 
-    vd.field_trigger_builder("is_character_valid", sc_builder, Tooltipped::Yes);
-    vd.field_effect_builder("on_join", sc_with_group, Tooltipped::Yes);
-    vd.field_effect_builder("on_leave", sc_with_group, Tooltipped::Yes);
+    vd.field_trigger_builder("is_character_valid", Tooltipped::Yes, sc_builder);
+    vd.field_effect_builder("on_join", Tooltipped::Yes, sc_with_group);
+    vd.field_effect_builder("on_leave", Tooltipped::Yes, sc_with_group);
 }
 
 fn validate_phase(key: &Token, block: &Block, data: &Everything, situation: &Token) {
@@ -213,8 +213,8 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, situation: &Tok
 
     vd.field_validated_block("parameters", validate_parameters);
 
-    vd.field_effect_builder("on_start", sc_builder, Tooltipped::No);
-    vd.field_effect_builder("on_end", sc_builder, Tooltipped::No);
+    vd.field_effect_builder("on_start", Tooltipped::No, sc_builder);
+    vd.field_effect_builder("on_end", Tooltipped::No, sc_builder);
     vd.field_item("illustration", Item::File);
     vd.field_item("icon", Item::File);
     vd.field_item("map_province_effect", Item::ProvinceEffect);

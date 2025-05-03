@@ -63,7 +63,7 @@ impl DbKind for ScriptedLocalisation {
         vd.field_value("name");
         vd.multi_field_validated_block("text", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_trigger("trigger", &mut sc, Tooltipped::No);
+            vd.field_trigger("trigger", Tooltipped::No, &mut sc);
             vd.req_field_one_of(&["localization_key", "random_list"]);
             vd.field_value("localization_key");
             vd.field_validated_block("random_list", |block, data| {

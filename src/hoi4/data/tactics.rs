@@ -43,7 +43,7 @@ impl DbKind for CombatTactic {
         vd.field_bool("is_attacker");
         vd.field_bool("active");
 
-        vd.field_trigger_rooted("trigger", Scopes::Combatant, Tooltipped::No);
+        vd.field_trigger_rooted("trigger", Tooltipped::No, Scopes::Combatant);
 
         let mut sc = ScopeContext::new(Scopes::Combatant, key);
         vd.field_validated_block_sc("base", &mut sc, validate_modifiers_with_base);

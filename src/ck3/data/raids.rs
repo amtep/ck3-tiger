@@ -47,8 +47,8 @@ impl DbKind for RaidIntent {
         });
 
         vd.field_script_value_rooted("ai_will_do", Scopes::Character);
-        vd.field_trigger_rooted("is_shown", Scopes::Character, Tooltipped::No);
-        vd.field_trigger_rooted("is_valid", Scopes::Character, Tooltipped::Yes);
+        vd.field_trigger_rooted("is_shown", Tooltipped::No, Scopes::Character);
+        vd.field_trigger_rooted("is_valid", Tooltipped::Yes, Scopes::Character);
         vd.field_validated_block_rooted("on_invalidated", Scopes::Army, |block, data, sc| {
             sc.define_name("raider", Scopes::Character, key);
             validate_effect(block, data, sc, Tooltipped::No);
