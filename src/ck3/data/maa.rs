@@ -196,8 +196,8 @@ impl MenAtArmsType {
             validate_trigger(block, data, &mut sc, Tooltipped::Yes);
         });
 
-        vd.field_trigger("should_show_when_unavailable", Scopes::Character, Tooltipped::No);
-        vd.field_trigger("access_through_subject", Scopes::Character, Tooltipped::No);
+        vd.field_trigger_rooted("should_show_when_unavailable", Scopes::Character, Tooltipped::No);
+        vd.field_trigger_rooted("access_through_subject", Scopes::Character, Tooltipped::No);
 
         vd.field_integer("max");
         validate_maa_stats(&mut vd);

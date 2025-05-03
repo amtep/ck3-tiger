@@ -105,12 +105,12 @@ impl DbKind for NationalFocus {
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.field_item("value", Item::Sprite);
-                vd.field_trigger("trigger", Scopes::Country, Tooltipped::No);
+                vd.field_trigger_rooted("trigger", Scopes::Country, Tooltipped::No);
             }
         });
         vd.field_item("text_icon", Item::NationalFocusStyle);
 
-        vd.field_trigger("allow_branch", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger_rooted("allow_branch", Scopes::Country, Tooltipped::Yes);
         for field in &["mutually_exclusive", "prerequisite"] {
             vd.field_validated_block(field, |block, data| {
                 let mut vd = Validator::new(block, data);
@@ -124,12 +124,12 @@ impl DbKind for NationalFocus {
             let mut vd = Validator::new(block, data);
             vd.field_integer("x");
             vd.field_integer("y");
-            vd.field_trigger("trigger", Scopes::Country, Tooltipped::No);
+            vd.field_trigger_rooted("trigger", Scopes::Country, Tooltipped::No);
         });
         vd.field_integer("cost");
-        vd.field_trigger("bypass", Scopes::Country, Tooltipped::Yes);
-        vd.field_trigger("available", Scopes::Country, Tooltipped::Yes);
-        vd.field_effect("select_effect", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger_rooted("bypass", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger_rooted("available", Scopes::Country, Tooltipped::Yes);
+        vd.field_effect_rooted("select_effect", Scopes::Country, Tooltipped::Yes);
 
         vd.field_bool("cancel_if_invalid");
         vd.field_bool("continue_if_invalid");
@@ -140,8 +140,8 @@ impl DbKind for NationalFocus {
             let sprite = format!("GFX_{value}");
             data.verify_exists_implied(Item::Sprite, &sprite, value);
         });
-        vd.field_effect("complete_tooltip", Scopes::Country, Tooltipped::Yes);
-        vd.field_effect("completion_reward", Scopes::Country, Tooltipped::Yes);
+        vd.field_effect_rooted("complete_tooltip", Scopes::Country, Tooltipped::Yes);
+        vd.field_effect_rooted("completion_reward", Scopes::Country, Tooltipped::Yes);
 
         let mut sc = ScopeContext::new(Scopes::Country, key);
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);

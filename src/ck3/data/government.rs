@@ -130,7 +130,7 @@ impl DbKind for Government {
         // undocumented
 
         vd.field_item("tax_slot_type", Item::TaxSlotType);
-        vd.field_script_value_build_sc("opinion_of_liege", |key| {
+        vd.field_script_value_builder("opinion_of_liege", |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("vassal", Scopes::Character, key);
             sc.define_name("liege", Scopes::Character, key);

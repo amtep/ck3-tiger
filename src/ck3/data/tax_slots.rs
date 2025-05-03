@@ -37,7 +37,7 @@ impl DbKind for TaxSlotType {
         // Documented erroneously as `vassal_contracts` in _tax_slot_type.info
         vd.field_list_items("obligations", Item::TaxSlotObligation);
 
-        vd.field_script_value_build_sc("tax_slot_vassal_limit", |key| {
+        vd.field_script_value_builder("tax_slot_vassal_limit", |key| {
             let mut sc = ScopeContext::new(Scopes::TaxSlot, key);
             sc.define_name("liege", Scopes::Character, key);
             sc.define_name("tax_collector", Scopes::Character, key);

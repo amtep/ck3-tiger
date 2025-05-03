@@ -88,17 +88,17 @@ impl DbKind for Idea {
             data.verify_exists_implied(Item::Sprite, &sprite, token);
         }
 
-        vd.field_trigger("allowed", Scopes::Country, Tooltipped::No);
-        vd.field_trigger("allowed_civil_war", Scopes::Country, Tooltipped::No);
-        vd.field_trigger("visible", Scopes::Country, Tooltipped::No);
-        vd.field_trigger("available", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger_rooted("allowed", Scopes::Country, Tooltipped::No);
+        vd.field_trigger_rooted("allowed_civil_war", Scopes::Country, Tooltipped::No);
+        vd.field_trigger_rooted("visible", Scopes::Country, Tooltipped::No);
+        vd.field_trigger_rooted("available", Scopes::Country, Tooltipped::Yes);
         vd.field_integer("cost");
         vd.field_integer("removal_cost");
 
-        vd.field_trigger("cancel", Scopes::Country, Tooltipped::Yes);
-        vd.field_trigger("do_effect", Scopes::Country, Tooltipped::No);
-        vd.field_effect("on_add", Scopes::Country, Tooltipped::Yes);
-        vd.field_effect("on_remove", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger_rooted("cancel", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger_rooted("do_effect", Scopes::Country, Tooltipped::No);
+        vd.field_effect_rooted("on_add", Scopes::Country, Tooltipped::Yes);
+        vd.field_effect_rooted("on_remove", Scopes::Country, Tooltipped::Yes);
 
         vd.field_validated_block("research_bonus", |block, data| {
             let mut vd = Validator::new(block, data);

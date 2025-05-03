@@ -28,7 +28,7 @@ impl DbKind for Modifier {
 
         data.verify_exists(Item::Localization, key);
 
-        vd.field_trigger("valid_relation_trigger", Scopes::Country, Tooltipped::No);
+        vd.field_trigger_rooted("valid_relation_trigger", Scopes::Country, Tooltipped::No);
         validate_modifs(block, data, ModifKinds::all(), vd);
     }
 }

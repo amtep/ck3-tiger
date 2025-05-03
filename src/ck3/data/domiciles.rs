@@ -13,7 +13,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::validate_duration;
-use crate::validator::{Builder, Validator};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct DomicileType {}
@@ -157,6 +157,13 @@ impl DbKind for DomicileBuilding {
     }
 
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        // TODO: verify scope type
+        fn sc_ai_value(key: &Token) -> ScopeContext {
+            let mut sc = ScopeContext::new(Scopes::Domicile, key);
+            sc.define_name("owner", Scopes::Character, key);
+            sc
+        }
+
         let mut vd = Validator::new(block, data);
 
         // This desc is optional.
@@ -209,14 +216,7 @@ impl DbKind for DomicileBuilding {
             validate_modifs(block, data, ModifKinds::Province, vd);
         });
 
-        // TODO: verify scope type
-        let sc_ai_value: &Builder = &|key| {
-            let mut sc = ScopeContext::new(Scopes::Domicile, key);
-            sc.define_name("owner", Scopes::Character, key);
-            sc
-        };
-
-        vd.field_script_value_full("ai_value", sc_ai_value, false);
+        vd.field_script_value_no_breakdown_builder("ai_value", sc_ai_value);
 
         vd.multi_field_validated_block("asset", validate_building_asset);
 

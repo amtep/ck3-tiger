@@ -17,10 +17,8 @@ use crate::lowercase::Lowercase;
 use crate::report::fatal;
 use crate::report::{report, ErrorKey, Severity};
 use crate::scopes::Scopes;
-#[cfg(any(feature = "ck3", feature = "vic3"))]
-use crate::script_value::validate_script_value_no_breakdown;
 #[cfg(feature = "jomini")]
-use crate::script_value::{validate_bv, validate_script_value};
+use crate::script_value::{validate_script_value, validate_script_value_no_breakdown};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::{validate_target, validate_target_ok_this, validate_trigger_internal};
@@ -29,54 +27,6 @@ use crate::validate::{validate_identifier, ListType};
 pub use self::value_validator::ValueValidator;
 
 mod value_validator;
-
-pub type Builder = dyn Fn(&Token) -> ScopeContext;
-
-/// A helper enum for providing scope contexts to field validation functions.
-pub enum FieldScopeContext<'a> {
-    Full(&'a mut ScopeContext),
-    Rooted(Scopes),
-    Builder(&'a Builder),
-}
-
-impl<'a> From<&'a mut ScopeContext> for FieldScopeContext<'a> {
-    fn from(sc: &'a mut ScopeContext) -> Self {
-        Self::Full(sc)
-    }
-}
-
-impl From<Scopes> for FieldScopeContext<'_> {
-    fn from(scopes: Scopes) -> Self {
-        Self::Rooted(scopes)
-    }
-}
-
-impl<'a> From<&'a Builder> for FieldScopeContext<'a> {
-    fn from(builder: &'a Builder) -> Self {
-        Self::Builder(builder)
-    }
-}
-
-impl FieldScopeContext<'_> {
-    fn validate<R, F>(&mut self, key: &Token, validate_fn: F) -> R
-    where
-        F: FnOnce(&mut ScopeContext) -> R,
-    {
-        let mut temp;
-        let sc = match self {
-            FieldScopeContext::Full(sc) => sc,
-            FieldScopeContext::Rooted(scopes) => {
-                temp = ScopeContext::new(*scopes, key);
-                &mut temp
-            }
-            FieldScopeContext::Builder(builder) => {
-                temp = builder(key);
-                &mut temp
-            }
-        };
-        validate_fn(sc)
-    }
-}
 
 /// A validator for one `Block`.
 /// The intended usage is that you wrap the `Block` in a validator, then call validation functions on it
@@ -861,79 +811,181 @@ impl<'a> Validator<'a> {
         })
     }
 
-    /// Expect field `name`, if present, to be set to a trigger block.
+    /// Expect field `name`, if present, to introduce a trigger block.
     ///
-    /// The scope context may be a full `ScopeContext`, a rooted `Scopes` or a closure that builds
-    /// one from the field key token.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    pub fn field_trigger(
+        &mut self,
+        name: &str,
+        sc: &mut ScopeContext,
+        tooltipped: Tooltipped,
+    ) -> bool {
+        let max_sev = self.max_severity;
+        self.field_validated_block(name, |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.set_max_severity(max_sev);
+            validate_trigger_internal(
+                Lowercase::empty(),
+                ListType::None,
+                block,
+                data,
+                sc,
+                vd,
+                tooltipped,
+                false,
+            );
+        })
+    }
+
+    /// Expect field `name`, if present, to introduce a trigger block.
+    /// Its `ScopeContext` will be constructed from the field key, with the given `Scopes` as root.
+    ///
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
     #[allow(dead_code)]
-    pub fn field_trigger<'b, T>(&mut self, name: &str, fsc: T, tooltipped: Tooltipped) -> bool
-    where
-        T: Into<FieldScopeContext<'b>>,
-    {
-        let mut fsc = fsc.into();
+    pub fn field_trigger_rooted(
+        &mut self,
+        name: &str,
+        scope: Scopes,
+        tooltipped: Tooltipped,
+    ) -> bool {
         let max_sev = self.max_severity;
         self.field_validated_key_block(name, |key, block, data| {
-            fsc.validate(key, |sc| {
-                let mut vd = Validator::new(block, data);
-                vd.set_max_severity(max_sev);
-                validate_trigger_internal(
-                    Lowercase::empty(),
-                    ListType::None,
-                    block,
-                    data,
-                    sc,
-                    vd,
-                    tooltipped,
-                    false,
-                )
-            });
+            let mut vd = Validator::new(block, data);
+            let mut sc = ScopeContext::new(scope, key);
+            vd.set_max_severity(max_sev);
+            validate_trigger_internal(
+                Lowercase::empty(),
+                ListType::None,
+                block,
+                data,
+                &mut sc,
+                vd,
+                tooltipped,
+                false,
+            );
         })
     }
 
-    /// Expect field `name`, if present, to be set to an effect block.
+    /// Expect field `name`, if present, to introduce a trigger block.
+    /// Its `ScopeContext` will be created by calling the provided closure with the field's key.
     ///
-    /// The scope context may be a full `ScopeContext`, a rooted `Scopes` or a closure that builds
-    /// one from the field key token.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
     #[allow(dead_code)]
-    pub fn field_effect<'b, T>(&mut self, name: &str, fsc: T, tooltipped: Tooltipped) -> bool
+    pub fn field_trigger_builder<F>(
+        &mut self,
+        name: &str,
+        mut sc_builder: F,
+        tooltipped: Tooltipped,
+    ) -> bool
     where
-        T: Into<FieldScopeContext<'b>>,
+        F: FnMut(&Token) -> ScopeContext,
     {
-        let mut fsc = fsc.into();
+        let max_sev = self.max_severity;
         self.field_validated_key_block(name, |key, block, data| {
-            fsc.validate(key, |sc| {
-                let mut vd = Validator::new(block, data);
-                validate_effect_internal(
-                    Lowercase::empty(),
-                    ListType::None,
-                    block,
-                    data,
-                    sc,
-                    &mut vd,
-                    tooltipped,
-                );
-            });
+            let mut vd = Validator::new(block, data);
+            vd.set_max_severity(max_sev);
+            let mut sc = sc_builder(key);
+            validate_trigger_internal(
+                Lowercase::empty(),
+                ListType::None,
+                block,
+                data,
+                &mut sc,
+                vd,
+                tooltipped,
+                false,
+            );
         })
     }
 
-    /// Epexect field `name`, if present, to be set to a script value.
+    /// Expect field `name`, if present, to introduce an effect block.
     ///
-    /// The scope context may be a full `ScopeContext`, a rooted `Scopes` or a closure that builds
-    /// one from the field key token.
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    #[allow(dead_code)]
+    pub fn field_effect(
+        &mut self,
+        name: &str,
+        sc: &mut ScopeContext,
+        tooltipped: Tooltipped,
+    ) -> bool {
+        let max_sev = self.max_severity;
+        self.field_validated_block(name, |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.set_max_severity(max_sev);
+            validate_effect_internal(
+                Lowercase::empty(),
+                ListType::None,
+                block,
+                data,
+                sc,
+                &mut vd,
+                tooltipped,
+            );
+        })
+    }
+
+    /// Expect field `name`, if present, to introduce an effect block.
+    /// Its `ScopeContext` will be constructed from the field key, with the given `Scopes` as root.
     ///
-    /// If `breakdown` is true, it does not warn if it is an inline script value and the `desc`
-    /// fields in it do not contain valid localizations. This is generally used for script values
-    /// that will never be shown to the user except in debugging contexts, such as `ai_will_do`.
-    #[cfg(feature = "jomini")]
-    pub fn field_script_value_full<'b, T>(&mut self, name: &str, fsc: T, breakdown: bool) -> bool
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    #[allow(dead_code)]
+    pub fn field_effect_rooted(
+        &mut self,
+        name: &str,
+        scope: Scopes,
+        tooltipped: Tooltipped,
+    ) -> bool {
+        let max_sev = self.max_severity;
+        self.field_validated_key_block(name, |key, block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.set_max_severity(max_sev);
+            let mut sc = ScopeContext::new(scope, key);
+            validate_effect_internal(
+                Lowercase::empty(),
+                ListType::None,
+                block,
+                data,
+                &mut sc,
+                &mut vd,
+                tooltipped,
+            );
+        })
+    }
+
+    /// Expect field `name`, if present, to introduce an effect block.
+    /// Its `ScopeContext` will be created by calling the provided closure with the field's key.
+    ///
+    /// Expect no more than one `name` field in the block.
+    /// Returns true iff the field is present.
+    #[allow(dead_code)]
+    pub fn field_effect_builder<F>(
+        &mut self,
+        name: &str,
+        mut sc_builder: F,
+        tooltipped: Tooltipped,
+    ) -> bool
     where
-        T: Into<FieldScopeContext<'b>>,
+        F: FnMut(&Token) -> ScopeContext,
     {
-        let mut fsc = fsc.into();
-        self.field_check(name, |key, bv| {
-            fsc.validate(key, |sc| {
-                validate_bv(bv, self.data, sc, breakdown);
-            });
+        let max_sev = self.max_severity;
+        self.field_validated_key_block(name, |key, block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.set_max_severity(max_sev);
+            let mut sc = sc_builder(key);
+            validate_effect_internal(
+                Lowercase::empty(),
+                ListType::None,
+                block,
+                data,
+                &mut sc,
+                &mut vd,
+                tooltipped,
+            );
         })
     }
 
@@ -969,8 +1021,24 @@ impl<'a> Validator<'a> {
     /// to be used for the `root` of a `ScopeContext` that is made on the spot. This is a convenient way to associate the
     /// `root` type with the key of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated
     /// with a key that is further away.
+    ///
+    /// Does not warn if it is an inline script value and the `desc` fields in it do not contain valid localizations.
     #[cfg(any(feature = "ck3", feature = "vic3"))]
     pub fn field_script_value_rooted(&mut self, name: &str, scopes: Scopes) -> bool {
+        self.field_check(name, |key, bv| {
+            let mut sc = ScopeContext::new(scopes, key);
+            // TODO: pass max_severity value down
+            validate_script_value(bv, self.data, &mut sc);
+        })
+    }
+
+    /// Just like [`Validator::field_script_value`], but instead of a full [`ScopeContext`] it just gets the scope type
+    /// to be used for the `root` of a `ScopeContext` that is made on the spot. This is a convenient way to associate the
+    /// `root` type with the key of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated
+    /// with a key that is further away.
+    #[cfg(feature = "jomini")]
+    #[allow(dead_code)]
+    pub fn field_script_value_no_breakdown_rooted(&mut self, name: &str, scopes: Scopes) -> bool {
         self.field_check(name, |key, bv| {
             let mut sc = ScopeContext::new(scopes, key);
             // TODO: pass max_severity value down
@@ -981,8 +1049,9 @@ impl<'a> Validator<'a> {
     /// Just like [`Validator::field_script_value`], but it takes a closure that uses the field key token
     /// as the input to build and output a [`ScopeContext`]. This is a convenient way to associate the `root` type with the key
     /// of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated with a key that is further away.
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
-    pub fn field_script_value_build_sc<F>(&mut self, name: &str, mut f: F) -> bool
+    #[cfg(feature = "jomini")]
+    #[allow(dead_code)]
+    pub fn field_script_value_builder<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token) -> ScopeContext,
     {
@@ -998,8 +1067,9 @@ impl<'a> Validator<'a> {
     /// of this field, for clearer warnings. A passed-in `ScopeContext` would have to be associated with a key that is further away.
     ///
     /// Does not warn if it is an inline script value and the `desc` fields in it do not contain valid localizations.
-    #[cfg(feature = "ck3")] // vic3 happens not to use; silence dead code warning
-    pub fn field_script_value_no_breakdown_build_sc<F>(&mut self, name: &str, mut f: F) -> bool
+    #[cfg(feature = "jomini")]
+    #[allow(dead_code)]
+    pub fn field_script_value_no_breakdown_builder<F>(&mut self, name: &str, mut f: F) -> bool
     where
         F: FnMut(&Token) -> ScopeContext,
     {

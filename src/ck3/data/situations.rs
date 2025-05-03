@@ -11,7 +11,7 @@ use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::{validate_duration, validate_possibly_named_color};
-use crate::validator::{Builder, Validator};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Situation {}
@@ -139,12 +139,12 @@ impl DbKind for Situation {
             }
         });
 
-        vd.field_effect("on_start", Scopes::Situation, Tooltipped::No);
-        vd.field_effect("on_end", Scopes::Situation, Tooltipped::No);
-        vd.field_effect("on_monthly", Scopes::Situation, Tooltipped::No);
-        vd.field_effect("on_yearly", Scopes::Situation, Tooltipped::No);
-        vd.field_effect("on_join", Scopes::Situation, Tooltipped::Yes);
-        vd.field_effect("on_leave", Scopes::Situation, Tooltipped::Yes);
+        vd.field_effect_rooted("on_start", Scopes::Situation, Tooltipped::No);
+        vd.field_effect_rooted("on_end", Scopes::Situation, Tooltipped::No);
+        vd.field_effect_rooted("on_monthly", Scopes::Situation, Tooltipped::No);
+        vd.field_effect_rooted("on_yearly", Scopes::Situation, Tooltipped::No);
+        vd.field_effect_rooted("on_join", Scopes::Situation, Tooltipped::Yes);
+        vd.field_effect_rooted("on_leave", Scopes::Situation, Tooltipped::Yes);
 
         vd.field_bool("is_unique");
         vd.field_bool("migration");
@@ -161,6 +161,18 @@ impl DbKind for SituationCatalyst {
 }
 
 fn validate_participant_group(key: &Token, block: &Block, data: &Everything, situation: &Token) {
+    fn sc_builder(key: &Token) -> ScopeContext {
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("situation", Scopes::Situation, key);
+        sc.define_name("situation_sub_region", Scopes::SituationSubRegion, key);
+        sc
+    }
+    fn sc_with_group(key: &Token) -> ScopeContext {
+        let mut sc = sc_builder(key);
+        sc.define_name("situation_participant_group", Scopes::SituationParticipantGroup, key);
+        sc
+    }
+
     let mut vd = Validator::new(block, data);
 
     let loca = format!("{situation}_participant_group_{key}");
@@ -175,25 +187,24 @@ fn validate_participant_group(key: &Token, block: &Block, data: &Everything, sit
     vd.field_bool("require_domain_in_sub_region");
     vd.field_bool("require_realm_in_sub_region");
 
-    let sc_builder: &Builder = &|key| {
-        let mut sc = ScopeContext::new(Scopes::Character, key);
-        sc.define_name("situation", Scopes::Situation, key);
-        sc.define_name("situation_sub_region", Scopes::SituationSubRegion, key);
-        sc
-    };
-    vd.field_trigger("is_character_valid", sc_builder, Tooltipped::Yes);
-    let sc_builder2: &Builder = &|key| {
-        let mut sc = ScopeContext::new(Scopes::Character, key);
-        sc.define_name("situation", Scopes::Situation, key);
-        sc.define_name("situation_sub_region", Scopes::SituationSubRegion, key);
-        sc.define_name("situation_participant_group", Scopes::SituationParticipantGroup, key);
-        sc
-    };
-    vd.field_effect("on_join", sc_builder2, Tooltipped::Yes);
-    vd.field_effect("on_leave", sc_builder2, Tooltipped::Yes);
+    vd.field_trigger_builder("is_character_valid", sc_builder, Tooltipped::Yes);
+    vd.field_effect_builder("on_join", sc_with_group, Tooltipped::Yes);
+    vd.field_effect_builder("on_leave", sc_with_group, Tooltipped::Yes);
 }
 
 fn validate_phase(key: &Token, block: &Block, data: &Everything, situation: &Token) {
+    fn sc_builder(key: &Token) -> ScopeContext {
+        let mut sc = ScopeContext::new(Scopes::Character, key);
+        sc.define_name("situation", Scopes::Situation, key);
+        sc.define_name("situation_sub_region", Scopes::SituationSubRegion, key);
+        sc
+    }
+    fn sc_builder2(key: &Token) -> ScopeContext {
+        let mut sc = ScopeContext::new(Scopes::Situation, key);
+        sc.define_name("situation_sub_region", Scopes::SituationSubRegion, key);
+        sc
+    }
+
     let mut vd = Validator::new(block, data);
 
     let loca = format!("{situation}_{key}_situation_phase");
@@ -202,19 +213,8 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, situation: &Tok
 
     vd.field_validated_block("parameters", validate_parameters);
 
-    let sc_builder: &Builder = &|key| {
-        let mut sc = ScopeContext::new(Scopes::Character, key);
-        sc.define_name("situation", Scopes::Situation, key);
-        sc.define_name("situation_sub_region", Scopes::SituationSubRegion, key);
-        sc
-    };
-    let sc_builder2: &Builder = &|key| {
-        let mut sc = ScopeContext::new(Scopes::Situation, key);
-        sc.define_name("situation_sub_region", Scopes::SituationSubRegion, key);
-        sc
-    };
-    vd.field_effect("on_start", sc_builder, Tooltipped::No);
-    vd.field_effect("on_end", sc_builder, Tooltipped::No);
+    vd.field_effect_builder("on_start", sc_builder, Tooltipped::No);
+    vd.field_effect_builder("on_end", sc_builder, Tooltipped::No);
     vd.field_item("illustration", Item::File);
     vd.field_item("icon", Item::File);
     vd.field_item("map_province_effect", Item::ProvinceEffect);
@@ -237,8 +237,8 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, situation: &Tok
             let mut vd = Validator::new(block, data);
 
             vd.field_choice("takeover_type", &["none", "points", "duration"]);
-            vd.field_script_value_full("takeover_points", sc_builder2, false);
-            vd.field_script_value_full("weight", sc_builder2, false);
+            vd.field_script_value_no_breakdown_builder("takeover_points", sc_builder2);
+            vd.field_script_value_no_breakdown_builder("weight", sc_builder2);
             vd.field_validated_block_sc(
                 "takeover_duration",
                 &mut sc_builder2(key),

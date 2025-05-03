@@ -98,7 +98,7 @@ impl DbKind for DiplomaticCatalyst {
             vd.field_validated_block("trigger", |block, data| {
                 validate_trigger(block, data, &mut sc, Tooltipped::No);
             });
-            vd.field_script_value_full("chance", &mut sc, false);
+            vd.field_script_value_no_breakdown("chance", &mut sc);
         });
 
         vd.field_validated_block("effect", |block, data| {

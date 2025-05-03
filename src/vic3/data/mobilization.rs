@@ -10,7 +10,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validator::{Builder, Validator};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct MobilizationOption {}
@@ -27,13 +27,13 @@ impl MobilizationOption {
 
 impl DbKind for MobilizationOption {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        let mut vd = Validator::new(block, data);
-
-        let sc_builder: &Builder = &|key: &Token| {
+        fn sc_builder(key: &Token) -> ScopeContext {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("military_formation", Scopes::MilitaryFormation, key);
             sc
-        };
+        }
+
+        let mut vd = Validator::new(block, data);
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_desc");
@@ -84,7 +84,7 @@ impl DbKind for MobilizationOption {
         });
 
         // Docs say it's Militaryformation, but the only example in vanilla contradicts that.
-        vd.field_script_value_full("ai_weight", sc_builder, false);
+        vd.field_script_value_no_breakdown_builder("ai_weight", sc_builder);
     }
 }
 

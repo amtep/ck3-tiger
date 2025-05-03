@@ -86,7 +86,7 @@ impl DbKind for AiWarStance {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
 
-        vd.field_script_value_full("ai_will_do", Scopes::War, false);
+        vd.field_script_value_no_breakdown_rooted("ai_will_do", Scopes::War);
 
         vd.multi_field_validated_block("objectives", |block, data| {
             let mut vd = Validator::new(block, data);

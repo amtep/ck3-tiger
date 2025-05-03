@@ -41,22 +41,20 @@ impl DbKind for LegitimacyType {
         vd.field_validated_block_rooted("is_valid", Scopes::Character, |block, data, sc| {
             validate_trigger(block, data, sc, Tooltipped::No);
         });
-        vd.field_script_value_no_breakdown_build_sc("ai_expected_level", |key| {
+        vd.field_script_value_no_breakdown_builder("ai_expected_level", |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("liege", Scopes::Character, key);
             sc
         });
-        vd.field_script_value_build_sc("below_expectations_opinion", |key| {
+        vd.field_script_value_builder("below_expectations_opinion", |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("target", Scopes::Character, key);
             sc
         });
-        vd.field_script_value_build_sc("max", |key| ScopeContext::new(Scopes::Character, key));
+        vd.field_script_value_rooted("max", Scopes::Character);
         vd.multi_field_validated_block("level", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_script_value_build_sc("threshold", |key| {
-                ScopeContext::new(Scopes::Character, key)
-            });
+            vd.field_script_value_rooted("threshold", Scopes::Character);
             vd.field_validated_block("modifier", |block, data| {
                 let vd = Validator::new(block, data);
                 validate_modifs(block, data, ModifKinds::Character, vd);

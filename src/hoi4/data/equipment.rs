@@ -147,8 +147,8 @@ impl DbKind for Equipment {
         vd.field_choice("ai_type", AI_TYPES);
 
         vd.field_list_items("upgrades", Item::EquipmentUpgrade);
-        vd.field_trigger("can_be_produced", Scopes::Country, Tooltipped::Yes);
-        vd.field_trigger("can_be_lend_leased", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger_rooted("can_be_produced", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger_rooted("can_be_lend_leased", Scopes::Country, Tooltipped::Yes);
 
         // TODO: validate these when equipment modules are in
         vd.field("module_slots");

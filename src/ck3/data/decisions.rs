@@ -187,9 +187,10 @@ impl DbKind for Decision {
                                 vd.field_item("icon", Item::File);
                                 vd.field_bool("flat");
 
-                                vd.field_script_value_no_breakdown_build_sc("ai_chance", |key| {
-                                    ScopeContext::new(Scopes::Character, key)
-                                });
+                                vd.field_script_value_no_breakdown_rooted(
+                                    "ai_chance",
+                                    Scopes::Character,
+                                );
                             });
                         }
                         Some("create_holy_order" | "revoke_holy_order_lease") => {

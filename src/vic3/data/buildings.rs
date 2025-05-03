@@ -230,7 +230,7 @@ impl DbKind for BuildingType {
             vd.unknown_block_fields(|_, block| {
                 let mut vd = Validator::new(block, data);
                 vd.field_item("group", Item::BuildingGroup);
-                vd.field_script_value_full("score", Scopes::Country, false);
+                vd.field_script_value_no_breakdown_rooted("score", Scopes::Country);
             });
         });
     }

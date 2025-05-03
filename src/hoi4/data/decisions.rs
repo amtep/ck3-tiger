@@ -12,7 +12,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
 use crate::validate::validate_modifiers_with_base;
-use crate::validator::{Builder, Validator, ValueValidator};
+use crate::validator::{Validator, ValueValidator};
 
 #[derive(Clone, Debug)]
 pub struct DecisionCategory {}
@@ -93,23 +93,23 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
             vd.field_validated_value("key", |_, vd| {
                 validate_icon(vd, data, is_category);
             });
-            vd.field_trigger("trigger", Scopes::Country, Tooltipped::No);
+            vd.field_trigger_rooted("trigger", Scopes::Country, Tooltipped::No);
         }
     });
     vd.field_item("picture", Item::Sprite);
     vd.field_bool("visible_when_empty");
     vd.field_bool("cancel_if_not_visible");
-    vd.field_trigger("allowed", Scopes::Country, Tooltipped::No);
+    vd.field_trigger_rooted("allowed", Scopes::Country, Tooltipped::No);
     let has_state_target = block.get_field_value("state_target").is_some_and(|v| !v.is("no"));
-    let sc_builder: &Builder = &move |key| {
+    let sc_builder = |key: &Token| {
         let mut sc = ScopeContext::new(Scopes::Country, key);
         let scope =
             if has_state_target { Scopes::CombinedCountryAndState } else { Scopes::Country };
         sc.push_as_from(scope, key);
         sc
     };
-    vd.field_trigger("visible", sc_builder, Tooltipped::No);
-    vd.field_trigger("available", sc_builder, Tooltipped::Yes);
+    vd.field_trigger_builder("visible", sc_builder, Tooltipped::No);
+    vd.field_trigger_builder("available", sc_builder, Tooltipped::Yes);
     vd.field_validated_block("targets", |block, data| {
         let mut vd = Validator::new(block, data);
         if has_state_target {
@@ -132,17 +132,17 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
         vd.field_bool("fire_only_once");
         vd.field_bool("selectable_mission");
         vd.field_variable_or_integer("days_mission_timeout", &mut sc);
-        vd.field_trigger("activation", Scopes::Country, Tooltipped::No);
-        vd.field_effect("complete_effect", Scopes::Country, Tooltipped::Yes);
-        vd.field_trigger("custom_cost_trigger", Scopes::Country, Tooltipped::No);
+        vd.field_trigger_rooted("activation", Scopes::Country, Tooltipped::No);
+        vd.field_effect_rooted("complete_effect", Scopes::Country, Tooltipped::Yes);
+        vd.field_trigger_rooted("custom_cost_trigger", Scopes::Country, Tooltipped::No);
         vd.field_localization("custom_cost_text", &mut sc);
         vd.field_numeric("ai_hint_pp_cost");
         vd.field_variable_or_integer("days_remove", &mut sc);
-        vd.field_trigger("cancel_trigger", sc_builder, Tooltipped::Yes);
-        vd.field_effect("cancel_effect", sc_builder, Tooltipped::Yes);
-        vd.field_trigger("remove_trigger", sc_builder, Tooltipped::Yes);
-        vd.field_effect("remove_effect", sc_builder, Tooltipped::Yes);
-        vd.field_effect("timeout_effect", sc_builder, Tooltipped::Yes);
+        vd.field_trigger_builder("cancel_trigger", sc_builder, Tooltipped::Yes);
+        vd.field_effect_builder("cancel_effect", sc_builder, Tooltipped::Yes);
+        vd.field_trigger_builder("remove_trigger", sc_builder, Tooltipped::Yes);
+        vd.field_effect_builder("remove_effect", sc_builder, Tooltipped::Yes);
+        vd.field_effect_builder("timeout_effect", sc_builder, Tooltipped::Yes);
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
         vd.field_choice(
             "on_map_mode",
@@ -161,8 +161,8 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
 
         vd.field_bool("targets_dynamic");
         vd.field_bool("target_non_existing");
-        vd.field_trigger("target_root_trigger", Scopes::Country, Tooltipped::No);
-        vd.field_trigger("target_trigger", sc_builder, Tooltipped::No);
+        vd.field_trigger_rooted("target_root_trigger", Scopes::Country, Tooltipped::No);
+        vd.field_trigger_builder("target_trigger", sc_builder, Tooltipped::No);
         vd.advice_field("state_trigger", "docs say state_trigger but it's state_target");
         vd.field_validated_value("state_target", |_, mut vd| {
             vd.maybe_bool();
@@ -183,7 +183,7 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
                     vvd.target(&mut sc, Scopes::State);
                 });
             });
-            vd.field_trigger("highlight_states_trigger", Scopes::State, Tooltipped::No);
+            vd.field_trigger_rooted("highlight_states_trigger", Scopes::State, Tooltipped::No);
             vd.field_list_items("highlight_provinces", Item::Province);
             vd.field_bool("highlight_only_provinces");
             vd.field_integer("highlight_color_while_active");

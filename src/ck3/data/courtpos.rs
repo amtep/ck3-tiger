@@ -13,7 +13,7 @@ use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validator::{Builder, Validator};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct CourtPosition {}
@@ -221,6 +221,14 @@ impl CourtPositionTask {
 
 impl DbKind for CourtPositionTask {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        fn sc_ai_will_do(key: &Token) -> ScopeContext {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.define_name("liege", Scopes::Character, key);
+            sc.define_name("employee", Scopes::Character, key);
+            sc.define_name("monthly_character_expenses", Scopes::Value, key);
+            sc
+        }
+
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
@@ -283,13 +291,6 @@ impl DbKind for CourtPositionTask {
             });
         }
 
-        let sc_ai_will_do: &Builder = &|key: &Token| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            sc.define_name("liege", Scopes::Character, key);
-            sc.define_name("employee", Scopes::Character, key);
-            sc.define_name("monthly_character_expenses", Scopes::Value, key);
-            sc
-        };
-        vd.field_script_value_full("ai_will_do", sc_ai_will_do, false);
+        vd.field_script_value_no_breakdown_builder("ai_will_do", sc_ai_will_do);
     }
 }

@@ -9,7 +9,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::validate_duration;
-use crate::validator::{Builder, Validator};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct PoliticalLobby {}
@@ -26,18 +26,18 @@ impl PoliticalLobby {
 
 impl DbKind for PoliticalLobby {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        let sc_no_lobby: &Builder = &|key: &Token| {
+        fn sc_no_lobby(key: &Token) -> ScopeContext {
             let mut sc = ScopeContext::new(Scopes::InterestGroup, key);
             sc.define_name("country", Scopes::Country, key);
             sc.define_name("target_country", Scopes::Country, key);
             sc
-        };
+        }
 
-        let sc_with_lobby: &Builder = &|key: &Token| {
+        fn sc_with_lobby(key: &Token) -> ScopeContext {
             let mut sc = sc_no_lobby(key);
             sc.define_name("political_lobby", Scopes::PoliticalLobby, key);
             sc
-        };
+        }
 
         let mut vd = Validator::new(block, data);
 
@@ -50,13 +50,13 @@ impl DbKind for PoliticalLobby {
         vd.field_choice("category", &["foreign_pro_country", "foreign_anti_country", "foreign"]);
         vd.field_item("texture", Item::File);
 
-        vd.field_trigger("can_create", sc_no_lobby, Tooltipped::No);
-        vd.field_effect("on_created", sc_with_lobby, Tooltipped::No);
+        vd.field_trigger_builder("can_create", sc_no_lobby, Tooltipped::No);
+        vd.field_effect_builder("on_created", sc_with_lobby, Tooltipped::No);
 
         vd.field_validated_block("requirement_to_maintain", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_trigger("trigger", sc_with_lobby, Tooltipped::No);
-            vd.field_effect("on_failed", sc_with_lobby, Tooltipped::No);
+            vd.field_trigger_builder("trigger", sc_with_lobby, Tooltipped::No);
+            vd.field_effect_builder("on_failed", sc_with_lobby, Tooltipped::No);
             vd.field_item("swap_type_on_failed", Item::PoliticalLobby);
         });
 
@@ -75,9 +75,13 @@ impl DbKind for PoliticalLobby {
         vd.field_validated_list("appeasement_factors_pro", appeasement_factors_validation);
         vd.field_validated_list("appeasement_factors_anti", appeasement_factors_validation);
 
-        vd.field_trigger("available_for_interest_group", Scopes::InterestGroup, Tooltipped::No);
+        vd.field_trigger_rooted(
+            "available_for_interest_group",
+            Scopes::InterestGroup,
+            Tooltipped::No,
+        );
 
-        vd.field_script_value_full("join_weight", sc_with_lobby, false);
+        vd.field_script_value_no_breakdown_builder("join_weight", sc_with_lobby);
     }
 }
 

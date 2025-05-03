@@ -369,7 +369,7 @@ pub fn validate_dna_modifiers(block: &Block, data: &Everything) {
                 Gene::verify_has_template(category.as_str(), template, data);
             }
         }
-        vd.field_script_value_full("value", Scopes::Character, false);
+        vd.field_script_value_no_breakdown_rooted("value", Scopes::Character);
         vd.field_validated_block("range", |block, data| {
             validate_numeric_range(block, data, 0.0, 1.0, Severity::Warning, Confidence::Weak);
         });
@@ -390,7 +390,7 @@ pub fn validate_dna_modifiers(block: &Block, data: &Everything) {
                 Gene::verify_has_template(category.as_str(), template, data);
             }
         }
-        vd.field_script_value_full("value", Scopes::Character, false);
+        vd.field_script_value_no_breakdown_rooted("value", Scopes::Character);
         vd.field_validated_block("range", |block, data| {
             validate_numeric_range(block, data, 0.0, 1.0, Severity::Warning, Confidence::Weak);
         });

@@ -11,7 +11,7 @@ use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validator::{Builder, Validator};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct LawType {}
@@ -28,6 +28,21 @@ impl LawType {
 
 impl DbKind for LawType {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        fn sc_impose(key: &Token) -> ScopeContext {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("initiator", Scopes::Country, key);
+            sc.define_name("target_country", Scopes::Country, key);
+            sc.define_name("law", Scopes::LawType, key);
+            sc
+        }
+
+        fn sc_impose_chance(key: &Token) -> ScopeContext {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("target_country", Scopes::Country, key);
+            sc.define_name("law", Scopes::LawType, key);
+            sc
+        }
+
         let mut vd = Validator::new(block, data);
 
         data.verify_exists(Item::Localization, key);
@@ -125,23 +140,10 @@ impl DbKind for LawType {
             validate_script_value(bv, data, &mut sc);
         });
 
-        let sc_impose: &Builder = &|key: &Token| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            sc.define_name("initiator", Scopes::Country, key);
-            sc.define_name("target_country", Scopes::Country, key);
-            sc.define_name("law", Scopes::LawType, key);
-            sc
-        };
-        vd.field_trigger("can_impose", sc_impose, Tooltipped::Yes);
-        vd.field_effect("on_impose", sc_impose, Tooltipped::Yes);
+        vd.field_trigger_builder("can_impose", sc_impose, Tooltipped::Yes);
+        vd.field_effect_builder("on_impose", sc_impose, Tooltipped::Yes);
 
-        let sc_impose_chance: &Builder = &|key: &Token| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            sc.define_name("target_country", Scopes::Country, key);
-            sc.define_name("law", Scopes::LawType, key);
-            sc
-        };
-        vd.field_script_value_full("ai_impose_chance", sc_impose_chance, false);
+        vd.field_script_value_no_breakdown_builder("ai_impose_chance", sc_impose_chance);
     }
 }
 

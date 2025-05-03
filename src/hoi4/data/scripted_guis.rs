@@ -85,10 +85,10 @@ impl DbKind for ScriptedGui {
 
         vd.field_variable("dirty", &mut sc);
 
-        vd.field_trigger("ai_enabled", Scopes::Country, Tooltipped::No);
+        vd.field_trigger_rooted("ai_enabled", Scopes::Country, Tooltipped::No);
         vd.field_integer("ai_test_interval");
         vd.field_integer("ai_test_variance");
-        vd.field_trigger("ai_check", Scopes::Country, Tooltipped::No);
+        vd.field_trigger_rooted("ai_check", Scopes::Country, Tooltipped::No);
         vd.field_choice("ai_test_scopes", AI_TEST);
         vd.field_trigger("ai_check_scope", &mut sc, Tooltipped::No);
         vd.field_validated_block("ai_weights", |block, data| {

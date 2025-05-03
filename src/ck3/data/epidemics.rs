@@ -61,7 +61,7 @@ impl DbKind for EpidemicType {
             },
         );
 
-        vd.field_script_value_no_breakdown_build_sc("character_infection_chance", |key| {
+        vd.field_script_value_no_breakdown_builder("character_infection_chance", |key| {
             let mut sc = build_character_epidemic_sc(key);
             // undocumented
             sc.define_name("province", Scopes::Province, key);
@@ -162,14 +162,14 @@ fn build_province_epidemic_sc(key: &Token) -> ScopeContext {
 fn validate_outbreak_level(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
     vd.field_bool("global_notification");
-    vd.field_script_value_no_breakdown_build_sc("outbreak_chance", |key| {
+    vd.field_script_value_no_breakdown_builder("outbreak_chance", |key| {
         let mut sc = ScopeContext::new(Scopes::Province, key);
         sc.define_name("epidemic_type", Scopes::EpidemicType, key);
         sc
     });
 
-    vd.field_script_value_build_sc("spread_chance", build_province_epidemic_sc);
-    vd.field_script_value_no_breakdown_build_sc("max_provinces", |key| {
+    vd.field_script_value_builder("spread_chance", build_province_epidemic_sc);
+    vd.field_script_value_no_breakdown_builder("max_provinces", |key| {
         ScopeContext::new(Scopes::None, key)
     });
 

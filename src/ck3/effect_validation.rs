@@ -23,7 +23,7 @@ use crate::validate::{
     validate_optional_duration, validate_optional_duration_int, validate_possibly_named_color,
     ListType,
 };
-use crate::validator::{Builder, Validator, ValueValidator};
+use crate::validator::{Validator, ValueValidator};
 
 pub fn validate_add_activity_log_entry(
     key: &Token,
@@ -1919,9 +1919,7 @@ pub fn validate_start_best_war(
     mut vd: Validator,
     _tooltipped: Tooltipped,
 ) {
-    vd.field_list_items("cb", Item::CasusBelli);
-    vd.field_bool("recalculate_cb_targets");
-    let sc_builder: &Builder = &|key| {
+    fn sc_builder(key: &Token) -> ScopeContext {
         let mut sc = ScopeContext::new(Scopes::Character, key);
         sc.define_name("target_character", Scopes::Character, key);
         sc.define_name("target_title", Scopes::LandedTitle, key);
@@ -1931,7 +1929,10 @@ pub fn validate_start_best_war(
         sc.define_name("has_hostage", Scopes::Bool, key);
         sc.define_name("score", Scopes::Value, key);
         sc
-    };
+    }
+
+    vd.field_list_items("cb", Item::CasusBelli);
+    vd.field_bool("recalculate_cb_targets");
     vd.field_validated_key_block("is_valid", |key, block, data| {
         validate_trigger(block, data, &mut sc_builder(key), Tooltipped::No);
     });

@@ -16,7 +16,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_modifiers_with_base};
-use crate::validator::{Builder, Validator};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct Scheme {}
@@ -33,6 +33,16 @@ impl Scheme {
 
 impl DbKind for Scheme {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        fn sc_secrecy(key: &Token) -> ScopeContext {
+            let mut sc = ScopeContext::new(Scopes::Scheme, key);
+            let target_scopes =
+                Scopes::Character | Scopes::LandedTitle | Scopes::Culture | Scopes::Faith;
+            sc.define_name("target", target_scopes, key);
+            sc.define_name("owner", Scopes::Character, key);
+            sc.define_name("exposed", Scopes::Bool, key);
+            sc
+        }
+
         let mut vd = Validator::new(block, data);
         let target_scopes =
             Scopes::Character | Scopes::LandedTitle | Scopes::Culture | Scopes::Faith;
@@ -143,16 +153,7 @@ impl DbKind for Scheme {
         vd.field_validated_block("use_secrecy", |block, data| {
             validate_trigger(block, data, &mut sc, Tooltipped::No);
         });
-        let sc_secrecy: &Builder = &|key| {
-            let mut sc = ScopeContext::new(Scopes::Scheme, key);
-            let target_scopes =
-                Scopes::Character | Scopes::LandedTitle | Scopes::Culture | Scopes::Faith;
-            sc.define_name("target", target_scopes, key);
-            sc.define_name("owner", Scopes::Character, key);
-            sc.define_name("exposed", Scopes::Bool, key);
-            sc
-        };
-        vd.field_script_value_full("base_secrecy", sc_secrecy, false);
+        vd.field_script_value_no_breakdown_builder("base_secrecy", sc_secrecy);
 
         // on_start is undocumented
         for field in &[
@@ -206,6 +207,16 @@ impl AgentType {
 
 impl DbKind for AgentType {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        fn sc_builder(key: &Token) -> ScopeContext {
+            let target_scopes =
+                Scopes::Character | Scopes::LandedTitle | Scopes::Culture | Scopes::Faith;
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.define_name("owner", Scopes::Character, key);
+            sc.define_name("scheme", Scopes::Scheme, key);
+            sc.define_name("target", target_scopes, key);
+            sc
+        }
+
         let mut vd = Validator::new(block, data);
 
         data.verify_exists(Item::Localization, key);
@@ -224,16 +235,7 @@ impl DbKind for AgentType {
         });
         vd.field_choice("contribution_type", AGENT_SLOT_CONTRIBUTION_TYPE);
 
-        let sc_builder: &Builder = &|key| {
-            let target_scopes =
-                Scopes::Character | Scopes::LandedTitle | Scopes::Culture | Scopes::Faith;
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            sc.define_name("owner", Scopes::Character, key);
-            sc.define_name("scheme", Scopes::Scheme, key);
-            sc.define_name("target", target_scopes, key);
-            sc
-        };
-        vd.field_script_value_full("contribution", sc_builder, true);
+        vd.field_script_value_builder("contribution", sc_builder);
     }
 }
 
@@ -252,14 +254,14 @@ impl SchemePulseAction {
 
 impl DbKind for SchemePulseAction {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
-        let mut vd = Validator::new(block, data);
-
-        let sc_builder: &Builder = &|key| {
+        fn sc_builder(key: &Token) -> ScopeContext {
             let mut sc = ScopeContext::new(Scopes::Scheme, key);
             sc.define_name("scheme", Scopes::Scheme, key); // docs say "activity"
             sc.define_name("owner", Scopes::Character, key);
             sc
-        };
+        }
+
+        let mut vd = Validator::new(block, data);
 
         let icon = vd.field_value("icon").unwrap_or(key);
         data.verify_icon("NGameIcons|STATICMODIFIER_ICON_PATH", icon, ".dds");
@@ -269,7 +271,7 @@ impl DbKind for SchemePulseAction {
         vd.field_validated_key_block("is_valid", |key, block, data| {
             validate_trigger(block, data, &mut sc_builder(key), Tooltipped::No);
         });
-        vd.field_script_value_full("weight", sc_builder, false);
+        vd.field_script_value_no_breakdown_builder("weight", sc_builder);
         vd.field_validated_key_block("effect", |key, block, data| {
             validate_effect(block, data, &mut sc_builder(key), Tooltipped::No);
         });
@@ -329,7 +331,7 @@ impl DbKind for Countermeasure {
             validate_modifs(block, data, ModifKinds::Character, vd);
         });
 
-        vd.field_script_value_full("ai_will_do", Scopes::Character, false);
+        vd.field_script_value_no_breakdown_rooted("ai_will_do", Scopes::Character);
 
         vd.field_validated_block("parameters", |block, data| {
             let mut vd = Validator::new(block, data);

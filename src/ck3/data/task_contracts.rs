@@ -10,7 +10,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
-use crate::validator::{Builder, Validator};
+use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct TaskContractType {}
@@ -38,6 +38,12 @@ impl DbKind for TaskContractType {
     }
 
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        fn sc_weight(key: &Token) -> ScopeContext {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.define_name("employer", Scopes::Character, key);
+            sc
+        }
+
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::TaskContractType, key);
 
@@ -115,11 +121,6 @@ impl DbKind for TaskContractType {
             });
         });
 
-        let sc_weight: &Builder = &|key| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            sc.define_name("employer", Scopes::Character, key);
-            sc
-        };
-        vd.field_script_value_full("weight", sc_weight, false);
+        vd.field_script_value_no_breakdown_builder("weight", sc_weight);
     }
 }

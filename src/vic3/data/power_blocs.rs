@@ -77,6 +77,14 @@ impl PowerBlocIdentity {
 
 impl DbKind for PowerBlocIdentity {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        fn sc_cohesion(key: &Token) -> ScopeContext {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("power_bloc", Scopes::PowerBloc, key);
+            sc.define_name("with_country", Scopes::Country, key);
+            sc.define_name("without_country", Scopes::Country, key);
+            sc
+        }
+
         let mut vd = Validator::new(block, data);
 
         data.verify_exists(Item::Localization, key);
@@ -113,13 +121,9 @@ impl DbKind for PowerBlocIdentity {
             });
         }
 
-        vd.field_script_value_full("mandate_progress", Scopes::PowerBloc, true);
+        vd.field_script_value_rooted("mandate_progress", Scopes::PowerBloc);
 
-        let mut sc_cohesion = ScopeContext::new(Scopes::Country, key);
-        sc_cohesion.define_name("power_bloc", Scopes::PowerBloc, key);
-        sc_cohesion.define_name("with_country", Scopes::Country, key);
-        sc_cohesion.define_name("without_country", Scopes::Country, key);
-        vd.field_script_value_full("cohesion", &mut sc_cohesion, true);
+        vd.field_script_value_builder("cohesion", sc_cohesion);
 
         // undocumented
         vd.field_validated_block("can_leave", |block, data| {
@@ -128,7 +132,7 @@ impl DbKind for PowerBlocIdentity {
         vd.field_validated_block("on_created", |block, data| {
             validate_effect(block, data, &mut sc, Tooltipped::Yes);
         });
-        vd.field_script_value_full("ai_weight", Scopes::Country, false);
+        vd.field_script_value_no_breakdown_rooted("ai_weight", Scopes::Country);
     }
 }
 

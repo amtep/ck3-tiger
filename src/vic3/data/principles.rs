@@ -98,7 +98,7 @@ impl DbKind for Principle {
 
         // undocumented
 
-        vd.field_script_value_full("ai_weight", Scopes::Country, false);
+        vd.field_script_value_no_breakdown_rooted("ai_weight", Scopes::Country);
         vd.field_bool("allows_foreign_investment_in_lower_rank");
     }
 }
