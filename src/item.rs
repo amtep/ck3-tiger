@@ -370,7 +370,6 @@ pub enum Item {
     #[cfg(feature = "ck3")] SituationCatalyst,
     #[cfg(feature = "ck3")] SituationParticipantGroup,
     #[cfg(feature = "ck3")] SituationPhase,
-    #[cfg(feature = "ck3")] SituationPhaseCatalyst,
     #[cfg(feature = "ck3")] SituationPhaseParameter,
     #[cfg(feature = "ck3")] SituationSubRegion,
     #[cfg(feature = "ck3")] Skill,
@@ -1271,8 +1270,6 @@ impl Item {
             Item::SituationParticipantGroup => "common/situation/situations/",
             #[cfg(feature = "ck3")]
             Item::SituationPhase => "common/situation/situations/",
-            #[cfg(feature = "ck3")]
-            Item::SituationPhaseCatalyst => "common/situation/catalysts/",
             #[cfg(feature = "ck3")]
             Item::SituationPhaseParameter => "common/situation/situations/",
             #[cfg(feature = "ck3")]

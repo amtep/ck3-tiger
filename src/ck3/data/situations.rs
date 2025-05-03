@@ -17,14 +17,14 @@ use crate::validator::{Builder, Validator};
 pub struct Situation {}
 
 #[derive(Clone, Debug)]
-pub struct SituationPhaseCatalyst {}
+pub struct SituationCatalyst {}
 
 inventory::submit! {
     ItemLoader::Normal(GameFlags::Ck3, Item::Situation, Situation::add)
 }
 
 inventory::submit! {
-    ItemLoader::Normal(GameFlags::Ck3, Item::SituationPhaseCatalyst, SituationPhaseCatalyst::add)
+    ItemLoader::Normal(GameFlags::Ck3, Item::SituationCatalyst, SituationCatalyst::add)
 }
 
 impl Situation {
@@ -33,9 +33,9 @@ impl Situation {
     }
 }
 
-impl SituationPhaseCatalyst {
+impl SituationCatalyst {
     pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::SituationPhaseCatalyst, key, block, Box::new(Self {}));
+        db.add(Item::SituationCatalyst, key, block, Box::new(Self {}));
     }
 }
 
@@ -153,7 +153,7 @@ impl DbKind for Situation {
     }
 }
 
-impl DbKind for SituationPhaseCatalyst {
+impl DbKind for SituationCatalyst {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         // vd is created in order to warn about unknown fields when it is dropped.
         let _vd = Validator::new(block, data);
@@ -248,7 +248,7 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, situation: &Tok
                 let mut vd = Validator::new(block, data);
 
                 vd.unknown_fields(|key, bv| {
-                    data.verify_exists(Item::SituationPhaseCatalyst, key);
+                    data.verify_exists(Item::SituationCatalyst, key);
                     validate_non_dynamic_script_value(bv, data);
                 });
             });
