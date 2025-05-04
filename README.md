@@ -1,7 +1,7 @@
 # ![Tiger Banner](banner.png)
 
-[![GitHub Release](https://img.shields.io/github/v/release/amtep/ck3-tiger)](https://github.com/amtep/ck3-tiger/releases)
-[![GitHub License](https://img.shields.io/github/license/amtep/ck3-tiger)](https://github.com/amtep/ck3-tiger/blob/main/LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/amtep/tiger)](https://github.com/amtep/tiger/releases)
+[![GitHub License](https://img.shields.io/github/license/amtep/tiger)](https://github.com/amtep/tiger/blob/main/LICENSE)
 [![tiger-lib docs.rs](https://img.shields.io/docsrs/tiger-lib?label=tiger-lib%20docs)](https://docs.rs/tiger-lib/latest/tiger_lib/)
 [![Discord](https://img.shields.io/discord/1137432658067062784?logo=discord&label=discord&labelColor=1137432658067062784&color=royalblue)](https://discord.gg/3uQVCJ8uVf)
 
@@ -38,7 +38,7 @@ Support for Hearts of Iron IV (`hoi4-tiger`) is in the works but it is **unfinis
 
 ### `ck3-tiger`
 
-Download a release package from [GitHub](https://github.com/amtep/ck3-tiger/releases). Unpack it somewhere.
+Download a release package from [GitHub](https://github.com/amtep/tiger/releases). Unpack it somewhere.
 
 On Windows, if everything works out, you can then just double-click on `ck3-tiger-auto` and it will try its best.
 
@@ -60,7 +60,7 @@ ck3-tiger <i>path/to/your/</i>descriptor.mod ><i>filename</i>
 
 ### `vic3-tiger`
 
-Download a release package from [GitHub](https://github.com/amtep/ck3-tiger/releases). Unpack it somewhere.
+Download a release package from [GitHub](https://github.com/amtep/tiger/releases). Unpack it somewhere.
 
 On Windows, if everything works out, you can then just double-click on `vic3-tiger-auto` and it will try its best.
 
@@ -82,7 +82,7 @@ vic3-tiger <i>path/to/your/mod</i> ><i>filename</i>
 
 ### `imperator-tiger`
 
-Download a release package from [GitHub](https://github.com/amtep/ck3-tiger/releases). Unpack it somewhere.
+Download a release package from [GitHub](https://github.com/amtep/tiger/releases). Unpack it somewhere.
 
 Run the tool from the command prompt:
 <pre>
@@ -108,7 +108,7 @@ There is a sample [`ck3-tiger.conf`](ck3-tiger.conf) file, [`vic3-tiger.conf`](v
 
 ## How to build
 
-If you want to build it yourself, you will have to [install the Rust programming language](https://www.rust-lang.org/tools/install). You can either get the source archive from one of the releases (preferably the [latest](https://github.com/amtep/ck3-tiger/releases/latest)) or clone the git repository.
+If you want to build it yourself, you will have to [install the Rust programming language](https://www.rust-lang.org/tools/install). You can either get the source archive from one of the releases (preferably the [latest](https://github.com/amtep/tiger/releases/latest)) or clone the git repository.
 
 For `ck3-tiger`, run `cargo build --release -p ck3-tiger` in the project's directory, then run the program as `cargo run --release -p ck3-tiger`.  
 For `vic3-tiger`, run `cargo build --release -p vic3-tiger` in the project's directory, then run the program as `cargo run --release -p vic3-tiger`.  
@@ -116,13 +116,13 @@ For `imperator-tiger`, run `cargo build --release -p imperator-tiger` in the pro
 
 ## Visual Studio Code extension
 
-User unLomTrois has made a [VS Code extension](https://github.com/unLomTrois/ck3tiger-for-vscode) for `ck3-tiger`.
+User unLomTrois has made a [VS Code extension](https://github.com/unLomTrois/ck3tiger-for-vscode) for Tiger.
 It enables you to view the reports directly in the Problems tab.
 
 ## GitHub Action
 
-User Bahmut has made a [GitHub Action](https://github.com/kaiser-chris/tiger-action-public) for `ck3-tiger`.
-It allows running ck3-tiger validation in GitHub Workflows.
+User Bahmut has made a [GitHub Action](https://github.com/kaiser-chris/tiger-action-public) for Tiger.
+It allows running Tiger validation in GitHub Workflows.
 
 > **NOTE:** Because of copyright issues, you will need to set up the action yourself. The repository linked above contains a guide on how to set it up for yourself.
 
@@ -169,10 +169,10 @@ Some ideas for code contributions:
 * Adding a validator for a new item type
 * Updating a validator to a new game version
 * Solving one of the hundreds of TODO comments in the code
-* Solving one of the issues marked in the [TODO](https://github.com/amtep/ck3-tiger/wiki/Todo) or [IDEAS](https://github.com/amtep/ck3-tiger/wiki/Ideas) wiki pages
+* Solving one of the issues marked in the [TODO](https://github.com/amtep/tiger/wiki/Todo) or [IDEAS](https://github.com/amtep/tiger/wiki/Ideas) wiki pages
 * Speed or memory use improvements; opportunities are all over the place
 
-See the [CODING](https://github.com/amtep/ck3-tiger/wiki/Overview-for-coders) wiki page for an overview of the code and coding style.
+See the [CODING](https://github.com/amtep/tiger/wiki/Overview-for-coders) wiki page for an overview of the code and coding style.
 
 ### License
 

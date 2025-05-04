@@ -1,1 +1,1 @@
-Moved to the wiki on GitHub: https://github.com/amtep/ck3-tiger/wiki/Ideas
+Moved to the wiki on GitHub: https://github.com/amtep/tiger/wiki/Ideas

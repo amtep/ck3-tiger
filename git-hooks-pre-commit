@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# This is the recommended pre-commit hook when developing ck3-tiger.
+# This is the recommended pre-commit hook when developing tiger.
 # Copy it to .git/hooks/pre-commit to start using it.
 # It will run automatically before every commit, and abort the commit
 # if an error is found.

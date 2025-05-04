@@ -65,7 +65,7 @@ pub fn update(current_version: &str, target_version: Option<&str>) -> Result<(),
             let mut updater = UpdateBuilder::new();
             updater
                 .repo_owner("amtep")
-                .repo_name("ck3-tiger")
+                .repo_name("tiger")
                 .bin_name(BIN_NAME)
                 .bin_path_in_archive(&bin_path)
                 .identifier(BIN_NAME)

@@ -18,4 +18,4 @@ These are the people that made Tiger what it is.
 * HiddeLekanne
 
 ## External contributors
-* unLomTrois (VS Code plugin for ck3-tiger)
+* unLomTrois (VS Code plugin)
