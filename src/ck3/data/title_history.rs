@@ -16,6 +16,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Clone, Debug, Default)]
 pub struct TitleHistories {
@@ -36,6 +37,12 @@ impl TitleHistories {
             other.block.append(&mut block);
         } else {
             self.histories.insert(key.as_str(), TitleHistory::new(key.clone(), block));
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.histories.values() {
+            registry.scan(&item.block);
         }
     }
 

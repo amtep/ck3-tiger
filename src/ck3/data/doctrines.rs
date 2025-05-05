@@ -16,6 +16,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Clone, Debug, Default)]
 #[allow(clippy::struct_field_names)]
@@ -33,6 +34,15 @@ impl Doctrines {
             }
         }
         self.categories.insert(key.as_str(), DoctrineCategory::new(key, block));
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.categories.values() {
+            registry.scan(&item.block);
+        }
+        for item in self.doctrines.values() {
+            registry.scan(&item.block);
+        }
     }
 
     pub fn validate(&self, data: &Everything) {

@@ -69,6 +69,7 @@ pub enum ErrorKey {
     Performance,
     Overflow,
     Deprecated,
+    Variables,
 
     PrincesOfDarkness,
 

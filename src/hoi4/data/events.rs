@@ -15,6 +15,7 @@ use crate::pdxfile::PdxFile;
 use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::variables::Variables;
 
 #[derive(Debug, Default)]
 #[allow(clippy::struct_field_names)]
@@ -42,6 +43,12 @@ impl Hoi4Events {
         } else {
             let msg = "event without id field";
             err(ErrorKey::FieldMissing).msg(msg).loc(block).push();
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.events.values() {
+            registry.scan(&item.block);
         }
     }
 

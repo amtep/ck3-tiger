@@ -81,6 +81,7 @@ use crate::report::err;
 use crate::report::{report, set_output_style, ErrorKey, OutputStyle, Severity};
 use crate::rivers::Rivers;
 use crate::token::{Loc, Token};
+use crate::variables::Variables;
 #[cfg(feature = "vic3")]
 use crate::vic3::data::{
     buy_packages::BuyPackage, history::History, provinces::Vic3Provinces,
@@ -218,6 +219,8 @@ pub struct Everything {
 
     #[cfg(feature = "ck3")]
     pub(crate) wars: Wars,
+
+    pub(crate) variables: Variables,
 }
 
 impl Everything {
@@ -337,6 +340,7 @@ impl Everything {
             history: History::default(),
             #[cfg(feature = "ck3")]
             wars: Wars::default(),
+            variables: Variables::new(),
         })
     }
 
@@ -517,6 +521,58 @@ impl Everything {
         self.fileset.handle(&mut self.music_hoi4, &self.parser);
     }
 
+    fn scan_all_generic(&mut self) {
+        self.triggers.scan_variables(&mut self.variables);
+        self.effects.scan_variables(&mut self.variables);
+        self.on_actions.scan_variables(&mut self.variables);
+    }
+
+    #[cfg(feature = "ck3")]
+    fn scan_all_ck3(&mut self) {
+        self.events.scan_variables(&mut self.variables);
+        self.interaction_cats.scan_variables(&mut self.variables);
+        self.province_histories.scan_variables(&mut self.variables);
+        self.titles.scan_variables(&mut self.variables);
+        self.characters.scan_variables(&mut self.variables);
+        self.traits.scan_variables(&mut self.variables);
+        self.title_history.scan_variables(&mut self.variables);
+        self.doctrines.scan_variables(&mut self.variables);
+        self.menatarmstypes.scan_variables(&mut self.variables);
+        self.music.scan_variables(&mut self.variables);
+        self.scripted_lists.scan_variables(&mut self.variables);
+        self.coas.scan_variables(&mut self.variables);
+        self.scripted_modifiers.scan_variables(&mut self.variables);
+        self.script_values.scan_variables(&mut self.variables);
+    }
+
+    #[cfg(feature = "vic3")]
+    fn scan_all_vic3(&mut self) {
+        self.events.scan_variables(&mut self.variables);
+        self.history.scan_variables(&mut self.variables);
+        self.coas.scan_variables(&mut self.variables);
+        self.scripted_lists.scan_variables(&mut self.variables);
+        self.scripted_modifiers.scan_variables(&mut self.variables);
+        self.script_values.scan_variables(&mut self.variables);
+        self.music.scan_variables(&mut self.variables);
+    }
+
+    #[cfg(feature = "imperator")]
+    fn scan_all_imperator(&mut self) {
+        self.events.scan_variables(&mut self.variables);
+        self.decisions_imperator.scan_variables(&mut self.variables);
+        self.coas.scan_variables(&mut self.variables);
+        self.scripted_lists.scan_variables(&mut self.variables);
+        self.scripted_modifiers.scan_variables(&mut self.variables);
+        self.script_values.scan_variables(&mut self.variables);
+        self.music.scan_variables(&mut self.variables);
+    }
+
+    #[cfg(feature = "hoi4")]
+    fn scan_all_hoi4(&mut self) {
+        self.events_hoi4.scan_variables(&mut self.variables);
+        self.music_hoi4.scan_variables(&mut self.variables);
+    }
+
     pub fn load_all(&mut self) {
         #[cfg(feature = "ck3")]
         self.load_reader_export();
@@ -532,6 +588,19 @@ impl Everything {
             Game::Hoi4 => self.load_all_hoi4(),
         }
         self.database.add_subitems();
+
+        self.scan_all_generic();
+        match Game::game() {
+            #[cfg(feature = "ck3")]
+            Game::Ck3 => self.scan_all_ck3(),
+            #[cfg(feature = "vic3")]
+            Game::Vic3 => self.scan_all_vic3(),
+            #[cfg(feature = "imperator")]
+            Game::Imperator => self.scan_all_imperator(),
+            #[cfg(feature = "hoi4")]
+            Game::Hoi4 => self.scan_all_hoi4(),
+        }
+        self.database.scan_variables(&mut self.variables);
     }
 
     fn validate_all_generic<'a>(&'a self, s: &Scope<'a>) {

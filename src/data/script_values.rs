@@ -12,6 +12,7 @@ use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::{Loc, Token};
+use crate::variables::Variables;
 
 #[derive(Debug, Default)]
 pub struct ScriptValues {
@@ -37,6 +38,14 @@ impl ScriptValues {
             let scope_override = self.scope_overrides.get(key.as_str()).copied();
             self.script_values
                 .insert(key.as_str(), ScriptValue::new(key.clone(), bv.clone(), scope_override));
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.script_values.values() {
+            if let Some(block) = &item.bv.get_block() {
+                registry.scan(block);
+            }
         }
     }
 

@@ -17,6 +17,7 @@ use crate::pdxfile::PdxFile;
 use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::variables::Variables;
 
 #[derive(Debug, Default)]
 #[allow(clippy::struct_field_names)]
@@ -57,6 +58,18 @@ impl Events {
             dup_error(&key, &other.key, "scripted effect");
         }
         self.effects.insert(index, Effect::new(key, block, None));
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.events.values() {
+            registry.scan(&item.block);
+        }
+        for item in self.triggers.values() {
+            registry.scan(&item.block);
+        }
+        for item in self.effects.values() {
+            registry.scan(&item.block);
+        }
     }
 
     #[cfg(feature = "ck3")]

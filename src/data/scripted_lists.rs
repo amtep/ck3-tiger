@@ -14,6 +14,7 @@ use crate::token::{Loc, Token};
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Debug, Default)]
 pub struct ScriptedLists {
@@ -28,6 +29,12 @@ impl ScriptedLists {
             }
         }
         self.lists.insert(key.as_str(), List::new(key, block));
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.lists.values() {
+            registry.scan(&item.block);
+        }
     }
 
     pub fn exists(&self, key: &str) -> bool {

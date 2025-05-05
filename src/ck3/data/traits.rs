@@ -18,6 +18,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Clone, Debug, Default)]
 #[allow(clippy::struct_field_names)]
@@ -43,6 +44,12 @@ impl Traits {
         }
         self.traits_lc.insert(Lowercase::new(key.as_str()), key.as_str());
         self.traits.insert(key.as_str(), Trait::new(key, block));
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.traits.values() {
+            registry.scan(&item.block);
+        }
     }
 
     pub fn exists(&self, key: &str) -> bool {

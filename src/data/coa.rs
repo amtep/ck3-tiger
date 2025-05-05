@@ -17,6 +17,7 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger_max_sev;
 use crate::validate::{validate_color, validate_possibly_named_color};
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Clone, Debug, Default)]
 pub struct Coas {
@@ -57,6 +58,19 @@ impl Coas {
                 }
             }
             self.coas.insert(key.as_str(), Coa::new(key.clone(), bv.clone()));
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.coas.values() {
+            if let Some(block) = &item.bv.get_block() {
+                registry.scan(block);
+            }
+        }
+        for item in self.templates.values() {
+            if let Some(block) = &item.bv.get_block() {
+                registry.scan(block);
+            }
         }
     }
 

@@ -18,6 +18,7 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger_internal;
 use crate::validate::ListType;
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Debug, Default)]
 pub struct Triggers {
@@ -49,6 +50,12 @@ impl Triggers {
                 MACRO_MAP.insert_or_get_loc(key.loc);
             }
             self.triggers.insert(key.as_str(), Trigger::new(key, block, scope_override));
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.triggers.values() {
+            registry.scan(&item.block);
         }
     }
 
@@ -119,7 +126,7 @@ impl FileHandler<Block> for Triggers {
 #[derive(Debug)]
 pub struct Trigger {
     pub key: Token,
-    block: Block,
+    pub block: Block,
     cache: MacroCache<ScopeContext>,
     scope_override: Option<Scopes>,
 }

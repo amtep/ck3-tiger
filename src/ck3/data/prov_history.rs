@@ -11,12 +11,12 @@ use crate::helpers::{dup_error, TigerHashMap};
 use crate::item::Item;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, ErrorKey};
+use crate::report::{warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validator::Validator;
-use crate::Severity;
+use crate::variables::Variables;
 
 #[derive(Clone, Debug, Default)]
 pub struct ProvinceHistories {
@@ -33,6 +33,12 @@ impl ProvinceHistories {
             province.block.append(&mut block);
         } else {
             self.provinces.insert(id, ProvinceHistory::new(key, block));
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.provinces.values() {
+            registry.scan(&item.block);
         }
     }
 

@@ -16,6 +16,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Clone, Debug, Default)]
 pub struct MenAtArmsTypes {
@@ -33,6 +34,12 @@ impl MenAtArmsTypes {
         }
 
         self.menatarmstypes.insert(key.as_str(), MenAtArmsType::new(key, block));
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.menatarmstypes.values() {
+            registry.scan(&item.block);
+        }
     }
 
     pub fn base_exists(&self, key: &str) -> bool {

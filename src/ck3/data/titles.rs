@@ -18,6 +18,7 @@ use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Clone, Debug, Default)]
 pub struct Titles {
@@ -118,6 +119,15 @@ impl Titles {
         }
         if is_county_capital {
             err(ErrorKey::Validation).msg("county with no baronies!").loc(key).push();
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.titles.values() {
+            // Title blocks are nested, so the parent check is to avoid re-scanning subordinate titles.
+            if item.parent.is_none() {
+                registry.scan(&item.block);
+            }
         }
     }
 

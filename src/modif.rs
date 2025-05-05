@@ -196,13 +196,15 @@ pub fn validate_modifs<'a>(
     });
 }
 
-#[cfg(any(feature = "ck3", feature = "vic3"))]
+#[cfg(any(feature = "ck3", feature = "vic3", feature = "hoi4"))]
 pub fn verify_modif_exists(key: &Token, data: &Everything, kinds: ModifKinds, sev: Severity) {
     let lookup_modif = match Game::game() {
         #[cfg(feature = "ck3")]
         Game::Ck3 => crate::ck3::tables::modifs::lookup_modif,
         #[cfg(feature = "vic3")]
         Game::Vic3 => crate::vic3::tables::modifs::lookup_modif,
+        #[cfg(feature = "hoi4")]
+        Game::Hoi4 => crate::hoi4::tables::modifs::lookup_modif,
     };
 
     if let Some(mk) = lookup_modif(key, data, Some(sev)) {

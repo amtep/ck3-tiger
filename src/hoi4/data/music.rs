@@ -13,6 +13,7 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Clone, Debug, Default)]
 pub struct Hoi4Musics {
@@ -27,6 +28,12 @@ impl Hoi4Musics {
             }
         }
         self.musics.insert(key.as_str(), Music { station, key, block });
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.musics.values() {
+            registry.scan(&item.block);
+        }
     }
 
     pub fn exists(&self, key: &str) -> bool {

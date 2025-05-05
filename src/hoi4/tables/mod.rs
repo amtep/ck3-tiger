@@ -5,3 +5,4 @@ pub mod misc;
 pub mod modifs;
 pub mod on_action;
 pub mod triggers;
+pub mod variables;

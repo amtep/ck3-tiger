@@ -16,6 +16,7 @@ use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
+use crate::variables::Variables;
 
 #[derive(Debug, Default)]
 pub struct Effects {
@@ -43,6 +44,12 @@ impl Effects {
                 MACRO_MAP.insert_or_get_loc(key.loc);
             }
             self.effects.insert(key.as_str(), Effect::new(key, block, scope_override));
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.effects.values() {
+            registry.scan(&item.block);
         }
     }
 
@@ -113,7 +120,7 @@ impl FileHandler<Block> for Effects {
 #[derive(Debug)]
 pub struct Effect {
     pub key: Token,
-    block: Block,
+    pub block: Block,
     cache: MacroCache<ScopeContext>,
     scope_override: Option<Scopes>,
 }

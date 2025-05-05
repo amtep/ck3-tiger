@@ -11,6 +11,7 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
+use crate::variables::Variables;
 
 /// The history files in Vic3 are fairly simple. Files under `common/history/` have `keyword = { effect... }` as top-level blocks,
 /// where the effects from the same keywords are all added together. The keywords seem to be arbitrary, except for GLOBAL which
@@ -27,6 +28,12 @@ impl History {
             entry.block.append(&mut block);
         } else {
             self.history.insert(key.as_str(), HistoryEffect::new(key, block));
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.history.values() {
+            registry.scan(&item.block);
         }
     }
 

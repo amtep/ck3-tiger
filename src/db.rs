@@ -17,6 +17,7 @@ use crate::helpers::{dup_error, exact_dup_advice, exact_dup_error, TigerHashMap,
 use crate::item::Item;
 use crate::lowercase::Lowercase;
 use crate::token::Token;
+use crate::variables::Variables;
 
 pub type FlagValidator = fn(&Token, &Everything);
 
@@ -110,6 +111,14 @@ impl Db {
                 self.database[itype] = queue;
             } else {
                 self.database[itype].extend(queue);
+            }
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for map in &self.database {
+            for entry in map.values() {
+                registry.scan(&entry.block);
             }
         }
     }

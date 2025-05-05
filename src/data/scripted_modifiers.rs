@@ -14,6 +14,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::{validate_modifiers, validate_scripted_modifier_calls};
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Debug, Default)]
 pub struct ScriptedModifiers {
@@ -35,6 +36,12 @@ impl ScriptedModifiers {
                 MACRO_MAP.insert_or_get_loc(key.loc);
             }
             self.scripted_modifiers.insert(key.as_str(), ScriptedModifier::new(key, block));
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.scripted_modifiers.values() {
+            registry.scan(&item.block);
         }
     }
 

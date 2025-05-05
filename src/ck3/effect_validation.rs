@@ -1753,6 +1753,7 @@ pub fn validate_set_relation(
             // Sometimes both are used and I don't know what that means. TODO: verify
             // vd.req_field_one_of(&["reason", "copy_reason"]);
             vd.field_target("target", sc, Scopes::Character);
+            // TODO: {reason}_corresponding is also a loca
             vd.field_item("reason", Item::Localization);
             vd.field_item("copy_reason", Item::Relation);
             vd.field_target("province", sc, Scopes::Province);

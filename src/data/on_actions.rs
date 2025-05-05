@@ -23,6 +23,7 @@ use crate::trigger::validate_trigger;
 use crate::validate::validate_duration;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Clone, Debug, Default)]
 pub struct OnActions {
@@ -35,6 +36,14 @@ impl OnActions {
             other.add(key, block);
         } else {
             self.on_actions.insert(key.as_str(), OnAction::new(key, block));
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.on_actions.values() {
+            for (_, block) in &item.actions {
+                registry.scan(block);
+            }
         }
     }
 

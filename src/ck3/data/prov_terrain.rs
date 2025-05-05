@@ -7,10 +7,9 @@ use crate::helpers::{dup_error, TigerHashMap};
 use crate::item::Item;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
-use crate::report::{warn, ErrorKey};
+use crate::report::{warn, ErrorKey, Severity};
 use crate::token::{Loc, Token};
 use crate::validator::Validator;
-use crate::Severity;
 
 use super::provinces::ProvId;
 

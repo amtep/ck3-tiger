@@ -26,6 +26,7 @@ use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validate::validate_color;
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Gender {
@@ -103,6 +104,15 @@ impl Characters {
         } else {
             let msg = format!("character {item} not defined in history/characters/");
             err(ErrorKey::MissingItem).msg(msg).loc(item).push();
+        }
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.characters.values() {
+            registry.scan(&item.block);
+        }
+        for item in &self.duplicates {
+            registry.scan(&item.block);
         }
     }
 

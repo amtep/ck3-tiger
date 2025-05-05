@@ -11,6 +11,7 @@ use crate::report::{err, ErrorKey};
 use crate::token::Token;
 use crate::validate::validate_color;
 use crate::validator::Validator;
+use crate::variables::Variables;
 
 #[derive(Clone, Debug, Default)]
 pub struct CharacterInteractionCategories {
@@ -25,6 +26,12 @@ impl CharacterInteractionCategories {
             }
         }
         self.categories.insert(key.as_str(), Category::new(key, block));
+    }
+
+    pub fn scan_variables(&self, registry: &mut Variables) {
+        for item in self.categories.values() {
+            registry.scan(&item.block);
+        }
     }
 
     pub fn exists(&self, key: &str) -> bool {
