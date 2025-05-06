@@ -553,6 +553,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] CombatTacticPhase,
     #[cfg(feature = "hoi4")] Continent,
     #[cfg(feature = "hoi4")] CountryLeaderTrait,
+    #[cfg(feature = "hoi4")] CountryHistory,
     #[cfg(feature = "hoi4")] CountryTag,
     #[cfg(feature = "hoi4")] CountryTagAlias,
     #[cfg(feature = "hoi4")] DecisionCategory,
@@ -604,6 +605,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] TechnologyCategory,
     #[cfg(feature = "hoi4")] TechnologyFolder,
     #[cfg(feature = "hoi4")] TechnologySharing,
+    #[cfg(feature = "hoi4")] UnitHistory,
     #[cfg(feature = "hoi4")] UnitLeaderSkill,
     #[cfg(feature = "hoi4")] UnitLeaderTrait,
 }
@@ -1625,6 +1627,8 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::CountryLeaderTrait => "common/country_leader/",
             #[cfg(feature = "hoi4")]
+            Item::CountryHistory => "history/countries/",
+            #[cfg(feature = "hoi4")]
             Item::CountryTag => "common/country_tags/",
             #[cfg(feature = "hoi4")]
             Item::CountryTagAlias => "common/country_tag_aliases/",
@@ -1726,6 +1730,8 @@ impl Item {
             Item::TechnologyFolder => "common/technology_tags/",
             #[cfg(feature = "hoi4")]
             Item::TechnologySharing => "common/technology_sharing/",
+            #[cfg(feature = "hoi4")]
+            Item::UnitHistory => "history/units/",
             #[cfg(feature = "hoi4")]
             Item::UnitLeaderSkill => "common/unit_leader/",
             #[cfg(feature = "hoi4")]
