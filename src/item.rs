@@ -557,6 +557,8 @@ pub enum Item {
     #[cfg(feature = "hoi4")] CountryTag,
     #[cfg(feature = "hoi4")] CountryTagAlias,
     #[cfg(feature = "hoi4")] DecisionCategory,
+    #[cfg(feature = "hoi4")] DivisionNamesGroup,
+    #[cfg(feature = "hoi4")] DivisionTemplate,
     #[cfg(feature = "hoi4")] DynamicModifier,
     #[cfg(feature = "hoi4")] Equipment,
     #[cfg(feature = "hoi4")] EquipmentBonusType,
@@ -596,6 +598,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] SpecialProject,
     #[cfg(feature = "hoi4")] SpecialProjectTag,
     #[cfg(feature = "hoi4")] ScientistTrait,
+    #[cfg(feature = "hoi4")] ShipName,
     #[cfg(feature = "hoi4")] Sprite,
     #[cfg(feature = "hoi4")] State,
     #[cfg(feature = "hoi4")] StateCategory,
@@ -1635,6 +1638,10 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::DecisionCategory => "common/decisions/categories/",
             #[cfg(feature = "hoi4")]
+            Item::DivisionNamesGroup => "common/units/names_divisions/",
+            #[cfg(feature = "hoi4")]
+            Item::DivisionTemplate => "history/units/",
+            #[cfg(feature = "hoi4")]
             Item::DynamicModifier => "common/dynamic_modifiers/",
             #[cfg(feature = "hoi4")]
             Item::Equipment => "common/units/equipment/",
@@ -1712,6 +1719,8 @@ impl Item {
             Item::SpecialProjectTag => "common/special_projects/project_tags/",
             #[cfg(feature = "hoi4")]
             Item::ScientistTrait => "common/scientist_traits/",
+            #[cfg(feature = "hoi4")]
+            Item::ShipName => "history/units/",
             #[cfg(feature = "hoi4")]
             Item::Sprite => "gfx/",
             #[cfg(feature = "hoi4")]

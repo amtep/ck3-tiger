@@ -33,4 +33,5 @@ pub mod subunits;
 pub mod tactics;
 pub mod technology;
 pub mod terrain;
+pub mod unit_history;
 pub mod unit_leader;
