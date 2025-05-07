@@ -18,6 +18,7 @@ pub mod map;
 pub mod mio;
 pub mod modifiers;
 pub mod music;
+pub mod names;
 pub mod operations;
 pub mod power_balance;
 pub mod provinces;

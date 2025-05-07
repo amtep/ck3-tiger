@@ -587,10 +587,12 @@ pub enum Item {
     #[cfg(feature = "hoi4")] PowerBalanceSide,
     #[cfg(feature = "hoi4")] ProductionStat,
     #[cfg(feature = "hoi4")] PrototypeReward,
+    #[cfg(feature = "hoi4")] RailwayGunNames,
     #[cfg(feature = "hoi4")] Resource,
     #[cfg(feature = "hoi4")] ScriptEnum,
     #[cfg(feature = "hoi4")] ScriptedConstant,
     #[cfg(feature = "hoi4")] ScriptedLocalisation,
+    #[cfg(feature = "hoi4")] ShipNames,
     #[cfg(feature = "hoi4")] SoundEffect,
     #[cfg(feature = "hoi4")] SoundFalloff,
     #[cfg(feature = "hoi4")] SpawnPoint,
@@ -611,6 +613,7 @@ pub enum Item {
     #[cfg(feature = "hoi4")] UnitHistory,
     #[cfg(feature = "hoi4")] UnitLeaderSkill,
     #[cfg(feature = "hoi4")] UnitLeaderTrait,
+    #[cfg(feature = "hoi4")] UnitNames,
 }
 
 /// Display items in `separated word case` for maximum friendliness.
@@ -1700,6 +1703,8 @@ impl Item {
             #[cfg(feature = "hoi4")]
             Item::PrototypeReward => "common/special_projects/prototype_rewards/",
             #[cfg(feature = "hoi4")]
+            Item::RailwayGunNames => "common/units/names_railway_guns/",
+            #[cfg(feature = "hoi4")]
             Item::Resource => "common/resources/",
             #[cfg(feature = "hoi4")]
             Item::ScriptEnum => "common/script_enums.txt",
@@ -1707,6 +1712,8 @@ impl Item {
             Item::ScriptedConstant => "common/scripted_constants/", // TODO HOI4
             #[cfg(feature = "hoi4")]
             Item::ScriptedLocalisation => "common/scripted_localisation/",
+            #[cfg(feature = "hoi4")]
+            Item::ShipNames => "common/units/names_ships/",
             #[cfg(feature = "hoi4")]
             Item::SoundEffect | Item::SoundFalloff => "sound/",
             #[cfg(feature = "hoi4")]
@@ -1745,6 +1752,8 @@ impl Item {
             Item::UnitLeaderSkill => "common/unit_leader/",
             #[cfg(feature = "hoi4")]
             Item::UnitLeaderTrait => "common/unit_leader/",
+            #[cfg(feature = "hoi4")]
+            Item::UnitNames => "common/units/names/",
         }
     }
 
