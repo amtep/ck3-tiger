@@ -661,6 +661,7 @@ pub fn validate_datatypes(
         #[cfg(feature = "hoi4")]
         if Game::is_hoi4() && !found && code.name.starts_with("?") {
             // It's a variable reference
+            // TODO HOI4: validate the variable reference
             found = true;
             // TODO HOI4: this could be just the scope types.
             rtype = Datatype::Unknown;
@@ -671,6 +672,10 @@ pub fn validate_datatypes(
             } else if is_country_tag(reference.as_str()) {
                 in_variable = true;
                 data.verify_exists_max_sev(Item::CountryTag, &reference, Severity::Warning);
+            } else if reference.is_integer() {
+                // Literal numbers are allowed after `?`, and if they have a decimal part they will
+                // be split at the `.` by the loop we're in.
+                in_variable = true;
             }
         }
 

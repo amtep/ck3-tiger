@@ -82,7 +82,7 @@ impl DbKind for ShipNames {
             if !data.item_exists(Item::SubUnit, value.as_str())
                 && !data.item_exists(Item::Equipment, value.as_str())
             {
-                let msg = format!("{} not found as sub unit or equipment", value);
+                let msg = format!("{value} not found as sub unit or equipment");
                 warn(ErrorKey::Validation).msg(msg).loc(value).push();
             }
         });
