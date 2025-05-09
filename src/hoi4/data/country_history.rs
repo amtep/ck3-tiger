@@ -27,6 +27,25 @@ impl CountryHistory {
 }
 
 impl DbKind for CountryHistory {
+    fn add_subitems(&self, _file: &Token, block: &Block, db: &mut Db) {
+        // Go through the entire country history, looking for `division_template` at any depth.
+        let mut flatten = vec![block];
+        let mut i = 0;
+        // Can't use `for`, because `flatten` gets extended during the loop.
+        while i < flatten.len() {
+            for (key, block) in flatten[i].iter_definitions() {
+                if key.is("division_template") {
+                    if let Some(name) = block.get_field_value("name") {
+                        db.add_flag(Item::DivisionTemplate, name.clone());
+                    }
+                } else {
+                    flatten.push(block);
+                }
+            }
+            i += 1;
+        }
+    }
+
     fn validate(&self, file: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         vd.set_case_sensitive(false);
