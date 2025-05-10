@@ -7,27 +7,6 @@ use crate::everything::Everything;
 use crate::helpers::{display_choices, expand_scopes_hoi4, TigerHashMap};
 use crate::scopes::{ArgumentValue, Scopes};
 
-pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
-    Some(match s {
-        "none" => Scopes::None,
-        "value" => Scopes::Value,
-        "bool" => Scopes::Bool,
-        "flag" => Scopes::Flag,
-        "country" => Scopes::Country,
-        "state" => Scopes::State,
-        "ace" => Scopes::Ace,
-        "combatant" => Scopes::Combatant,
-        "division" => Scopes::Division,
-        "industrial_org" => Scopes::IndustrialOrg,
-        "operation" => Scopes::Operation,
-        "purchase_contract" => Scopes::PurchaseContract,
-        "raid_instance" => Scopes::RaidInstance,
-        "special_project" => Scopes::SpecialProject,
-        "strategic_region" => Scopes::StrategicRegion,
-        _ => return std::option::Option::None,
-    })
-}
-
 pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
     let mut vec = Vec::new();
     if s.contains(Scopes::None) {

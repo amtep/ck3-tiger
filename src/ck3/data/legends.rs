@@ -1,5 +1,4 @@
 use crate::block::{Block, BV};
-use crate::ck3::scopes::scope_from_snake_case;
 use crate::ck3::tables::misc::LEGEND_QUALITY;
 use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
@@ -340,7 +339,7 @@ impl LegendChronicle {
 
         if let Some(block) = block.get_field_block("properties") {
             for (key, value) in block.iter_assignments() {
-                if let Some(scopes) = scope_from_snake_case(value.as_str()) {
+                if let Some(scopes) = Scopes::from_snake_case(value.as_str()) {
                     properties.insert(key.clone(), scopes);
                 }
             }
@@ -397,7 +396,7 @@ impl DbKind for LegendChronicle {
         vd.field_validated_block("properties", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.unknown_value_fields(|_, value| {
-                if scope_from_snake_case(value.as_str()).is_none() {
+                if Scopes::from_snake_case(value.as_str()).is_none() {
                     let msg = "expected a valid scope type";
                     err(ErrorKey::Validation).msg(msg).loc(value).push();
                 }

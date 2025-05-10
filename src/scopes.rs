@@ -242,23 +242,31 @@ impl Scopes {
 
     /// Read a scope type in string form and return it as a [`Scopes`] value.
     pub fn from_snake_case(s: &str) -> Option<Scopes> {
-        match s {
-            "none" => return Some(Scopes::None),
-            "value" => return Some(Scopes::Value),
-            "bool" => return Some(Scopes::Bool),
-            "flag" => return Some(Scopes::Flag),
-            _ => (),
+        #[cfg(feature = "ck3")]
+        if Game::is_ck3() {
+            // Deal with some exceptions to the general pattern
+            match s {
+                "ghw" => return Some(Scopes::GreatHolyWar),
+                "story" => return Some(Scopes::StoryCycle),
+                "great_holy_war" | "story_cycle" => return None,
+                _ => (),
+            }
         }
-        match Game::game() {
-            #[cfg(feature = "ck3")]
-            Game::Ck3 => crate::ck3::scopes::scope_from_snake_case(s),
-            #[cfg(feature = "vic3")]
-            Game::Vic3 => crate::vic3::scopes::scope_from_snake_case(s),
-            #[cfg(feature = "imperator")]
-            Game::Imperator => crate::imperator::scopes::scope_from_snake_case(s),
-            #[cfg(feature = "hoi4")]
-            Game::Hoi4 => crate::hoi4::scopes::scope_from_snake_case(s),
+
+        // Convert the string from snake_case to CamelCase for the builtin lookup
+        let mut temp_s = String::with_capacity(s.len());
+        let mut do_uppercase = true;
+        for c in s.chars() {
+            if c == '_' {
+                do_uppercase = true;
+            } else if do_uppercase {
+                temp_s.push(c.to_ascii_uppercase());
+                do_uppercase = false;
+            } else {
+                temp_s.push(c);
+            }
         }
+        Scopes::from_name(&temp_s)
     }
 
     /// Similar to `from_snake_case`, but allows multiple scopes separated by `|`

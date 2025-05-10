@@ -8,41 +8,6 @@ use crate::helpers::{display_choices, TigerHashMap};
 use crate::item::Item;
 use crate::scopes::{ArgumentValue, Scopes};
 
-pub fn scope_from_snake_case(s: &str) -> Option<Scopes> {
-    Some(match s {
-        "none" => Scopes::None,
-        "value" => Scopes::Value,
-        "bool" => Scopes::Bool,
-        "flag" => Scopes::Flag,
-        "color" => Scopes::Color,
-        "country" => Scopes::Country,
-        "character" => Scopes::Character,
-        "province" => Scopes::Province,
-        "siege" => Scopes::Siege,
-        "unit" => Scopes::Unit,
-        "pop" => Scopes::Pop,
-        "family" => Scopes::Family,
-        "party" => Scopes::Party,
-        "religion" => Scopes::Religion,
-        "culture" => Scopes::Culture,
-        "job" => Scopes::Job,
-        "culture_group" => Scopes::CultureGroup,
-        "country_culture" => Scopes::CountryCulture,
-        "area" => Scopes::Area,
-        "state" => Scopes::State,
-        "subunit" => Scopes::SubUnit,
-        "governorship" => Scopes::Governorship,
-        "region" => Scopes::Region,
-        "deity" => Scopes::Deity,
-        "great_work" => Scopes::GreatWork,
-        "treasure" => Scopes::Treasure,
-        "war" => Scopes::War,
-        "legion" => Scopes::Legion,
-        "levy_template" => Scopes::LevyTemplate,
-        _ => return None,
-    })
-}
-
 pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
     let mut vec = Vec::new();
     if s.contains(Scopes::None) {
