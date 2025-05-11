@@ -335,23 +335,23 @@ pub enum ArgumentValue {
 pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)> {
     let scope_to_scope = match Game::game() {
         #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::scopes::scope_to_scope,
+        Game::Ck3 => crate::ck3::tables::targets::scope_to_scope,
         #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::scopes::scope_to_scope,
+        Game::Vic3 => crate::vic3::tables::targets::scope_to_scope,
         #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::scopes::scope_to_scope,
+        Game::Imperator => crate::imperator::tables::targets::scope_to_scope,
         #[cfg(feature = "hoi4")]
-        Game::Hoi4 => crate::hoi4::scopes::scope_to_scope,
+        Game::Hoi4 => crate::hoi4::tables::targets::scope_to_scope,
     };
     let scope_to_scope_removed = match Game::game() {
         #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::scopes::scope_to_scope_removed,
+        Game::Ck3 => crate::ck3::tables::targets::scope_to_scope_removed,
         #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::scopes::scope_to_scope_removed,
+        Game::Vic3 => crate::vic3::tables::targets::scope_to_scope_removed,
         #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::scopes::scope_to_scope_removed,
+        Game::Imperator => crate::imperator::tables::targets::scope_to_scope_removed,
         #[cfg(feature = "hoi4")]
-        Game::Hoi4 => crate::hoi4::scopes::scope_to_scope_removed,
+        Game::Hoi4 => crate::hoi4::tables::targets::scope_to_scope_removed,
     };
 
     let name_lc = name.as_str().to_ascii_lowercase();
@@ -417,13 +417,13 @@ pub fn scope_to_scope(name: &Token, inscopes: Scopes) -> Option<(Scopes, Scopes)
 pub fn scope_prefix(prefix: &Token) -> Option<(Scopes, Scopes, ArgumentValue)> {
     let scope_prefix = match Game::game() {
         #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::scopes::scope_prefix,
+        Game::Ck3 => crate::ck3::tables::targets::scope_prefix,
         #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::scopes::scope_prefix,
+        Game::Vic3 => crate::vic3::tables::targets::scope_prefix,
         #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::scopes::scope_prefix,
+        Game::Imperator => crate::imperator::tables::targets::scope_prefix,
         #[cfg(feature = "hoi4")]
-        Game::Hoi4 => crate::hoi4::scopes::scope_prefix,
+        Game::Hoi4 => crate::hoi4::tables::targets::scope_prefix,
     };
     let prefix_lc = prefix.as_str().to_ascii_lowercase();
     scope_prefix(&prefix_lc)
@@ -465,23 +465,23 @@ pub fn scope_iterator(
 ) -> Option<(Scopes, Scopes)> {
     let scope_iterator = match Game::game() {
         #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::scopes::scope_iterator,
+        Game::Ck3 => crate::ck3::tables::iterators::iterator,
         #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::scopes::scope_iterator,
+        Game::Vic3 => crate::vic3::tables::iterators::iterator,
         #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::scopes::scope_iterator,
+        Game::Imperator => crate::imperator::tables::iterators::iterator,
         #[cfg(feature = "hoi4")]
-        Game::Hoi4 => crate::hoi4::scopes::scope_iterator,
+        Game::Hoi4 => crate::hoi4::tables::iterators::iterator,
     };
     let scope_iterator_removed = match Game::game() {
         #[cfg(feature = "ck3")]
-        Game::Ck3 => crate::ck3::scopes::scope_iterator_removed,
+        Game::Ck3 => crate::ck3::tables::iterators::iterator_removed,
         #[cfg(feature = "vic3")]
-        Game::Vic3 => crate::vic3::scopes::scope_iterator_removed,
+        Game::Vic3 => crate::vic3::tables::iterators::iterator_removed,
         #[cfg(feature = "imperator")]
-        Game::Imperator => crate::imperator::scopes::scope_iterator_removed,
+        Game::Imperator => crate::imperator::tables::iterators::iterator_removed,
         #[cfg(feature = "hoi4")]
-        Game::Hoi4 => crate::hoi4::scopes::scope_iterator_removed,
+        Game::Hoi4 => crate::hoi4::tables::iterators::iterator_removed,
     };
 
     let name_lc = name.as_str().to_ascii_lowercase();
