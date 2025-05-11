@@ -190,3 +190,39 @@ pub fn expand_scopes_hoi4(mut scopes: Scopes) -> Scopes {
     }
     scopes
 }
+
+#[inline]
+pub fn snake_case_to_camel_case(s: &str) -> String {
+    let mut temp_s = String::with_capacity(s.len());
+    let mut do_uppercase = true;
+    for c in s.chars() {
+        if c == '_' {
+            do_uppercase = true;
+        } else if do_uppercase {
+            temp_s.push(c.to_ascii_uppercase());
+            do_uppercase = false;
+        } else {
+            temp_s.push(c);
+        }
+    }
+    temp_s
+}
+
+#[inline]
+pub fn camel_case_to_separated_words(s: &str) -> String {
+    // Adding 5 bytes to the capacity is just a guess.
+    // It should be 1 byte per underscore in `s`, but
+    // calculating that is more expensive than it's worth.
+    let mut temp_s = String::with_capacity(s.len() + 5);
+    for c in s.chars() {
+        if c.is_ascii_uppercase() {
+            if !temp_s.is_empty() {
+                temp_s.push(' ');
+            }
+            temp_s.push(c.to_ascii_lowercase());
+        } else {
+            temp_s.push(c);
+        }
+    }
+    temp_s
+}

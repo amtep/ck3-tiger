@@ -1,104 +1,11 @@
 #![allow(non_upper_case_globals)]
 
-use std::fmt::Formatter;
 use std::sync::LazyLock;
 
 use crate::everything::Everything;
-use crate::helpers::{display_choices, TigerHashMap};
+use crate::helpers::TigerHashMap;
 use crate::item::Item;
 use crate::scopes::{ArgumentValue, Scopes};
-
-pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
-    let mut vec = Vec::new();
-    if s.contains(Scopes::None) {
-        vec.push("none");
-    }
-    if s.contains(Scopes::Value) {
-        vec.push("value");
-    }
-    if s.contains(Scopes::Bool) {
-        vec.push("bool");
-    }
-    if s.contains(Scopes::Flag) {
-        vec.push("flag");
-    }
-    if s.contains(Scopes::Color) {
-        vec.push("color");
-    }
-    if s.contains(Scopes::Country) {
-        vec.push("country");
-    }
-    if s.contains(Scopes::Character) {
-        vec.push("character");
-    }
-    if s.contains(Scopes::Province) {
-        vec.push("province");
-    }
-    if s.contains(Scopes::Siege) {
-        vec.push("siege");
-    }
-    if s.contains(Scopes::Unit) {
-        vec.push("unit");
-    }
-    if s.contains(Scopes::Pop) {
-        vec.push("pop");
-    }
-    if s.contains(Scopes::Family) {
-        vec.push("family");
-    }
-    if s.contains(Scopes::Party) {
-        vec.push("party");
-    }
-    if s.contains(Scopes::Religion) {
-        vec.push("religion");
-    }
-    if s.contains(Scopes::Culture) {
-        vec.push("culture");
-    }
-    if s.contains(Scopes::Job) {
-        vec.push("job");
-    }
-    if s.contains(Scopes::CultureGroup) {
-        vec.push("culture group");
-    }
-    if s.contains(Scopes::CountryCulture) {
-        vec.push("country culture");
-    }
-    if s.contains(Scopes::Area) {
-        vec.push("area");
-    }
-    if s.contains(Scopes::State) {
-        vec.push("state");
-    }
-    if s.contains(Scopes::SubUnit) {
-        vec.push("subunit");
-    }
-    if s.contains(Scopes::Governorship) {
-        vec.push("governorship");
-    }
-    if s.contains(Scopes::Region) {
-        vec.push("region");
-    }
-    if s.contains(Scopes::Deity) {
-        vec.push("deity");
-    }
-    if s.contains(Scopes::GreatWork) {
-        vec.push("great_work");
-    }
-    if s.contains(Scopes::Treasure) {
-        vec.push("treasure");
-    }
-    if s.contains(Scopes::War) {
-        vec.push("war");
-    }
-    if s.contains(Scopes::Legion) {
-        vec.push("legion");
-    }
-    if s.contains(Scopes::LevyTemplate) {
-        vec.push("levy_template");
-    }
-    display_choices(f, &vec, "or")
-}
 
 pub fn needs_prefix(arg: &str, data: &Everything, scopes: Scopes) -> Option<&'static str> {
     // TODO: - imperator - add this when Item::Family exists

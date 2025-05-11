@@ -7,6 +7,7 @@ use bitflags::bitflags;
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::game::Game;
+use crate::helpers::{camel_case_to_separated_words, display_choices, snake_case_to_camel_case};
 use crate::item::Item;
 use crate::report::{err, ErrorKey};
 use crate::token::Token;
@@ -253,20 +254,7 @@ impl Scopes {
             }
         }
 
-        // Convert the string from snake_case to CamelCase for the builtin lookup
-        let mut temp_s = String::with_capacity(s.len());
-        let mut do_uppercase = true;
-        for c in s.chars() {
-            if c == '_' {
-                do_uppercase = true;
-            } else if do_uppercase {
-                temp_s.push(c.to_ascii_uppercase());
-                do_uppercase = false;
-            } else {
-                temp_s.push(c);
-            }
-        }
-        Scopes::from_name(&temp_s)
+        Scopes::from_name(&snake_case_to_camel_case(s))
     }
 
     /// Similar to `from_snake_case`, but allows multiple scopes separated by `|`
@@ -300,16 +288,12 @@ impl Display for Scopes {
         } else if *self == Scopes::all_but_none() {
             write!(f, "any except none scope")
         } else {
-            match Game::game() {
-                #[cfg(feature = "ck3")]
-                Game::Ck3 => crate::ck3::scopes::display_fmt(*self, f),
-                #[cfg(feature = "vic3")]
-                Game::Vic3 => crate::vic3::scopes::display_fmt(*self, f),
-                #[cfg(feature = "imperator")]
-                Game::Imperator => crate::imperator::scopes::display_fmt(*self, f),
-                #[cfg(feature = "hoi4")]
-                Game::Hoi4 => crate::hoi4::scopes::display_fmt(*self, f),
+            let mut vec = Vec::new();
+            for (name, _) in self.iter_names() {
+                vec.push(camel_case_to_separated_words(name));
             }
+            let vec: Vec<&str> = vec.iter().map(String::as_ref).collect();
+            display_choices(f, &vec, "or")
         }
     }
 }

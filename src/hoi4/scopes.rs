@@ -1,70 +1,10 @@
 #![allow(non_upper_case_globals)]
 
-use std::fmt::Formatter;
 use std::sync::LazyLock;
 
 use crate::everything::Everything;
-use crate::helpers::{display_choices, expand_scopes_hoi4, TigerHashMap};
+use crate::helpers::{expand_scopes_hoi4, TigerHashMap};
 use crate::scopes::{ArgumentValue, Scopes};
-
-pub fn display_fmt(s: Scopes, f: &mut Formatter) -> Result<(), std::fmt::Error> {
-    let mut vec = Vec::new();
-    if s.contains(Scopes::None) {
-        vec.push("none");
-    }
-    if s.contains(Scopes::Value) {
-        vec.push("value");
-    }
-    if s.contains(Scopes::Bool) {
-        vec.push("bool");
-    }
-    if s.contains(Scopes::Flag) {
-        vec.push("flag");
-    }
-    if s.contains(Scopes::Character) {
-        vec.push("character");
-    }
-    if s.contains(Scopes::Country) {
-        vec.push("country");
-    }
-    if s.contains(Scopes::State) {
-        vec.push("state");
-    }
-    if s.contains(Scopes::Ace) {
-        vec.push("ace");
-    }
-    if s.contains(Scopes::Combatant) {
-        vec.push("combatant");
-    }
-    if s.contains(Scopes::Division) {
-        vec.push("division");
-    }
-    if s.contains(Scopes::IndustrialOrg) {
-        vec.push("industrial org");
-    }
-    if s.contains(Scopes::Operation) {
-        vec.push("operation");
-    }
-    if s.contains(Scopes::PurchaseContract) {
-        vec.push("purchase contract");
-    }
-    if s.contains(Scopes::RaidInstance) {
-        vec.push("raid instance");
-    }
-    if s.contains(Scopes::SpecialProject) {
-        vec.push("special project");
-    }
-    if s.contains(Scopes::StrategicRegion) {
-        vec.push("strategic region");
-    }
-    if s.contains(Scopes::CombinedCountryAndState) {
-        vec.push("combined country and state");
-    }
-    if s.contains(Scopes::CombinedCountryAndCharacter) {
-        vec.push("combined country and character");
-    }
-    display_choices(f, &vec, "or")
-}
 
 pub fn needs_prefix(_arg: &str, _data: &Everything, _scopes: Scopes) -> Option<&'static str> {
     // TODO
