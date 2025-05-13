@@ -1,6 +1,6 @@
 [package]
 name = "tiger-bin-shared"
-version = "1.7.0"
+version = "1.7.1"
 edition = "2021"
 license = "GPL-3.0-or-later"
 description = "Shared binary library for ck3-tiger, vic3-tiger, and imperator-tiger."
@@ -10,7 +10,7 @@ readme = "../README.md"
 rust-version = "1.84"
 
 [dependencies]
-tiger-lib = { path = "..", version = "1.7.0", default-features = false }
+tiger-lib = { path = "..", version = "1.7.1", default-features = false }
 
 anyhow = "1"
 cfg-if = "1"
