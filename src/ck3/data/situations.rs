@@ -3,8 +3,9 @@ use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
-use crate::item::{Item, ItemLoader};
+use crate::item::{Item, ItemLoader, LoadAsFile, Recursive};
 use crate::modif::{validate_modifs, ModifKinds};
+use crate::pdxfile::PdxEncoding;
 use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::script_value::validate_non_dynamic_script_value;
@@ -19,12 +20,19 @@ pub struct Situation {}
 #[derive(Clone, Debug)]
 pub struct SituationCatalyst {}
 
+#[derive(Clone, Debug)]
+pub struct SituationHistory {}
+
 inventory::submit! {
     ItemLoader::Normal(GameFlags::Ck3, Item::Situation, Situation::add)
 }
 
 inventory::submit! {
     ItemLoader::Normal(GameFlags::Ck3, Item::SituationCatalyst, SituationCatalyst::add)
+}
+
+inventory::submit! {
+    ItemLoader::Full(GameFlags::Ck3, Item::SituationHistory, PdxEncoding::Utf8Bom, ".txt", LoadAsFile::Yes, Recursive::No,  SituationHistory::add)
 }
 
 impl Situation {
@@ -36,6 +44,12 @@ impl Situation {
 impl SituationCatalyst {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::SituationCatalyst, key, block, Box::new(Self {}));
+    }
+}
+
+impl SituationHistory {
+    pub fn add(db: &mut Db, file: Token, block: Block) {
+        db.add(Item::SituationHistory, file, block, Box::new(Self {}));
     }
 }
 
@@ -157,6 +171,16 @@ impl DbKind for SituationCatalyst {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         // vd is created in order to warn about unknown fields when it is dropped.
         let _vd = Validator::new(block, data);
+    }
+}
+
+impl DbKind for SituationHistory {
+    fn validate(&self, _file: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+        vd.validate_history_blocks(|_, _, block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_effect_rooted("effect", Tooltipped::No, Scopes::None);
+        });
     }
 }
 

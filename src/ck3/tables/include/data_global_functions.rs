@@ -703,6 +703,7 @@
     ("Subtract_uint32", Args::Args(&[DType(uint32), DType(uint32)]), uint32),
     ("TextureListFormatSize", Args::Args(&[DType(Unknown)]), CString),
     ("TextureListFormatkB", Args::Args(&[DType(Unknown)]), CString),
+    ("ToTextFormatColor", Args::Args(&[DType(Unknown)]), CString),
     ("ToggleAdminVassalDetailView", Args::Args(&[DType(Unknown)]), void),
     ("ToggleAdministrativeArmyDetailView", Args::Args(&[DType(Unknown)]), void),
     ("ToggleEncyclopedia", Args::Args(&[]), void),

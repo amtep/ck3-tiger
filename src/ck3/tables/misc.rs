@@ -8,6 +8,8 @@ pub const AI_TARGETS: &[&str] = &[
     "hooked_characters",
     "neighboring_rulers",
     "neighboring_rulers_including_tributary_borders",
+    "neighboring_top_overlords_including_tributary_borders",
+    "neighboring_top_overlords_connected_by_land",
     "peer_vassals",
     "guests",
     "dynasty",

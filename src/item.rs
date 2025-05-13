@@ -368,6 +368,7 @@ pub enum Item {
     #[cfg(feature = "ck3")] Sexuality,
     #[cfg(feature = "ck3")] Situation,
     #[cfg(feature = "ck3")] SituationCatalyst,
+    #[cfg(feature = "ck3")] SituationHistory,
     #[cfg(feature = "ck3")] SituationParticipantGroup,
     #[cfg(feature = "ck3")] SituationPhase,
     #[cfg(feature = "ck3")] SituationPhaseParameter,
@@ -1276,6 +1277,8 @@ impl Item {
             Item::Situation => "common/situation/situations/",
             #[cfg(feature = "ck3")]
             Item::SituationCatalyst => "common/situation/catalysts/",
+            #[cfg(feature = "ck3")]
+            Item::SituationHistory => "history/situations/",
             #[cfg(feature = "ck3")]
             Item::SituationParticipantGroup => "common/situation/situations/",
             #[cfg(feature = "ck3")]

@@ -636,10 +636,15 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Faction, "remove_special_character", Yes),
     (Scopes::Faction, "remove_special_title", Yes),
     (Scopes::LandedTitle, "remove_title_from_important_location", Scope(Scopes::LandedTitle)),
+    (Scopes::SituationSubRegion, "remove_title_from_sub_region", Scope(Scopes::LandedTitle)),
     // docs say these next two are scope None, but that does not make sense.
     (Scopes::LandedTitle, "remove_title_law", Item(Item::Law)),
     (Scopes::LandedTitle, "remove_title_law_effects", Item(Item::Law)),
-    (Scopes::SituationSubRegion, "remove_title_to_sub_region", Scope(Scopes::LandedTitle)),
+    (
+        Scopes::SituationSubRegion,
+        "remove_title_to_sub_region",
+        Removed("1.16.2", "renamed to remove_title_from_sub_region"),
+    ),
     (Scopes::Character, "remove_trait", ScopeOrItem(Scopes::Trait, Item::Trait)),
     (Scopes::Character, "remove_trait_force_tooltip", ScopeOrItem(Scopes::Trait, Item::Trait)),
     (Scopes::TravelPlan, "remove_travel_option", Item(Item::TravelOption)),

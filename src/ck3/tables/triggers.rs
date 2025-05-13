@@ -243,6 +243,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
             ],
         ),
     ),
+    (Scopes::Character, "can_nomad_raze_holding", Scope(Scopes::Province)),
     (Scopes::Character, "can_sponsor_inspiration", Scope(Scopes::Inspiration)),
     (
         Scopes::Character,
