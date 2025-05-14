@@ -247,10 +247,10 @@ pub const ON_ACTION_SCOPES: &str = "
 		target = country
 	}
 
-	on_journal_entry_activated = { root = journalentry }
-	on_journal_entry_deactivated = { root = journalentry }
-	on_journal_entry_completed = { root = journalentry }
-	on_journal_entry_failed = { root = journalentry }
+	on_journal_entry_activated = { root = journal_entry }
+	on_journal_entry_deactivated = { root = journal_entry }
+	on_journal_entry_completed = { root = journal_entry }
+	on_journal_entry_failed = { root = journal_entry }
 
 	on_native_uprising = { root = country }
 
