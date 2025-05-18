@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -31,9 +30,7 @@ impl DbKind for Wargoal {
 
         data.verify_exists(Item::Localization, key);
 
-        vd.field_validated_block("allow", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("allow", Tooltipped::Yes, &mut sc);
 
         vd.field_bool("uses_civil_war_conquest");
         vd.field_choice(

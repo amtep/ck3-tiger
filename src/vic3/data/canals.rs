@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -31,9 +30,7 @@ impl DbKind for CanalType {
         data.verify_exists(Item::Localization, key);
 
         vd.field_item("texture", Item::File);
-        vd.field_validated_block("possible", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("possible", Tooltipped::Yes, &mut sc);
         vd.field_item("state_region", Item::StateRegion);
     }
 }

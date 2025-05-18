@@ -10,7 +10,6 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::{validate_ai_chance, validate_duration, ListType};
 use crate::validator::Validator;
 use crate::vic3::tables::misc::EVENT_CATEGORIES;
@@ -52,18 +51,12 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
 
     vd.field_item("dlc", Item::Dlc);
 
-    vd.field_validated_block("trigger", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
-    });
-    vd.field_validated_block("immediate", |block, data| {
-        validate_effect(block, data, sc, tooltipped_immediate);
-    });
+    vd.field_trigger("trigger", Tooltipped::No, sc);
+    vd.field_effect("immediate", tooltipped_immediate, sc);
 
     vd.multi_field_validated_block("event_image", |block, data| {
         let mut vd = Validator::new(block, data);
-        vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
+        vd.field_trigger("trigger", Tooltipped::No, sc);
         if let Some(token) = vd.field_value("video") {
             if token.as_str().contains('/') {
                 data.verify_exists(Item::File, token);
@@ -83,9 +76,7 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
 
     vd.field_integer("duration");
 
-    vd.field_validated_block("cancellation_trigger", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
-    });
+    vd.field_trigger("cancellation_trigger", Tooltipped::No, sc);
 
     vd.field_validated_sc("title", sc, validate_desc);
     vd.field_validated_sc("desc", sc, validate_desc);
@@ -140,20 +131,14 @@ fn validate_event_option(
         BV::Block(b) => {
             let mut vd = Validator::new(b, data);
             vd.req_field("text");
-            vd.field_validated_block("trigger", |block, data| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            });
+            vd.field_trigger("trigger", Tooltipped::No, sc);
             vd.field_validated_sc("text", sc, validate_desc);
         }
     });
 
-    vd.field_validated_block("trigger", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
-    });
+    vd.field_trigger("trigger", Tooltipped::No, sc);
     // undocumented
-    vd.field_validated_block("show_as_unavailable", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
-    });
+    vd.field_trigger("show_as_unavailable", Tooltipped::No, sc);
 
     vd.field_bool("default_option");
     vd.field_bool("highlighted_option");

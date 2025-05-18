@@ -2,18 +2,15 @@ use std::path::PathBuf;
 
 use crate::block::Block;
 use crate::context::ScopeContext;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::TigerHashMap;
-use crate::imperator::data::missions::validate_imperator_highlight;
 use crate::item::Item;
 use crate::parse::ParserMemory;
 use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 use crate::variables::Variables;
@@ -90,18 +87,14 @@ impl Decision {
         let loca = format!("{}_desc", self.key);
         data.verify_exists_implied(Item::Localization, &loca, &self.key);
 
-        vd.field_validated_block("potential", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
+        vd.field_trigger("potential", Tooltipped::No, &mut sc);
+        vd.field_trigger_builder("highlight", Tooltipped::Yes, |key| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.define_name("province", Scopes::Province, key);
+            sc
         });
-        vd.field_validated_block("highlight", |b, data| {
-            validate_imperator_highlight(&self.key, b, &mut sc, data);
-        });
-        vd.field_validated_block("allow", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("effect", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("allow", Tooltipped::Yes, &mut sc);
+        vd.field_effect("effect", Tooltipped::Yes, &mut sc);
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
     }
 }

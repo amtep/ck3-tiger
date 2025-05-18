@@ -2,14 +2,12 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -73,36 +71,27 @@ impl DbKind for TaskContractType {
         vd.field_bool("is_criminal");
         vd.field_bool("use_diplomatic_range");
 
-        vd.field_validated_key_block("valid_to_create", |key, block, data| {
+        vd.field_trigger_builder("valid_to_create", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("employer", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_key_block("valid_to_accept", |key, block, data| {
+        vd.field_trigger_builder("valid_to_accept", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("employer", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            sc
         });
-        vd.field_validated_key_block("valid_to_continue", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::TaskContract, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("valid_to_keep", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::TaskContract, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("valid_to_continue", Tooltipped::No, Scopes::TaskContract);
+        vd.field_trigger_rooted("valid_to_keep", Tooltipped::No, Scopes::TaskContract);
 
-        vd.field_validated_key_block("on_create", |key, block, data| {
+        vd.field_effect_builder("on_create", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("contract", Scopes::TaskContract, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+            sc
         });
 
         for field in &["on_accepted", "on_completed", "on_invalidated"] {
-            vd.field_validated_key_block(field, |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::TaskContract, key);
-                validate_effect(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_effect_rooted(field, Tooltipped::No, Scopes::TaskContract);
         }
 
         vd.field_bool("should_show_toast_on_complete");
@@ -111,10 +100,7 @@ impl DbKind for TaskContractType {
             let mut vd = Validator::new(block, data);
             vd.unknown_block_fields(|_, block| {
                 let mut vd = Validator::new(block, data);
-                vd.field_validated_key_block("effect", |key, block, data| {
-                    let mut sc = ScopeContext::new(Scopes::TaskContract, key);
-                    validate_effect(block, data, &mut sc, Tooltipped::Yes);
-                });
+                vd.field_effect_rooted("effect", Tooltipped::Yes, Scopes::TaskContract);
                 vd.field_bool("should_print_on_complete");
                 vd.field_bool("visible");
                 vd.field_bool("positive");

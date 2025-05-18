@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -9,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -47,12 +45,8 @@ impl DbKind for Deity {
             data.verify_exists_implied(Item::Localization, &loca2, key);
         }
 
-        vd.field_validated_block("trigger", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("allow_on_setup", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("trigger", Tooltipped::No, &mut sc);
+        vd.field_trigger("allow_on_setup", Tooltipped::No, &mut sc);
         vd.field_value("icon");
         vd.field_validated_block("passive_modifier", |block, data| {
             let vd = Validator::new(block, data);
@@ -64,11 +58,7 @@ impl DbKind for Deity {
         });
         vd.field_item("religion", Item::Religion);
         vd.field_item("deity_category", Item::DeityCategory);
-        vd.field_validated_block("deification_trigger", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_activate", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("deification_trigger", Tooltipped::No, &mut sc);
+        vd.field_effect("on_activate", Tooltipped::Yes, &mut sc);
     }
 }

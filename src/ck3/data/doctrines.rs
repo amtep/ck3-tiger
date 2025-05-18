@@ -14,7 +14,6 @@ use crate::pdxfile::PdxFile;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 use crate::variables::Variables;
 
@@ -183,10 +182,7 @@ impl DoctrineCategory {
         vd.field_value("group");
 
         vd.field_integer("number_of_picks");
-
-        vd.field_validated_block("is_available_on_create", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("is_available_on_create", Tooltipped::No, &mut sc);
 
         // Any remaining definitions are doctrines, so accept them all.
         // They are validated separately.
@@ -230,12 +226,8 @@ impl Doctrine {
         vd.field_bool("visible");
         vd.field_validated_block("parameters", validate_parameters);
         vd.field_script_value("piety_cost", &mut sc);
-        vd.field_validated_block("is_shown", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("can_pick", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("is_shown", Tooltipped::No, &mut sc);
+        vd.field_trigger("can_pick", Tooltipped::Yes, &mut sc);
 
         vd.field_validated_block("character_modifier", |block, data| {
             let mut vd = Validator::new(block, data);

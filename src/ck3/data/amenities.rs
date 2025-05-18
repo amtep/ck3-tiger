@@ -9,7 +9,6 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -67,9 +66,6 @@ impl DbKind for AmenitySetting {
         vd.field_item("courtier_guest_modifier_description", Item::Localization);
 
         vd.field_script_value_rooted("ai_will_do", Scopes::Character);
-
-        vd.field_validated_block_rooted("can_pick", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::Yes);
-        });
+        vd.field_trigger_rooted("can_pick", Tooltipped::Yes, Scopes::Character);
     }
 }

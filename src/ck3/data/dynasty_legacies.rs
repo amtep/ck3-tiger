@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -9,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -44,9 +42,7 @@ impl DbKind for DynastyLegacy {
             data.verify_exists_implied(Item::File, &pathname, key);
         }
 
-        vd.field_validated_block("is_shown", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("is_shown", Tooltipped::No, &mut sc);
     }
 }
 
@@ -73,12 +69,8 @@ impl DbKind for DynastyPerk {
 
         vd.field_item("legacy", Item::DynastyLegacy);
 
-        vd.field_validated_block("can_be_picked", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("effect", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("can_be_picked", Tooltipped::Yes, &mut sc);
+        vd.field_effect("effect", Tooltipped::Yes, &mut sc);
 
         vd.multi_field_validated_block("character_modifier", |block, data| {
             let mut vd = Validator::new(block, data);

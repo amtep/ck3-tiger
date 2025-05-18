@@ -3,14 +3,12 @@ use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_duration;
 use crate::validator::Validator;
 
@@ -86,13 +84,11 @@ impl DbKind for CasusBelli {
         vd.field_bool("imprisonment_by_attacker_give_war_score");
         vd.field_bool("imprisonment_by_defender_give_war_score");
 
+        // TODO: check which are tooltipped
         for field in
             &["on_declaration", "on_victory", "on_white_peace", "on_defeat", "on_invalidated"]
         {
-            vd.field_validated_block(field, |block, data| {
-                // TODO: check which are tooltipped
-                validate_effect(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_effect(field, Tooltipped::No, &mut sc);
         }
 
         for field in
@@ -101,74 +97,46 @@ impl DbKind for CasusBelli {
             vd.field_validated_sc(field, &mut sc, validate_desc);
         }
 
-        vd.field_validated_block("should_invalidate", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("mutually_exclusive_titles", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("should_invalidate", Tooltipped::No, &mut sc);
+        vd.field_trigger("mutually_exclusive_titles", Tooltipped::No, &mut sc);
         vd.field_bool("combine_into_one");
 
-        vd.field_validated_key_block("allowed_for_character", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            sc.define_name("attacker", Scopes::Character, key);
-            sc.define_name("defender", Scopes::Character, key);
-            sc.define_list("target_titles", Scopes::LandedTitle, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block(
-            "allowed_for_character_display_regardless",
-            |key, block, data| {
+        for (tooltipped, field) in &[
+            (Tooltipped::No, "allowed_for_character"),
+            (Tooltipped::Yes, "allowed_for_character_display_regardless"),
+            (Tooltipped::No, "allowed_against_character"),
+            (Tooltipped::Yes, "allowed_against_character_display_regardless"),
+        ] {
+            vd.field_trigger_builder(field, *tooltipped, |key| {
                 let mut sc = ScopeContext::new(Scopes::Character, key);
                 sc.define_name("attacker", Scopes::Character, key);
                 sc.define_name("defender", Scopes::Character, key);
                 sc.define_list("target_titles", Scopes::LandedTitle, key);
-                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-            },
-        );
+                sc
+            });
+        }
 
-        vd.field_validated_key_block("allowed_against_character", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            sc.define_name("attacker", Scopes::Character, key);
-            sc.define_name("defender", Scopes::Character, key);
-            sc.define_list("target_titles", Scopes::LandedTitle, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block(
-            "allowed_against_character_display_regardless",
-            |key, block, data| {
+        for (tooltipped, field) in &[
+            (Tooltipped::No, "valid_to_start"),
+            (Tooltipped::Yes, "valid_to_start_display_regardless"),
+        ] {
+            vd.field_trigger_builder(field, *tooltipped, |key| {
                 let mut sc = ScopeContext::new(Scopes::Character, key);
                 sc.define_name("attacker", Scopes::Character, key);
                 sc.define_name("defender", Scopes::Character, key);
+                sc.define_name("target", Scopes::LandedTitle, key);
                 sc.define_list("target_titles", Scopes::LandedTitle, key);
-                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-            },
-        );
+                sc
+            });
+        }
 
-        vd.field_validated_key_block("valid_to_start", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            sc.define_name("attacker", Scopes::Character, key);
-            sc.define_name("defender", Scopes::Character, key);
-            sc.define_name("target", Scopes::LandedTitle, key);
-            sc.define_list("target_titles", Scopes::LandedTitle, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("valid_to_start_display_regardless", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            sc.define_name("attacker", Scopes::Character, key);
-            sc.define_name("defender", Scopes::Character, key);
-            sc.define_name("target", Scopes::LandedTitle, key);
-            sc.define_list("target_titles", Scopes::LandedTitle, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-
-        vd.field_validated_key_block("is_allowed_claim_title", |key, block, data| {
+        vd.field_trigger_builder("is_allowed_claim_title", Tooltipped::Yes, |key| {
             let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
             sc.define_name("attacker", Scopes::Character, key);
             sc.define_name("defender", Scopes::Character, key);
             sc.define_name("claimant", Scopes::Character, key);
             sc.define_list("target_titles", Scopes::LandedTitle, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            sc
         });
 
         let choices = &[
@@ -217,13 +185,7 @@ impl DbKind for CasusBelli {
         vd.field_integer("max_ai_diplo_distance_to_title");
         vd.field_bool("ai_only_against_liege");
         vd.field_bool("ai_only_against_neighbors");
-        vd.field_validated_block_rooted(
-            "ai_can_target_all_titles",
-            Scopes::Character,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            },
-        );
+        vd.field_trigger_rooted("ai_can_target_all_titles", Tooltipped::No, Scopes::Character);
         vd.field_bool("ai");
 
         vd.field_bool("white_peace_possible");
@@ -262,13 +224,7 @@ impl CasusBelliGroup {
 impl DbKind for CasusBelliGroup {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        vd.field_validated_block_rooted(
-            "allowed_for_character",
-            Scopes::Character,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            },
-        );
+        vd.field_trigger_rooted("allowed_for_character", Tooltipped::No, Scopes::Character);
         vd.field_bool("should_check_for_interface_availability");
         vd.field_bool("can_only_start_via_script");
     }

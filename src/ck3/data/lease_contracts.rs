@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::{Validator, ValueValidator};
 
@@ -33,19 +32,13 @@ impl DbKind for LeaseContract {
             vd.req_field("hierarchy");
             vd.field_validated_block("hierarchy", |block, data| {
                 let mut vd = Validator::new(block, data);
-                vd.field_validated_key_block("ruler_valid", |key, block, data| {
-                    let mut sc = ScopeContext::new(Scopes::Character, key);
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
-                });
-                vd.field_validated_key_block("liege_or_vassal_valid", |key, block, data| {
+                vd.field_trigger_rooted("ruler_valid", Tooltipped::No, Scopes::Character);
+                vd.field_trigger_builder("liege_or_vassal_valid", Tooltipped::No, |key| {
                     let mut sc = ScopeContext::new(Scopes::Character, key);
                     sc.define_name("target", Scopes::Character, key);
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
+                    sc
                 });
-                vd.field_validated_key_block("barony_valid", |key, block, data| {
-                    let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
-                });
+                vd.field_trigger_rooted("barony_valid", Tooltipped::No, Scopes::LandedTitle);
                 let mut sc = ScopeContext::new(Scopes::Character, key);
                 vd.field_target("lessee", &mut sc, Scopes::Character);
             });

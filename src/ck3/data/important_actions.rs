@@ -1,14 +1,12 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -27,7 +25,6 @@ impl ImportantAction {
 impl DbKind for ImportantAction {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new(Scopes::Character, key);
 
         data.verify_exists(Item::Localization, key);
         let loca = format!("{key}_label");
@@ -64,26 +61,24 @@ impl DbKind for ImportantAction {
         vd.field_integer("priority");
         vd.field_bool("combine_into_one");
 
-        vd.field_validated_block("check_create_action", |block, data| {
-            // TODO: "only interface effects are allowed"
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
-
-        vd.field_validated_block("effect", |block, data| {
-            let mut sc = sc.clone();
+        // TODO: "only interface effects are allowed"
+        vd.field_effect_rooted("check_create_action", Tooltipped::No, Scopes::Character);
+        // TODO: "only interface effects are allowed"
+        vd.field_effect_builder("effect", Tooltipped::No, |key| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             // TODO: The scope context will contain all scopes passed in the try_create_important_action call
             sc.set_strict_scopes(false);
-            // TODO: "only interface effects are allowed"
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+            sc
         });
 
         vd.field_item("soundeffect", Item::Sound);
 
         // undocumented
-        vd.field_validated_key_block("unimportant", |key, block, data| {
+        vd.field_trigger_builder("unimportant", Tooltipped::No, |key| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("actor", Scopes::Character, key);
             sc.define_name("recipient", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
     }
 }

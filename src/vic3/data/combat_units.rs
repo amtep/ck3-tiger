@@ -1,5 +1,4 @@
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
@@ -9,7 +8,6 @@ use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
@@ -52,10 +50,7 @@ impl DbKind for CombatUnit {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::MilitaryFormation, vd);
         });
-        vd.field_validated_key_block("can_build_conscript", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("can_build_conscript", Tooltipped::No, Scopes::Country);
         vd.field_list_items("unlocking_technologies", Item::Technology);
         let mut seen_unconditional = None;
         vd.multi_field_validated_key_block("combat_unit_image", |key, block, data| {
@@ -65,10 +60,7 @@ impl DbKind for CombatUnit {
                 warn(ErrorKey::Validation).msg(msg).info(info).loc(key).loc_msg(unconditional, "previous").push();
             }
             let mut vd = Validator::new(block, data);
-            vd.field_validated_key_block("trigger", |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::Culture, key);
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_trigger_rooted("trigger", Tooltipped::No, Scopes::Culture);
             if !block.has_key("trigger") {
                 seen_unconditional = Some(key.clone());
             }

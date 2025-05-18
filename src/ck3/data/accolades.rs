@@ -13,7 +13,6 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -40,9 +39,7 @@ impl DbKind for AccoladeIcon {
             data.verify_exists_implied(Item::File, &pathname, token);
         }
 
-        vd.field_validated_block("potential", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("potential", Tooltipped::No, &mut sc);
     }
 }
 
@@ -90,9 +87,7 @@ impl DbKind for AccoladeName {
             }
         }
 
-        vd.field_validated_block("potential", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("potential", Tooltipped::No, &mut sc);
 
         vd.field_script_value("weight", &mut sc);
     }
@@ -143,9 +138,7 @@ impl DbKind for AccoladeType {
         vd.field_item("noun", Item::Localization);
         vd.field_list("accolade_categories");
 
-        vd.field_validated_block("potential", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("potential", Tooltipped::Yes, &mut sc);
 
         sc.define_name("owner", Scopes::Character, key);
         vd.field_script_value("weight", &mut sc);

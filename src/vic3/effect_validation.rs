@@ -1,7 +1,6 @@
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::helpers::TigerHashSet;
 use crate::item::Item;
@@ -10,7 +9,6 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
-use crate::trigger::validate_trigger;
 use crate::validate::{validate_color, validate_optional_duration, validate_possibly_named_color};
 use crate::validator::{Validator, ValueValidator};
 use crate::vic3::data::buildings::BuildingType;
@@ -380,17 +378,11 @@ pub fn validate_create_character(
     vd.field_item_or_target("ideology", sc, Item::Ideology, Scopes::Ideology);
     vd.field_item_or_target("interest_group", sc, Item::InterestGroup, Scopes::InterestGroup);
     vd.field_item("template", Item::CharacterTemplate);
-    vd.field_validated_key_block("on_created", |key, block, data| {
-        let mut sc = ScopeContext::new(Scopes::Character, key);
-        validate_effect(block, data, &mut sc, Tooltipped::No);
-    });
+    vd.field_effect_rooted("on_created", Tooltipped::No, Scopes::Character);
     if let Some(name) = vd.field_identifier("save_scope_as", "scope name") {
         sc.define_name_token(name.as_str(), Scopes::Character, name);
     }
-    vd.field_validated_key_block("trait_generation", |key, block, data| {
-        let mut sc = ScopeContext::new(Scopes::Character, key);
-        validate_effect(block, data, &mut sc, Tooltipped::No);
-    });
+    vd.field_effect_rooted("trait_generation", Tooltipped::No, Scopes::Character);
     // The item option is undocumented
     vd.field_item_or_target("hq", sc, Item::StrategicRegion, Scopes::Hq | Scopes::StrategicRegion);
 
@@ -419,10 +411,7 @@ pub fn validate_create_country(
     vd.field_target_ok_this("origin", sc, Scopes::Country);
     vd.multi_field_target("state", sc, Scopes::State);
     vd.multi_field_target("province", sc, Scopes::Province);
-    vd.field_validated_key_block("on_created", |key, block, data| {
-        let mut sc = ScopeContext::new(Scopes::Country, key);
-        validate_effect(block, data, &mut sc, Tooltipped::No);
-    });
+    vd.field_effect_rooted("on_created", Tooltipped::No, Scopes::Country);
 }
 
 pub fn validate_create_dynamic_country(
@@ -451,18 +440,12 @@ pub fn validate_create_dynamic_country(
     vd.field_target("religion", sc, Scopes::Religion);
     vd.field_target("capital", sc, Scopes::State);
     vd.field_item("social_hierarchy", Item::SocialHierarchy);
-    vd.field_validated_key_block("cede_state_trigger", |key, block, data| {
-        let mut sc = ScopeContext::new(Scopes::State, key);
-        validate_trigger(block, data, &mut sc, Tooltipped::No);
-    });
+    vd.field_trigger_rooted("cede_state_trigger", Tooltipped::No, Scopes::State);
     vd.field_validated("color", validate_possibly_named_color);
     vd.field_validated("primary_unit_color", validate_possibly_named_color);
     vd.field_validated("secondary_unit_color", validate_possibly_named_color);
     vd.field_validated("tertiary_unit_color", validate_possibly_named_color);
-    vd.field_validated_key_block("on_created", |key, block, data| {
-        let mut sc = ScopeContext::new(Scopes::Country, key);
-        validate_effect(block, data, &mut sc, Tooltipped::No);
-    });
+    vd.field_effect_rooted("on_created", Tooltipped::No, Scopes::Country);
 }
 
 pub fn validate_create_diplomatic_play(

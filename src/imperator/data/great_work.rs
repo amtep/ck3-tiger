@@ -8,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -40,9 +39,7 @@ impl DbKind for GreatWorkEffect {
         vd.field_value("icon");
         vd.field_list("flags");
 
-        vd.field_validated_block("allow", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("allow", Tooltipped::Yes, &mut sc);
 
         vd.field_validated_block("great_work_tier_effect_modifiers", |block, data| {
             let mut vd = Validator::new(block, data);

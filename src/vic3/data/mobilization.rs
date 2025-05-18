@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -9,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -48,15 +46,9 @@ impl DbKind for MobilizationOption {
         vd.field_list_items("unlocking_laws", Item::LawType);
         vd.field_list_items("unlocking_principles", Item::Principle); // undocumented
 
-        vd.field_validated_key_block("is_shown", |key, block, data| {
-            validate_trigger(block, data, &mut sc_builder(key), Tooltipped::No);
-        });
-        vd.field_validated_key_block("possible", |key, block, data| {
-            validate_trigger(block, data, &mut sc_builder(key), Tooltipped::Yes);
-        });
-        vd.field_validated_key_block("can_be_turned_off", |key, block, data| {
-            validate_trigger(block, data, &mut sc_builder(key), Tooltipped::Yes);
-        });
+        vd.field_trigger_builder("is_shown", Tooltipped::No, sc_builder);
+        vd.field_trigger_builder("possible", Tooltipped::Yes, sc_builder);
+        vd.field_trigger_builder("can_be_turned_off", Tooltipped::Yes, sc_builder);
 
         for field in &[
             "on_activate",
@@ -64,10 +56,7 @@ impl DbKind for MobilizationOption {
             "on_activate_while_mobilized",
             "on_deactivate_while_mobilized",
         ] {
-            vd.field_validated_key_block(field, |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::MilitaryFormation, key);
-                validate_effect(block, data, &mut sc, Tooltipped::Yes);
-            });
+            vd.field_effect_rooted(field, Tooltipped::Yes, Scopes::MilitaryFormation);
         }
 
         vd.field_validated_block("upkeep_modifier", |block, data| {

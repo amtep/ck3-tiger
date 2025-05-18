@@ -1,6 +1,6 @@
 use crate::block::{Block, BV};
 use crate::context::ScopeContext;
-use crate::effect::{validate_effect, validate_effect_internal};
+use crate::effect::validate_effect_internal;
 use crate::everything::Everything;
 use crate::hoi4::data::events::Event;
 use crate::item::Item;
@@ -9,7 +9,6 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::{validate_ai_chance, validate_modifiers, ListType};
 use crate::validator::Validator;
 
@@ -70,21 +69,15 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     }
 
     if event.block.get_field_bool("major").unwrap_or(false) {
-        vd.field_validated_block("show_major", |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
+        vd.field_trigger("show_major", Tooltipped::No, sc);
     } else {
         vd.ban_field("show_major", || "major = yes");
     }
 
     vd.field_item("dlc", Item::Dlc);
 
-    vd.field_validated_block("trigger", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
-    });
-    vd.field_validated_block("immediate", |block, data| {
-        validate_effect(block, data, sc, tooltipped_immediate);
-    });
+    vd.field_trigger("trigger", Tooltipped::No, sc);
+    vd.field_effect("immediate", tooltipped_immediate, sc);
     vd.field_validated_block("mean_time_to_happen", |block, data| {
         let mut vd = Validator::new(block, data);
         vd.field_integer("days");
@@ -113,9 +106,7 @@ fn validate_event_option(
     let mut vd = Validator::new(block, data);
     vd.field_item("name", Item::Localization);
 
-    vd.field_validated_block("trigger", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
-    });
+    vd.field_trigger("trigger", Tooltipped::No, sc);
 
     vd.field_validated_sc("ai_chance", sc, validate_ai_chance);
     validate_effect_internal(

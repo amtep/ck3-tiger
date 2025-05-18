@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader, LoadAsFile, Recursive};
@@ -100,21 +99,11 @@ impl DbKind for Struggle {
         vd.req_field("start_phase");
         vd.field_item("start_phase", Item::StrugglePhase);
 
-        vd.field_validated_block("on_start", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_end", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
-        });
-        vd.field_validated_block("on_change_phase", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No); // TODO: check tooltipped
-        });
-        vd.field_validated_block_rooted("on_join", Scopes::Character, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No); // TODO: check tooltipped
-        });
-        vd.field_validated_block("on_monthly", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect("on_start", Tooltipped::No, &mut sc);
+        vd.field_effect("on_end", Tooltipped::No, &mut sc); // TODO: check tooltipped
+        vd.field_effect("on_change_phase", Tooltipped::No, &mut sc); // TODO: check tooltipped
+        vd.field_effect("on_join", Tooltipped::No, &mut sc); // TODO: check tooltipped
+        vd.field_effect("on_monthly", Tooltipped::No, &mut sc);
     }
 }
 
@@ -125,9 +114,7 @@ fn validate_phase(block: &Block, data: &Everything, phases: &[&Token]) {
     if vd.field_block("on_start") {
         // Undocumented
         vd.field_bool("save_progress");
-        vd.field_validated_block_rooted("on_start", Scopes::Struggle, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::Yes);
-        });
+        vd.field_effect_rooted("on_start", Tooltipped::Yes, Scopes::Struggle);
         vd.unknown_fields(|key, _| {
             let msg = format!("ending phase should not have {key}, which will be ignored");
             warn(ErrorKey::UnknownField).msg(msg).loc(key).push();
@@ -276,9 +263,7 @@ impl DbKind for StruggleHistory {
         vd.unknown_block_fields(|key, block| {
             key.expect_date();
             let mut vd = Validator::new(block, data);
-            vd.field_validated_block("effect", |block, data| {
-                validate_effect(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_effect("effect", Tooltipped::No, &mut sc);
         });
     }
 }

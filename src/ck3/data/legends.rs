@@ -14,7 +14,7 @@ use crate::scopes::Scopes;
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value_no_breakdown};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_target, validate_trigger};
+use crate::trigger::validate_target;
 use crate::validate::{validate_duration, validate_possibly_named_color};
 use crate::validator::Validator;
 use crate::Everything;
@@ -43,54 +43,28 @@ impl DbKind for LegendType {
 
         let mut vd = Validator::new(block, data);
         vd.field_validated("color", validate_possibly_named_color);
-        vd.field_validated_block_build_sc(
-            "on_province_spread",
-            build_province_legend_sc,
-            |block, data, sc| {
-                validate_effect(block, data, sc, Tooltipped::No);
-            },
-        );
-        vd.field_validated_block_build_sc(
-            "on_province_recovered",
-            build_province_legend_sc,
-            |block, data, sc| {
-                validate_effect(block, data, sc, Tooltipped::No);
-            },
-        );
-        vd.field_validated_block_rooted("on_start", Scopes::Legend, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
-        vd.field_validated_block_rooted("on_end", Scopes::Legend, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
+        vd.field_effect_builder("on_province_spread", Tooltipped::No, build_province_legend_sc);
+        vd.field_effect_builder("on_province_recovered", Tooltipped::No, build_province_legend_sc);
+        vd.field_effect_rooted("on_start", Tooltipped::No, Scopes::Legend);
+        vd.field_effect_rooted("on_end", Tooltipped::No, Scopes::Legend);
         // ScopeContext undocumented
-        vd.field_validated_block_build_sc(
-            "on_yearly",
-            build_character_legend_sc,
-            |block, data, sc| {
-                validate_effect(block, data, sc, Tooltipped::No);
-            },
-        );
-        vd.field_validated_block_build_sc(
+        vd.field_effect_builder("on_yearly", Tooltipped::No, build_character_legend_sc);
+        // TODO: verify tooltip
+        vd.field_effect_builder(
             "on_legend_start_promote",
+            Tooltipped::No,
             build_character_legend_sc,
-            |block, data, sc| {
-                validate_effect(block, data, sc, Tooltipped::No); // TODO: verify tooltip
-            },
         );
-        vd.field_validated_block_build_sc(
+        vd.field_effect_builder(
             "on_legend_stop_promote",
+            Tooltipped::No,
             build_character_legend_sc,
-            |block, data, sc| {
-                validate_effect(block, data, sc, Tooltipped::No);
-            },
         );
-        vd.field_validated_block_build_sc(
+        // TODO: verify tooltip
+        vd.field_trigger_builder(
             "is_valid_protagonist",
+            Tooltipped::No,
             build_character_character_sc,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::Yes); // TODO: verify tooltip
-            },
         );
         vd.field_validated_build_sc(
             "ai_protagonist_weight",
@@ -243,12 +217,9 @@ impl DbKind for LegendSeed {
 
         vd.field_choice("quality", LEGEND_QUALITY);
         vd.field_item("type", Item::LegendType);
-        vd.field_validated_block_rooted("is_shown", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
-        vd.field_validated_block_rooted("is_valid", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::Yes); // TODO verify tooltip
-        });
+        vd.field_trigger_rooted("is_shown", Tooltipped::No, Scopes::Character);
+        // TODO verify tooltip
+        vd.field_trigger_rooted("is_valid", Tooltipped::Yes, Scopes::Character);
 
         if let Some(chronicle_token) = vd.field_value("chronicle").cloned() {
             data.verify_exists(Item::LegendChronicle, &chronicle_token);
@@ -270,12 +241,8 @@ impl DbKind for LegendSeed {
                                 }
                                 BV::Block(block) => {
                                     let mut vd = Validator::new(block, data);
-                                    vd.field_validated_value("target", |_, mut vd| {
-                                        vd.target(&mut sc, scopes);
-                                    });
-                                    vd.field_validated_block("is_valid", |block, data| {
-                                        validate_trigger(block, data, &mut sc, Tooltipped::No);
-                                    });
+                                    vd.field_target("target", &mut sc, scopes);
+                                    vd.field_trigger("is_valid", Tooltipped::No, &mut sc);
                                 }
                             }
                         } else {
@@ -416,13 +383,10 @@ impl DbKind for LegendChronicle {
         vd.field_validated_block("impact", |block, data| {
             let mut vd = Validator::new(block, data);
             validate_impact_modifiers(&mut vd);
-            vd.field_validated_block_build_sc(
-                "on_complete",
-                |key| build_impact_on_complete_sc(self, key),
-                |block, data, sc| {
-                    validate_effect(block, data, sc, Tooltipped::Yes); // TODO verify tooltip
-                },
-            );
+            // TODO verify tooltip
+            vd.field_effect_builder("on_complete", Tooltipped::Yes, |key| {
+                build_impact_on_complete_sc(self, key)
+            });
         });
     }
 }

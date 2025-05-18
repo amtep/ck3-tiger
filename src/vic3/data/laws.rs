@@ -1,16 +1,13 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
-use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -64,31 +61,21 @@ impl DbKind for LawType {
             validate_modifs(block, data, ModifKinds::all(), vd);
         });
 
-        vd.field_validated_block_rooted("is_visible", Scopes::Country, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block_rooted("can_enact", Scopes::Country, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block_rooted("on_enact", Scopes::Country, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::Yes);
-        });
+        vd.field_trigger_rooted("is_visible", Tooltipped::Yes, Scopes::Country);
+        vd.field_trigger_rooted("can_enact", Tooltipped::Yes, Scopes::Country);
+        vd.field_effect_rooted("on_enact", Tooltipped::Yes, Scopes::Country);
         // TODO: what is the difference between on_enact and on_activate? Are they both valid?
-        vd.field_validated_block_rooted("on_activate", Scopes::Country, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block_rooted("on_deactivate", Scopes::Country, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::Yes);
-        });
-        vd.field_validated_key_block("religious_acceptance_rule", |key, block, data| {
+        vd.field_effect_rooted("on_activate", Tooltipped::Yes, Scopes::Country);
+        vd.field_effect_rooted("on_deactivate", Tooltipped::Yes, Scopes::Country);
+        vd.field_trigger_builder("religious_acceptance_rule", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Religion, key);
             sc.define_name("country", Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_key_block("cultural_acceptance_rule", |key, block, data| {
+        vd.field_trigger_builder("cultural_acceptance_rule", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("country", Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
 
         vd.field_list_items("possible_political_movements", Item::LawType);
@@ -130,14 +117,11 @@ impl DbKind for LawType {
             });
         }
 
-        vd.field_validated_key_block("ai_will_do", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key("ai_enact_weight_modifier", |key, bv, data| {
+        vd.field_trigger_rooted("ai_will_do", Tooltipped::No, Scopes::Country);
+        vd.field_script_value_no_breakdown_builder("ai_enact_weight_modifier", |key| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("law", Scopes::LawType, key);
-            validate_script_value(bv, data, &mut sc);
+            sc
         });
 
         vd.field_trigger_builder("can_impose", Tooltipped::Yes, sc_impose);
@@ -175,13 +159,7 @@ impl DbKind for LawGroup {
         vd.field_numeric("progressive_movement_chance");
         vd.field_numeric("regressive_movement_chance");
 
-        vd.field_validated_block_rooted(
-            "change_allowed_trigger",
-            Scopes::Country,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::Yes);
-            },
-        );
+        vd.field_trigger_rooted("change_allowed_trigger", Tooltipped::Yes, Scopes::Country);
 
         // undocumented
 

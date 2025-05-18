@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -32,8 +31,6 @@ impl DbKind for DeathReason {
         vd.field_bool("natural");
         vd.field_numeric("priority");
 
-        vd.field_validated_block("natural_death_trigger", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("natural_death_trigger", Tooltipped::Yes, &mut sc);
     }
 }

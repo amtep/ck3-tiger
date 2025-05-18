@@ -9,7 +9,6 @@ use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -166,15 +165,8 @@ impl DbKind for AiStrategy {
         vd.field_validated_key_block("wargoal_scores", validate_wargoal_scores);
         vd.field_validated_key_block("wargoal_weights", validate_wargoal_weights);
 
-        vd.field_validated_key_block("possible", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key); // TODO scope type
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-
-        vd.field_validated_key("weight", |key, bv, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_script_value(bv, data, &mut sc);
-        });
+        vd.field_trigger_rooted("possible", Tooltipped::No, Scopes::Country); // TODO scope type
+        vd.field_script_value_rooted("weight", Scopes::Country);
     }
 }
 
@@ -225,9 +217,7 @@ fn validate_goods_stances(key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         vd.req_field("stance");
         vd.field_choice("stance", &["wants_high_supply", "wants_export", "does_not_want"]);
-        vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("trigger", Tooltipped::No, &mut sc);
     });
 }
 

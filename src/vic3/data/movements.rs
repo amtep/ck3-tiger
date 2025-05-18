@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -9,7 +8,6 @@ use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -37,92 +35,88 @@ impl DbKind for PoliticalMovement {
         vd.field_item("ideology", Item::Ideology);
         vd.field_list_items("character_ideologies", Item::Ideology);
 
-        vd.field_validated_key_block("creation_trigger", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("creation_trigger", Tooltipped::No, Scopes::Country);
         vd.field_script_value_rooted("creation_weight", Scopes::Country);
-        vd.field_validated_key_block("on_created", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::PoliticalMovement, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect_rooted("on_created", Tooltipped::No, Scopes::PoliticalMovement);
 
-        vd.field_validated_key_block("culture_selection_trigger", |key, block, data| {
+        vd.field_trigger_builder("culture_selection_trigger", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("country", Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_key("culture_selection_weight", |key, bv, data| {
+        vd.field_script_value_builder("culture_selection_weight", |key| {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("country", Scopes::Country, key);
-            validate_script_value(bv, data, &mut sc);
+            sc
         });
 
-        vd.field_validated_key_block("religion_selection_trigger", |key, block, data| {
+        vd.field_trigger_builder("religion_selection_trigger", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Religion, key);
             sc.define_name("country", Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_key("religion_selection_weight", |key, bv, data| {
+        vd.field_script_value_builder("religion_selection_weight", |key| {
             let mut sc = ScopeContext::new(Scopes::Religion, key);
             sc.define_name("country", Scopes::Country, key);
-            validate_script_value(bv, data, &mut sc);
+            sc
         });
 
-        vd.field_validated_key_block("character_support_trigger", |key, block, data| {
+        vd.field_trigger_builder("character_support_trigger", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("culture", Scopes::Culture, key);
             sc.define_name("religion", Scopes::Religion, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_key("character_support_weight", |key, bv, data| {
+        vd.field_script_value_builder("character_support_weight", |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("culture", Scopes::Culture, key);
             sc.define_name("religion", Scopes::Religion, key);
-            validate_script_value(bv, data, &mut sc);
+            sc
         });
 
-        vd.field_validated_key_block("can_pressure_interest_group", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::InterestGroup, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted(
+            "can_pressure_interest_group",
+            Tooltipped::No,
+            Scopes::InterestGroup,
+        );
 
-        vd.field_validated_key_block("pop_support_trigger", |key, block, data| {
+        vd.field_trigger_builder("pop_support_trigger", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Pop, key);
             sc.define_name("culture", Scopes::Culture, key);
             sc.define_name("religion", Scopes::Religion, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
         vd.field_list_items("pop_support_factors", Item::PoliticalMovementPopSupport);
-        vd.field_validated_key("pop_support_weight", |key, bv, data| {
+        vd.field_script_value_builder("pop_support_weight", |key| {
             let mut sc = ScopeContext::new(Scopes::Pop, key);
             sc.define_name("culture", Scopes::Culture, key);
             sc.define_name("religion", Scopes::Religion, key);
-            validate_script_value(bv, data, &mut sc);
+            sc
         });
 
         for field in &["revolution", "secession"] {
             vd.field_validated_block(field, |block, data| {
                 let mut vd = Validator::new(block, data);
-                vd.field_validated_key_block("possible", |key, block, data| {
+                vd.field_trigger_builder("possible", Tooltipped::No, |key| {
                     let mut sc = ScopeContext::new(Scopes::PoliticalMovement, key);
                     sc.define_name("clout", Scopes::Value, key);
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
+                    sc
                 });
-                vd.field_validated_key("weight", |key, bv, data| {
+                vd.field_script_value_builder("weight", |key| {
                     let mut sc = ScopeContext::new(Scopes::PoliticalMovement, key);
                     sc.define_name("clout", Scopes::Value, key);
-                    validate_script_value(bv, data, &mut sc);
+                    sc
                 });
                 vd.field_validated_block("forced_tags", |block, data| {
                     let mut vd = Validator::new(block, data);
                     vd.unknown_block_fields(|key, block| {
                         data.verify_exists(Item::Country, key);
                         let mut vd = Validator::new(block, data);
-                        vd.field_validated_key_block("trigger", |key, block, data| {
-                            let mut sc = ScopeContext::new(Scopes::PoliticalMovement, key);
-                            validate_trigger(block, data, &mut sc, Tooltipped::No);
-                        });
+                        vd.field_trigger_rooted(
+                            "trigger",
+                            Tooltipped::No,
+                            Scopes::PoliticalMovement,
+                        );
                         vd.field_script_value_rooted("weight", Scopes::PoliticalMovement);
                     });
                 });
@@ -153,14 +147,8 @@ impl DbKind for PoliticalMovement {
 
         // undocumented
 
-        vd.field_validated_key_block("disband_trigger", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("on_disbanded", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("disband_trigger", Tooltipped::No, Scopes::Country);
+        vd.field_effect_rooted("on_disbanded", Tooltipped::No, Scopes::Country);
     }
 }
 
@@ -216,9 +204,6 @@ impl DbKind for PoliticalMovementPopSupport {
 
         vd.field_item("name", Item::Localization);
 
-        vd.field_validated_key_block("visible", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::PoliticalMovement, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("visible", Tooltipped::No, Scopes::PoliticalMovement);
     }
 }

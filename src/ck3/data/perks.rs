@@ -2,7 +2,6 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -10,7 +9,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -61,20 +59,10 @@ impl DbKind for Perk {
             data.verify_exists(Item::Perk, parent);
         }
 
-        vd.field_validated_block_rooted("can_be_picked", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block_rooted(
-            "can_be_auto_selected",
-            Scopes::Character,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            },
-        );
+        vd.field_trigger_rooted("can_be_picked", Tooltipped::Yes, Scopes::Character);
+        vd.field_trigger_rooted("can_be_auto_selected", Tooltipped::No, Scopes::Character);
         vd.multi_field_item("trait", Item::Trait);
-        vd.field_validated_block_rooted("effect", Scopes::Character, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::Yes);
-        });
+        vd.field_effect_rooted("effect", Tooltipped::Yes, Scopes::Character);
 
         vd.multi_field_validated_block("character_modifier", |block, data| {
             let vd = Validator::new(block, data);

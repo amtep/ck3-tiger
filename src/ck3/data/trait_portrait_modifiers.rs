@@ -1,5 +1,4 @@
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::data::portrait::validate_dna_modifiers;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
@@ -8,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -32,10 +30,7 @@ impl DbKind for TraitPortraitModifier {
         let mut vd = Validator::new(block, data);
 
         vd.field_list_items("traits", Item::Trait);
-        vd.field_validated_key_block("trigger", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("trigger", Tooltipped::No, Scopes::Character);
         vd.field_item("base", Item::TraitPortraitModifier);
         vd.advice_field("dna_modifier", "docs say `dna_modifier` but it's `dna_modifiers`");
         vd.field_validated_block("dna_modifiers", |block, data| {

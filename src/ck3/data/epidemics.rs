@@ -3,7 +3,6 @@ use crate::ck3::tables::misc::OUTBREAK_INTENSITIES;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::modif::{validate_modifs, ModifKinds};
@@ -12,7 +11,6 @@ use crate::scopes::Scopes;
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_possibly_named_color};
 use crate::validator::Validator;
 use crate::Everything;
@@ -53,12 +51,10 @@ impl DbKind for EpidemicType {
             vd.field_choice("channel", &["red", "green", "blue", "alpha"]);
         });
 
-        vd.field_validated_block_build_sc(
+        vd.field_trigger_builder(
             "can_infect_character",
+            Tooltipped::No,
             build_character_epidemic_sc,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            },
         );
 
         vd.field_script_value_no_breakdown_builder("character_infection_chance", |key| {
@@ -68,45 +64,20 @@ impl DbKind for EpidemicType {
             sc
         });
 
-        vd.field_validated_block_build_sc(
+        vd.field_effect_builder(
             "on_character_infected",
+            Tooltipped::No,
             build_character_epidemic_sc,
-            |block, data, sc| {
-                validate_effect(block, data, sc, Tooltipped::No);
-            },
         );
-
-        vd.field_validated_block_build_sc(
-            "on_province_infected",
-            build_province_epidemic_sc,
-            |block, data, sc| {
-                validate_effect(block, data, sc, Tooltipped::No);
-            },
-        );
-
-        vd.field_validated_block_build_sc(
+        vd.field_effect_builder("on_province_infected", Tooltipped::No, build_province_epidemic_sc);
+        vd.field_effect_builder(
             "on_province_recovered",
+            Tooltipped::No,
             build_province_epidemic_sc,
-            |block, data, sc| {
-                validate_effect(block, data, sc, Tooltipped::No);
-            },
         );
-
-        vd.field_validated_block_rooted("on_start", Scopes::Epidemic, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
-
-        vd.field_validated_block_build_sc(
-            "on_monthly",
-            build_character_epidemic_sc,
-            |block, data, sc| {
-                validate_effect(block, data, sc, Tooltipped::No);
-            },
-        );
-
-        vd.field_validated_block_rooted("on_end", Scopes::Epidemic, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
+        vd.field_effect_rooted("on_start", Tooltipped::No, Scopes::Epidemic);
+        vd.field_effect_builder("on_monthly", Tooltipped::No, build_character_epidemic_sc);
+        vd.field_effect_rooted("on_end", Tooltipped::No, Scopes::Epidemic);
 
         vd.field_validated_block("infection_levels", |block, data| {
             let mut vd = Validator::new(block, data);

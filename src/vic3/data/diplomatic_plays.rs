@@ -1,14 +1,12 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -57,30 +55,14 @@ impl DbKind for DiplomaticPlay {
         vd.field_bool("blocked_by_diplomatic_status"); // undocumented
         vd.field_numeric("ai_acceptance_max");
 
-        vd.field_validated_block("selectable_in_lens", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("possible", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("additional_involvement_trigger", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_weekly_pulse", |block, data| {
-            validate_effect(block, data, &mut diplo_sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_war_begins", |block, data| {
-            validate_effect(block, data, &mut diplo_sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_war_end", |block, data| {
-            validate_effect(block, data, &mut diplo_sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_demand_accepted", |block, data| {
-            validate_effect(block, data, &mut diplo_sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_demand_rejected", |block, data| {
-            validate_effect(block, data, &mut diplo_sc, Tooltipped::No);
-        });
+        vd.field_trigger("selectable_in_lens", Tooltipped::No, &mut sc);
+        vd.field_trigger("possible", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("additional_involvement_trigger", Tooltipped::No, &mut sc);
+        vd.field_effect("on_weekly_pulse", Tooltipped::No, &mut diplo_sc);
+        vd.field_effect("on_war_begins", Tooltipped::No, &mut diplo_sc);
+        vd.field_effect("on_war_end", Tooltipped::No, &mut diplo_sc);
+        vd.field_effect("on_demand_accepted", Tooltipped::No, &mut diplo_sc);
+        vd.field_effect("on_demand_rejected", Tooltipped::No, &mut diplo_sc);
 
         // undocumented
 

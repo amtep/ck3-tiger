@@ -8,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -38,7 +37,7 @@ impl DbKind for BattleCondition {
             validate_modifs(block, data, ModifKinds::Unit | ModifKinds::Battle, vd);
         });
 
-        let sc_builder = |key| {
+        let sc_builder = |key: &Token| {
             let mut sc = ScopeContext::new(Scopes::BattleSide, key);
             sc.define_name("is_advancing_side", Scopes::Bool, key); // undocumented
             sc.define_name("character", Scopes::Character, key); // undocumented
@@ -47,13 +46,7 @@ impl DbKind for BattleCondition {
 
         let mut sc = sc_builder(key);
         vd.field_script_value("weight", &mut sc);
-        vd.field_validated_block("instant_switch", |block, data| {
-            let mut sc = sc_builder(key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("possible", |block, data| {
-            let mut sc = sc_builder(key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_builder("instant_switch", Tooltipped::No, sc_builder);
+        vd.field_trigger_builder("possible", Tooltipped::No, sc_builder);
     }
 }

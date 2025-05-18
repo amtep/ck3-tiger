@@ -10,7 +10,6 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -49,12 +48,8 @@ impl DbKind for Innovation {
         vd.field_item("icon", Item::File);
 
         vd.field_item("region", Item::Region);
-        vd.field_validated_block("potential", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("can_progress", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("potential", Tooltipped::No, &mut sc);
+        vd.field_trigger("can_progress", Tooltipped::Yes, &mut sc);
 
         // TODO: everything after this duplicates CultureEra validation,
         // except the `type` field in `maa_upgrade`

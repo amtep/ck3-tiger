@@ -1,14 +1,12 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
@@ -72,40 +70,18 @@ impl DbKind for Mission {
 
         vd.field_validated_block_sc("ai_chance", &mut sc, validate_modifiers_with_base);
 
-        vd.field_validated_block("on_potential", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("potential", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_start", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("abort", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_abort", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_completion", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_effect("on_potential", Tooltipped::No, &mut sc);
+        vd.field_trigger("potential", Tooltipped::No, &mut sc);
+        vd.field_effect("on_start", Tooltipped::No, &mut sc);
+        vd.field_trigger("abort", Tooltipped::No, &mut sc);
+        vd.field_effect("on_abort", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_completion", Tooltipped::Yes, &mut sc);
 
         // The individual mission tasks. They are validated by the validate_task function instead of the MissionTask Item.
         vd.unknown_block_fields(|key, block| {
             validate_task(key, block, &mut sc, data);
         });
     }
-}
-
-pub fn validate_imperator_highlight(
-    key: &Token,
-    b: &Block,
-    sc: &mut ScopeContext,
-    data: &Everything,
-) {
-    sc.define_name("province", Scopes::Province, key);
-    validate_trigger(b, data, sc, Tooltipped::Yes);
 }
 
 fn validate_task(key: &Token, block: &Block, sc: &mut ScopeContext, data: &Everything) {
@@ -123,33 +99,20 @@ fn validate_task(key: &Token, block: &Block, sc: &mut ScopeContext, data: &Every
     vd.field_list_items("requires", Item::MissionTask);
     vd.field_list_items("prevented_by", Item::MissionTask);
 
-    vd.field_validated_block("potential", |b, data| {
-        validate_trigger(b, data, sc, Tooltipped::No);
+    vd.field_trigger("potential", Tooltipped::No, sc);
+    vd.field_trigger_builder("highlight", Tooltipped::Yes, |key| {
+        let mut sc = sc.clone();
+        sc.define_name("province", Scopes::Province, key);
+        sc
     });
-
-    vd.field_validated_block("highlight", |b, data| {
-        validate_imperator_highlight(key, b, sc, data);
-    });
-
-    vd.field_validated_block("allow", |b, data| {
-        validate_trigger(b, data, sc, Tooltipped::Yes);
-    });
-
-    vd.field_validated_block("bypass", |b, data| {
-        validate_trigger(b, data, sc, Tooltipped::Yes);
-    });
+    vd.field_trigger("allow", Tooltipped::Yes, sc);
+    vd.field_trigger("bypass", Tooltipped::Yes, sc);
 
     vd.field_validated_block_sc("ai_chance", sc, validate_modifiers_with_base);
 
-    vd.field_validated_block("on_start", |b, data| {
-        validate_effect(b, data, sc, Tooltipped::Yes);
-    });
-    vd.field_validated_block("on_completion", |b, data| {
-        validate_effect(b, data, sc, Tooltipped::Yes);
-    });
-    vd.field_validated_block("on_bypass", |b, data| {
-        validate_effect(b, data, sc, Tooltipped::No);
-    });
+    vd.field_effect("on_start", Tooltipped::Yes, sc);
+    vd.field_effect("on_completion", Tooltipped::Yes, sc);
+    vd.field_effect("on_bypass", Tooltipped::No, sc);
 }
 
 #[derive(Clone, Debug)]

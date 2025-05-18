@@ -1,14 +1,12 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -49,15 +47,11 @@ impl DbKind for Inspiration {
             "on_sponsor_invalidated",
             "on_progress_increased", // undocumented
         ] {
-            vd.field_validated_block(field, |block, data| {
-                validate_effect(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_effect(field, Tooltipped::No, &mut sc);
         }
 
         for field in &["is_valid", "is_sponsor_valid", "can_sponsor"] {
-            vd.field_validated_block(field, |block, data| {
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_trigger(field, Tooltipped::No, &mut sc);
         }
     }
 }

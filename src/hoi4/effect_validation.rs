@@ -8,7 +8,6 @@ use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::{Validator, ValueValidator};
 
 pub fn validate_add_ace(
@@ -50,9 +49,7 @@ pub fn validate_add_advisor_role(
         vd.field_bool("can_be_fired");
         vd.field_value("idea_token"); // TODO does this need to be registered or validated
         vd.field_list_items("traits", Item::CountryLeaderTrait);
-        vd.field_validated_block("allowed", |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
+        vd.field_trigger("allowed", Tooltipped::No, sc);
     });
 }
 

@@ -8,7 +8,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
@@ -34,12 +33,12 @@ impl DbKind for Party {
         vd.field_validated("color", validate_possibly_named_color);
         vd.field_validated_sc("name", &mut country_sc, validate_desc);
 
-        vd.field_validated_block("valid_for_country", |block, data| {
-            validate_trigger(block, data, &mut country_sc, Tooltipped::No);
-        });
-        vd.field_validated_block("available_for_interest_group", |block, data| {
-            validate_trigger(block, data, &mut ig_sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("valid_for_country", Tooltipped::No, Scopes::Country);
+        vd.field_trigger_rooted(
+            "available_for_interest_group",
+            Tooltipped::No,
+            Scopes::InterestGroup,
+        );
 
         ig_sc.define_name("number", Scopes::Value, key);
         vd.field_script_value("join_weight", &mut ig_sc);

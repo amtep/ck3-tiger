@@ -2,7 +2,6 @@ use crate::block::Block;
 use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -12,7 +11,6 @@ use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -43,10 +41,7 @@ impl DbKind for CourtPosition {
 
         vd.multi_field_validated_block("court_position_asset", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_validated_key_block("trigger", |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::Character, key);
-                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-            });
+            vd.field_trigger_rooted("trigger", Tooltipped::Yes, Scopes::Character);
             vd.field_item("animation", Item::PortraitAnimation);
             vd.field_item("background", Item::File);
             vd.field_item("localization_key", Item::Localization);
@@ -59,19 +54,10 @@ impl DbKind for CourtPosition {
 
         vd.field_validated_block("aptitude_level_breakpoints", validate_breakpoints);
         vd.field_script_value_rooted("aptitude", Scopes::Character);
-        vd.field_validated_block_rooted("is_shown", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
-
-        vd.field_validated_block_rooted("valid_position", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("is_shown_character", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("valid_character", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger_rooted("is_shown", Tooltipped::No, Scopes::Character);
+        vd.field_trigger_rooted("valid_position", Tooltipped::No, Scopes::Character);
+        vd.field_trigger("is_shown_character", Tooltipped::No, &mut sc);
+        vd.field_trigger("valid_character", Tooltipped::Yes, &mut sc);
 
         // guessing that root is the liege here
         vd.field_validated_block_rooted("revoke_cost", Scopes::Character, |block, data, sc| {
@@ -126,13 +112,7 @@ impl DbKind for CourtPosition {
         vd.field_item("custom_employer_modifier_description", Item::Localization);
         vd.field_item("custom_employee_modifier_description", Item::Localization);
 
-        vd.field_validated_block_rooted(
-            "search_for_courtier",
-            Scopes::Character,
-            |block, data, sc| {
-                validate_effect(block, data, sc, Tooltipped::No);
-            },
-        );
+        vd.field_effect_rooted("search_for_courtier", Tooltipped::No, Scopes::Character);
 
         for field in &[
             "on_court_position_received",
@@ -140,9 +120,7 @@ impl DbKind for CourtPosition {
             "on_court_position_invalidated",
             "on_court_position_vacated",
         ] {
-            vd.field_validated_block(field, |block, data| {
-                validate_effect(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_effect(field, Tooltipped::No, &mut sc);
         }
 
         vd.field_validated_key("candidate_score", |key, bv, data| {
@@ -239,10 +217,7 @@ impl DbKind for CourtPositionTask {
 
         vd.multi_field_validated_block("court_position_asset", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_validated_key_block("trigger", |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::Character, key);
-                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-            });
+            vd.field_trigger_rooted("trigger", Tooltipped::Yes, Scopes::Character);
             vd.field_item("animation", Item::PortraitAnimation);
             vd.field_item("background", Item::File);
         });
@@ -272,22 +247,23 @@ impl DbKind for CourtPositionTask {
             validate_scaling_employer_modifiers(block, data);
         });
 
-        vd.field_validated_key_block("is_shown", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("is_valid_showing_failures_only", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            sc.define_name("liege", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
-        });
-
-        for field in &["on_start", "on_end", "on_monthly", "on_yearly"] {
-            vd.field_validated_key_block(field, |key, block, data| {
+        vd.field_trigger_rooted("is_shown", Tooltipped::No, Scopes::Character);
+        vd.field_trigger_builder(
+            "is_valid_showing_failures_only",
+            Tooltipped::FailuresOnly,
+            |key| {
                 let mut sc = ScopeContext::new(Scopes::Character, key);
                 sc.define_name("liege", Scopes::Character, key);
-                // TODO: see if on_start is tooltipped
-                validate_effect(block, data, &mut sc, Tooltipped::No);
+                sc
+            },
+        );
+
+        for field in &["on_start", "on_end", "on_monthly", "on_yearly"] {
+            // TODO: see if on_start is tooltipped
+            vd.field_effect_builder(field, Tooltipped::No, |key| {
+                let mut sc = ScopeContext::new(Scopes::Character, key);
+                sc.define_name("liege", Scopes::Character, key);
+                sc
             });
         }
 

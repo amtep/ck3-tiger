@@ -7,7 +7,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 use crate::Everything;
 
@@ -38,9 +37,7 @@ impl DbKind for LegitimacyType {
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         let mut vd = Validator::new(block, data);
-        vd.field_validated_block_rooted("is_valid", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("is_valid", Tooltipped::No, Scopes::Character);
         vd.field_script_value_no_breakdown_builder("ai_expected_level", |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("liege", Scopes::Character, key);

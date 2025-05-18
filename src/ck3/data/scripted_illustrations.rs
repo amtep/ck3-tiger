@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::{Validator, ValueValidator};
 
 #[derive(Clone, Debug)]
@@ -38,9 +37,7 @@ impl DbKind for ScriptedIllustration {
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.field_validated_value("reference", |_key, mut vd| vd.dir_file(folder));
-                vd.field_validated_block("trigger", |block, data| {
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
-                });
+                vd.field_trigger("trigger", Tooltipped::No, &mut sc);
             }
         });
         vd.multi_field_validated_block("environment", |block, data| {
@@ -48,9 +45,7 @@ impl DbKind for ScriptedIllustration {
             if let Some(token) = vd.field_value("reference") {
                 data.verify_exists(Item::PortraitEnvironment, token);
             }
-            vd.field_validated_block("trigger", |block, data| {
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_trigger("trigger", Tooltipped::No, &mut sc);
         });
     }
 }

@@ -3,14 +3,12 @@ use crate::context::ScopeContext;
 use crate::data::on_actions::validate_on_action;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -45,40 +43,18 @@ impl DbKind for JournalEntry {
 
         vd.field_item("icon", Item::File);
 
-        vd.field_validated_block("is_shown_when_inactive", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("is_shown_when_inactive", Tooltipped::No, &mut sc);
 
         vd.multi_field_item("scripted_button", Item::ScriptedButton);
 
-        vd.field_validated_block("possible", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-
-        vd.field_validated_block("immediate", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
-
-        vd.field_validated_block("complete", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_complete", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
-
-        vd.field_validated_block("fail", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_fail", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
-
-        vd.field_validated_block("invalid", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_invalid", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("possible", Tooltipped::Yes, &mut sc);
+        vd.field_effect("immediate", Tooltipped::No, &mut sc);
+        vd.field_trigger("complete", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_complete", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("fail", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_fail", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("invalid", Tooltipped::No, &mut sc);
+        vd.field_effect("on_invalid", Tooltipped::Yes, &mut sc);
 
         if !vd.field_validated_sc("status_desc", &mut sc, validate_desc) {
             let loca = format!("{key}_status");
@@ -86,9 +62,7 @@ impl DbKind for JournalEntry {
         }
 
         vd.field_integer("timeout");
-        vd.field_validated_block("on_timeout", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_effect("on_timeout", Tooltipped::Yes, &mut sc);
 
         vd.field_list_items("modifiers_while_active", Item::Modifier);
 
@@ -103,9 +77,7 @@ impl DbKind for JournalEntry {
         vd.field_bool("transferable");
         vd.field_bool("can_revolution_inherit");
 
-        vd.field_validated_block("is_progressing", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("is_progressing", Tooltipped::No, &mut sc);
         vd.field_bool("progressbar");
         vd.multi_field_item("scripted_progress_bar", Item::ScriptedProgressBar);
 

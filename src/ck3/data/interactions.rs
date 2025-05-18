@@ -91,15 +91,11 @@ impl DbKind for CharacterInteraction {
 
         // Validate this early, to update the saved scopes in `sc`
         // TODO: figure out when exactly `redirect` is run
-        vd.field_validated_block("redirect", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect("redirect", Tooltipped::No, &mut sc);
 
         vd.field_bool("ai_instant_response");
         // Let ai_set_target set scope:target if it wants
-        vd.field_validated_block("ai_set_target", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect("ai_set_target", Tooltipped::No, &mut sc);
         vd.multi_field_validated_block("ai_targets", validate_ai_targets);
         vd.field_validated_block("ai_target_quick_trigger", validate_quick_trigger);
 
@@ -121,9 +117,7 @@ impl DbKind for CharacterInteraction {
             validate_theme_background(bv, data, &mut sc);
         });
 
-        vd.field_validated_block("is_highlighted", |b, data| {
-            validate_trigger(b, data, &mut sc.clone(), Tooltipped::No);
-        });
+        vd.field_trigger("is_highlighted", Tooltipped::No, &mut sc.clone());
         vd.field_item("highlighted_reason", Item::Localization);
 
         vd.field_value("special_interaction");
@@ -205,34 +199,23 @@ impl DbKind for CharacterInteraction {
             let loca = format!("{key}_extra_icon");
             data.verify_exists_implied(Item::Localization, &loca, k);
         });
-        vd.field_validated_block("should_use_extra_icon", |b, data| {
-            validate_trigger(b, data, &mut sc.clone(), Tooltipped::No);
-        });
+        vd.field_trigger("should_use_extra_icon", Tooltipped::No, &mut sc.clone());
+        vd.field_trigger("is_shown", Tooltipped::No, &mut sc.clone());
+        vd.field_trigger("is_valid", Tooltipped::Yes, &mut sc.clone());
+        vd.field_trigger(
+            "is_valid_showing_failures_only",
+            Tooltipped::FailuresOnly,
+            &mut sc.clone(),
+        );
+        vd.field_trigger(
+            "has_valid_target_showing_failures_only",
+            Tooltipped::FailuresOnly,
+            &mut sc.clone(),
+        );
+        vd.field_trigger("has_valid_target", Tooltipped::Yes, &mut sc.clone());
 
-        vd.field_validated_block("is_shown", |b, data| {
-            validate_trigger(b, data, &mut sc.clone(), Tooltipped::No);
-        });
-
-        vd.field_validated_block("is_valid", |b, data| {
-            validate_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
-        });
-        vd.field_validated_block("is_valid_showing_failures_only", |b, data| {
-            validate_trigger(b, data, &mut sc.clone(), Tooltipped::FailuresOnly);
-        });
-
-        vd.field_validated_block("has_valid_target_showing_failures_only", |b, data| {
-            validate_trigger(b, data, &mut sc.clone(), Tooltipped::FailuresOnly);
-        });
-        vd.field_validated_block("has_valid_target", |b, data| {
-            validate_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
-        });
-
-        vd.field_validated_block("can_send", |b, data| {
-            validate_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
-        });
-        vd.field_validated_block("can_be_blocked", |b, data| {
-            validate_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
-        });
+        vd.field_trigger("can_send", Tooltipped::Yes, &mut sc.clone());
+        vd.field_trigger("can_be_blocked", Tooltipped::Yes, &mut sc.clone());
 
         vd.field_validated_key_block("populate_actor_list", |k, block, data| {
             // TODO: this loca check and the one for recipient_secondary have a lot of false positives in vanilla.
@@ -256,18 +239,10 @@ impl DbKind for CharacterInteraction {
             } else {
                 vd.field_localization("flag", &mut sc);
             }
-            vd.field_validated_block("is_shown", |b, data| {
-                validate_trigger(b, data, &mut sc.clone(), Tooltipped::No);
-            });
-            vd.field_validated_block("is_valid", |b, data| {
-                validate_trigger(b, data, &mut sc.clone(), Tooltipped::FailuresOnly);
-            });
-            vd.field_validated_block("starts_enabled", |b, data| {
-                validate_trigger(b, data, &mut sc.clone(), Tooltipped::No);
-            });
-            vd.field_validated_block("can_be_changed", |b, data| {
-                validate_trigger(b, data, &mut sc.clone(), Tooltipped::No);
-            });
+            vd.field_trigger("is_shown", Tooltipped::No, &mut sc.clone());
+            vd.field_trigger("is_valid", Tooltipped::FailuresOnly, &mut sc.clone());
+            vd.field_trigger("starts_enabled", Tooltipped::No, &mut sc.clone());
+            vd.field_trigger("can_be_changed", Tooltipped::No, &mut sc.clone());
             vd.field_validated_sc("current_description", &mut sc.clone(), validate_desc);
             vd.field_bool("can_invalidate_interaction");
 
@@ -279,37 +254,19 @@ impl DbKind for CharacterInteraction {
         });
 
         vd.field_bool("send_options_exclusive");
-        vd.field_validated_block("on_send", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_accept", |b, data| {
-            validate_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_decline", |b, data| {
-            validate_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_blocked_effect", |b, data| {
-            validate_effect(b, data, &mut sc.clone(), Tooltipped::No);
-        });
-        vd.field_validated_block("pre_auto_accept", |b, data| {
-            validate_effect(b, data, &mut sc.clone(), Tooltipped::No);
-        });
-        vd.field_validated_block("on_auto_accept", |b, data| {
-            validate_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_intermediary_accept", |b, data| {
-            validate_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_intermediary_decline", |b, data| {
-            validate_effect(b, data, &mut sc.clone(), Tooltipped::Yes);
-        });
+        vd.field_effect("on_send", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_accept", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_decline", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_blocked_effect", Tooltipped::No, &mut sc);
+        vd.field_effect("pre_auto_accept", Tooltipped::No, &mut sc);
+        vd.field_effect("on_auto_accept", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_intermediary_accept", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_intermediary_decline", Tooltipped::Yes, &mut sc);
 
         vd.field_integer("ai_frequency"); // months
 
         // This is in character scope with no other named scopes builtin
-        vd.field_validated_block_rooted("ai_potential", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::Yes);
-        });
+        vd.field_trigger_rooted("ai_potential", Tooltipped::Yes, Scopes::Character);
         if let Some(token) = block.get_key("ai_potential") {
             if block.get_field_integer("ai_frequency").unwrap_or(0) == 0
                 && !key.is("revoke_title_interaction")
@@ -380,15 +337,9 @@ impl DbKind for CharacterInteraction {
                 validate_trigger(block, data, sc, Tooltipped::Yes);
             },
         );
-        vd.field_validated_block("can_be_picked_title", |b, data| {
-            validate_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
-        });
-        vd.field_validated_block("can_be_picked_artifact", |b, data| {
-            validate_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
-        });
-        vd.field_validated_block("can_be_picked_regiment", |b, data| {
-            validate_trigger(b, data, &mut sc.clone(), Tooltipped::Yes);
-        });
+        vd.field_trigger("can_be_picked_title", Tooltipped::Yes, &mut sc.clone());
+        vd.field_trigger("can_be_picked_artifact", Tooltipped::Yes, &mut sc.clone());
+        vd.field_trigger("can_be_picked_regiment", Tooltipped::Yes, &mut sc.clone());
 
         // Experimentation showed that even the cost block has scope none
         vd.field_validated_block_rerooted("cost", &sc, Scopes::None, validate_cost_with_renown);
@@ -419,10 +370,7 @@ fn validate_icon(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
             let mut vd = Validator::new(block, data);
             vd.req_field("reference");
 
-            vd.field_validated_block("trigger", |block, data| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            });
-
+            vd.field_trigger("trigger", Tooltipped::No, sc);
             vd.field_icon("reference", "NGameIcons|CHARACTER_INTERACTION_ICON_PATH", ".dds");
         }
     }

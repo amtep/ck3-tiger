@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -38,15 +37,9 @@ impl DbKind for Lifestyle {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Character, key);
 
-        vd.field_validated_block("is_highlighted", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("is_valid", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("is_valid_showing_failures_only", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
-        });
+        vd.field_trigger("is_highlighted", Tooltipped::No, &mut sc);
+        vd.field_trigger("is_valid", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("is_valid_showing_failures_only", Tooltipped::FailuresOnly, &mut sc);
 
         let icon = vd.field_value("icon").unwrap_or(key);
         data.verify_icon("NGameIcons|LIFESTYLE_ICON_PATH", icon, ".dds");

@@ -11,7 +11,6 @@ use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
@@ -351,9 +350,7 @@ impl DbKind for FervorModifier {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Faith, key);
         vd.field_script_value("value", &mut sc);
-        vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("trigger", Tooltipped::No, &mut sc);
     }
 }
 

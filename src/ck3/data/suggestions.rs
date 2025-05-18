@@ -1,14 +1,12 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
@@ -38,17 +36,15 @@ impl DbKind for Suggestion {
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         let mut sc = ScopeContext::new(Scopes::Character, key);
-        vd.field_validated_block("check_create_suggestion", |block, data| {
-            // TODO: "only interface effects are allowed"
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        // TODO: "only interface effects are allowed"
+        vd.field_effect_rooted("check_create_suggestion", Tooltipped::No, Scopes::Character);
 
-        vd.field_validated_block("effect", |block, data| {
-            let mut sc = sc.clone();
+        // TODO: "only interface effects are allowed"
+        vd.field_effect_builder("effect", Tooltipped::No, |key| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             // TODO: The scope context will contain all scopes passed in the try_create_suggestion call
             sc.set_strict_scopes(false);
-            // TODO: "only interface effects are allowed"
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+            sc
         });
 
         vd.field_item("soundeffect", Item::Sound);
@@ -60,10 +56,10 @@ impl DbKind for Suggestion {
         sc.set_strict_scopes(false);
         vd.field_validated_block_sc("score", &mut sc, validate_modifiers_with_base);
 
-        let mut sc = ScopeContext::new(Scopes::Character, key);
-        sc.set_strict_scopes(false); // same as above
-        vd.field_validated_block("is_valid", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+        vd.field_trigger_builder("is_valid", Tooltipped::No, |key| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.set_strict_scopes(false); // same as above
+            sc
         });
     }
 }

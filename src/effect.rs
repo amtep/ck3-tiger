@@ -97,9 +97,7 @@ pub fn validate_effect_internal(
 
     #[allow(clippy::if_not_else)] // for symmetry
     if list_type != ListType::None {
-        vd.field_validated_block("filter", |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
+        vd.field_trigger("filter", Tooltipped::No, sc);
     } else {
         vd.ban_field("filter", || "lists");
     }
@@ -577,9 +575,7 @@ pub fn validate_effect_control(
     }
 
     if caller == "random_list" || caller == "duel" {
-        vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
+        vd.field_trigger("trigger", Tooltipped::No, sc);
         vd.field_bool("show_chance");
         vd.field_validated_sc("desc", sc, validate_desc);
         #[cfg(feature = "jomini")]

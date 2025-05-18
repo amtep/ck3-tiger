@@ -1,6 +1,6 @@
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -35,10 +35,11 @@ impl DbKind for RaidIntent {
         let loca = format!("{key}_flavor");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        vd.field_validated_block_rooted("on_return_raid_loot", Scopes::Army, |block, data, sc| {
+        vd.field_effect_builder("on_return_raid_loot", Tooltipped::Yes, |key| {
+            let mut sc = ScopeContext::new(Scopes::Army, key);
             sc.define_name("raid_loot", Scopes::Value, key);
             sc.define_name("raider", Scopes::Character, key);
-            validate_effect(block, data, sc, Tooltipped::Yes);
+            sc
         });
 
         vd.field_validated_block("modifier", |block, data| {
@@ -49,9 +50,10 @@ impl DbKind for RaidIntent {
         vd.field_script_value_rooted("ai_will_do", Scopes::Character);
         vd.field_trigger_rooted("is_shown", Tooltipped::No, Scopes::Character);
         vd.field_trigger_rooted("is_valid", Tooltipped::Yes, Scopes::Character);
-        vd.field_validated_block_rooted("on_invalidated", Scopes::Army, |block, data, sc| {
+        vd.field_effect_builder("on_invalidated", Tooltipped::No, |key| {
+            let mut sc = ScopeContext::new(Scopes::Army, key);
             sc.define_name("raider", Scopes::Character, key);
-            validate_effect(block, data, sc, Tooltipped::No);
+            sc
         });
     }
 }

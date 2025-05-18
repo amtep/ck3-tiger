@@ -8,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
@@ -33,15 +32,9 @@ impl DbKind for HarvestConditionType {
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        vd.field_validated_key_block("trigger", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::StateRegion, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("time", |key, block, data| {
-            // TODO: figure out scope here
-            let mut sc = ScopeContext::new(Scopes::all(), key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("trigger", Tooltipped::No, Scopes::StateRegion);
+        // TODO: figure out scope here
+        vd.field_trigger_rooted("time", Tooltipped::No, Scopes::StateRegion);
 
         vd.multi_field_item("incompatible_with", Item::HarvestConditionType);
 

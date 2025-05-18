@@ -8,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -63,12 +62,8 @@ impl DbKind for Principle {
 
         let mut sc = ScopeContext::new(Scopes::Country, key);
 
-        vd.field_validated_block("visible", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("possible", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("visible", Tooltipped::No, &mut sc);
+        vd.field_trigger("possible", Tooltipped::Yes, &mut sc);
 
         vd.multi_field_item("incompatible_with", Item::Principle);
         vd.field_item("icon", Item::File);

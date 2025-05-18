@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -10,7 +9,6 @@ use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
@@ -48,33 +46,24 @@ impl DbKind for InterestGroup {
         vd.field_list_items("traits", Item::InterestGroupTrait);
         vd.advice_field("traits", "deprecated; use on_enable effect to assign traits instead");
 
-        vd.field_validated_key_block("enable", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("on_enable", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("on_disable", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::None, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("on_character_ig_membership", |key, block, data| {
+        vd.field_trigger_rooted("enable", Tooltipped::No, Scopes::Country);
+        vd.field_effect_rooted("on_enable", Tooltipped::No, Scopes::Country);
+        vd.field_effect_rooted("on_disable", Tooltipped::No, Scopes::None); // TODO: verify scope
+        vd.field_effect_builder("on_character_ig_membership", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("interest_group", Scopes::InterestGroup, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+            sc
         });
 
-        vd.field_validated_key_block("pop_potential", |key, block, data| {
+        vd.field_trigger_builder("pop_potential", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Pop, key);
             sc.define_name("interest_group", Scopes::InterestGroup, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_key("pop_weight", |key, bv, data| {
+        vd.field_script_value_builder("pop_weight", |key| {
             let mut sc = ScopeContext::new(Scopes::Pop, key);
             sc.define_name("interest_group", Scopes::InterestGroup, key);
-            validate_script_value(bv, data, &mut sc);
+            sc
         });
         vd.field_script_value_rooted("monarch_weight", Scopes::InterestGroup);
         vd.field_script_value_rooted("agitator_weight", Scopes::InterestGroup);
@@ -96,10 +85,7 @@ impl DbKind for InterestGroup {
             let mut vd = Validator::new(block, data);
             vd.multi_field_validated_block("rule", |block, data| {
                 let mut vd = Validator::new(block, data);
-                vd.field_validated_key_block("trigger", |key, block, data| {
-                    let mut sc = ScopeContext::new(Scopes::Country, key);
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
-                });
+                vd.field_trigger_rooted("trigger", Tooltipped::No, Scopes::Country);
                 vd.field_list_items("cultures", Item::Culture);
             });
         });

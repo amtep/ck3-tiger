@@ -1,14 +1,12 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -45,37 +43,31 @@ impl DbKind for Secret {
             data.verify_icon("NGameIcons|SECRET_TYPE_PATH", token, ".dds");
         }
 
-        vd.field_validated_block("is_valid", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("is_valid", Tooltipped::No, &mut sc.clone());
 
-        vd.field_validated_key_block("is_shunned", |key, block, data| {
-            let mut sc = sc.clone();
-            sc.define_name("target", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("is_criminal", |key, block, data| {
-            let mut sc = sc.clone();
-            sc.define_name("target", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        for field in &["is_shunner", "is_criminal"] {
+            vd.field_trigger_builder(field, Tooltipped::No, |key| {
+                let mut sc = sc.clone();
+                sc.define_name("target", Scopes::Character, key);
+                sc
+            });
+        }
 
         let mut sc = ScopeContext::new(Scopes::Secret, key);
         sc.define_name("secret_owner", Scopes::Character, key);
         sc.define_name("secret_target", Scopes::Character, key);
-        vd.field_validated_key_block("on_discover", |key, block, data| {
+
+        vd.field_effect_builder("on_discover", Tooltipped::No, |key| {
             let mut sc = sc.clone();
             sc.define_name("discoverer", Scopes::Character, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_key_block("on_expose", |key, block, data| {
+        vd.field_effect_builder("on_discover", Tooltipped::No, |key| {
             let mut sc = sc.clone();
             sc.define_name("secret_exposer", Scopes::Character, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+            sc
         });
 
-        vd.field_validated_block("on_owner_death", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect("on_owner_death", Tooltipped::No, &mut sc);
     }
 }

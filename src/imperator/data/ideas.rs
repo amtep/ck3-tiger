@@ -8,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -37,9 +36,7 @@ impl DbKind for Idea {
         vd.req_field("group");
         vd.req_field("soundeffect");
 
-        vd.field_validated_block("trigger", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("trigger", Tooltipped::Yes, &mut sc);
 
         vd.field_choice(
             "group",

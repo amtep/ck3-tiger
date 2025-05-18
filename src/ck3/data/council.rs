@@ -2,7 +2,6 @@ use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -77,22 +76,12 @@ impl DbKind for CouncilPosition {
             },
         );
 
-        vd.field_validated_block("valid_position", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("valid_character", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("valid_position", Tooltipped::No, &mut sc);
+        vd.field_trigger("valid_character", Tooltipped::No, &mut sc);
 
-        vd.field_validated_block("on_get_position", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_lose_position", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_fired_from_position", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect("on_get_position", Tooltipped::No, &mut sc);
+        vd.field_effect("on_lose_position", Tooltipped::No, &mut sc);
+        vd.field_effect("on_fired_from_position", Tooltipped::No, &mut sc);
 
         vd.advice_field("use_for_scheme_power", "replaced with use_for_scheme_phase_duration");
         vd.field_bool("use_for_scheme_phase_duration");
@@ -229,46 +218,22 @@ impl DbKind for CouncilTask {
             vd.ban_field("county_modifier", || "task_type_county");
         }
 
-        vd.field_validated_block("is_shown", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("is_valid_showing_failures_only", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
-        });
-        vd.field_validated_block("on_start_task", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_finish_task", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_cancel_task", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_monthly", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("is_shown", Tooltipped::No, &mut sc);
+        vd.field_trigger("is_valid_showing_failures_only", Tooltipped::FailuresOnly, &mut sc);
+        vd.field_effect("on_start_task", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_finish_task", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_cancel_task", Tooltipped::No, &mut sc);
+        vd.field_effect("on_monthly", Tooltipped::No, &mut sc);
         vd.field_action("monthly_on_action", &sc);
 
         if let Some(token) = block.get_field_value("task_type") {
             if token.is("task_type_county") {
-                vd.field_validated_block("potential_county", |block, data| {
-                    validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-                });
-                vd.field_validated_block("valid_county", |block, data| {
-                    validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-                });
-                vd.field_validated_block("on_start_task_county", |block, data| {
-                    validate_effect(block, data, &mut sc, Tooltipped::Yes);
-                });
-                vd.field_validated_block("on_finish_task_county", |block, data| {
-                    validate_effect(block, data, &mut sc, Tooltipped::Yes);
-                });
-                vd.field_validated_block("on_cancel_task_county", |block, data| {
-                    validate_effect(block, data, &mut sc, Tooltipped::No);
-                });
-                vd.field_validated_block("on_monthly_county", |block, data| {
-                    validate_effect(block, data, &mut sc, Tooltipped::No);
-                });
+                vd.field_trigger("potential_county", Tooltipped::Yes, &mut sc);
+                vd.field_trigger("valid_county", Tooltipped::Yes, &mut sc);
+                vd.field_effect("on_start_task_county", Tooltipped::Yes, &mut sc);
+                vd.field_effect("on_finish_task_county", Tooltipped::Yes, &mut sc);
+                vd.field_effect("on_cancel_task_county", Tooltipped::Yes, &mut sc);
+                vd.field_effect("on_monthly_county", Tooltipped::No, &mut sc);
             } else {
                 vd.ban_field("potential_county", || "task_type_county");
                 vd.ban_field("valid_county", || "task_type_county");
@@ -278,24 +243,12 @@ impl DbKind for CouncilTask {
                 vd.ban_field("on_monthly_county", || "task_type_county");
             }
             if token.is("task_type_court") {
-                vd.field_validated_block("potential_target_court", |block, data| {
-                    validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-                });
-                vd.field_validated_block("valid_target_court", |block, data| {
-                    validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-                });
-                vd.field_validated_block("on_start_task_court", |block, data| {
-                    validate_effect(block, data, &mut sc, Tooltipped::Yes);
-                });
-                vd.field_validated_block("on_finish_task_court", |block, data| {
-                    validate_effect(block, data, &mut sc, Tooltipped::Yes);
-                });
-                vd.field_validated_block("on_cancel_task_court", |block, data| {
-                    validate_effect(block, data, &mut sc, Tooltipped::No);
-                });
-                vd.field_validated_block("on_monthly_court", |block, data| {
-                    validate_effect(block, data, &mut sc, Tooltipped::No);
-                });
+                vd.field_trigger("potential_target_court", Tooltipped::Yes, &mut sc);
+                vd.field_trigger("valid_target_court", Tooltipped::Yes, &mut sc);
+                vd.field_effect("on_start_task_court", Tooltipped::Yes, &mut sc);
+                vd.field_effect("on_finish_task_court", Tooltipped::Yes, &mut sc);
+                vd.field_effect("on_cancel_task_court", Tooltipped::No, &mut sc);
+                vd.field_effect("on_monthly_court", Tooltipped::No, &mut sc);
             } else {
                 vd.ban_field("potential_court", || "task_type_court");
                 vd.ban_field("valid_court", || "task_type_court");

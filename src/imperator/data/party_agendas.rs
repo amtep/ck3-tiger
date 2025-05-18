@@ -1,14 +1,12 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
@@ -34,27 +32,15 @@ impl DbKind for PartyAgenda {
         let loca = format!("{key}_DESC");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        vd.field_validated_block("potential", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("potential", Tooltipped::No, &mut sc);
 
         vd.field_validated_block_sc("chance", &mut sc, validate_modifiers_with_base);
 
-        vd.field_validated_block("on_start", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("finished_when", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_finish", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("abort_when", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_abort", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect("on_start", Tooltipped::No, &mut sc);
+        vd.field_trigger("finished_when", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_finish", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("abort_when", Tooltipped::No, &mut sc);
+        vd.field_effect("on_abort", Tooltipped::No, &mut sc);
 
         vd.field_action("monthly_on_action", &sc);
     }

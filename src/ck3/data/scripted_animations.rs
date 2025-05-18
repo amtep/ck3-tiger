@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -37,9 +36,7 @@ pub fn validate_scripted_animation(bv: &BV, data: &Everything, sc: &mut ScopeCon
             let mut vd = Validator::new(block, data);
             vd.multi_field_validated_block("triggered_animation", |block, data| {
                 let mut vd = Validator::new(block, data);
-                vd.field_validated_block("trigger", |block, data| {
-                    validate_trigger(block, data, sc, Tooltipped::No);
-                });
+                vd.field_trigger("trigger", Tooltipped::No, sc);
                 vd.field_validated("animation", validate_animation);
                 vd.field_item("camera", Item::PortraitCamera);
             });

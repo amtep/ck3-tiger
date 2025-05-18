@@ -1,8 +1,8 @@
 use crate::block::Block;
+#[cfg(feature = "vic3")]
 use crate::context::ScopeContext;
 use crate::datatype::Datatype;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::{Game, GameFlags};
 use crate::gui::validate_datatype_field;
@@ -10,7 +10,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::{Validator, ValueValidator};
 
 #[derive(Clone, Debug)]
@@ -48,10 +47,7 @@ impl DbKind for TutorialLesson {
         vd.field_item("chain", Item::TutorialLessonChain);
         vd.field_bool("start_automatically");
 
-        vd.field_validated_key_block("trigger", |key, block, data| {
-            let mut sc = ScopeContext::new(game_tutorial_scope(), key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("trigger", Tooltipped::No, game_tutorial_scope());
 
         // TODO: register these as item Flags and check them for
         // the IsTutorialTagOpen gui function?
@@ -104,12 +100,8 @@ impl DbKind for TutorialLessonChain {
     fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
 
-        vd.field_validated_key_block("trigger", |key, block, data| {
-            // TODO: verify root scope
-            let mut sc = ScopeContext::new(game_tutorial_scope(), key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-
+        // TODO: verify root scope
+        vd.field_trigger_rooted("trigger", Tooltipped::No, game_tutorial_scope());
         vd.field_integer("delay");
         vd.field_bool("save_progress_in_gamestate");
     }
@@ -170,29 +162,20 @@ impl DbKind for TutorialLessonStep {
             vd.field_value("button_id");
             vd.field_item("button_text", Item::Localization);
             vd.field_validated_value("target", validate_lesson_target);
-            vd.field_validated_key_block("enabled", |key, block, data| {
-                let mut sc = ScopeContext::new(game_tutorial_scope(), key);
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_trigger_rooted("enabled", Tooltipped::No, game_tutorial_scope());
         });
         vd.multi_field_validated_block("trigger_transition", validate_trigger_transition);
 
         // TODO: verify this works in Vic3 too
-        vd.field_validated_key_block("interface_effect", |key, block, data| {
-            // TODO: need a general way to restrict effects to interface effects only
-            let mut sc = ScopeContext::new(Scopes::None, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        // TODO: need a general way to restrict effects to interface effects only
+        vd.field_effect_rooted("interface_effect", Tooltipped::No, Scopes::None);
 
         if self.chain.as_ref().is_some_and(|t| {
             data.item_has_property(Item::TutorialLessonChain, t.as_str(), "gamestate_tutorial")
         }) {
             vd.field_bool("pause_game");
             vd.field_bool("force_pause_game");
-            vd.field_validated_key_block("effect", |key, block, data| {
-                let mut sc = ScopeContext::new(game_tutorial_scope(), key);
-                validate_effect(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_effect_rooted("effect", Tooltipped::No, game_tutorial_scope());
         } else {
             vd.ban_field("pause_game", || "gamestate tutorial chains");
             vd.ban_field("force_pause_game", || "gamestate tutorial chains");
@@ -204,11 +187,7 @@ impl DbKind for TutorialLessonStep {
 fn validate_trigger_transition(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
 
-    vd.field_validated_key_block("trigger", |key, block, data| {
-        let mut sc = ScopeContext::new(game_tutorial_scope(), key);
-        validate_trigger(block, data, &mut sc, Tooltipped::No);
-    });
-
+    vd.field_trigger_rooted("trigger", Tooltipped::No, game_tutorial_scope());
     vd.field_validated_value("target", validate_lesson_target);
     vd.field_value("button_id");
     vd.field_item("button_text", Item::Localization);

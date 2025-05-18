@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -10,7 +9,6 @@ use crate::scopes::Scopes;
 use crate::script_value::validate_script_value_no_breakdown;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -44,46 +42,34 @@ impl DbKind for TaxSlotType {
             sc
         });
 
-        vd.field_validated_key_block("is_valid_tax_collector", |key, block, data| {
+        vd.field_trigger_builder("is_valid_tax_collector", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("liege", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
 
         vd.field_list("aptitude_level_breakpoints");
         vd.field_script_value_rooted("tax_collector_aptitude", Scopes::Character);
 
-        vd.field_validated_key_block("on_tax_collector_hired", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::None, key);
-            sc.define_name("liege", Scopes::Character, key);
-            sc.define_name("tax_slot", Scopes::TaxSlot, key);
-            sc.define_name("tax_collector", Scopes::Character, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        for field in &["on_tax_collector_hired", "on_tax_collector_fired"] {
+            vd.field_effect_builder(field, Tooltipped::No, |key| {
+                let mut sc = ScopeContext::new(Scopes::None, key);
+                sc.define_name("liege", Scopes::Character, key);
+                sc.define_name("tax_slot", Scopes::TaxSlot, key);
+                sc.define_name("tax_collector", Scopes::Character, key);
+                sc
+            });
+        }
 
-        vd.field_validated_key_block("on_tax_collector_fired", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::None, key);
-            sc.define_name("liege", Scopes::Character, key);
-            sc.define_name("tax_slot", Scopes::TaxSlot, key);
-            sc.define_name("tax_collector", Scopes::Character, key);
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
-
-        vd.field_validated_key_block("on_vassal_assigned", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::None, key);
-            sc.define_name("liege", Scopes::Character, key);
-            sc.define_name("tax_slot", Scopes::TaxSlot, key);
-            sc.define_name("vassal", Scopes::Character, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
-
-        vd.field_validated_key_block("on_vassal_removed", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::None, key);
-            sc.define_name("liege", Scopes::Character, key);
-            sc.define_name("tax_slot", Scopes::TaxSlot, key);
-            sc.define_name("vassal", Scopes::Character, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        for field in &["on_vassal_assigned", "on_vassal_removed"] {
+            vd.field_effect_builder(field, Tooltipped::No, |key| {
+                let mut sc = ScopeContext::new(Scopes::None, key);
+                sc.define_name("liege", Scopes::Character, key);
+                sc.define_name("tax_slot", Scopes::TaxSlot, key);
+                sc.define_name("vassal", Scopes::Character, key);
+                sc
+            });
+        }
     }
 }
 
@@ -116,29 +102,29 @@ impl DbKind for TaxSlotObligation {
         data.verify_icon("NGameIcons|TAX_SLOT_OBLIGATION_TYPE_PATH", key, ".dds");
 
         let mut vd = Validator::new(block, data);
-        vd.field_validated_key_block("is_shown", |key, block, data| {
+        vd.field_trigger_builder("is_shown", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::None, key);
             sc.define_name("tax_slot", Scopes::TaxSlot, key);
             sc.define_name("liege", Scopes::Character, key);
             sc.define_name("tax_collector", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
 
-        vd.field_validated_key_block("is_valid", |key, block, data| {
+        vd.field_trigger_builder("is_valid", Tooltipped::Yes, |key| {
             let mut sc = ScopeContext::new(Scopes::None, key);
             sc.define_name("tax_slot", Scopes::TaxSlot, key);
             sc.define_name("liege", Scopes::Character, key);
             sc.define_name("tax_collector", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            sc
         });
 
-        vd.field_validated_key_block("is_vassal_valid", |key, block, data| {
+        vd.field_trigger_builder("is_vassal_valid", Tooltipped::Yes, |key| {
             let mut sc = ScopeContext::new(Scopes::None, key);
             sc.define_name("tax_slot", Scopes::TaxSlot, key);
             sc.define_name("liege", Scopes::Character, key);
             sc.define_name("vassal", Scopes::Character, key);
             sc.define_name("tax_collector", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            sc
         });
 
         // Documented `vassal_opinion` does not work

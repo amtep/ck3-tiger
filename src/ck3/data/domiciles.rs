@@ -2,7 +2,6 @@ use crate::block::{Block, BV};
 use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -11,7 +10,6 @@ use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_duration;
 use crate::validator::Validator;
 
@@ -36,10 +34,7 @@ impl DbKind for DomicileType {
         let loca = format!("domicile_{key}");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        vd.field_validated_key_block("allowed_for_character", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger_rooted("allowed_for_character", Tooltipped::Yes, Scopes::Character);
         vd.field_choice("rename_window", &["none", "primary_title", "house"]);
         vd.field_item("illustration", Item::File);
         vd.field_item("icon", Item::File);
@@ -98,10 +93,7 @@ fn validate_building_slot(_key: &Token, block: &Block, data: &Everything) {
 
 fn validate_slot_asset(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    vd.field_validated_key_block("trigger", |key, block, data| {
-        let mut sc = ScopeContext::new(Scopes::Domicile, key);
-        validate_trigger(block, data, &mut sc, Tooltipped::No);
-    });
+    vd.field_trigger_rooted("trigger", Tooltipped::No, Scopes::Domicile);
     vd.field_item("icon", Item::File);
     vd.field_item("texture", Item::File);
     vd.field_item("intersectionmask_texture", Item::File);
@@ -109,11 +101,7 @@ fn validate_slot_asset(block: &Block, data: &Everything) {
 
 fn validate_domicile_asset(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    vd.field_validated_key_block("trigger", |key, block, data| {
-        let mut sc = ScopeContext::new(Scopes::Domicile, key);
-        sc.define_name("owner", Scopes::Character, key);
-        validate_trigger(block, data, &mut sc, Tooltipped::No);
-    });
+    vd.field_trigger_builder("trigger", Tooltipped::No, sc_domicile_owner);
     vd.field_item("background", Item::File);
     vd.field_item("foreground", Item::File);
     vd.field_item("ambience", Item::File);
@@ -124,11 +112,7 @@ fn validate_map_entity(bv: &BV, data: &Everything) {
         BV::Value(value) => data.verify_exists(Item::Entity, value),
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
-            vd.field_validated_key_block("trigger", |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::Domicile, key);
-                sc.define_name("owner", Scopes::Character, key);
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_trigger_builder("trigger", Tooltipped::No, sc_domicile_owner);
             vd.field_item("reference", Item::Entity);
         }
     }
@@ -170,17 +154,10 @@ impl DbKind for DomicileBuilding {
         let loca = format!("{key}_domicile_building_desc");
         data.mark_used(Item::Localization, &loca);
 
-        vd.field_validated_key_block("can_construct", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger_rooted("can_construct", Tooltipped::Yes, Scopes::Character);
 
         for field in &["on_start", "on_canceled", "on_complete"] {
-            vd.field_validated_key_block(field, |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::Domicile, key);
-                sc.define_name("owner", Scopes::Character, key);
-                validate_effect(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_effect_builder(field, Tooltipped::No, sc_domicile_owner);
         }
 
         vd.field_integer("construction_time");
@@ -228,12 +205,15 @@ impl DbKind for DomicileBuilding {
 
 fn validate_building_asset(block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
-    vd.field_validated_key_block("trigger", |key, block, data| {
-        let mut sc = ScopeContext::new(Scopes::Domicile, key);
-        validate_trigger(block, data, &mut sc, Tooltipped::No);
-    });
+    vd.field_trigger_rooted("trigger", Tooltipped::No, Scopes::Domicile);
     vd.field_item("icon", Item::File);
     vd.field_item("texture", Item::File);
     vd.field_item("intersectionmask_texture", Item::File);
     vd.field_item("soundeffect", Item::Sound);
+}
+
+fn sc_domicile_owner(key: &Token) -> ScopeContext {
+    let mut sc = ScopeContext::new(Scopes::Domicile, key);
+    sc.define_name("owner", Scopes::Character, key);
+    sc
 }

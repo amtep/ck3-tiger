@@ -8,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
@@ -34,12 +33,8 @@ impl DbKind for Building {
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        vd.field_validated_block("potential", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("allow", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("potential", Tooltipped::No, &mut sc);
+        vd.field_trigger("allow", Tooltipped::Yes, &mut sc);
         vd.field_validated_block_sc("chance", &mut sc, validate_modifiers_with_base);
         // Somehow both of these are allowed even though they are the same thing...
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);

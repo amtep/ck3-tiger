@@ -8,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -45,13 +44,7 @@ impl DbKind for Decree {
         vd.field_script_value("ai_weight", &mut sc);
 
         vd.replaced_field("valid", "country_trigger and state_trigger");
-        vd.field_validated_block("country_trigger", |block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("state_trigger", |block, data| {
-            let mut sc = ScopeContext::new(Scopes::State, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger_rooted("country_trigger", Tooltipped::Yes, Scopes::Country);
+        vd.field_trigger_rooted("state_trigger", Tooltipped::Yes, Scopes::State);
     }
 }

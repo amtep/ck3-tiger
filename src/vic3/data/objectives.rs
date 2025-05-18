@@ -1,14 +1,11 @@
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -44,10 +41,7 @@ impl DbKind for Objective {
         // TODO: check if it's in the list above?
         vd.field_item("final_subgoal", Item::ObjectiveSubgoal); // undocumented
 
-        vd.field_validated_key_block("on_start", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect_rooted("on_start", Tooltipped::No, Scopes::Country);
         vd.field_item("required_dlc_feature", Item::DlcFeature);
     }
 }
@@ -77,15 +71,9 @@ impl DbKind for ObjectiveSubgoal {
         vd.field_list_items("blocking_subgoals_none_of", Item::ObjectiveSubgoal);
         vd.field_list_items("blocking_subgoals_not_all", Item::ObjectiveSubgoal);
 
-        vd.field_validated_key_block("trigger", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("trigger", Tooltipped::No, Scopes::Country);
         vd.field_script_value_rooted("chance", Scopes::Country);
-        vd.field_validated_key_block("on_start", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect_rooted("on_start", Tooltipped::No, Scopes::Country);
     }
 }
 

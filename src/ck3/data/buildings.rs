@@ -3,7 +3,6 @@ use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -11,7 +10,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
@@ -57,6 +55,13 @@ impl DbKind for Building {
     }
 
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        fn sc_builder(key: &Token) -> ScopeContext {
+            let mut sc = ScopeContext::new(Scopes::Province, key);
+            sc.define_name("holder", Scopes::Character, key);
+            sc.define_name("county", Scopes::LandedTitle, key);
+            sc
+        }
+
         let mut vd = Validator::new(block, data);
 
         let graphical_only = block.get_field_bool("is_graphical_background").unwrap_or(false);
@@ -83,36 +88,30 @@ impl DbKind for Building {
 
         vd.multi_field_validated_block("asset", validate_asset);
 
-        vd.field_validated_block_rooted("is_enabled", Scopes::Province, |block, data, sc| {
-            sc.define_name("holder", Scopes::Character, key);
-            sc.define_name("county", Scopes::LandedTitle, key);
-            let tooltipped = if graphical_only { Tooltipped::No } else { Tooltipped::FailuresOnly };
-            validate_trigger(block, data, sc, tooltipped);
-        });
-        vd.field_validated_key_block("can_construct_potential", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Province, key);
-            sc.define_name("holder", Scopes::Character, key);
-            sc.define_name("county", Scopes::LandedTitle, key);
-            // For buildings that are upgrades, can_construct_potential is added to can_construct_showing_failures_only so it will be tooltipped
-            let tooltipped =
-                block.get_field_bool("show_disabled").unwrap_or(false) || self.is_upgrade;
-            let tooltipped = if tooltipped { Tooltipped::FailuresOnly } else { Tooltipped::No };
-            validate_trigger(block, data, &mut sc, tooltipped);
-        });
-        vd.field_validated_block_rooted(
-            "can_construct_showing_failures_only",
-            Scopes::Province,
-            |block, data, sc| {
-                sc.define_name("holder", Scopes::Character, key);
-                sc.define_name("county", Scopes::LandedTitle, key);
-                validate_trigger(block, data, sc, Tooltipped::FailuresOnly);
-            },
+        vd.field_trigger_builder(
+            "is_enabled",
+            if graphical_only { Tooltipped::No } else { Tooltipped::FailuresOnly },
+            sc_builder,
         );
-        vd.field_validated_block_rooted("can_construct", Scopes::Province, |block, data, sc| {
-            sc.define_name("holder", Scopes::Character, key);
-            sc.define_name("county", Scopes::LandedTitle, key);
-            validate_trigger(block, data, sc, Tooltipped::Yes);
-        });
+
+        // For buildings that are upgrades, can_construct_potential is added to can_construct_showing_failures_only so it will be tooltipped
+        vd.field_trigger_builder(
+            "can_construct_potential",
+            if block.get_field_bool("show_disabled").unwrap_or(false) || self.is_upgrade {
+                Tooltipped::FailuresOnly
+            } else {
+                Tooltipped::No
+            },
+            sc_builder,
+        );
+
+        vd.field_trigger_builder(
+            "can_construct_showing_failures_only",
+            Tooltipped::FailuresOnly,
+            sc_builder,
+        );
+
+        vd.field_trigger_builder("can_construct", Tooltipped::Yes, sc_builder);
         vd.field_bool("show_disabled");
 
         vd.field_script_value_rooted("cost_gold", Scopes::Character);
@@ -245,9 +244,7 @@ impl DbKind for Building {
 
         vd.multi_field_value("flag");
 
-        vd.field_validated_block_rooted("on_complete", Scopes::Province, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
+        vd.field_effect_rooted("on_complete", Tooltipped::No, Scopes::Province);
 
         vd.field_validated_key("ai_value", |key, bv, data| match bv {
             BV::Value(token) => {
@@ -264,10 +261,10 @@ impl DbKind for Building {
         vd.field_bool("is_graphical_background");
 
         for field in ["on_start", "on_cancelled", "on_complete"] {
-            vd.field_validated_key_block(field, |key, block, data| {
+            vd.field_effect_builder(field, Tooltipped::No, |key| {
                 let mut sc = ScopeContext::new(Scopes::Province, key);
                 sc.define_name("character", Scopes::Character, key);
-                validate_effect(block, data, &mut sc, Tooltipped::No);
+                sc
             });
         }
     }

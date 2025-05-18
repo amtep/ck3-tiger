@@ -10,7 +10,6 @@ use crate::report::{warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -96,18 +95,10 @@ impl DbKind for ArtifactTemplate {
         let mut sc = ScopeContext::new(Scopes::Character, key);
         sc.define_name("artifact", Scopes::Artifact, key);
 
-        vd.field_validated_block("can_equip", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("can_benefit", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("can_reforge", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("can_repair", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("can_equip", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("can_benefit", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("can_reforge", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("can_repair", Tooltipped::Yes, &mut sc);
 
         vd.field_validated_block("fallback", |block, data| {
             let vd = Validator::new(block, data);
@@ -155,9 +146,7 @@ impl DbKind for ArtifactVisual {
                 if !block.has_key("trigger") {
                     unconditional = true;
                 }
-                vd.field_validated_block("trigger", |block, data| {
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
-                });
+                vd.field_trigger("trigger", Tooltipped::No, &mut sc);
                 vd.field_icon("reference", "NGameIcons|ARTIFACT_ICON_PATH", "");
             }
         });
@@ -177,9 +166,7 @@ impl DbKind for ArtifactVisual {
                 if !block.has_key("trigger") {
                     unconditional = true;
                 }
-                vd.field_validated_block("trigger", |block, data| {
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
-                });
+                vd.field_trigger("trigger", Tooltipped::No, &mut sc);
                 vd.field_validated_value("reference", |_, mut vd| {
                     vd.item(Item::Asset);
                 });
@@ -220,9 +207,7 @@ impl DbKind for ArtifactFeature {
         vd.field_item("group", Item::ArtifactFeatureGroup);
         vd.field_script_value("weight", &mut sc);
 
-        vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("trigger", Tooltipped::No, &mut sc);
     }
 }
 

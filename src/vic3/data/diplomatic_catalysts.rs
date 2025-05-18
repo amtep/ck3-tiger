@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -9,7 +8,6 @@ use crate::scopes::Scopes;
 use crate::script_value::validate_script_value_no_breakdown;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_duration;
 use crate::validator::Validator;
 use crate::vic3::tables::misc::LOBBY_FORMATION_REASON;
@@ -70,10 +68,8 @@ impl DbKind for DiplomaticCatalyst {
             let mut vd = Validator::new(block, data);
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("target_country", Scopes::Country, key);
-            vd.field_validated_block("trigger", |block, data| {
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
 
+            vd.field_trigger("trigger", Tooltipped::No, &mut sc);
             vd.unknown_fields(|key, bv| {
                 data.verify_exists(Item::PoliticalLobby, key);
                 validate_script_value_no_breakdown(bv, data, &mut sc);
@@ -95,16 +91,14 @@ impl DbKind for DiplomaticCatalyst {
                     "only_neutral",
                 ],
             );
-            vd.field_validated_block("trigger", |block, data| {
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_trigger("trigger", Tooltipped::No, &mut sc);
             vd.field_script_value_no_breakdown("chance", &mut sc);
         });
 
-        vd.field_validated_block("effect", |block, data| {
+        vd.field_effect_builder("effect", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("target_country", Scopes::Country, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+            sc
         });
     }
 }

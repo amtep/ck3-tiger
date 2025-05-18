@@ -5,7 +5,6 @@ use crate::ck3::data::scripted_animations::validate_scripted_animation;
 use crate::ck3::tables::misc::SUPPORT_TYPES;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader, LoadAsFile, Recursive};
@@ -14,7 +13,6 @@ use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -63,10 +61,7 @@ impl DbKind for CourtSceneRole {
         vd.field_validated_sc("scripted_animation", &mut sc, validate_scripted_animation);
         vd.field_item("camera", Item::PortraitCamera);
 
-        vd.field_validated_key_block("effect", |key, block, data| {
-            sc.define_list("characters", Scopes::Character, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect_rooted("effect", Tooltipped::No, Scopes::Character);
 
         vd.field_bool("is_low_priority");
         vd.field_item("group", Item::CourtSceneGroup);
@@ -91,9 +86,7 @@ impl DbKind for CourtSceneCulture {
         let mut vd = Validator::new(block, data);
         let mut sc = ScopeContext::new(Scopes::Character, key);
 
-        vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("trigger", Tooltipped::No, &mut sc);
     }
 }
 

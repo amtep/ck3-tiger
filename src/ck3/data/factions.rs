@@ -2,14 +2,12 @@ use crate::block::{Block, BV};
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
@@ -43,23 +41,15 @@ impl DbKind for Faction {
         vd.req_field("short_effect_desc");
         vd.field_validated_rooted("short_effect_desc", Scopes::Faction, validate_desc);
 
-        vd.field_validated_block_rooted("demand", Scopes::Faction, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
-        vd.field_validated_block_rooted("update_effect", Scopes::Faction, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
+        vd.field_effect_rooted("demand", Tooltipped::No, Scopes::Faction);
+        vd.field_effect_rooted("update_effect", Tooltipped::No, Scopes::Faction);
         // docs say "on_declaration"
-        vd.field_validated_block_rooted("on_war_start", Scopes::Faction, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
-        vd.field_validated_block_rooted("character_leaves", Scopes::Faction, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("leader_leaves", |key, block, data| {
+        vd.field_effect_rooted("on_war_start", Tooltipped::No, Scopes::Faction);
+        vd.field_effect_rooted("character_leaves", Tooltipped::No, Scopes::Faction);
+        vd.field_effect_builder("leader_leaves", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Faction, key);
             sc.define_name("faction_member", Scopes::Character, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+            sc
         });
         vd.field_validated_key_block("ai_join_score", |key, block, data| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
@@ -99,48 +89,46 @@ impl DbKind for Faction {
             BV::Value(t) => _ = t.expect_integer(),
             BV::Block(b) => validate_modifiers_with_base(b, data, sc),
         });
-        vd.field_validated_block_rooted("is_valid", Scopes::Faction, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("is_character_valid", |key, block, data| {
+        vd.field_trigger_rooted("is_valid", Tooltipped::No, Scopes::Faction);
+        vd.field_trigger_builder("is_character_valid", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("faction", Scopes::Faction, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_key_block("is_county_valid", |key, block, data| {
+        vd.field_trigger_builder("is_county_valid", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
             sc.define_name("faction", Scopes::Faction, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_key_block("can_character_join", |key, block, data| {
+        vd.field_trigger_builder("can_character_join", Tooltipped::Yes, |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("faction", Scopes::Faction, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            sc
         });
-        vd.field_validated_key_block("can_character_create", |key, block, data| {
+        vd.field_trigger_builder("can_character_create", Tooltipped::Yes, |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("target", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            sc
         });
-        vd.field_validated_key_block("can_character_create_ui", |key, block, data| {
+        vd.field_trigger_builder("can_character_create_ui", Tooltipped::Yes, |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("target", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            sc
         });
-        vd.field_validated_key_block("can_character_become_leader", |key, block, data| {
+        vd.field_trigger_builder("can_character_become_leader", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("faction", Scopes::Faction, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_key_block("can_county_join", |key, block, data| {
+        vd.field_trigger_builder("can_county_join", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
             sc.define_name("faction", Scopes::Faction, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_key_block("can_county_create", |key, block, data| {
+        vd.field_trigger_builder("can_county_create", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
             sc.define_name("target", Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
 
         vd.field_bool("character_allow_create");
@@ -164,11 +152,7 @@ impl DbKind for Faction {
         vd.field_bool("show_special_title");
 
         // undocumented fields follow
-        vd.field_validated_block_rooted("on_creation", Scopes::Faction, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
-        vd.field_validated_block_rooted("on_destroy", Scopes::Faction, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
+        vd.field_effect_rooted("on_creation", Tooltipped::No, Scopes::Faction);
+        vd.field_effect_rooted("on_destroy", Tooltipped::No, Scopes::Faction);
     }
 }

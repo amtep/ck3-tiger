@@ -10,7 +10,7 @@ use crate::report::{err, fatal, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_target, validate_target_ok_this, validate_trigger};
+use crate::trigger::{validate_target, validate_target_ok_this};
 use crate::validate::{validate_color, validate_modifiers_with_base, validate_scope_chain};
 use crate::validator::Validator;
 
@@ -24,9 +24,7 @@ pub fn validate_theme_background(bv: &BV, data: &Everything, sc: &mut ScopeConte
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
 
-            vd.field_validated_block("trigger", |b, data| {
-                validate_trigger(b, data, sc, Tooltipped::No);
-            });
+            vd.field_trigger("trigger", Tooltipped::No, sc);
             if vd.field_value("event_background").is_some() {
                 let msg = "`event_background` now causes a crash. It has been replaced by `reference` since 1.9";
                 fatal(ErrorKey::Crash)
@@ -49,9 +47,7 @@ pub fn validate_theme_header_background(bv: &BV, data: &Everything, sc: &mut Sco
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
 
-            vd.field_validated_block("trigger", |b, data| {
-                validate_trigger(b, data, sc, Tooltipped::No);
-            });
+            vd.field_trigger("trigger", Tooltipped::No, sc);
             vd.req_field("reference");
             if let Some(token) = vd.field_value("reference") {
                 data.verify_exists(Item::File, token);
@@ -67,18 +63,14 @@ pub fn validate_theme_icon(bv: &BV, data: &Everything, sc: &mut ScopeContext) {
 pub fn validate_theme_sound(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 
-    vd.field_validated_block("trigger", |b, data| {
-        validate_trigger(b, data, sc, Tooltipped::No);
-    });
+    vd.field_trigger("trigger", Tooltipped::No, sc);
     vd.field_item("reference", Item::Sound);
 }
 
 pub fn validate_theme_transition(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     let mut vd = Validator::new(block, data);
 
-    vd.field_validated_block("trigger", |b, data| {
-        validate_trigger(b, data, sc, Tooltipped::No);
-    });
+    vd.field_trigger("trigger", Tooltipped::No, sc);
     if let Some(token) = vd.field_value("reference") {
         data.verify_exists(Item::EventTransition, token);
         data.validate_call(Item::EventTransition, token, block, sc);
@@ -91,9 +83,7 @@ pub fn validate_theme_effect_2d(bv: &BV, data: &Everything, sc: &mut ScopeContex
         BV::Block(block) => {
             let mut vd = Validator::new(block, data);
 
-            vd.field_validated_block("trigger", |b, data| {
-                validate_trigger(b, data, sc, Tooltipped::No);
-            });
+            vd.field_trigger("trigger", Tooltipped::No, sc);
             if let Some(token) = vd.field_value("reference") {
                 data.verify_exists(Item::EventEffect2d, token);
             }
@@ -206,9 +196,7 @@ pub fn validate_compare_modifier(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_script_value("step", sc); // What does this do?
     vd.field_script_value("offset", sc); // What does this do?
     vd.field_validated_sc("desc", sc, validate_desc);
-    vd.field_validated_block("trigger", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
-    });
+    vd.field_trigger("trigger", Tooltipped::No, sc);
 }
 
 pub fn validate_opinion_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -225,9 +213,7 @@ pub fn validate_opinion_modifier(block: &Block, data: &Everything, sc: &mut Scop
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
     vd.field_script_value("step", sc); // What does this do?
-    vd.field_validated_block("trigger", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
-    });
+    vd.field_trigger("trigger", Tooltipped::No, sc);
 }
 
 pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -254,9 +240,7 @@ pub fn validate_ai_value_modifier(block: &Block, data: &Everything, sc: &mut Sco
     vd.field_script_value("ai_zeal", sc);
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
-    vd.field_validated_block("trigger", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
-    });
+    vd.field_trigger("trigger", Tooltipped::No, sc);
 }
 
 pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -271,9 +255,7 @@ pub fn validate_compatibility_modifier(block: &Block, data: &Everything, sc: &mu
     //vd.field_validated_sc("desc", sc, validate_desc);
     vd.field_script_value("min", sc);
     vd.field_script_value("max", sc);
-    vd.field_validated_block("trigger", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
-    });
+    vd.field_trigger("trigger", Tooltipped::No, sc);
 }
 
 pub fn validate_activity_modifier(block: &Block, data: &Everything, sc: &mut ScopeContext) {
@@ -295,9 +277,7 @@ pub fn validate_random_traits_list(block: &Block, data: &Everything, sc: &mut Sc
         data.verify_exists(Item::Trait, key);
         let mut vd = Validator::new(block, data);
         vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
-        vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
+        vd.field_trigger("trigger", Tooltipped::No, sc);
     });
 }
 
@@ -307,9 +287,7 @@ pub fn validate_random_culture(block: &Block, data: &Everything, sc: &mut ScopeC
         validate_target(key, data, sc, Scopes::Culture);
         let mut vd = Validator::new(block, data);
         vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
-        vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
+        vd.field_trigger("trigger", Tooltipped::No, sc);
     });
 }
 
@@ -319,9 +297,7 @@ pub fn validate_random_faith(block: &Block, data: &Everything, sc: &mut ScopeCon
         validate_target(key, data, sc, Scopes::Faith);
         let mut vd = Validator::new(block, data);
         vd.field_validated_block_sc("weight", sc, validate_modifiers_with_base);
-        vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
+        vd.field_trigger("trigger", Tooltipped::No, sc);
     });
 }
 

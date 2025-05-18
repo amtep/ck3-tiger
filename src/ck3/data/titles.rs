@@ -15,7 +15,6 @@ use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 use crate::variables::Variables;
@@ -255,15 +254,9 @@ impl Title {
 
         vd.field_script_value_no_breakdown("ai_primary_priority", &mut sc);
 
-        vd.field_validated_block("can_create", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("can_create_on_partition", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("can_destroy", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("can_create", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("can_create_on_parition", Tooltipped::No, &mut sc);
+        vd.field_trigger("can_destroy", Tooltipped::Yes, &mut sc);
 
         vd.field_validated_block("cultural_names", |block, data| {
             let mut vd = Validator::new(block, data);

@@ -6,7 +6,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -29,9 +28,7 @@ impl DbKind for MottoInsert {
             let mut vd = Validator::new(block, data);
             let loca = format!("motto_{key}");
             data.verify_exists_implied(Item::Localization, &loca, key);
-            vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            });
+            vd.field_trigger_rooted("trigger", Tooltipped::No, Scopes::Character);
             vd.field_script_value_rooted("weight", Scopes::Character);
         });
     }
@@ -59,9 +56,7 @@ impl DbKind for Motto {
         let n = block.count_keys("insert") as i64;
         data.localization.verify_key_has_options(&loca, key, n, "");
         vd.multi_field_item("insert", Item::MottoInsert);
-        vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("trigger", Tooltipped::No, Scopes::Character);
         vd.field_script_value_rooted("weight", Scopes::Character);
     }
 }

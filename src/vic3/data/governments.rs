@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -9,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -42,16 +40,10 @@ impl DbKind for GovernmentType {
         vd.field_item("male_heir", Item::Localization);
         vd.field_item("female_heir", Item::Localization);
 
-        vd.field_validated_block("possible", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_government_type_change", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("possible", Tooltipped::No, &mut sc);
+        vd.field_effect("on_government_type_change", Tooltipped::No, &mut sc);
         // This uses scopes set in on_government_type_change
-        vd.field_validated_block("on_post_government_type_change", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect("on_post_government_type_change", Tooltipped::No, &mut sc);
     }
 }
 

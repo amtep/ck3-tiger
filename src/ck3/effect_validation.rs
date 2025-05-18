@@ -17,7 +17,7 @@ use crate::scopes::Scopes;
 use crate::script_value::{validate_non_dynamic_script_value, validate_script_value};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::{validate_target, validate_target_ok_this, validate_trigger};
+use crate::trigger::{validate_target, validate_target_ok_this};
 use crate::validate::{
     validate_duration, validate_identifier, validate_mandatory_duration,
     validate_optional_duration, validate_optional_duration_int, validate_possibly_named_color,
@@ -1934,15 +1934,9 @@ pub fn validate_start_best_war(
 
     vd.field_list_items("cb", Item::CasusBelli);
     vd.field_bool("recalculate_cb_targets");
-    vd.field_validated_key_block("is_valid", |key, block, data| {
-        validate_trigger(block, data, &mut sc_builder(key), Tooltipped::No);
-    });
-    vd.field_validated_key_block("on_success", |key, block, data| {
-        validate_effect(block, data, &mut sc_builder(key), Tooltipped::No);
-    });
-    vd.field_validated_key_block("on_failure", |key, block, data| {
-        validate_effect(block, data, &mut sc_builder(key), Tooltipped::No);
-    });
+    vd.field_trigger_builder("is_valid", Tooltipped::No, sc_builder);
+    vd.field_effect_builder("on_success", Tooltipped::No, sc_builder);
+    vd.field_effect_builder("on_failure", Tooltipped::No, sc_builder);
 }
 
 pub fn validate_create_maa_regiment(

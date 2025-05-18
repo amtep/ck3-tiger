@@ -10,7 +10,6 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
@@ -39,9 +38,7 @@ impl DbKind for CourtierGuestManagement {
                 sc
             };
 
-            vd.field_validated_key_block("can_leave", |key, block, data| {
-                validate_trigger(block, data, &mut sc_builder(key), Tooltipped::No);
-            });
+            vd.field_trigger_builder("can_leave", Tooltipped::No, sc_builder);
             vd.field_validated_key_block("monthly_leave_chance_x10", |key, block, data| {
                 validate_modifiers_with_base(block, data, &mut sc_builder(key));
             });
@@ -52,15 +49,11 @@ impl DbKind for CourtierGuestManagement {
                 sc.define_name("host", Scopes::Character, key);
                 sc
             };
-            vd.field_validated_key_block("guest_can_arrive", |key, block, data| {
-                validate_trigger(block, data, &mut sc_builder(key), Tooltipped::No);
-            });
+            vd.field_trigger_builder("guest_can_arrive", Tooltipped::No, sc_builder);
             vd.field_validated_key_block("guest_score", |key, block, data| {
                 validate_modifiers_with_base(block, data, &mut sc_builder(key));
             });
-            vd.field_validated_key_block("can_leave", |key, block, data| {
-                validate_trigger(block, data, &mut sc_builder(key), Tooltipped::No);
-            });
+            vd.field_trigger_builder("can_leave", Tooltipped::No, sc_builder);
             vd.field_validated_key_block("monthly_leave_chance_x10", |key, block, data| {
                 validate_modifiers_with_base(block, data, &mut sc_builder(key));
             });
@@ -69,9 +62,7 @@ impl DbKind for CourtierGuestManagement {
                 vd.multi_field_validated_block("description", |block, data| {
                     let mut vd = Validator::new(block, data);
                     vd.req_field("desc");
-                    vd.field_validated_key_block("limit", |key, block, data| {
-                        validate_trigger(block, data, &mut sc_builder(key), Tooltipped::No);
-                    });
+                    vd.field_trigger_builder("limit", Tooltipped::No, sc_builder);
                     vd.field_validated_key_block("weight", |key, block, data| {
                         validate_modifiers_with_base(block, data, &mut sc_builder(key));
                     });

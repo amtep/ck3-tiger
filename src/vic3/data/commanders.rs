@@ -73,10 +73,7 @@ impl DbKind for CommanderOrder {
             vd.ban_field("naval_entity", || "navy");
         }
 
-        vd.field_validated_key_block("visible", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("visible", Tooltipped::No, Scopes::Character);
 
         vd.field_numeric_range("indicator_position_angle", 0.0..360.0);
         vd.field_numeric_range("indicator_position_angle_for_enemy", 0.0..360.0);

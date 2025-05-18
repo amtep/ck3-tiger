@@ -1,6 +1,5 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -91,13 +90,8 @@ fn validate_stage(key: &Token, block: &Block, data: &Everything) {
         validate_modifs(block, data, ModifKinds::Character, vd);
     });
 
-    vd.field_validated_block_rooted("on_start", Scopes::DynastyHouse, |block, data, sc| {
-        validate_effect(block, data, sc, Tooltipped::No);
-    });
-
-    vd.field_validated_block_rooted("on_end", Scopes::DynastyHouse, |block, data, sc| {
-        validate_effect(block, data, sc, Tooltipped::No);
-    });
+    vd.field_effect_rooted("on_start", Tooltipped::No, Scopes::DynastyHouse);
+    vd.field_effect_rooted("on_end", Tooltipped::No, Scopes::DynastyHouse);
 
     vd.field_list_items("decisions", Item::Decision);
 

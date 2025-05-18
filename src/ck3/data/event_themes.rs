@@ -14,7 +14,6 @@ use crate::report::Severity;
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Debug)]
@@ -121,9 +120,7 @@ impl DbKind for EventBackground {
         vd.multi_field_validated_block("background", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.set_max_severity(Severity::Warning);
-            vd.field_validated_block("trigger", |block, data| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            });
+            vd.field_trigger("trigger", Tooltipped::No, sc);
             vd.field_item("reference", Item::File);
             vd.field_bool("video");
             vd.field_item("environment", Item::PortraitEnvironment);
@@ -177,9 +174,7 @@ impl DbKind for EventTransition {
         vd.multi_field_validated_block("transition", |block, data| {
             let mut vd = Validator::new(block, data);
             vd.set_max_severity(Severity::Warning);
-            vd.field_validated_block("trigger", |block, data| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            });
+            vd.field_trigger("trigger", Tooltipped::No, sc);
             vd.field_item("reference", Item::File);
             vd.field_bool("video");
             vd.field_value("ambience");

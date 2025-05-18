@@ -3,7 +3,6 @@ use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -11,7 +10,6 @@ use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_modifiers_with_base};
 use crate::validator::Validator;
 
@@ -53,10 +51,7 @@ impl DbKind for Decision {
         vd.req_field_warn("picture");
         vd.multi_field_validated_block("picture", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_validated_key_block("trigger", |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::Character, key);
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_trigger_rooted("trigger", Tooltipped::No, Scopes::Character);
             vd.field_item("reference", Item::File);
             vd.field_item("soundeffect", Item::Sound);
         });
@@ -97,15 +92,9 @@ impl DbKind for Decision {
             data.validate_localization_sc(&loca, &mut sc);
         }
 
-        vd.field_validated_block("is_shown", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("is_valid_showing_failures_only", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::FailuresOnly);
-        });
-        vd.field_validated_block("is_valid", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("is_shown", Tooltipped::No, &mut sc);
+        vd.field_trigger("is_valid_showing_failures_only", Tooltipped::FailuresOnly, &mut sc);
+        vd.field_trigger("is_valid", Tooltipped::Yes, &mut sc);
 
         // cost can have multiple definitions and they will be combined
         // however, two costs of the same type are not summed
@@ -114,16 +103,10 @@ impl DbKind for Decision {
         vd.multi_field_validated_block("minimum_cost", |b, data| validate_cost(b, data, &mut sc));
         check_cost(&block.get_field_blocks("minimum_cost"));
 
-        vd.field_validated_block("effect", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("ai_potential", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect("effect", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("ai_potential", Tooltipped::No, &mut sc);
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
-        vd.field_validated_block("should_create_alert", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("should_create_alert", Tooltipped::No, &mut sc);
         vd.field_validated("widget", |bv, data| {
             match bv {
                 BV::Value(value) => {
@@ -159,19 +142,15 @@ impl DbKind for Decision {
                             vd.multi_field_validated_block("item", |block, data| {
                                 let mut vd = Validator::new(block, data);
                                 vd.field_value("value");
-                                vd.field_validated_block_rooted(
+                                vd.field_trigger_rooted(
                                     "is_shown",
+                                    Tooltipped::No,
                                     Scopes::Character,
-                                    |block, data, sc| {
-                                        validate_trigger(block, data, sc, Tooltipped::No);
-                                    },
                                 );
-                                vd.field_validated_block_rooted(
+                                vd.field_trigger_rooted(
                                     "is_valid",
+                                    Tooltipped::FailuresOnly,
                                     Scopes::Character,
-                                    |block, data, sc| {
-                                        validate_trigger(block, data, sc, Tooltipped::FailuresOnly);
-                                    },
                                 );
                                 vd.field_validated_rooted(
                                     "current_description",
@@ -194,17 +173,11 @@ impl DbKind for Decision {
                             });
                         }
                         Some("create_holy_order" | "revoke_holy_order_lease") => {
-                            vd.field_validated_block_build_sc(
-                                "barony_valid",
-                                |key| {
-                                    let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
-                                    sc.define_name("ruler", Scopes::Character, key);
-                                    sc
-                                },
-                                |block, data, sc| {
-                                    validate_trigger(block, data, sc, Tooltipped::No);
-                                },
-                            );
+                            vd.field_trigger_builder("barony_valid", Tooltipped::No, |key| {
+                                let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
+                                sc.define_name("ruler", Scopes::Character, key);
+                                sc
+                            });
                         }
                         _ => (),
                     }

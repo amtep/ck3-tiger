@@ -1,5 +1,4 @@
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
@@ -7,7 +6,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
@@ -59,10 +57,7 @@ impl DbKind for PopType {
 
         vd.field_script_value_rooted("portrait_age", Scopes::Pop);
         vd.field_script_value_rooted("portrait_pose", Scopes::Pop);
-        vd.field_validated_key_block("portrait_is_female", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Pop, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("portrait_is_female", Tooltipped::No, Scopes::Pop);
 
         // undocumented
 

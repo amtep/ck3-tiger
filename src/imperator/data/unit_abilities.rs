@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -9,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
@@ -56,30 +54,13 @@ impl DbKind for UnitAbility {
             validate_modifs(block, data, ModifKinds::Country, vd);
         });
 
-        vd.field_validated_block("hidden", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("allow", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("ai_will_revoke", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("finished_when", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("start_effect", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("start_effect", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("finish_effect", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_entering_province", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("hidden", Tooltipped::No, &mut sc);
+        vd.field_trigger("allow", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("ai_will_revoke", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("finished_when", Tooltipped::Yes, &mut sc);
+        vd.field_effect("start_effect", Tooltipped::Yes, &mut sc);
+        vd.field_effect("finish_effect", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_entering_province", Tooltipped::Yes, &mut sc);
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
     }
 }

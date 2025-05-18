@@ -1,14 +1,12 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -97,22 +95,13 @@ impl DbKind for CharacterTemplate {
         vd.field_date("birth_date");
         vd.field_list_items("traits", Item::CharacterTrait);
 
-        vd.field_validated_key_block("trait_generation", |key, block, data| {
-            // TODO: "should only be used for traits"
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("on_created", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        // TODO: "should only be used for traits"
+        vd.field_effect_rooted("trait_generation", Tooltipped::No, Scopes::Character);
+        vd.field_effect_rooted("on_created", Tooltipped::No, Scopes::Character);
 
         vd.field_validated_block("commander_usage", |block, data| {
             let mut vd = Validator::new(block, data);
-            vd.field_validated_key_block("country_trigger", |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::Country, key);
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_trigger_rooted("country_trigger", Tooltipped::No, Scopes::Country);
             vd.field_choice("role", &["general", "admiral"]);
             vd.field_date("earliest_usage_date");
             vd.field_date("latest_usage_date");
@@ -122,14 +111,12 @@ impl DbKind for CharacterTemplate {
         for field in &["interest_group_leader_usage", "agitator_usage"] {
             vd.field_validated_block(field, |block, data| {
                 let mut vd = Validator::new(block, data);
-                vd.field_validated_key_block("country_trigger", |key, block, data| {
-                    let mut sc = ScopeContext::new(Scopes::Country, key);
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
-                });
-                vd.field_validated_key_block("interest_group_trigger", |key, block, data| {
-                    let mut sc = ScopeContext::new(Scopes::InterestGroup, key);
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
-                });
+                vd.field_trigger_rooted("country_trigger", Tooltipped::No, Scopes::Country);
+                vd.field_trigger_rooted(
+                    "interest_group_trigger",
+                    Tooltipped::No,
+                    Scopes::InterestGroup,
+                );
                 vd.field_date("earliest_usage_date");
                 vd.field_date("latest_usage_date");
                 vd.field_numeric_range("chance", 0.0..=100.0);

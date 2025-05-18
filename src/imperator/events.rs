@@ -10,7 +10,6 @@ use crate::report::{err, warn, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::{validate_ai_chance, validate_modifiers_with_base, ListType};
 use crate::validator::Validator;
 
@@ -51,12 +50,8 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     vd.field_bool("interface_lock");
     vd.field_bool("fire_only_once");
 
-    vd.field_validated_block("trigger", |block, data| {
-        validate_trigger(block, data, sc, Tooltipped::No);
-    });
-    vd.field_validated_block("immediate", |block, data| {
-        validate_effect(block, data, sc, tooltipped_immediate);
-    });
+    vd.field_trigger("trigger", Tooltipped::No, sc);
+    vd.field_effect("immediate", tooltipped_immediate, sc);
 
     vd.field_item_or_target(
         "goto_location",
@@ -129,9 +124,7 @@ fn validate_event_option(
     let mut vd = Validator::new(block, data);
     vd.field_validated_sc("name", sc, validate_desc);
 
-    vd.field_validated_block("trigger", |b, data| {
-        validate_trigger(b, data, sc, Tooltipped::No);
-    });
+    vd.field_trigger("trigger", Tooltipped::No, sc);
 
     vd.field_bool("exclusive");
     vd.field_bool("highlight");

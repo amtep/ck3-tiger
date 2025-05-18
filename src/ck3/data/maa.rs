@@ -14,7 +14,6 @@ use crate::report::{warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 use crate::variables::Variables;
 
@@ -197,10 +196,10 @@ impl MenAtArmsType {
         }
 
         // TODO: "Mutually exclusive with being unlocked by innovation"
-        vd.field_validated_key_block("can_recruit", |key, block, data| {
+        vd.field_trigger_builder("can_recruit", Tooltipped::Yes, |key| {
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("title", Scopes::LandedTitle, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            sc
         });
 
         vd.field_trigger_rooted("should_show_when_unavailable", Tooltipped::No, Scopes::Character);

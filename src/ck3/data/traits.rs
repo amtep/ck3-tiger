@@ -16,7 +16,6 @@ use crate::scopes::Scopes;
 use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 use crate::variables::Variables;
 
@@ -226,9 +225,7 @@ impl Trait {
             });
         });
 
-        vd.field_validated_block("potential", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("potential", Tooltipped::No, &mut sc);
 
         vd.field_validated_block("monthly_track_xp_degradation", |block, data| {
             let mut vd = Validator::new(block, data);

@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -9,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -40,9 +38,7 @@ impl DbKind for LawGroup {
 
         data.verify_exists(Item::Localization, key);
 
-        vd.field_validated_block("potential", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("potential", Tooltipped::No, &mut sc);
 
         // The laws. They are validated in the Law class.
         vd.unknown_block_fields(|_, _| ());
@@ -72,13 +68,8 @@ impl DbKind for Law {
             ],
         );
 
-        vd.field_validated_block("allow", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
-
-        vd.field_validated_block("on_enact", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("allow", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_enact", Tooltipped::Yes, &mut sc);
 
         vd.field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);

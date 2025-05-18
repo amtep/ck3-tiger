@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -24,19 +23,19 @@ impl PointOfInterest {
 }
 
 impl DbKind for PointOfInterest {
-    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+    fn validate(&self, _key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
-        let mut sc = ScopeContext::new(Scopes::Character, key);
 
-        vd.field_validated_block("build_province_list", |block, data| {
-            let mut sc = sc.clone();
+        vd.field_effect_builder("build_province_list", Tooltipped::No, |key| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_list("provinces", Scopes::Province, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+            sc
         });
 
-        sc.define_name("province", Scopes::Province, key);
-        vd.field_validated_block("on_visit", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
+        vd.field_effect_builder("on_visit", Tooltipped::No, |key| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            sc.define_name("province", Scopes::Province, key);
+            sc
         });
     }
 }

@@ -8,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
@@ -43,13 +42,11 @@ impl DbKind for Country {
         vd.field_bool("is_named_from_capital");
         vd.field_bool("dynamic_country_definition");
 
-        vd.field_validated_key_block(
+        // TODO: what is the scope type here?
+        vd.field_trigger_rooted(
             "valid_as_home_country_for_separatists",
-            |key, block, data| {
-                // TODO: what is the scope type here?
-                let mut sc = ScopeContext::new(Scopes::None, key);
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            },
+            Tooltipped::No,
+            Scopes::None,
         );
     }
 }
@@ -158,14 +155,8 @@ impl DbKind for CountryFormation {
             vd.ban_field("leadership_play", || "major formations");
         }
 
-        vd.field_validated_key_block("ai_will_do", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("possible", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger_rooted("ai_will_do", Tooltipped::No, Scopes::Country);
+        vd.field_trigger_rooted("possible", Tooltipped::Yes, Scopes::Country);
     }
 }
 
@@ -197,11 +188,7 @@ impl DbKind for CountryCreation {
         vd.field_list_items("states", Item::StateRegion);
         vd.field_list_items("provinces", Item::Province);
 
-        vd.field_validated_block("possible", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("ai_will_do", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("possible", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("ai_will_do", Tooltipped::No, &mut sc);
     }
 }

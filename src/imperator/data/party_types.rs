@@ -8,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -31,13 +30,8 @@ impl DbKind for PartyType {
 
         data.verify_exists(Item::Localization, key);
 
-        vd.field_validated_block("allow", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("can_character_belong", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("allow", Tooltipped::No, &mut sc);
+        vd.field_trigger_rooted("can_character_belong", Tooltipped::No, Scopes::Character);
 
         vd.field_validated_block("province", |block, data| {
             let vd = Validator::new(block, data);

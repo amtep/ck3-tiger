@@ -1,5 +1,4 @@
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
@@ -7,10 +6,8 @@ use crate::helpers::stringify_choices;
 use crate::item::{Item, ItemLoader};
 use crate::report::{warn, ErrorKey};
 use crate::scopes::Scopes;
-use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 use crate::vic3::tables::misc::STANCES;
 
@@ -40,29 +37,19 @@ impl DbKind for Ideology {
 
         vd.field_bool("character_ideology");
         if block.field_value_is("character_ideology", "yes") {
-            vd.field_validated_key_block("country_trigger", |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::Country, key);
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
-            vd.field_validated_key_block("interest_group_leader_trigger", |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::Character, key);
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
-            vd.field_validated_key_block(
-                "non_interest_group_leader_trigger",
-                |key, block, data| {
-                    let mut sc = ScopeContext::new(Scopes::Character, key);
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
-                },
+            vd.field_trigger_rooted("country_trigger", Tooltipped::No, Scopes::Country);
+            vd.field_trigger_rooted(
+                "interest_group_leader_trigger",
+                Tooltipped::No,
+                Scopes::Character,
             );
-            vd.field_validated_key("interest_group_leader_weight", |key, bv, data| {
-                let mut sc = ScopeContext::new(Scopes::InterestGroup, key);
-                validate_script_value(bv, data, &mut sc);
-            });
-            vd.field_validated_key("non_interest_group_leader_weight", |key, bv, data| {
-                let mut sc = ScopeContext::new(Scopes::Character, key);
-                validate_script_value(bv, data, &mut sc);
-            });
+            vd.field_trigger_rooted(
+                "non_interest_group_leader_trigger",
+                Tooltipped::No,
+                Scopes::Character,
+            );
+            vd.field_script_value_rooted("interest_group_leader_weight", Scopes::InterestGroup);
+            vd.field_script_value_rooted("non_interest_group_leader_weight", Scopes::Character);
             vd.ban_field("priority", || "character_ideology = no");
         } else {
             vd.ban_field("country_trigger", || "character_ideology = yes");

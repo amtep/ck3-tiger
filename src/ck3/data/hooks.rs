@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -36,8 +35,6 @@ impl DbKind for Hook {
         vd.field_bool("perpetual");
         vd.field_bool("requires_secret");
 
-        vd.field_validated_block("on_used", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect("on_used", Tooltipped::No, &mut sc);
     }
 }

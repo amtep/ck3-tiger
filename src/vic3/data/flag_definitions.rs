@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -50,12 +49,12 @@ fn validate_flag_definition(block: &Block, data: &Everything) {
     vd.field_bool("allow_revolutionary_indicator");
 
     vd.field_integer("priority");
-    vd.field_validated_key_block("trigger", |key, block, data| {
+    vd.field_trigger_builder("trigger", Tooltipped::No, |key| {
         let mut sc = ScopeContext::new(Scopes::CountryDefinition, key);
         sc.define_name("target", Scopes::Country, key);
         sc.define_name("initiator", Scopes::Country, key);
         sc.define_name("actor", Scopes::Country, key);
         sc.define_name("overlord", Scopes::Country, key);
-        validate_trigger(block, data, &mut sc, Tooltipped::No);
+        sc
     });
 }

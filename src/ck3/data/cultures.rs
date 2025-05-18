@@ -11,7 +11,6 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::{Validator, ValueValidator};
 
@@ -218,12 +217,8 @@ impl DbKind for CulturePillar {
         sc.define_name("character", Scopes::Character, key);
         sc.define_list("traits", Scopes::CulturePillar | Scopes::CultureTradition, key); // undocumented
         vd.field_script_value("ai_will_do", &mut sc);
-        vd.field_validated_block("is_shown", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("can_pick", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("is_shown", Tooltipped::No, &mut sc);
+        vd.field_trigger("can_pick", Tooltipped::Yes, &mut sc);
         if block.field_value_is("type", "language") {
             vd.field_validated("color", validate_possibly_named_color);
         } else {
@@ -315,18 +310,18 @@ impl DbKind for CultureTradition {
             });
         });
 
-        vd.field_validated_key_block("can_pick", |key, block, data| {
+        vd.field_trigger_builder("can_pick", Tooltipped::Yes, |key| {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("replacing", Scopes::CultureTradition, key);
             sc.define_name("character", Scopes::Character, key);
             sc.define_list("traits", Scopes::CulturePillar | Scopes::CultureTradition, key); // undocumented
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            sc
         });
-        vd.field_validated_key_block("can_pick_for_hybridization", |key, block, data| {
+        vd.field_trigger_builder("can_pick_for_hybridization", Tooltipped::Yes, |key| {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("character", Scopes::Character, key);
             sc.define_list("traits", Scopes::CulturePillar | Scopes::CultureTradition, key); // undocumented
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            sc
         });
         validate_modifiers(&mut vd);
         vd.multi_field_validated_block("doctrine_character_modifier", |block, data| {
@@ -345,9 +340,7 @@ impl DbKind for CultureTradition {
         let mut sc = ScopeContext::new(Scopes::Culture, key);
         sc.define_name("character", Scopes::Character, key);
         sc.define_list("traits", Scopes::CulturePillar | Scopes::CultureTradition, key); // undocumented
-        vd.field_validated_block("is_shown", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("is_shown", Tooltipped::No, &mut sc);
         sc.define_name("replacing", Scopes::CultureTradition, key);
         vd.field_script_value_no_breakdown("ai_will_do", &mut sc);
     }
@@ -411,11 +404,11 @@ impl DbKind for CultureAesthetic {
         vd.field_list_items("unit_gfx", Item::UnitGfx);
         vd.field_list_items("coa_gfx", Item::CoaGfx);
 
-        vd.field_validated_key_block("is_shown", |key, block, data| {
+        vd.field_trigger_builder("is_shown", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Culture, key);
             sc.define_name("character", Scopes::Character, key);
             sc.define_list("trait", Scopes::CultureTradition | Scopes::CulturePillar, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
     }
 }
@@ -457,9 +450,7 @@ impl DbKind for CultureCreationName {
             data.verify_exists_implied(Item::Localization, &loca, key);
         }
 
-        vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("trigger", Tooltipped::No, &mut sc);
 
         vd.field_bool("hybrid");
     }

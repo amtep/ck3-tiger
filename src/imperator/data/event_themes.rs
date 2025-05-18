@@ -9,7 +9,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -35,9 +34,7 @@ impl DbKind for EventTheme {
             BV::Block(block) => {
                 let mut vd = Validator::new(block, data);
                 vd.field_item("texture", Item::File);
-                vd.field_validated_block("trigger", |block, data| {
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
-                });
+                vd.field_trigger("trigger", Tooltipped::No, &mut sc);
             }
         });
         vd.field_item("soundeffect", Item::Sound);

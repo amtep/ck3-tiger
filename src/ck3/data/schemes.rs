@@ -4,7 +4,6 @@ use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -14,7 +13,6 @@ use crate::scopes::Scopes;
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::{validate_duration, validate_modifiers_with_base};
 use crate::validator::Validator;
 
@@ -87,12 +85,8 @@ impl DbKind for Scheme {
         data.verify_icon("NGameIcons|SCHEME_TYPE_ICON_PATH", icon, ".dds");
         vd.field_item("illustration", Item::File);
 
-        vd.field_validated_block("allow", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("valid", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("allow", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("valid", Tooltipped::No, &mut sc);
 
         vd.field_integer("agent_join_threshold");
         vd.field_integer("agent_leave_threshold");
@@ -100,9 +94,7 @@ impl DbKind for Scheme {
 
         vd.field_bool("is_basic");
 
-        vd.field_validated_block("valid_agent", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("valid_agent", Tooltipped::No, &mut sc);
 
         vd.field_list("agent_groups_owner_perspective"); // TODO
         vd.field_list("agent_groups_target_character_perspective"); // TODO
@@ -150,9 +142,7 @@ impl DbKind for Scheme {
         vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
 
         vd.field_bool("is_secret");
-        vd.field_validated_block("use_secrecy", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("use_secrecy", Tooltipped::No, &mut sc);
         vd.field_script_value_no_breakdown_builder("base_secrecy", sc_secrecy);
 
         // on_start is undocumented
@@ -164,10 +154,7 @@ impl DbKind for Scheme {
             "on_semiyearly",
             "on_invalidated",
         ] {
-            vd.field_validated_key_block(field, |key, block, data| {
-                let mut sc = ScopeContext::new(Scopes::Scheme, key);
-                validate_effect(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_effect_rooted(field, Tooltipped::No, Scopes::Scheme);
         }
         vd.advice_field("on_ready", "Replaced with `on_phase_completed`");
         vd.advice_field("on_agent_join", "Removed in 1.13");
@@ -225,13 +212,13 @@ impl DbKind for AgentType {
         let loca = format!("{key}_desc");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        vd.field_validated_key_block("valid_agent_for_slot", |key, block, data| {
+        vd.field_trigger_builder("valid_agent_for_slot", Tooltipped::Yes, |key| {
             let target_scopes =
                 Scopes::Character | Scopes::LandedTitle | Scopes::Culture | Scopes::Faith;
             let mut sc = ScopeContext::new(Scopes::Character, key);
             sc.define_name("owner", Scopes::Character, key);
             sc.define_name("target", target_scopes, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+            sc
         });
         vd.field_choice("contribution_type", AGENT_SLOT_CONTRIBUTION_TYPE);
 
@@ -268,13 +255,9 @@ impl DbKind for SchemePulseAction {
 
         vd.field_localization("hud_text", &mut sc_builder(key));
 
-        vd.field_validated_key_block("is_valid", |key, block, data| {
-            validate_trigger(block, data, &mut sc_builder(key), Tooltipped::No);
-        });
+        vd.field_trigger_builder("is_valid", Tooltipped::No, sc_builder);
         vd.field_script_value_no_breakdown_builder("weight", sc_builder);
-        vd.field_validated_key_block("effect", |key, block, data| {
-            validate_effect(block, data, &mut sc_builder(key), Tooltipped::No);
-        });
+        vd.field_effect_builder("effect", Tooltipped::No, sc_builder);
     }
 }
 
@@ -310,18 +293,13 @@ impl DbKind for Countermeasure {
 
         data.verify_icon("NGameIcons|SCHEME_COUNTERMEASURE_TYPE_ICON_PATH", key, ".dds");
 
-        vd.field_validated_key_block("is_shown", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("is_valid_showing_failures_only", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
-        });
-        vd.field_validated_key_block("on_activate", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger_rooted("is_shown", Tooltipped::No, Scopes::Character);
+        vd.field_trigger_rooted(
+            "is_valid_showing_failures_only",
+            Tooltipped::FailuresOnly,
+            Scopes::Character,
+        );
+        vd.field_effect_rooted("on_activate", Tooltipped::Yes, Scopes::Character);
 
         let mut sc = ScopeContext::new(Scopes::Character, key);
         vd.field_validated_block_sc("activation_cost", &mut sc, validate_cost);

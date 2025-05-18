@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -37,9 +36,7 @@ impl DbKind for Unit {
         vd.field_bool("legions");
         vd.field_bool("enable");
 
-        vd.field_validated_block("allow", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("allow", Tooltipped::Yes, &mut sc);
 
         vd.field_choice("levy_tier", &["advanced", "basic", "none"]);
         vd.field_choice("category", &["light", "medium", "heavy"]);

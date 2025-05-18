@@ -1,14 +1,12 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
@@ -52,45 +50,35 @@ impl DbKind for CharacterInteraction {
         // TODO - test if more diplo actions are valid to use here
         vd.field_choice("diplomatic_action", &["ransom"]);
 
-        vd.field_validated_block("potential_trigger", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("allowed_trigger", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("character_actor_trigger", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("character_target_trigger", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("country_actor_trigger", |b, data| {
+        vd.field_trigger("potential_trigger", Tooltipped::No, &mut sc);
+        vd.field_trigger("allowed_trigger", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("character_actor_trigger", Tooltipped::No, &mut sc);
+        vd.field_trigger("character_target_trigger", Tooltipped::No, &mut sc);
+        vd.field_trigger_builder("country_actor_trigger", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("actor", Scopes::Country, key);
             sc.define_name("target", Scopes::Character, key);
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_block("country_target_trigger", |b, data| {
+        vd.field_trigger_builder("country_target_trigger", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("actor", Scopes::Country, key);
             sc.define_name("target", Scopes::Character, key);
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_block("province_actor_trigger", |b, data| {
+        vd.field_trigger_builder("province_actor_trigger", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Province, key);
             sc.define_name("actor", Scopes::Country, key);
             sc.define_name("target", Scopes::Character, key);
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_block("province_target_trigger", |b, data| {
+        vd.field_trigger_builder("province_target_trigger", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Province, key);
             sc.define_name("actor", Scopes::Country, key);
             sc.define_name("target", Scopes::Character, key);
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
+            sc
         });
-        vd.field_validated_block("effect", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_effect("effect", Tooltipped::Yes, &mut sc);
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
     }
 }

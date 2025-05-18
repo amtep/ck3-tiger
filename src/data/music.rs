@@ -14,7 +14,6 @@ use crate::report::{report, warn, ErrorKey, Severity};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_optional_duration_int;
 use crate::validator::Validator;
 use crate::variables::Variables;
@@ -128,9 +127,7 @@ impl Music {
         vd.field_integer("calls");
 
         vd.field_bool("trigger_prio_override");
-        vd.field_validated_block("is_valid", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("is_valid", Tooltipped::No, &mut sc);
 
         vd.field_list_numeric_exactly("subsequent_playback_chance", 3);
     }

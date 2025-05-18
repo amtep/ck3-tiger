@@ -8,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -45,12 +44,8 @@ impl DbKind for DiarchyType {
         let loca = format!("{key}_diarch_title");
         data.verify_exists_implied(Item::Localization, &loca, key);
 
-        vd.field_validated_block("start", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("end", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("start", Tooltipped::No, &mut sc);
+        vd.field_trigger("end", Tooltipped::No, &mut sc);
 
         vd.field_bool("succession");
 

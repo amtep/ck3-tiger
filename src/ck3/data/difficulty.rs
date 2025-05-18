@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -29,8 +28,6 @@ impl DbKind for PlayableDifficultyInfo {
         let mut sc = ScopeContext::new(Scopes::Character, key);
 
         data.verify_exists(Item::Localization, key);
-        vd.field_validated_block("is_shown", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("is_shown", Tooltipped::No, &mut sc);
     }
 }

@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -47,11 +46,7 @@ impl DbKind for DeathReason {
         }
 
         vd.field_icon("icon", "NGameIcons|DEATH_REASON_ICON_PATH", "");
-
-        vd.field_validated_block("natural_death_trigger", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-
+        vd.field_trigger("natural_death_trigger", Tooltipped::No, &mut sc);
         vd.field_item("use_equipped_artifact_in_slot", Item::ArtifactSlot);
         vd.field_item("epidemic", Item::EpidemicType);
     }

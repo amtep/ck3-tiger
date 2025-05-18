@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -9,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -93,15 +91,9 @@ impl DbKind for PowerBlocIdentity {
 
         let mut sc = ScopeContext::new(Scopes::Country, key);
 
-        vd.field_validated_block("visible", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("possible", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("can_join", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("visible", Tooltipped::No, &mut sc);
+        vd.field_trigger("possible", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("can_join", Tooltipped::Yes, &mut sc);
 
         vd.field_item("icon", Item::File);
         vd.field_item("background", Item::File);
@@ -122,16 +114,11 @@ impl DbKind for PowerBlocIdentity {
         }
 
         vd.field_script_value_rooted("mandate_progress", Scopes::PowerBloc);
-
         vd.field_script_value_builder("cohesion", sc_cohesion);
 
         // undocumented
-        vd.field_validated_block("can_leave", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_created", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("can_leave", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_created", Tooltipped::Yes, &mut sc);
         vd.field_script_value_no_breakdown_rooted("ai_weight", Scopes::Country);
     }
 }
@@ -156,10 +143,10 @@ impl DbKind for PowerBlocName {
         data.verify_exists(Item::Localization, key);
 
         vd.req_field("trigger");
-        vd.field_validated_block("trigger", |block, data| {
+        vd.field_trigger_builder("trigger", Tooltipped::No, |key| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("selected_identity", Scopes::PowerBlocIdentity, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
+            sc
         });
     }
 }

@@ -10,7 +10,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_color;
 use crate::validator::Validator;
 
@@ -81,9 +80,7 @@ impl DbKind for Government {
         vd.field_bool("affected_by_development");
         vd.field_integer("fallback");
 
-        vd.field_validated_block("can_get_government", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("can_get_government", Tooltipped::No, &mut sc);
 
         vd.field_item("primary_holding", Item::HoldingType);
         vd.field_list_items("valid_holdings", Item::HoldingType);

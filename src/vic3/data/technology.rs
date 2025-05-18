@@ -1,6 +1,5 @@
 use crate::block::Block;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -45,9 +44,7 @@ impl DbKind for Technology {
 
         vd.field_list_items("unlocking_technologies", Item::Technology);
 
-        vd.field_validated_block_rooted("on_researched", Scopes::Country, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
+        vd.field_effect_rooted("on_researched", Tooltipped::No, Scopes::Country);
         vd.field_script_value_rooted("ai_weight", Scopes::Country);
     }
 }

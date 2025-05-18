@@ -8,7 +8,6 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
@@ -59,9 +58,7 @@ impl DbKind for Alert {
         }
 
         vd.field_item("texture", Item::File);
-        vd.field_validated_block("valid", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("valid", Tooltipped::No, &mut sc);
         // TODO figure out the valid panel and popup values
         vd.exclusive_fields(&["open_panel", "open_popup"]);
         vd.field_value("open_panel");

@@ -481,12 +481,8 @@ pub fn validate_inside_iterator(
     #[cfg(feature = "ck3")]
     if Game::is_ck3() {
         if name == "in_de_facto_hierarchy" || name == "in_de_jure_hierarchy" {
-            vd.field_validated_block("filter", |block, data| {
-                validate_trigger(block, data, sc, tooltipped);
-            });
-            vd.field_validated_block("continue", |block, data| {
-                validate_trigger(block, data, sc, tooltipped);
-            });
+            vd.field_trigger("filter", tooltipped, sc);
+            vd.field_trigger("continue", tooltipped, sc);
         } else {
             let only_for = || {
                 format!("`{listtype}_in_de_facto_hierarchy` or `{listtype}_in_de_jure_hierarchy`")

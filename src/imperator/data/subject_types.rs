@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -9,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -98,18 +96,10 @@ impl DbKind for SubjectType {
             validate_modifs(block, data, ModifKinds::Country, vd);
         });
 
-        vd.field_validated_block("allow", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_enable", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_disable", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("on_monthly", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("allow", Tooltipped::No, &mut sc);
+        vd.field_effect("on_enable", Tooltipped::No, &mut sc);
+        vd.field_effect("on_disable", Tooltipped::No, &mut sc);
+        vd.field_effect("on_monthly", Tooltipped::No, &mut sc);
 
         // TODO - diplo_chance block needs to be ignored here
         vd.no_warn_remaining();

@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -9,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::{Validator, ValueValidator};
 
 #[derive(Clone, Debug)]
@@ -146,29 +144,19 @@ impl DbKind for DiplomaticAction {
 
         vd.field_list_items("unlocking_technologies", Item::Technology); // undocumented
 
-        vd.field_validated_block("selectable", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("potential", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("possible", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("selectable", Tooltipped::No, &mut sc);
+        vd.field_trigger("potential", Tooltipped::No, &mut sc);
+        vd.field_trigger("possible", Tooltipped::Yes, &mut sc);
         for field in &["first_state_trigger", "second_state_trigger"] {
-            vd.field_validated_key_block(field, |key, block, data| {
+            vd.field_trigger_builder(field, Tooltipped::Yes, |key| {
                 let mut sc = ScopeContext::new(Scopes::State, key);
                 sc.define_name("country", Scopes::Country, key);
                 sc.define_name("target_country", Scopes::Country, key);
-                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
+                sc
             });
         }
-        vd.field_validated_block("accept_effect", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("decline_effect", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_effect("accept_effect", Tooltipped::Yes, &mut sc);
+        vd.field_effect("decline_effect", Tooltipped::Yes, &mut sc);
         vd.advice_field("effect", "the docs say effect but the field is called accept_effect");
         vd.field_validated_block_sc("pact", &mut sc, validate_pact);
         vd.field_validated_block_sc("ai", &mut sc, validate_ai);
@@ -257,19 +245,12 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     );
     vd.replaced_field("should_auto_break", "trigger in requirement_to_maintain");
     vd.replaced_field("should_invalidate", "trigger in requirement_to_maintain");
-    for field in &["actor_can_break", "target_can_break"] {
-        vd.field_validated_block(field, |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
-    }
+    vd.field_trigger("actor_can_break", Tooltipped::No, sc);
+    vd.field_trigger("target_can_break", Tooltipped::No, sc);
     vd.multi_field_validated_block("requirement_to_maintain", |block, data| {
         let mut vd = Validator::new(block, data);
-        vd.field_validated_block("trigger", |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
-        vd.field_validated_block("show_about_to_break_warning", |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
+        vd.field_trigger("trigger", Tooltipped::No, sc);
+        vd.field_trigger("show_about_to_break_warning", Tooltipped::No, sc);
     });
 
     vd.replaced_field("break_effect", "manual_break_effect and auto_break_effect");
@@ -280,9 +261,7 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         "manual_break_effect",
         "auto_break_effect",
     ] {
-        vd.field_validated_block(field, |block, data| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
+        vd.field_effect(field, Tooltipped::No, sc);
     }
 
     vd.field_validated_block("subject_relation", |block, data| {
@@ -318,12 +297,8 @@ fn validate_ai(block: &Block, data: &Everything, sc: &mut ScopeContext) {
 
     vd.field_script_value_rooted("evaluation_chance", Scopes::Country);
 
-    for field in &["will_select_as_first_state", "will_select_as_second_state"] {
-        vd.field_validated_key_block(field, |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::State, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-    }
+    vd.field_trigger_rooted("will_select_as_first_state", Tooltipped::No, Scopes::State);
+    vd.field_trigger_rooted("will_select_as_second_state", Tooltipped::No, Scopes::State);
 
     vd.field_bool("check_acceptance_for_will_break");
     vd.field_bool("check_acceptance_for_will_propose");
@@ -336,9 +311,7 @@ fn validate_ai(block: &Block, data: &Everything, sc: &mut ScopeContext) {
         "will_break",
         "will_propose_even_if_not_accepted",
     ] {
-        vd.field_validated_block(field, |block, data| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
+        vd.field_trigger(field, Tooltipped::No, sc);
     }
 
     for field in &[

@@ -10,7 +10,6 @@ use crate::scopes::Scopes;
 use crate::script_value::validate_non_dynamic_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 use crate::vic3::data::production_methods::ProductionMethodGroup;
 
@@ -136,21 +135,11 @@ impl DbKind for BuildingType {
         vd.field_bool("company_headquarter");
 
         vd.field_list_items("unlocking_technologies", Item::Technology);
-        vd.field_validated_block("potential", |block, data| {
-            validate_trigger(block, data, &mut state_sc, Tooltipped::No);
-        });
-        vd.field_validated_block("possible", |block, data| {
-            validate_trigger(block, data, &mut state_sc, Tooltipped::No);
-        });
-        vd.field_validated_block("can_build", |block, data| {
-            validate_trigger(block, data, &mut state_sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("can_build_government", |block, data| {
-            validate_trigger(block, data, &mut state_sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("can_build_private", |block, data| {
-            validate_trigger(block, data, &mut state_sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("potential", Tooltipped::No, &mut state_sc);
+        vd.field_trigger("possible", Tooltipped::No, &mut state_sc);
+        vd.field_trigger("can_build", Tooltipped::Yes, &mut state_sc);
+        vd.field_trigger("can_build_government", Tooltipped::Yes, &mut state_sc);
+        vd.field_trigger("can_build_private", Tooltipped::Yes, &mut state_sc);
 
         vd.field_integer("construction_points");
         vd.field_validated_block("construction_modifier", |block, data| {
@@ -179,9 +168,7 @@ impl DbKind for BuildingType {
         // docs say production_methods
         vd.field_list_items("production_method_groups", Item::ProductionMethodGroup);
 
-        vd.field_validated_block("should_auto_expand", |block, data| {
-            validate_trigger(block, data, &mut building_sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("should_auto_expand", Tooltipped::Yes, &mut building_sc);
 
         vd.field_choice("city_type", &["none", "city", "farm", "mine", "port", "wood"]);
         vd.field_bool("generates_residences");
@@ -291,13 +278,7 @@ impl DbKind for BuildingGroup {
         vd.field_bool("hires_unemployed_only");
         vd.field_bool("ignores_productivity_when_hiring");
 
-        vd.field_validated_block_rooted(
-            "should_auto_expand",
-            Scopes::Building,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            },
-        );
+        vd.field_trigger_rooted("should_auto_expand", Tooltipped::No, Scopes::Building);
 
         // undocumented fields
 

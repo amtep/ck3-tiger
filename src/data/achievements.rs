@@ -1,5 +1,4 @@
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::{Game, GameFlags};
@@ -9,7 +8,6 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -41,15 +39,8 @@ impl DbKind for Achievement {
             vd.field_bool("hidden");
         }
 
-        vd.field_validated_key_block("possible", |key, block, data| {
-            let mut sc = ScopeContext::new(achievement_scope(), key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-
-        vd.field_validated_key_block("happened", |key, block, data| {
-            let mut sc = ScopeContext::new(achievement_scope(), key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger_rooted("possible", Tooltipped::No, achievement_scope());
+        vd.field_trigger_rooted("happened", Tooltipped::No, achievement_scope());
     }
 }
 

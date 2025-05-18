@@ -9,7 +9,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -38,12 +37,8 @@ impl DbKind for CourtType {
 
         vd.field_bool("default");
         vd.field_item("background", Item::File);
-        vd.field_validated_block("is_shown", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("is_valid", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("is_shown", Tooltipped::No, &mut sc);
+        vd.field_trigger("is_valid", Tooltipped::Yes, &mut sc);
 
         vd.multi_field_validated_block("level_perk", |block, data| {
             let mut vd = Validator::new(block, data);

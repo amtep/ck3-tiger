@@ -1,5 +1,4 @@
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
@@ -8,7 +7,6 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 // LAST UPDATED CK3 VERSION 1.11.5
@@ -81,11 +79,7 @@ impl DbKind for AiWarStance {
             vd.field_bool("desperate");
         });
 
-        vd.field_validated_key_block("can_be_picked", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::War, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-
+        vd.field_trigger_rooted("can_be_picked", Tooltipped::No, Scopes::War);
         vd.field_script_value_no_breakdown_rooted("ai_will_do", Scopes::War);
 
         vd.multi_field_validated_block("objectives", |block, data| {

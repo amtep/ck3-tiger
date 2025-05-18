@@ -1,5 +1,4 @@
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
@@ -8,7 +7,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -46,26 +44,16 @@ impl DbKind for CompanyType {
 
         vd.field_list_items("building_types", Item::BuildingType);
 
-        vd.field_validated_key_block("potential", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_key_block("attainable", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_key_block("possible", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger_rooted("potential", Tooltipped::No, Scopes::Country);
+        vd.field_trigger_rooted("attainable", Tooltipped::Yes, Scopes::Country);
+        vd.field_trigger_rooted("possible", Tooltipped::Yes, Scopes::Country);
 
         vd.field_validated_block("prosperity_modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::all(), vd);
         });
 
-        let mut sc = ScopeContext::new(Scopes::Country, key);
-        vd.field_script_value("ai_weight", &mut sc);
+        vd.field_script_value_rooted("ai_weight", Scopes::Country);
 
         // undocumented
 

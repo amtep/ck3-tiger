@@ -8,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
@@ -40,15 +39,9 @@ impl DbKind for Ambition {
         vd.req_field("finished_when");
         vd.req_field("chance");
 
-        vd.field_validated_block("can_be_picked", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-        vd.field_validated_block("finished_when", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("abort", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("can_be_picked", Tooltipped::No, &mut sc);
+        vd.field_trigger("finished_when", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("abort", Tooltipped::No, &mut sc);
 
         vd.field_validated_block_sc("chance", &mut sc, validate_modifiers_with_base);
 

@@ -8,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -56,9 +55,7 @@ impl DbKind for CharacterTrait {
             validate_modifs(block, data, ModifKinds::all(), vd);
         });
 
-        vd.field_validated_block("possible", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("possible", Tooltipped::No, &mut sc);
         vd.field_script_value("weight", &mut sc);
 
         vd.field_list_items("replace", Item::CharacterTrait);

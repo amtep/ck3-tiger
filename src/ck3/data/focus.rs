@@ -2,7 +2,6 @@ use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::desc::validate_desc;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -10,7 +9,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -47,15 +45,9 @@ impl DbKind for Focus {
         let education = block.get_field_value("type").is_some_and(|token| token.is("education"));
         if education {
             vd.ban_field("lifestyle", || "type = lifestyle");
-            vd.field_validated_block("is_good_for", |block, data| {
-                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-            });
-            vd.field_validated_block("is_bad_for", |block, data| {
-                validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-            });
-            vd.field_validated_block("is_default", |block, data| {
-                validate_trigger(block, data, &mut sc, Tooltipped::No);
-            });
+            vd.field_trigger("is_good_for", Tooltipped::Yes, &mut sc);
+            vd.field_trigger("is_bad_for", Tooltipped::Yes, &mut sc);
+            vd.field_trigger("is_default", Tooltipped::No, &mut sc);
             vd.field_item("skill", Item::Skill);
         } else {
             vd.ban_field("is_good_for", || "type = education");
@@ -66,21 +58,11 @@ impl DbKind for Focus {
             vd.field_item("lifestyle", Item::Lifestyle);
         }
 
-        vd.field_validated_block("is_shown", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("is_valid", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("is_valid_showing_failures_only", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::FailuresOnly);
-        });
-        vd.field_validated_block("on_change_from", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block("on_birthday", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("is_shown", Tooltipped::No, &mut sc);
+        vd.field_trigger("is_valid", Tooltipped::Yes, &mut sc);
+        vd.field_trigger("is_valid_showing_failures_only", Tooltipped::FailuresOnly, &mut sc);
+        vd.field_effect("on_change_from", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_birthday", Tooltipped::No, &mut sc);
         vd.field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::Character, vd);
@@ -91,8 +73,6 @@ impl DbKind for Focus {
 
         // undocumented
 
-        vd.field_validated_block("on_change_to", |block, data| {
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect("on_change_from", Tooltipped::No, &mut sc);
     }
 }

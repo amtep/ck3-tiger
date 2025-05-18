@@ -4,7 +4,6 @@ use crate::block::{Block, BV};
 use crate::ck3::data::provinces::ProvId;
 use crate::ck3::data::titles::Titles;
 use crate::date::Date;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::{dup_error, TigerHashMap};
@@ -131,9 +130,7 @@ impl ProvinceHistory {
         // TODO: check if building is duchy capital building
         vd.field_item("duchy_capital_building", Item::Building);
 
-        vd.field_validated_block_rooted("effect", Scopes::Province, |block, data, sc| {
-            validate_effect(block, data, sc, Tooltipped::No);
-        });
+        vd.field_effect_rooted("effect", Tooltipped::No, Scopes::Province);
     }
 
     fn validate_history(_date: Date, _key: &Token, block: &Block, data: &Everything) {

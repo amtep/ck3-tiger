@@ -2,7 +2,6 @@ use crate::block::Block;
 use crate::ck3::validate::validate_cost;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -11,7 +10,6 @@ use crate::report::{err, ErrorKey};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -82,44 +80,13 @@ impl DbKind for Law {
         vd.field_item("confirmation_title", Item::Localization);
         vd.field_item("confirmation_button_text", Item::Localization);
 
-        vd.field_validated_block_rooted("can_keep", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
-        vd.field_validated_block_rooted("can_have", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
-        vd.field_validated_block_rooted("can_pass", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::Yes);
-        });
-        vd.field_validated_block_rooted(
-            "should_start_with",
-            Scopes::Character,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::Yes);
-            },
-        );
-
-        vd.field_validated_block_rooted(
-            "can_title_have",
-            Scopes::LandedTitle,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::Yes);
-            },
-        );
-        vd.field_validated_block_rooted(
-            "should_show_for_title",
-            Scopes::LandedTitle,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            },
-        );
-        vd.field_validated_block_rooted(
-            "can_remove_from_title",
-            Scopes::LandedTitle,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::Yes);
-            },
-        );
+        vd.field_trigger_rooted("can_keep", Tooltipped::No, Scopes::Character);
+        vd.field_trigger_rooted("can_have", Tooltipped::No, Scopes::Character);
+        vd.field_trigger_rooted("can_pass", Tooltipped::Yes, Scopes::Character);
+        vd.field_trigger_rooted("should_start_with", Tooltipped::Yes, Scopes::Character);
+        vd.field_trigger_rooted("can_title_have", Tooltipped::Yes, Scopes::LandedTitle);
+        vd.field_trigger_rooted("should_show_for_title", Tooltipped::No, Scopes::LandedTitle);
+        vd.field_trigger_rooted("can_remove_from_title", Tooltipped::Yes, Scopes::LandedTitle);
 
         vd.field_validated_block_rooted("pass_cost", Scopes::Character, validate_cost);
         vd.field_validated_block_rooted("revoke_cost", Scopes::Character, validate_cost);
@@ -134,29 +101,21 @@ impl DbKind for Law {
             let mut vd = Validator::new(block, data);
             vd.req_field("trigger");
             vd.req_field("flag");
-            vd.field_validated_block_rooted("trigger", Scopes::Character, |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            });
+            vd.field_trigger_rooted("trigger", Tooltipped::No, Scopes::Character);
             vd.field_value("flag");
         });
 
         let title_law = block.has_key("can_title_have");
+        let sc_builder = |key: &Token| {
+            let mut sc = ScopeContext::new(Scopes::Character, key);
+            if title_law {
+                sc.define_name("title", Scopes::LandedTitle, key);
+            }
+            sc
+        };
 
-        vd.field_validated_key_block("on_pass", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            if title_law {
-                sc.define_name("title", Scopes::LandedTitle, key);
-            }
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
-        vd.field_validated_key_block("on_revoke", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Character, key);
-            if title_law {
-                sc.define_name("title", Scopes::LandedTitle, key);
-            }
-            sc.define_name("title", Scopes::LandedTitle, key);
-            validate_effect(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_effect_builder("on_pass", Tooltipped::Yes, sc_builder);
+        vd.field_effect_builder("on_revoke", Tooltipped::Yes, sc_builder);
 
         vd.field_validated_block("succession", |block, data| {
             let mut vd = Validator::new(block, data);
@@ -229,16 +188,8 @@ impl DbKind for Law {
 
         vd.field_bool("shown_in_encyclopedia");
         vd.field_integer("title_allegiance_opinion");
-        vd.field_validated_block_rooted("potential", Scopes::Character, |block, data, sc| {
-            validate_trigger(block, data, sc, Tooltipped::No);
-        });
-        vd.field_validated_block_rooted(
-            "requires_approve",
-            Scopes::Character,
-            |block, data, sc| {
-                validate_trigger(block, data, sc, Tooltipped::No);
-            },
-        );
+        vd.field_trigger_rooted("potential", Tooltipped::No, Scopes::Character);
+        vd.field_trigger_rooted("requires_approve", Tooltipped::No, Scopes::Character);
         // TODO: should be Item::WidgetName, but the name used in vanilla (widget_clan_law) is not
         // recognized by the gui parser because it's hidden in a type declaration.
         vd.field_value("widget_name");

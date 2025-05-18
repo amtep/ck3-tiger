@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
@@ -33,9 +32,7 @@ impl DbKind for PoolSelector {
             sc.define_name("province", Scopes::Province, key);
         }
 
-        vd.field_validated_block("valid_character", |block, data| {
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("valid_character", Tooltipped::No, &mut sc);
         vd.field_validated_block_sc("character_score", &mut sc, validate_modifiers_with_base);
         vd.field_validated_block("config", |block, data| {
             let mut vd = Validator::new(block, data);

@@ -115,9 +115,7 @@ impl List {
             if let Some((_, outscope)) = scope_iterator(token, data, &mut sc) {
                 let mut sc = ScopeContext::new_unrooted(outscope, token);
                 sc.set_strict_scopes(false);
-                vd.field_validated_block("conditions", |block, data| {
-                    validate_trigger(block, data, &mut sc, Tooltipped::No);
-                });
+                vd.field_trigger("conditions", Tooltipped::No, &mut sc);
             } else {
                 err(ErrorKey::MissingItem).msg("no such base list").loc(token).push();
             }

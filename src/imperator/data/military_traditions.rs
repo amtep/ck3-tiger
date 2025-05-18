@@ -1,7 +1,6 @@
 use crate::block::Block;
 use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader};
@@ -9,7 +8,6 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_color;
 use crate::validator::Validator;
 
@@ -49,9 +47,7 @@ impl DbKind for MilitaryTraditionTree {
         vd.field_validated_block("color", validate_color);
         vd.field_value("image");
 
-        vd.field_validated_block("allow", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger("allow", Tooltipped::No, &mut sc);
 
         // The individual traditions. They are validated in the MilitaryTradition class.
         vd.unknown_block_fields(|_, _| ());
@@ -77,17 +73,9 @@ impl DbKind for MilitaryTradition {
 
         vd.field_list_items("requires", Item::MilitaryTradition);
 
-        vd.field_validated_block("potential", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::No);
-        });
-
-        vd.field_validated_block("allow", |b, data| {
-            validate_trigger(b, data, &mut sc, Tooltipped::Yes);
-        });
-
-        vd.field_validated_block("on_activate", |b, data| {
-            validate_effect(b, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger("potential", Tooltipped::No, &mut sc);
+        vd.field_trigger("allow", Tooltipped::Yes, &mut sc);
+        vd.field_effect("on_activate", Tooltipped::Yes, &mut sc);
 
         vd.field_validated_block("modifier", |block, data| {
             let vd = Validator::new(block, data);

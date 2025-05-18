@@ -1,5 +1,4 @@
 use crate::block::Block;
-use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
@@ -7,7 +6,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validator::Validator;
 use crate::vic3::tables::misc::STRATA;
 
@@ -33,10 +31,7 @@ impl DbKind for SocialHierarchy {
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         vd.field_bool("is_default");
-        vd.field_validated_key_block("pop_criteria", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Pop, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::Yes);
-        });
+        vd.field_trigger_rooted("pop_criteria", Tooltipped::Yes, Scopes::Pop);
     }
 }
 
@@ -64,9 +59,6 @@ impl DbKind for SocialClass {
         vd.field_item("social_hierarchy", Item::SocialHierarchy);
         vd.field_choice("strata", STRATA);
         vd.field_list_items("allowed_professions", Item::PopType);
-        vd.field_validated_key_block("pop_criteria", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Pop, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("pop_criteria", Tooltipped::No, Scopes::Pop);
     }
 }

@@ -2,9 +2,7 @@ use std::path::PathBuf;
 
 use crate::block::Block;
 use crate::ck3::data::titles::Tier;
-use crate::context::ScopeContext;
 use crate::date::Date;
-use crate::effect::validate_effect;
 use crate::everything::Everything;
 use crate::fileset::{FileEntry, FileHandler};
 use crate::helpers::TigerHashMap;
@@ -182,10 +180,7 @@ impl TitleHistory {
 
         vd.field_item("insert_title_history", Item::TitleHistory);
 
-        vd.field_validated_key_block("effect", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::LandedTitle, key);
-            validate_effect(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_effect_rooted("effect", Tooltipped::No, Scopes::LandedTitle);
     }
 
     pub fn validate(&self, data: &Everything) {

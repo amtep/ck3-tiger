@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
 use crate::validate::validate_possibly_named_color;
 use crate::validator::Validator;
 
@@ -30,10 +29,7 @@ impl DbKind for DynamicCountryMapColor {
 
         vd.field_validated("color", validate_possibly_named_color);
 
-        vd.field_validated_key_block("possible", |key, block, data| {
-            let mut sc = ScopeContext::new(Scopes::Country, key);
-            validate_trigger(block, data, &mut sc, Tooltipped::No);
-        });
+        vd.field_trigger_rooted("possible", Tooltipped::No, Scopes::Country);
     }
 }
 
@@ -73,10 +69,10 @@ fn validate_dynamic_country_name(block: &Block, data: &Everything) {
     vd.field_bool("use_overlord_prefix");
     vd.field_integer("priority");
 
-    vd.field_validated_key_block("trigger", |key, block, data| {
+    vd.field_trigger_builder("trigger", Tooltipped::No, |key| {
         let mut sc = ScopeContext::new(Scopes::Country, key);
         sc.define_name("actor", Scopes::Country, key);
         sc.define_name("overlord", Scopes::Country, key); // TODO: verify
-        validate_trigger(block, data, &mut sc, Tooltipped::No);
+        sc
     });
 }
