@@ -53,6 +53,8 @@ pub enum GuiValidation {
     /// A block with two numeric values, possibly followed by `%` marks, or a
     /// [`Datatype::CVector2f`] expression.
     TwoNumberOrPercent,
+    /// A numeric value or a numberlike datatype (one of the floats, ints, or `CFixedPoint`)
+    Numeric,
     /// A block with 2 numbers, or a [`Datatype::CVector2f`] expression.
     CVector2f,
     /// A block with 2 integers, or a [`Datatype::CVector2i`] expression.
@@ -672,8 +674,8 @@ impl GuiValidation {
             portrait_scale => CVector2f,
             portrait_texture => Item(Item::File),
             position => TwoNumberOrPercent,
-            position_x => Integer,
-            position_y => Integer,
+            position_x => Numeric,
+            position_y => Numeric,
             preferscrollwidgetsize => Boolean,
             progress_change_to_duration_curve => CVector4f,
             progresstexture => Item(Item::File),

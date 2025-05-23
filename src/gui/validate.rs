@@ -168,6 +168,16 @@ pub fn validate_property(
                 }
             }
         },
+        GuiValidation::Numeric => {
+            if let Some(value) = bv.expect_value() {
+                if value.starts_with("[") {
+                    // TODO: need a way to express which datatypes it can be
+                    validate_datatype_field(Datatype::Unknown, key, bv, data, false);
+                } else {
+                    value.expect_number();
+                }
+            }
+        }
         GuiValidation::CVector2f => match bv {
             BV::Value(_) => {
                 validate_datatype_field(Datatype::CVector2f, key, bv, data, false);
