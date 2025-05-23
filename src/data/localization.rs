@@ -37,7 +37,7 @@ use crate::macros::{MacroMapIndex, MACRO_MAP};
 use crate::parse::localization::{parse_loca, ValueParser};
 use crate::parse::ParserMemory;
 use crate::report::{
-    err, report, warn, warn_abbreviated, warn_header, will_maybe_log, ErrorKey, Severity,
+    err, report, tips, warn, warn_abbreviated, warn_header, will_maybe_log, ErrorKey, Severity,
 };
 use crate::scopes::Scopes;
 use crate::token::Token;
@@ -404,6 +404,28 @@ impl Localization {
             if let Some(entry) = self.locas[lang].get(key) {
                 entry.used.store(true, Relaxed);
             }
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn suggest(&self, key: &str, token: &Token) {
+        self.mark_used(key);
+        let mut found = false;
+        let mut not_found = false;
+        for lang in self.iter_lang_idx() {
+            if self.locas[lang].contains_key(key) {
+                found = true;
+            } else {
+                not_found = true;
+            }
+        }
+        if found && not_found {
+            // The loca is defined for some languages but not others.
+            // This inconsistency is worth warning about.
+            self.verify_exists_implied(key, token, Severity::Warning);
+        } else if not_found {
+            let msg = format!("you can define localization `{key}`");
+            tips(ErrorKey::SuggestLocalization).msg(msg).loc(token).push();
         }
     }
 

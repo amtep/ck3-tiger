@@ -26,6 +26,7 @@ pub enum ErrorKey {
     NameConflict,
     EventNamespace,
     MissingLocalization,
+    SuggestLocalization,
     MissingFile,
     MissingSound,
     MissingItem,

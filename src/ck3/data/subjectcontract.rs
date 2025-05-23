@@ -79,8 +79,7 @@ impl DbKind for SubjectContract {
                     data.verify_exists(Item::Localization, key);
                     let loca = format!("{key}_short");
                     data.verify_exists_implied(Item::Localization, &loca, key);
-                    let loca = format!("{key}_desc");
-                    data.mark_used(Item::Localization, &loca);
+                    data.localization.suggest(&format!("{key}_desc"), key);
                 }
 
                 let mut vd = Validator::new(block, data);

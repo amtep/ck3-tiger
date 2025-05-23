@@ -212,8 +212,7 @@ impl Title {
         data.mark_used(Item::Localization, &loca);
         let definite_form = self.block.field_value_is("definite_form", "yes");
         if definite_form {
-            let loca = format!("{}_article", &self.key);
-            data.mark_used(Item::Localization, &loca);
+            data.localization.suggest(&format!("{}_article", &self.key), &self.key);
         }
 
         let mut vd = Validator::new(&self.block, data);
@@ -255,7 +254,7 @@ impl Title {
         vd.field_script_value_no_breakdown("ai_primary_priority", &mut sc);
 
         vd.field_trigger("can_create", Tooltipped::Yes, &mut sc);
-        vd.field_trigger("can_create_on_parition", Tooltipped::No, &mut sc);
+        vd.field_trigger("can_create_on_partition", Tooltipped::No, &mut sc);
         vd.field_trigger("can_destroy", Tooltipped::Yes, &mut sc);
 
         vd.field_validated_block("cultural_names", |block, data| {

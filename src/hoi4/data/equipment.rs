@@ -119,6 +119,7 @@ impl DbKind for Equipment {
         vd.field_integer("priority");
         vd.field_item("archetype", Item::Equipment);
         vd.field_item("parent", Item::Equipment);
+        vd.field_item("family", Item::Equipment);
         vd.field_bool("is_frame");
         vd.field_choice("type", TYPES);
         vd.field_value("type_override"); // TODO: where are these defined?
@@ -150,6 +151,7 @@ impl DbKind for Equipment {
         vd.field_trigger_rooted("can_be_produced", Tooltipped::Yes, Scopes::Country);
         vd.field_trigger_rooted("can_be_lend_leased", Tooltipped::Yes, Scopes::Country);
 
+        vd.field_bool("only_duplicate_archetype");
         // TODO: validate these when equipment modules are in
         vd.field("module_slots");
         vd.field_block("module_count_limit");

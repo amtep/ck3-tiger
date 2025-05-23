@@ -76,11 +76,11 @@ impl DbKind for Idea {
         if let Some(name) = vd.field_value("name") {
             data.verify_exists(Item::Localization, name);
             let loca = format!("{name}_desc");
-            data.verify_exists_implied(Item::Localization, &loca, name);
+            data.localization.suggest(&loca, name);
         } else if !data.item_exists(Item::AdvisorSlot, self.category.as_str()) {
             data.verify_exists(Item::Localization, key);
             let loca = format!("{key}_desc");
-            data.verify_exists_implied(Item::Localization, &loca, key);
+            data.localization.suggest(&loca, key);
         }
 
         if let Some(token) = vd.field_value("picture") {

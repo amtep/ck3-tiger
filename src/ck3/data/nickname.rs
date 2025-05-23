@@ -23,8 +23,7 @@ impl DbKind for Nickname {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
         data.verify_exists(Item::Localization, key);
-        let loca = format!("{key}_desc");
-        data.mark_used(Item::Localization, &loca);
+        data.localization.suggest(&format!("{key}_desc"), key);
         vd.field_bool("is_prefix");
         vd.field_bool("is_bad");
     }

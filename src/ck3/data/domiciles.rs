@@ -150,9 +150,8 @@ impl DbKind for DomicileBuilding {
 
         let mut vd = Validator::new(block, data);
 
-        // This desc is optional.
         let loca = format!("{key}_domicile_building_desc");
-        data.mark_used(Item::Localization, &loca);
+        data.localization.suggest(&loca, key);
 
         vd.field_trigger_rooted("can_construct", Tooltipped::Yes, Scopes::Character);
 

@@ -57,8 +57,7 @@ impl DbKind for JournalEntry {
         vd.field_effect("on_invalid", Tooltipped::Yes, &mut sc);
 
         if !vd.field_validated_sc("status_desc", &mut sc, validate_desc) {
-            let loca = format!("{key}_status");
-            data.mark_used(Item::Localization, &loca);
+            data.localization.suggest(&format!("{key}_status"), key);
         }
 
         vd.field_integer("timeout");
@@ -85,8 +84,7 @@ impl DbKind for JournalEntry {
 
         if block.field_value_is("progressbar", "yes") {
             if !vd.field_validated_sc("progress_desc", &mut sc, validate_desc) {
-                let loca = format!("{key}_progress");
-                data.mark_used(Item::Localization, &loca);
+                data.localization.suggest(&format!("{key}_progress"), key);
             }
         } else {
             vd.ban_field("progress_desc", || "progressbar = yes");
