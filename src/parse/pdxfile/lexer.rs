@@ -152,6 +152,8 @@ pub struct Lexer<'input> {
     /// Track the brace depth and starting line of each open block-ignore.
     /// Kept sorted by ascending brace depth.
     active_block_ignores: Vec<(usize, u32, IgnoreFilter)>,
+    /// Track the nested begin/end ignore ranges.
+    active_range_ignores: Vec<(u32, IgnoreFilter)>,
 }
 
 impl<'input> Lexer<'input> {
@@ -168,6 +170,7 @@ impl<'input> Lexer<'input> {
             pending_line_ignores: Vec::new(),
             pending_block_ignores: Vec::new(),
             active_block_ignores: Vec::new(),
+            active_range_ignores: Vec::new(),
         }
     }
 
@@ -515,11 +518,20 @@ impl Iterator for Lexer<'_> {
                         match spec.size {
                             IgnoreSize::Line => self.pending_line_ignores.push(spec.filter),
                             IgnoreSize::Block => self.pending_block_ignores.push(spec.filter),
-                            IgnoreSize::File => register_ignore_filter(
-                                self.loc.pathname().to_path_buf(),
-                                ..,
-                                spec.filter,
-                            ),
+                            IgnoreSize::File => {
+                                let path = self.loc.pathname().to_path_buf();
+                                register_ignore_filter(path, .., spec.filter);
+                            }
+                            IgnoreSize::Begin => {
+                                self.active_range_ignores.push((self.loc.line + 1, spec.filter));
+                            }
+                            IgnoreSize::End => {
+                                if let Some((start_line, filter)) = self.active_range_ignores.pop()
+                                {
+                                    let path = self.loc.pathname().to_path_buf();
+                                    register_ignore_filter(path, start_line..self.loc.line, filter);
+                                }
+                            }
                         }
                     }
                 }

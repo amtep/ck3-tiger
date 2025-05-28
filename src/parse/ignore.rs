@@ -14,6 +14,8 @@ pub enum IgnoreSize {
     Line,
     Block,
     File,
+    Begin,
+    End,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -111,6 +113,39 @@ mod tests {
         assert!(result.is_some());
         if let Some(spec) = result {
             assert_eq!(spec.size, IgnoreSize::Block);
+            assert!(spec.filter.key.is_none());
+            assert!(spec.filter.text.is_none());
+        }
+    }
+
+    #[test]
+    fn test_file() {
+        let result = parse_comment("tiger-ignore(file)");
+        assert!(result.is_some());
+        if let Some(spec) = result {
+            assert_eq!(spec.size, IgnoreSize::File);
+            assert!(spec.filter.key.is_none());
+            assert!(spec.filter.text.is_none());
+        }
+    }
+
+    #[test]
+    fn test_begin() {
+        let result = parse_comment("tiger-ignore(begin)");
+        assert!(result.is_some());
+        if let Some(spec) = result {
+            assert_eq!(spec.size, IgnoreSize::Begin);
+            assert!(spec.filter.key.is_none());
+            assert!(spec.filter.text.is_none());
+        }
+    }
+
+    #[test]
+    fn test_end() {
+        let result = parse_comment("tiger-ignore(end)");
+        assert!(result.is_some());
+        if let Some(spec) = result {
+            assert_eq!(spec.size, IgnoreSize::End);
             assert!(spec.filter.key.is_none());
             assert!(spec.filter.text.is_none());
         }

@@ -30,6 +30,8 @@ Spec: IgnoreSpec = {
 SpecTerm: IgnoreSpec = {
     "block" => IgnoreSpec { size: IgnoreSize::Block, ..IgnoreSpec::default() },
     "file" => IgnoreSpec { size: IgnoreSize::File, ..IgnoreSpec::default() },
+    "begin" => IgnoreSpec { size: IgnoreSize::Begin, ..IgnoreSpec::default() },
+    "end" => IgnoreSpec { size: IgnoreSize::End, ..IgnoreSpec::default() },
     "key" "=" <key:Str> =>? {
         Ok(IgnoreSpec::default().set_key(
             ErrorKey::from_str(key).map_err(|_| ParseError::User {
@@ -54,6 +56,8 @@ Trailing: () = {
     UNQUOTED Trailing,
     "block" Trailing,
     "file" Trailing,
+    "begin" Trailing,
+    "end" Trailing,
     "key" Trailing,
     "text" Trailing,
     "=" Trailing,

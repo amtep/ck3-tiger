@@ -18,8 +18,13 @@ This directive applies to all the lines of the block that starts on the next lin
 It also covers the entire start and end lines of that block. 
 
 Use the comment
-```#tiger_ignore(file)```
+```#tiger-ignore(file)```
 to tell tiger not to generate any reports about the file containing this comment.
+
+Use the comment pairs ```#tiger-ignore(begin)``` and ```#tiger-ignore(end)```
+to tell tiger not to generate any reports about the lines in between.
+
+Begin and end directives can be nested, with each end directive closing the most recent still active begin directive.
 
 ### More specific suppression
 
@@ -42,6 +47,8 @@ If you want to specify multiple things between the parentheses, separate them by
 If you specify both key and text, reports that match both of them are suppressed.
 
 You can only specify one key and one text value. If you want to suppress multiple, do it with multiple `tiger-ignore` directives.
+
+You can add key and text to begin directives but not to end directives.
 
 ## File types
 

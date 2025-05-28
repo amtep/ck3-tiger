@@ -33,6 +33,7 @@ struct LocaParser {
     loca_end: usize,
     value: Vec<LocaValue>,
     pending_line_ignores: Vec<IgnoreFilter>,
+    active_range_ignores: Vec<(u32, IgnoreFilter)>,
 }
 
 impl LocaParser {
@@ -64,6 +65,7 @@ impl LocaParser {
             value: Vec::new(),
             loca_end: 0,
             pending_line_ignores: Vec::new(),
+            active_range_ignores: Vec::new(),
         }
     }
 
@@ -266,6 +268,15 @@ impl LocaParser {
                             ..,
                             spec.filter,
                         ),
+                        IgnoreSize::Begin => {
+                            self.active_range_ignores.push((self.loc.line + 1, spec.filter));
+                        }
+                        IgnoreSize::End => {
+                            if let Some((start_line, filter)) = self.active_range_ignores.pop() {
+                                let path = self.loc.pathname().to_path_buf();
+                                register_ignore_filter(path, start_line..self.loc.line, filter);
+                            }
+                        }
                     }
                 }
                 continue;
