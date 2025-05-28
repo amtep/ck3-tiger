@@ -7,6 +7,8 @@ use crate::datatype::{Code, CodeArg, CodeChain};
 use crate::fileset::FileEntry;
 use crate::game::Game;
 use crate::parse::cob::Cob;
+use crate::parse::ignore::{parse_comment, IgnoreFilter, IgnoreSize};
+use crate::report::register_ignore_filter;
 use crate::report::{untidy, warn, ErrorKey};
 use crate::token::{leak, Loc, Token};
 
@@ -30,6 +32,7 @@ struct LocaParser {
     expecting_language: bool,
     loca_end: usize,
     value: Vec<LocaValue>,
+    pending_line_ignores: Vec<IgnoreFilter>,
 }
 
 impl LocaParser {
@@ -60,6 +63,7 @@ impl LocaParser {
             expecting_language: true,
             value: Vec::new(),
             loca_end: 0,
+            pending_line_ignores: Vec::new(),
         }
     }
 
@@ -234,12 +238,36 @@ impl LocaParser {
         Some(MacroValue::Keyword(Token::from_static_str(s, loc)))
     }
 
+    fn get_rest_of_line(&mut self) -> &str {
+        let start_offset = self.offset;
+        while let Some(&c) = self.chars.peek() {
+            if c == '\n' {
+                break;
+            }
+            self.next_char();
+        }
+        let end_offset = self.offset;
+        self.next_char(); // Eat the newline
+        &self.content[start_offset..end_offset]
+    }
+
     fn skip_until_key(&mut self) {
         loop {
             // Skip comments and blank lines
             self.skip_whitespace();
             if self.chars.peek() == Some(&'#') {
-                self.skip_line();
+                self.next_char();
+                if let Some(spec) = parse_comment(self.get_rest_of_line()) {
+                    match spec.size {
+                        IgnoreSize::Line => self.pending_line_ignores.push(spec.filter),
+                        IgnoreSize::Block => (),
+                        IgnoreSize::File => register_ignore_filter(
+                            self.loc.pathname().to_path_buf(),
+                            ..,
+                            spec.filter,
+                        ),
+                    }
+                }
                 continue;
             }
 
@@ -260,6 +288,11 @@ impl LocaParser {
         // return a LocaEntry for the current line, though it might be an Error entry.
         self.skip_until_key();
         self.chars.peek()?;
+        for filter in self.pending_line_ignores.drain(..) {
+            let path = self.loc.pathname().to_path_buf();
+            let line = self.loc.line;
+            register_ignore_filter(path, line..=line, filter);
+        }
 
         let key = self.get_key();
         self.skip_linear_whitespace();

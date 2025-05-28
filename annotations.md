@@ -45,6 +45,6 @@ You can only specify one key and one text value. If you want to suppress multipl
 
 ## File types
 
-The directives above will work in script files and gui files.
+The directives above will work in script files, gui files, and localization files.
 
-TODO: localization files
+Of course, block directives have no meaning in localization files.
