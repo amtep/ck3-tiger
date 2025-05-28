@@ -140,6 +140,13 @@ fn test_mod2() {
     );
     report.expect("interaction missing icon test");
 
+    let report = take_report(
+        &mut reports,
+        interactions,
+        "you can define localization `test_interaction_desc`",
+    );
+    report.expect("desc tip missing");
+
     let report = take_report(&mut reports, interactions, "required field `category` missing");
     report.expect("interaction missing category test");
 

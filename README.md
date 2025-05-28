@@ -137,6 +137,14 @@ Then when you run tiger again, you can tell it to exclude reports from the basel
 <pre>ck3-tiger --suppress baseline.json <i>path/to/your/mod</i></pre>
 It works with `vic3-tiger` and `imperator-tiger` too.
 
+## Suppressing some reports
+
+Sometimes tiger is mistaken, or you just don't want to deal with certain warnings.
+You can remove those reports from the output in either of two ways:
+
+* The filter config in the `.conf` file: a [guide](filter.md).
+* Leaving special comments in your mod: a [guide](annotations.md).
+
 ## Command-line options
 
 * `--game` *PATH* Path to the game main directory

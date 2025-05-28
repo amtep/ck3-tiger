@@ -3,6 +3,7 @@
 pub mod cob;
 #[cfg(any(feature = "ck3", feature = "imperator", feature = "hoi4"))]
 pub mod csv;
+pub mod ignore;
 #[cfg(feature = "vic3")]
 pub mod json;
 pub mod localization;

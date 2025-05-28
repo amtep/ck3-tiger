@@ -5,8 +5,9 @@ use std::str::CharIndices;
 use crate::block::Comparator;
 use crate::block::Eq::Single;
 use crate::game::Game;
+use crate::parse::ignore::{parse_comment, IgnoreFilter, IgnoreSize};
 use crate::parse::pdxfile::{CharExt, Cob};
-use crate::report::{err, untidy, warn, ErrorKey};
+use crate::report::{err, register_ignore_filter, untidy, warn, ErrorKey};
 use crate::token::{Loc, Token};
 
 /// ^Z is by convention an end-of-text marker, and the game engine treats it as such.
@@ -144,6 +145,13 @@ pub struct Lexer<'input> {
     /// Is the lexer inside a `@[` calculation?
     /// This restricts the chars allowed in identifiers.
     in_calc: bool,
+    /// Line-ignores targeting the next non-blank non-comment line.
+    pending_line_ignores: Vec<IgnoreFilter>,
+    /// Block-ignores targeting the next open brace.
+    pending_block_ignores: Vec<IgnoreFilter>,
+    /// Track the brace depth and starting line of each open block-ignore.
+    /// Kept sorted by ascending brace depth.
+    active_block_ignores: Vec<(usize, u32, IgnoreFilter)>,
 }
 
 impl<'input> Lexer<'input> {
@@ -157,6 +165,9 @@ impl<'input> Lexer<'input> {
             iter: inputs[0].as_str().char_indices().peekable(),
             brace_depth: 0,
             in_calc: false,
+            pending_line_ignores: Vec::new(),
+            pending_block_ignores: Vec::new(),
+            active_block_ignores: Vec::new(),
         }
     }
 
@@ -216,6 +227,35 @@ impl<'input> Lexer<'input> {
         }
         true
     }
+
+    /// Apply the pending line-ignores to the current line.
+    fn apply_line_ignores(&mut self) {
+        let line = self.loc.line;
+        let path = self.loc.pathname();
+        for filter in self.pending_line_ignores.drain(..) {
+            register_ignore_filter(path.to_path_buf(), line..=line, filter);
+        }
+    }
+
+    /// Apply the pending block-ignores to the current open brace.
+    fn apply_block_ignores(&mut self) {
+        for filter in self.pending_block_ignores.drain(..) {
+            self.active_block_ignores.push((self.brace_depth, self.loc.line, filter));
+        }
+    }
+
+    /// Check which open block-ignores can now be closed and registered.
+    fn close_block_ignores(&mut self) {
+        let path = self.loc.pathname();
+        while let Some((depth, line, filter)) = self.active_block_ignores.last() {
+            if self.brace_depth == *depth {
+                register_ignore_filter(path.to_path_buf(), *line..=self.loc.line, filter.clone());
+                self.active_block_ignores.pop();
+            } else {
+                break;
+            }
+        }
+    }
 }
 
 impl Iterator for Lexer<'_> {
@@ -229,6 +269,7 @@ impl Iterator for Lexer<'_> {
                 // variable reference start and a component of an id, but can't start an id.
                 '@' => {
                     // A variable reference @name
+                    self.apply_line_ignores();
                     let mut id = self.start_cob();
                     id.add_char(c);
                     let start_i = i;
@@ -328,6 +369,7 @@ impl Iterator for Lexer<'_> {
                 // `+` can start a number, and numbers are treated as ids here.
                 _ if !self.in_calc && (c.is_id_char() || c == '+') => {
                     // An unquoted token
+                    self.apply_line_ignores();
                     let mut id = self.start_cob();
                     id.add_char(c);
                     let start_i = i;
@@ -345,6 +387,7 @@ impl Iterator for Lexer<'_> {
                     return Some(Ok((start_i, Lexeme::General(token), self.eof_offset())));
                 }
                 _ if c.is_comparator_char() => {
+                    self.apply_line_ignores();
                     let mut id = self.start_cob();
                     id.add_char(c);
                     let start_i = i;
@@ -365,6 +408,7 @@ impl Iterator for Lexer<'_> {
                 }
                 _ if self.in_calc && (c.is_local_value_char() || c == '.') => {
                     // A number or the name of a reader variable, inside a `@[` calculation
+                    self.apply_line_ignores();
                     let mut id = self.start_cob();
                     id.add_char(c);
                     let start_i = i;
@@ -385,9 +429,13 @@ impl Iterator for Lexer<'_> {
                 }
                 // The ; is silently accepted because putting it after a number is a common mistake
                 // and doesn't seem to cause any harm.
-                ';' => self.consume(),
+                ';' => {
+                    self.apply_line_ignores();
+                    self.consume();
+                }
                 '"' => {
                     // A quoted token
+                    self.apply_line_ignores();
                     let start_i = i;
                     let start_loc = self.loc;
                     self.consume();
@@ -454,15 +502,30 @@ impl Iterator for Lexer<'_> {
                 '#' => {
                     // A comment
                     self.consume();
+                    let mut comment = self.start_cob();
                     while let Some((_, c)) = self.peek() {
-                        self.consume();
                         if c == '\n' {
+                            self.consume();
                             break;
+                        }
+                        comment.add_char(c);
+                        self.consume();
+                    }
+                    if let Some(spec) = parse_comment(comment.take_to_token().as_str()) {
+                        match spec.size {
+                            IgnoreSize::Line => self.pending_line_ignores.push(spec.filter),
+                            IgnoreSize::Block => self.pending_block_ignores.push(spec.filter),
+                            IgnoreSize::File => register_ignore_filter(
+                                self.loc.pathname().to_path_buf(),
+                                ..,
+                                spec.filter,
+                            ),
                         }
                     }
                 }
                 '$' => {
                     // A macro parameter
+                    self.apply_line_ignores();
                     let start_i = i;
                     let start_loc = self.loc;
                     self.consume();
@@ -494,12 +557,16 @@ impl Iterator for Lexer<'_> {
                     return Some(Ok((start_i, Lexeme::General(token), self.eof_offset())));
                 }
                 '{' => {
+                    self.brace_depth += 1;
+                    self.apply_line_ignores();
+                    self.apply_block_ignores();
                     let token = Token::from_static_str("{", self.loc);
                     self.consume();
-                    self.brace_depth += 1;
                     return Some(Ok((i, Lexeme::BlockStart(token), i + 1)));
                 }
                 '}' => {
+                    self.apply_line_ignores();
+                    self.close_block_ignores();
                     if self.brace_depth > 0 {
                         self.brace_depth -= 1;
                     }
@@ -519,37 +586,44 @@ impl Iterator for Lexer<'_> {
                     return Some(Ok((i, Lexeme::BlockEnd(token), i + 1)));
                 }
                 ']' => {
+                    self.apply_line_ignores();
                     let token = Token::from_static_str("]", self.loc);
                     self.consume();
                     self.in_calc = false;
                     return Some(Ok((i, Lexeme::CalcEnd(token), i + 1)));
                 }
                 '(' => {
+                    self.apply_line_ignores();
                     let token = Token::from_static_str("(", self.loc);
                     self.consume();
                     return Some(Ok((i, Lexeme::OpenParen(token), i + 1)));
                 }
                 ')' => {
+                    self.apply_line_ignores();
                     let token = Token::from_static_str(")", self.loc);
                     self.consume();
                     return Some(Ok((i, Lexeme::CloseParen(token), i + 1)));
                 }
                 '+' => {
+                    self.apply_line_ignores();
                     let token = Token::from_static_str("+", self.loc);
                     self.consume();
                     return Some(Ok((i, Lexeme::Add(token), i + 1)));
                 }
                 '-' => {
+                    self.apply_line_ignores();
                     let token = Token::from_static_str("-", self.loc);
                     self.consume();
                     return Some(Ok((i, Lexeme::Subtract(token), i + 1)));
                 }
                 '*' => {
+                    self.apply_line_ignores();
                     let token = Token::from_static_str("*", self.loc);
                     self.consume();
                     return Some(Ok((i, Lexeme::Multiply(token), i + 1)));
                 }
                 '/' => {
+                    self.apply_line_ignores();
                     let token = Token::from_static_str("/", self.loc);
                     self.consume();
                     return Some(Ok((i, Lexeme::Divide(token), i + 1)));
@@ -557,6 +631,7 @@ impl Iterator for Lexer<'_> {
                 // TODO: should really detect ^Z anywhere in the input.
                 // Move this to consume() ?
                 CONTROL_Z => {
+                    self.apply_line_ignores();
                     let loc = self.loc;
                     self.consume();
                     let msg = "^Z in file";
@@ -570,6 +645,7 @@ impl Iterator for Lexer<'_> {
                     return None;
                 }
                 _ => {
+                    self.apply_line_ignores();
                     let msg = format!("unrecognized character `{c}`");
                     err(ErrorKey::ParseError).msg(msg).loc(self.loc).push();
                     self.consume();

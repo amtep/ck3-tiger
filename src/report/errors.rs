@@ -5,6 +5,7 @@ use std::cmp::Ordering;
 use std::fs::{read, File};
 use std::io::{stdout, Write};
 use std::mem::take;
+use std::ops::{Bound, RangeBounds};
 use std::path::{Path, PathBuf};
 use std::sync::{LazyLock, Mutex, MutexGuard};
 
@@ -13,6 +14,7 @@ use encoding_rs::{UTF_8, WINDOWS_1252};
 
 use crate::helpers::{TigerHashMap, TigerHashSet};
 use crate::macros::MACRO_MAP;
+use crate::parse::ignore::IgnoreFilter;
 use crate::report::error_loc::ErrorLoc;
 use crate::report::filter::ReportFilter;
 use crate::report::suppress::{Suppression, SuppressionKey};
@@ -41,6 +43,9 @@ pub struct Errors {
     pub(crate) styles: OutputStyle,
 
     pub(crate) suppress: TigerHashMap<SuppressionKey, Vec<Suppression>>,
+    // The range is decomposed into its start and end bounds in order to
+    // avoid dyn shenanigans with the RangeBounds trait.
+    ignore: TigerHashMap<PathBuf, Vec<IgnoreEntry>>,
 
     /// All reports that passed the checks, stored here to be sorted before being emitted all at once.
     /// The "abbreviated" reports don't participate in this. They are still emitted immediately.
@@ -59,6 +64,7 @@ impl Default for Errors {
             styles: OutputStyle::default(),
             storage: TigerHashSet::default(),
             suppress: TigerHashMap::default(),
+            ignore: TigerHashMap::default(),
         }
     }
 }
@@ -76,6 +82,21 @@ impl Errors {
                     if s.path == p.loc.pathname().to_string_lossy()
                         && s.tag == p.msg
                         && s.line.as_deref() == self.cache.get_line(p.loc)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    fn should_ignore(&self, report: &LogReport) -> bool {
+        for p in &report.pointers {
+            if let Some(vec) = self.ignore.get(p.loc.pathname()) {
+                for entry in vec {
+                    if (entry.start, entry.end).contains(&p.loc.line)
+                        && entry.filter.matches(report.key, &report.msg)
                     {
                         return true;
                     }
@@ -153,18 +174,23 @@ impl Errors {
         reports
     }
 
-    /// Print all the stored reports to the error output.
+    /// Print the stored reports.
     /// Set `json` if they should be printed as a JSON array. Otherwise they are printed in the
     /// default output format.
     ///
     /// Note that the default output format is not stable across versions. It is meant for human
     /// readability and occasionally gets changed to improve that.
+    ///
+    /// Reports matched by `#tiger-ignore` directives will not be printed.
     pub fn emit_reports(&mut self, json: bool) {
         let reports = self.take_reports();
         if json {
             _ = writeln!(self.output.get_mut(), "[");
             let mut first = true;
             for report in &reports {
+                if self.should_ignore(report) {
+                    continue;
+                }
                 if !first {
                     _ = writeln!(self.output.get_mut(), ",");
                 }
@@ -174,6 +200,9 @@ impl Errors {
             _ = writeln!(self.output.get_mut(), "\n]");
         } else {
             for report in &reports {
+                if self.should_ignore(report) {
+                    continue;
+                }
                 log_report(self, report);
             }
         }
@@ -244,6 +273,13 @@ impl Cache {
         self.linecache.insert(fullpath.to_path_buf(), lines);
         line
     }
+}
+
+#[derive(Debug, Clone)]
+struct IgnoreEntry {
+    start: Bound<u32>,
+    end: Bound<u32>,
+    filter: IgnoreFilter,
 }
 
 /// Record a secondary mod to be loaded before the one being validated.
@@ -319,6 +355,16 @@ pub fn take_reports() -> Vec<LogReport> {
 
 pub fn store_source_file(fullpath: PathBuf, source: &'static str) {
     Errors::get_mut().store_source_file(fullpath, source);
+}
+
+pub fn register_ignore_filter<R>(pathname: PathBuf, lines: R, filter: IgnoreFilter)
+where
+    R: RangeBounds<u32>,
+{
+    let start = lines.start_bound().cloned();
+    let end = lines.end_bound().cloned();
+    let entry = IgnoreEntry { start, end, filter };
+    Errors::get_mut().ignore.entry(pathname).or_default().push(entry);
 }
 
 // =================================================================================================

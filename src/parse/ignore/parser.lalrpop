@@ -1,0 +1,61 @@
+use std::str::FromStr;
+
+use lalrpop_util::ParseError;
+
+use crate::parse::ignore::{IgnoreSpec, IgnoreSize};
+use crate::report::ErrorKey;
+
+grammar;
+
+// Because there's an "anything" match, this match expression is needed
+// to give priority to the more specific regexps.
+match {
+    r#""[^"]+""# => QUOTED,
+    r#"[^", ()=]+"# => UNQUOTED,
+    _
+} else {
+    r"." => ANYTHING,
+}
+
+pub Comment: IgnoreSpec = {
+    "tiger-ignore" Trailing => IgnoreSpec::default(),
+    "tiger-ignore" "(" <Spec> ")" Trailing,
+}
+
+Spec: IgnoreSpec = {
+    SpecTerm,
+    <spec:Spec> "," <t: SpecTerm> => spec.merge(t),
+}
+
+SpecTerm: IgnoreSpec = {
+    "block" => IgnoreSpec { size: IgnoreSize::Block, ..IgnoreSpec::default() },
+    "file" => IgnoreSpec { size: IgnoreSize::File, ..IgnoreSpec::default() },
+    "key" "=" <key:Str> =>? {
+        Ok(IgnoreSpec::default().set_key(
+            ErrorKey::from_str(key).map_err(|_| ParseError::User {
+                error: "unrecognized error key",
+            })?
+        ))
+    },
+    "text" "=" <text:Str> => IgnoreSpec::default().set_text(text.to_owned()),
+}
+
+// A string, can have quotes around it.
+// It needs to be quoted to contain commas or spaces.
+Str: &'input str = {
+    <s:QUOTED> => &s[1..s.len()-1],
+    UNQUOTED
+}
+
+// Some tricks to accept anything coming after a valid ignore spec
+Trailing: () = {
+    => (),
+    QUOTED Trailing,
+    UNQUOTED Trailing,
+    "block" Trailing,
+    "file" Trailing,
+    "key" Trailing,
+    "text" Trailing,
+    "=" Trailing,
+    ANYTHING
+}
