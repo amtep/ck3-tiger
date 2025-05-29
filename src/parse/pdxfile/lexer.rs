@@ -514,7 +514,12 @@ impl Iterator for Lexer<'_> {
                         comment.add_char(c);
                         self.consume();
                     }
-                    if let Some(spec) = parse_comment(comment.take_to_token().as_str()) {
+                    let s = if matches!(comment, Cob::Uninit) {
+                        ""
+                    } else {
+                        comment.take_to_token().as_str()
+                    };
+                    if let Some(spec) = parse_comment(s) {
                         match spec.size {
                             IgnoreSize::Line => self.pending_line_ignores.push(spec.filter),
                             IgnoreSize::Block => self.pending_block_ignores.push(spec.filter),
