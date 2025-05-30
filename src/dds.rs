@@ -14,6 +14,7 @@ use crate::token::Token;
 const DDS_HEADER_SIZE: usize = 124;
 const DDS_HEIGHT_OFFSET: usize = 12;
 const DDS_WIDTH_OFFSET: usize = 16;
+const DDS_PIXELFORMAT_FLAGS_OFFSET: usize = 80;
 
 fn from_le32(buffer: &[u8], offset: usize) -> u32 {
     u32::from(buffer[offset])
@@ -47,11 +48,17 @@ impl DdsFiles {
             err(ErrorKey::ImageFormat).msg("not a DDS file").loc(entry).push();
             return Ok(None);
         }
-        Ok(Some(DdsInfo::new(&buffer)))
+        Ok(Some(DdsInfo::new(entry.clone(), &buffer)))
     }
 
     fn handle_dds(&mut self, entry: &FileEntry, info: DdsInfo) {
         self.dds_files.insert(entry.path().to_string_lossy().to_string(), info);
+    }
+
+    pub fn validate(&self) {
+        for item in self.dds_files.values() {
+            item.validate();
+        }
     }
 
     #[cfg(feature = "ck3")]
@@ -100,18 +107,32 @@ impl FileHandler<DdsInfo> for DdsFiles {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct DdsInfo {
-    #[allow(dead_code)] // vic3 doesn't use
+    entry: FileEntry,
+    compressed: bool,
     width: u32,
-    #[allow(dead_code)] // vic3 doesn't use
     height: u32,
 }
 
 impl DdsInfo {
-    pub fn new(header: &[u8]) -> Self {
-        let height = from_le32(header, DDS_HEIGHT_OFFSET);
-        let width = from_le32(header, DDS_WIDTH_OFFSET);
-        Self { width, height }
+    pub fn new(entry: FileEntry, header: &[u8]) -> Self {
+        Self {
+            entry,
+            compressed: (from_le32(header, DDS_PIXELFORMAT_FLAGS_OFFSET) & 0x04) != 0,
+            width: from_le32(header, DDS_WIDTH_OFFSET),
+            height: from_le32(header, DDS_HEIGHT_OFFSET),
+        }
+    }
+
+    fn validate(&self) {
+        if self.compressed && !(self.width % 4 == 0 || self.height % 4 == 0) {
+            let msg = "compressed DDS must have width and height divisible by 4";
+            let info = format!(
+                "DDS file is {}x{}, which can cause scaling problems and graphical artifacts",
+                self.width, self.height
+            );
+            err(ErrorKey::ImageSize).msg(msg).info(info).loc(&self.entry).push();
+        }
     }
 }

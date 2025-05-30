@@ -611,6 +611,7 @@ impl Everything {
         s.spawn(|_| self.assets.validate(self));
         s.spawn(|_| self.gui.validate(self));
         s.spawn(|_| self.on_actions.validate(self));
+        s.spawn(|_| self.dds.validate());
     }
 
     #[cfg(feature = "ck3")]
