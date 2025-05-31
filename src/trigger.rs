@@ -1554,8 +1554,10 @@ fn validate_argument_internal(
                 // TODO: verify that the track belongs to this trait
                 data.verify_exists(Item::Trait, &traitname);
                 data.verify_exists(Item::TraitTrack, &track);
-            } else {
-                data.verify_exists(Item::Trait, arg);
+            } else if !data.item_exists(Item::Trait, arg.as_str()) {
+                let stash = sc.stash_builder();
+                validate_target(arg, data, sc, Scopes::Trait);
+                sc.unstash_builder(stash);
             }
         }
         #[cfg(feature = "vic3")]
