@@ -1,6 +1,6 @@
 [package]
 name = "hoi4-tiger"
-version = "1.7.2"
+version = "1.8.0"
 edition = "2021"
 license = "GPL-3.0-or-later"
 default-run = "hoi4-tiger"
@@ -15,8 +15,8 @@ rust-version = "1.84"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tiger-lib = { path = "..", version = "1.7.2", default-features = false, features = ["hoi4"] }
-tiger-bin-shared = { path = "../tiger-bin-shared", version = "1.7.2", default-features = false, features = ["hoi4"] }
+tiger-lib = { path = "..", version = "1.8.0", default-features = false, features = ["hoi4"] }
+tiger-bin-shared = { path = "../tiger-bin-shared", version = "1.8.0", default-features = false, features = ["hoi4"] }
 
 anyhow = "1"
 
