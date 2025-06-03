@@ -52,7 +52,7 @@ static SCOPE_EFFECT_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Effect)>> 
         hash
     });
 
-// LAST UPDATED CK3 VERSION 1.16.0
+// LAST UPDATED CK3 VERSION 1.16.2.3
 // See `effects.log` from the game data dumps
 const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::TravelPlan, "abort_travel_plan", Boolean),
@@ -385,6 +385,7 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::Character, "depose", Yes),
     (Scopes::Character, "depose_diarch", Boolean),
     (Scopes::Character, "designate_diarch", Scope(Scopes::Character)),
+    (Scopes::Character, "destroy_all_event_troops", Boolean),
     (Scopes::None, "destroy_artifact", ScopeOkThis(Scopes::Artifact)),
     (Scopes::None, "destroy_character_memory", Scope(Scopes::CharacterMemory)),
     (Scopes::Faction, "destroy_faction", Yes),

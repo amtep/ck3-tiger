@@ -521,7 +521,7 @@ fn validate_phase(key: &Token, block: &Block, data: &Everything, has_special_opt
     let mut sc = ScopeContext::new(Scopes::Character, key);
     sc.define_name("activity", Scopes::Activity, key);
     sc.define_name("host", Scopes::Character, key);
-    vd.field_trigger("on_enter_phase", Tooltipped::No, &mut sc);
+    vd.field_effect("on_enter_phase", Tooltipped::No, &mut sc);
     vd.field_effect("on_phase_active", Tooltipped::No, &mut sc);
     vd.field_effect("on_end", Tooltipped::No, &mut sc);
     vd.field_effect("on_monthly_pulse", Tooltipped::No, &mut sc);

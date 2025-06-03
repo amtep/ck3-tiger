@@ -37,8 +37,7 @@ impl DbKind for Innovation {
         let mut sc = ScopeContext::new(Scopes::Culture, key);
 
         data.verify_exists(Item::Localization, key);
-        let loca = format!("{key}_desc");
-        data.verify_exists_implied(Item::Localization, &loca, key);
+        data.localization.suggest(&format!("{key}_desc"), key);
 
         vd.field_item("culture_era", Item::CultureEra);
         vd.field_choice(

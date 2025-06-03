@@ -61,6 +61,7 @@ impl DbKind for Focus {
         vd.field_trigger("is_shown", Tooltipped::No, &mut sc);
         vd.field_trigger("is_valid", Tooltipped::Yes, &mut sc);
         vd.field_trigger("is_valid_showing_failures_only", Tooltipped::FailuresOnly, &mut sc);
+        vd.field_effect("on_change_to", Tooltipped::No, &mut sc);
         vd.field_effect("on_change_from", Tooltipped::Yes, &mut sc);
         vd.field_effect("on_birthday", Tooltipped::No, &mut sc);
         vd.field_validated_block("modifier", |block, data| {
@@ -70,9 +71,5 @@ impl DbKind for Focus {
         let icon = vd.field_value("icon").unwrap_or(key);
         data.verify_icon("NGameIcons|FOCUS_ICON_PATH", icon, ".dds");
         vd.field_script_value("auto_selection_weight", &mut sc);
-
-        // undocumented
-
-        vd.field_effect("on_change_from", Tooltipped::No, &mut sc);
     }
 }

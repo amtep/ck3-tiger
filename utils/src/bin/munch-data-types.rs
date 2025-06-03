@@ -21,10 +21,6 @@ struct Cli {
     #[arg(long)]
     game: Game,
 
-    /// Game concepts to filter out (CK3 only)
-    #[arg(long)]
-    concepts: Option<PathBuf>,
-
     /// Directory with the datatype logs (input)
     #[arg(long)]
     logs: PathBuf,
@@ -372,11 +368,6 @@ fn parse_datafunction(
 
 fn main() -> Result<()> {
     let args = Cli::parse();
-    if args.game == Game::Ck3 && args.concepts.is_none() {
-        bail!("When loading ck3 datatypes, must provide --concepts argument");
-    }
-    let concepts_file = args.concepts.map_or(Ok(String::new()), read_to_string)?;
-    let concepts: HashSet<_> = concepts_file.split_whitespace().collect();
 
     // let types = load_types(args.out.join("datatypes.rs"))?;
     let mut global_promotes = load_globals(&args.out.join("data_global_promotes.rs"), args.game)?;
@@ -409,8 +400,10 @@ fn main() -> Result<()> {
         }
     }
 
-    for c in concepts {
-        new_global_functions.remove(c);
+    // Drop the game concepts.
+    // Heuristic: they are all lowercase while real datafunctions contain uppercase.
+    if args.game == Game::Ck3 {
+        new_global_functions.retain(|k, _| k.chars().any(char::is_uppercase));
     }
 
     // Root seems to work as well as ROOT

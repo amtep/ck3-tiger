@@ -45,7 +45,7 @@ impl DbKind for Secret {
 
         vd.field_trigger("is_valid", Tooltipped::No, &mut sc.clone());
 
-        for field in &["is_shunner", "is_criminal"] {
+        for field in &["is_shunned", "is_criminal"] {
             vd.field_trigger_builder(field, Tooltipped::No, |key| {
                 let mut sc = sc.clone();
                 sc.define_name("target", Scopes::Character, key);
@@ -62,7 +62,7 @@ impl DbKind for Secret {
             sc.define_name("discoverer", Scopes::Character, key);
             sc
         });
-        vd.field_effect_builder("on_discover", Tooltipped::No, |key| {
+        vd.field_effect_builder("on_expose", Tooltipped::No, |key| {
             let mut sc = sc.clone();
             sc.define_name("secret_exposer", Scopes::Character, key);
             sc
