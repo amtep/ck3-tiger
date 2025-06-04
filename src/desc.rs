@@ -5,14 +5,14 @@
 //!
 //! The main entry point is [`validate_desc`].
 
-use crate::block::{Block, BV};
+use crate::block::{Block, Comparator, Eq::Single, BV};
 use crate::context::ScopeContext;
 use crate::everything::Everything;
 use crate::item::Item;
-use crate::report::{warn, ErrorKey};
+use crate::report::{warn, ErrorKey, Severity};
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::trigger::validate_trigger;
+use crate::trigger::{validate_trigger, validate_trigger_key_bv};
 use crate::validator::Validator;
 
 /// Internal function to recurse over the complex description block logic.
@@ -77,6 +77,38 @@ fn validate_desc_map_block(
                     warn(ErrorKey::Validation).msg(msg).loc(key).push();
                 }
                 validate_trigger(block, data, sc, Tooltipped::No);
+            }
+        } else if key.is("switch") {
+            if let Some(block) = bv.expect_block() {
+                // See also `validate_switch` function which is for effects.
+                let mut vd = Validator::new(block, data);
+                vd.req_field("trigger");
+                if let Some(target) = vd.field_value("trigger").cloned() {
+                    let mut count = 0;
+                    vd.set_allow_questionmark_equals(true);
+                    vd.unknown_block_fields(|key, block| {
+                        count += 1;
+                        if !key.is("fallback") {
+                            let synthetic_bv = BV::Value(key.clone());
+                            validate_trigger_key_bv(
+                                &target,
+                                Comparator::Equals(Single),
+                                &synthetic_bv,
+                                data,
+                                sc,
+                                Tooltipped::No,
+                                false,
+                                Severity::Warning,
+                            );
+                        }
+
+                        validate_desc_map_block("switch", block, data, sc, f);
+                    });
+                    if count == 0 {
+                        let msg = "switch with no branches";
+                        warn(ErrorKey::Logic).msg(msg).loc(key).push();
+                    }
+                }
             }
         } else {
             warn(ErrorKey::UnknownField).msg("unexpected key in description").loc(key).push();
