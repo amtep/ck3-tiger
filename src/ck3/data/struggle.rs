@@ -102,7 +102,7 @@ impl DbKind for Struggle {
         vd.field_effect("on_start", Tooltipped::No, &mut sc);
         vd.field_effect("on_end", Tooltipped::No, &mut sc); // TODO: check tooltipped
         vd.field_effect("on_change_phase", Tooltipped::No, &mut sc); // TODO: check tooltipped
-        vd.field_effect("on_join", Tooltipped::No, &mut sc); // TODO: check tooltipped
+        vd.field_effect_rooted("on_join", Tooltipped::No, Scopes::Character); // TODO: check tooltipped
         vd.field_effect("on_monthly", Tooltipped::No, &mut sc);
     }
 }
