@@ -831,7 +831,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "has_targeting_faction", Boolean),
     (Scopes::TaskContract, "has_task_contract_group", Item(Item::TaskContractGroup)),
     (Scopes::TaskContract, "has_task_contract_type", Item(Item::TaskContractType)),
-    (Scopes::Character, "has_tax_collector", Boolean),
+    (Scopes::TaxSlot, "has_tax_collector", Boolean),
     (Scopes::Character, "has_title", Scope(Scopes::LandedTitle)),
     (Scopes::LandedTitle, "has_title_law", Item(Item::Law)),
     (Scopes::LandedTitle, "has_title_law_flag", Item(Item::LawFlag)),
