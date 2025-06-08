@@ -104,7 +104,7 @@ fn validate_domicile_asset(block: &Block, data: &Everything) {
     vd.field_trigger_builder("trigger", Tooltipped::No, sc_domicile_owner);
     vd.field_item("background", Item::File);
     vd.field_item("foreground", Item::File);
-    vd.field_item("ambience", Item::File);
+    vd.field_item("ambience", Item::Sound);
 }
 
 fn validate_map_entity(bv: &BV, data: &Everything) {
