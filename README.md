@@ -26,6 +26,8 @@ Support for Hearts of Iron IV (`hoi4-tiger`) is in the works but it is **unfinis
 * History (for CK3): Are spouses, employers, and lieges alive on the relevant dates? Is no one their own grandfather?
 * Special: rivers.png check
 
+Tiger can also be configured to validate submods, by loading the parent mods first.
+
 ## Sample output
 
 ![Sample Output](example.png)

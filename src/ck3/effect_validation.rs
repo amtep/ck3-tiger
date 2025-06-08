@@ -1952,7 +1952,7 @@ pub fn validate_create_maa_regiment(
     vd.field_target("type_of", sc, Scopes::Regiment);
     vd.field_bool("check_can_recruit");
     vd.field_target("title", sc, Scopes::LandedTitle);
-    vd.field_script_value("size", sc);
+    vd.field_integer("size");
 }
 
 pub fn validate_create_task_contract(
