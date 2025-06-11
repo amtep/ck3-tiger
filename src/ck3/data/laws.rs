@@ -131,6 +131,7 @@ impl DbKind for Law {
                     "generate",
                     "player_heir",
                     "noble_family",
+                    "generate_from_template"
                 ],
             );
             vd.field_choice("title_division", &["partition", "single_heir"]);
