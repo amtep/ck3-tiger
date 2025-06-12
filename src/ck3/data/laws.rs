@@ -129,11 +129,20 @@ impl DbKind for Law {
                     "theocratic",
                     "company",
                     "generate",
+                    "generate_from_template",
                     "player_heir",
                     "noble_family",
                 ],
             );
-            vd.field_choice("title_division", &["partition", "single_heir"]);
+            let order_of_succession =
+                block.get_field_value("order_of_succession").map_or("none", Token::as_str);
+
+            if order_of_succession == "inheritance" {
+                vd.field_choice("title_division", &["partition", "single_heir"]);
+            } else {
+                vd.ban_field("title_division", || "order_of_succession = inheritance");
+            }
+
             // TODO: children may only be used if title_division == partition
             vd.field_choice("traversal_order", &["children", "dynasty_house", "dynasty"]);
             vd.field_choice("rank", &["oldest", "youngest"]);
@@ -146,8 +155,6 @@ impl DbKind for Law {
                 }
             }
 
-            let order_of_succession =
-                block.get_field_value("order_of_succession").map_or("none", Token::as_str);
             if order_of_succession == "theocratic"
                 || order_of_succession == "company"
                 || order_of_succession == "generate"
