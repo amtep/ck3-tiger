@@ -769,32 +769,44 @@ impl<'a> ValueParser<'a> {
     fn parse_icon(&mut self) {
         self.next_char(); // eat the @
 
-        if let Some(c) = self.peek() {
-            // Imperator allows the following syntax: "@[GetCountry('CAR').GetFlag]!"...weird but it's allowed
-            // So break if a '[' character is found in imperator-tiger, probably a better way to do this.
-            #[cfg(feature = "imperator")]
+        let mut old_value = take(&mut self.value);
+
+        while let Some(c) = self.peek() {
             if c == '[' {
-                return;
-            }
-            if is_key_char(c) {
+                self.parse_code();
+            } else if is_key_char(c) {
                 let key = self.get_key();
-                self.value.push(LocaValue::Icon(key));
-            } else {
+                self.value.push(LocaValue::Text(key));
+            } else if c == '!' {
+                self.next_char();
+                break;
+            } else if self.value.is_empty() {
                 self.unexpected_char("expected icon name", ErrorKey::Localization);
                 self.value.push(LocaValue::Error);
-                return;
+                break;
+            } else {
+                self.unexpected_char("expected `!`", ErrorKey::Localization);
+                self.value.push(LocaValue::Error);
+                break;
             }
-        } else {
-            self.unexpected_char("expected icon name", ErrorKey::Localization);
-            self.value.push(LocaValue::Error);
-            return;
         }
 
-        if self.peek() == Some('!') {
-            self.next_char();
+        if matches!(self.value.last(), Some(LocaValue::Error)) {
+            old_value.push(LocaValue::Error);
+            self.value = take(&mut old_value);
+        } else if self.value.len() == 1 {
+            if let Some(LocaValue::Text(icon)) = self.value.last() {
+                // The usual case: a simple @icon!
+                old_value.push(LocaValue::Icon(icon.clone()));
+                self.value = take(&mut old_value);
+            } else {
+                // This can happen if the whole icon is a @[...]!
+                old_value.push(LocaValue::CalculatedIcon(take(&mut self.value)));
+                self.value = take(&mut old_value);
+            }
         } else {
-            self.unexpected_char("expected `!`", ErrorKey::Localization);
-            self.value.push(LocaValue::Error);
+            old_value.push(LocaValue::CalculatedIcon(take(&mut self.value)));
+            self.value = take(&mut old_value);
         }
     }
 

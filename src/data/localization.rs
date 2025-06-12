@@ -251,6 +251,8 @@ pub enum LocaValue {
     // The optional token is the formatting
     Code(CodeChain, Option<Token>),
     Icon(Token),
+    // An Icon with an [ ] expression inside it
+    CalculatedIcon(Vec<LocaValue>),
     Flag(Token),
     #[default]
     Error,
@@ -439,7 +441,7 @@ impl Localization {
         lang: Language,
     ) {
         match value {
-            LocaValue::Concat(v) => {
+            LocaValue::Concat(v) | LocaValue::CalculatedIcon(v) => {
                 for value in v {
                     Self::check_loca_code(value, data, sc, lang);
                 }
