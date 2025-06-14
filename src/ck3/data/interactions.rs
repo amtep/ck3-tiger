@@ -60,6 +60,8 @@ impl DbKind for CharacterInteraction {
                 sc.define_name("target", Scopes::CouncilTask, interface);
             } else if interface.is("create_claimant_faction_against") {
                 sc.define_name("landed_title", Scopes::LandedTitle, interface);
+            } else if interface.is("modify_vassal_contract") {
+                sc.define_list("changed_obligations", Scopes::VassalObligationLevel, interface);
             }
         } else if let Some(special) = block.get_field_value("special_interaction") {
             if special.is("invite_to_council_interaction") {
