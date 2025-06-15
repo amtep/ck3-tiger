@@ -58,7 +58,7 @@ impl DbKind for Ability {
 
         vd.field_validated_block("unit_modifiers", |block, data| {
             let vd = Validator::new(block, data);
-            validate_modifs(block, data, ModifKinds::UnitLeader, vd);
+            validate_modifs(block, data, ModifKinds::UnitLeader | ModifKinds::Army, vd);
         });
 
         let mut sc = ScopeContext::new(Scopes::Character, key);

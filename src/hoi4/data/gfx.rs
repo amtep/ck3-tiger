@@ -153,9 +153,11 @@ impl Sprite {
             vd.field_item("texturefile", Item::File);
         }
 
+        vd.field_bool("alwaystransparent");
         vd.field_item("effectfile", Item::File);
         vd.field_bool("legacy_lazy_load");
         vd.field_integer("noofframes");
+        vd.field_item("clicksound", Item::SoundEffect);
 
         if self.key.lowercase_is("corneredtilespritetype") {
             vd.field_validated_block("size", validate_size);
@@ -163,7 +165,6 @@ impl Sprite {
             vd.field_bool("tilingcenter");
             vd.field_bool("looping");
             vd.field_integer("animation_rate_spf");
-            vd.field_bool("alwaystransparent");
         } else if self.key.lowercase_is("progressbartype") {
             vd.field_validated_block("color", validate_color);
             vd.field_validated_block("colortwo", validate_color);

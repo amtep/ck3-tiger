@@ -79,8 +79,24 @@ impl DbKind for Operation {
         let mut sc = ScopeContext::new(Scopes::Country, key);
         vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
 
+        let sc_builder = |key: &Token| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            sc.push_as_from(Scopes::Country, key);
+            sc
+        };
+
+        let has_selection_target = block.has_key("selection_target");
+        let sc_builder_execute = |key: &Token| {
+            let mut sc = ScopeContext::new(Scopes::Country, key);
+            if has_selection_target {
+                sc.push_as_from(Scopes::State, key);
+            }
+            sc.push_as_from(Scopes::Country, key);
+            sc
+        };
+
         vd.field_trigger_rooted("allowed", Tooltipped::No, Scopes::Country);
-        vd.field_trigger_rooted("available", Tooltipped::Yes, Scopes::Country);
+        vd.field_trigger_builder("available", Tooltipped::Yes, sc_builder);
         vd.field_list_items("awarded_tokens", Item::OperationToken);
 
         vd.field_list("cost_modifiers"); // TODO what are these?
@@ -90,7 +106,7 @@ impl DbKind for Operation {
             vd.field_validated_key_block(field, |key, block, data| {
                 let mut vd = Validator::new(block, data);
                 vd.field_validated_list("targets", |value, data| {
-                    let mut sc = ScopeContext::new(Scopes::Country, key);
+                    let mut sc = sc_builder_execute(key);
                     validate_target(value, data, &mut sc, Scopes::Country);
                 });
             });
@@ -110,13 +126,13 @@ impl DbKind for Operation {
         });
         vd.field_list_items("required_tokens", Item::OperationToken);
         vd.field_bool("return_on_complete");
-        vd.field_effect_rooted("on_start", Tooltipped::Yes, Scopes::Country);
-        vd.field_effect_rooted("outcome_potential", Tooltipped::Yes, Scopes::Country);
+        vd.field_effect_builder("on_start", Tooltipped::Yes, sc_builder);
+        vd.field_effect_builder("outcome_potential", Tooltipped::Yes, sc_builder_execute);
         vd.field_numeric("outcome_extra_chance");
         vd.field_list("outcome_modifiers"); // TODO what are these?
-        vd.field_effect_rooted("outcome_execute", Tooltipped::Yes, Scopes::Country);
-        vd.field_effect_rooted("outcome_extra_execute", Tooltipped::Yes, Scopes::Country);
-        vd.field_trigger_rooted("visible", Tooltipped::No, Scopes::Country);
+        vd.field_effect_builder("outcome_execute", Tooltipped::Yes, sc_builder_execute);
+        vd.field_effect_builder("outcome_extra_execute", Tooltipped::Yes, sc_builder_execute);
+        vd.field_trigger_builder("visible", Tooltipped::No, sc_builder);
         vd.field_bool("will_lead_to_war_with");
 
         vd.field_bool("prevent_captured_operative_to_die");
@@ -126,7 +142,7 @@ impl DbKind for Operation {
         vd.field_numeric("risk_chance");
         vd.field_numeric("experience");
         vd.field_numeric("cost_multiplier");
-        vd.field_trigger_rooted("requirements", Tooltipped::Yes, Scopes::Country);
+        vd.field_trigger_builder("requirements", Tooltipped::Yes, sc_builder);
         vd.field_item("map_icon", Item::Sprite);
     }
 }

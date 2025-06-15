@@ -150,16 +150,9 @@ pub fn validate_random_list(
     vd.unknown_block_fields(|key, block| {
         // TODO: validate variable expression in else branch
         if let Some(n) = key.get_number() {
-            // TODO: verify these claims for hoi4
             if n < 0.0 {
                 let msg = "negative weights make the whole `random_list` fail";
                 err(ErrorKey::Range).strong().msg(msg).loc(key).push();
-            } else if n > 0.0 && n < 1.0 {
-                let msg = "fractional weights are treated as just 0 in `random_list`";
-                err(ErrorKey::Range).strong().msg(msg).loc(key).push();
-            } else if n.fract() != 0.0 {
-                let msg = "fractions are discarded in `random_list` weights";
-                warn(ErrorKey::Range).strong().msg(msg).loc(key).push();
             }
         }
         validate_effect_control(&caller, block, data, sc, tooltipped);

@@ -69,6 +69,8 @@ impl DbKind for SubUnit {
         vd.field_bool("is_artillery_brigade");
         vd.field_bool("cavalry");
         vd.field_bool("affects_speed");
+        vd.field_bool("can_exfiltrate_from_coast");
+        vd.field_bool("mountaineers");
         vd.field_choice(
             "map_icon_category",
             &["infantry", "armored", "other", "ship", "transport", "uboat"],
@@ -118,6 +120,23 @@ impl DbKind for SubUnit {
 
         vd.field_list_items("critical_parts", Item::Localization);
 
+        vd.field_validated_block("need_equipment", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.validate_item_key_values(Item::Equipment, |_, mut vvd| {
+                vvd.integer();
+            });
+        });
+        vd.field_validated_block("need_equipment_modules", |block, data| {
+            let mut vd = Validator::new(block, data);
+            // TODO: figure out what the key is here.
+            vd.unknown_block_fields(|_, block| {
+                let mut vd = Validator::new(block, data);
+                vd.validate_item_key_values(Item::EquipmentModule, |_, mut vvd| {
+                    vvd.integer();
+                });
+            });
+        });
+
         vd.field_validated_block("fort", validate_terrain_values);
         vd.field_validated_block("river", validate_terrain_values);
         vd.field_validated_block("amphibious", validate_terrain_values);
@@ -127,7 +146,9 @@ impl DbKind for SubUnit {
                 validate_equipment_stat(key, value, data);
             }
             BV::Block(block) => {
-                data.verify_exists(Item::Terrain, key);
+                if !key.is("snow") {
+                    data.verify_exists(Item::Terrain, key);
+                }
                 validate_terrain_values(block, data);
             }
         });

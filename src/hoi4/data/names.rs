@@ -58,6 +58,7 @@ impl DbKind for DivisionNamesGroup {
         let mut vd = Validator::new(block, data);
 
         vd.field_list("division_types"); // TODO: where are these defined?
+        vd.field_list_items("link_numbering_with", Item::DivisionNamesGroup);
 
         validate_names_group(block, data, vd, "division");
     }
@@ -68,6 +69,7 @@ impl DbKind for RailwayGunNames {
         let mut vd = Validator::new(block, data);
 
         vd.field_value("type"); // always "railway_gun" in vanilla
+        vd.field_list_items("link_numbering_with", Item::RailwayGunNames);
 
         validate_names_group(block, data, vd, "railway gun");
     }
@@ -88,6 +90,7 @@ impl DbKind for ShipNames {
         });
         vd.field_value("prefix");
         vd.field_list("unique");
+        vd.field_list_items("link_numbering_with", Item::ShipNames);
 
         validate_names_group(block, data, vd, "ship");
     }
@@ -127,7 +130,6 @@ fn validate_names_group(_block: &Block, _data: &Everything, mut vd: Validator, w
     vd.field_value("name");
     vd.field_list_items("for_countries", Item::CountryTag);
     vd.field_trigger_rooted("can_use", Tooltipped::No, Scopes::Country);
-    vd.field_list_items("link_numbering_with", Item::DivisionNamesGroup);
     vd.field_value("fallback_name");
     // TODO: verify format of `unordered`. No examples in vanilla.
     // unordered having the same format as ordered is implied by how Kaiserreich uses it.

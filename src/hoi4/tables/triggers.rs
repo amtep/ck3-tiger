@@ -28,7 +28,11 @@ pub fn scope_trigger(name: &Token, data: &Everything) -> Option<(Scopes, Trigger
 static TRIGGER_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Trigger)>> = LazyLock::new(|| {
     let mut hash = TigerHashMap::default();
     for (from, s, trigger) in TRIGGER.iter().copied() {
-        hash.insert(s, (expand_scopes_hoi4(from), trigger));
+        if let Scope(scopes) = trigger {
+            hash.insert(s, (expand_scopes_hoi4(from), Scope(expand_scopes_hoi4(scopes))));
+        } else {
+            hash.insert(s, (expand_scopes_hoi4(from), trigger));
+        }
     }
     hash
 });
@@ -37,15 +41,15 @@ static TRIGGER_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Trigger)>> = La
 /// See `documentation/triggers_documentation.md` from the game files.
 /// TODO HOI4
 const TRIGGER: &[(Scopes, &str, Trigger)] = &[
-    (Scopes::None, "add_to_temp_array", UncheckedValue),
+    (Scopes::None, "add_to_temp_array", UncheckedTodo),
     (Scopes::None, "add_to_temp_variable", UncheckedTodo),
     (Scopes::Character, "advisor_can_be_fired", UncheckedTodo),
     (Scopes::Country, "agency_upgrade_number", CompareValue),
     (Scopes::Country, "ai_has_role_division", UncheckedTodo),
     (Scopes::Country, "ai_has_role_template", UncheckedTodo),
     (Scopes::Country, "ai_irrationality", CompareValue),
-    (Scopes::Country, "ai_liberate_desire", UncheckedTodo),
-    (Scopes::Country, "ai_wants_divisions", UncheckedTodo),
+    (Scopes::Country, "ai_liberate_desire", Scope(Scopes::Country)),
+    (Scopes::Country, "ai_wants_divisions", CompareValue),
     (Scopes::Country, "all_guaranteed_country", Iterator(ListType::All, Scopes::Country)),
     (Scopes::None, "all_of", UncheckedTodo),
     (Scopes::None, "all_of_scopes", Iterator(ListType::All, Scopes::all_but_none())),
@@ -57,9 +61,9 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "all_purchase_contracts", Iterator(ListType::All, Scopes::PurchaseContract)),
     (Scopes::Country, "all_scientists", Iterator(ListType::All, Scopes::Character)),
     (Scopes::Country, "all_subject_countries", Iterator(ListType::All, Scopes::Country)),
-    (Scopes::Country, "alliance_naval_strength_ratio", UncheckedTodo),
+    (Scopes::Country, "alliance_naval_strength_ratio", CompareValue),
     (Scopes::Country, "alliance_strength_ratio", CompareValue),
-    (Scopes::None, "always", UncheckedTodo),
+    (Scopes::None, "always", Boolean),
     (Scopes::Country, "amount_manpower_in_deployment_queue", CompareValue),
     (Scopes::Country, "amount_research_slots", CompareValue),
     (Scopes::Country, "amount_taken_ideas", UncheckedTodo),
@@ -89,7 +93,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character.union(Scopes::Combatant), "attack_skill_level", UncheckedTodo),
     (Scopes::Character.union(Scopes::Combatant), "average_stats", CompareValue),
     (Scopes::State.union(Scopes::Country), "building_count_trigger", UncheckedTodo),
-    (Scopes::PurchaseContract, "buyer", UncheckedTodo),
+    (Scopes::PurchaseContract, "buyer", Scope(Scopes::Country)),
     (Scopes::Country.union(Scopes::Character), "can_be_country_leader", UncheckedTodo),
     (Scopes::None, "can_build_railway", UncheckedTodo),
     (Scopes::State, "can_construct_building", UncheckedTodo),
@@ -110,7 +114,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "casualties_inflicted_by", UncheckedTodo),
     (Scopes::Country, "casualties_k", CompareValue),
     (Scopes::None, "check_variable", UncheckedTodo),
-    (Scopes::Country, "civilwar_target", UncheckedTodo),
+    (Scopes::Country, "civilwar_target", Scope(Scopes::Country)),
     (Scopes::None, "clamp_temp_variable", UncheckedTodo),
     (Scopes::None, "clear_temp_array", UncheckedTodo),
     (Scopes::Country, "command_power", CompareValue),
@@ -119,17 +123,17 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Country, "compare_autonomy_state", UncheckedTodo),
     (Scopes::Country, "compare_intel_with", UncheckedTodo),
     (Scopes::State, "compliance", CompareValue),
-    (Scopes::State, "compliance_speed", UncheckedTodo),
-    (Scopes::Country, "conscription_ratio", UncheckedTodo),
+    (Scopes::State, "compliance_speed", CompareValue),
+    (Scopes::Country, "conscription_ratio", CompareValue),
     (Scopes::PurchaseContract, "contract_contains_equipment", UncheckedTodo),
-    (Scopes::Country, "controls_province", UncheckedTodo),
-    (Scopes::Country, "controls_state", UncheckedTodo),
+    (Scopes::Country, "controls_province", Item(Item::Province)),
+    (Scopes::Country, "controls_state", Scope(Scopes::State)),
     (Scopes::Country, "convoy_threat", CompareValue),
     (Scopes::Country, "core_compliance", UncheckedTodo),
     (Scopes::Country, "core_resistance", UncheckedTodo),
     (Scopes::None, "count_triggers", UncheckedTodo),
-    (Scopes::None, "country_exists", UncheckedTodo),
-    (Scopes::Country, "current_conscription_amount", UncheckedTodo),
+    (Scopes::None, "country_exists", Scope(Scopes::Country)),
+    (Scopes::Country, "current_conscription_amount", CompareValue),
     (Scopes::None, "custom_override_tooltip", UncheckedTodo),
     (Scopes::None, "custom_trigger_tooltip", UncheckedTodo),
     (Scopes::None, "date", CompareDate),

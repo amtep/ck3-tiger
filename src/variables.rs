@@ -88,6 +88,20 @@ impl Variables {
         }
     }
 
+    /// Check if a variable name has been previously registered,
+    /// but do not emit reports if it wasn't.
+    /// This takes a bare variable name that did not have an `@` suffix (in Hoi4).
+    #[allow(dead_code)]
+    pub fn variable_exists(&self, name: &str) -> bool {
+        if self.names.contains(name) {
+            return true;
+        }
+        if let Some(prefix) = remove_suffix_tag(name) {
+            return self.name_prefixes.contains(prefix);
+        }
+        false
+    }
+
     /// Check if a variable name has been previously registered.
     /// This takes a bare variable name that did not have an `@` suffix (in Hoi4).
     #[allow(dead_code)]

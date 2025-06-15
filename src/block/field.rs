@@ -99,7 +99,7 @@ impl Field {
         }
     }
 
-    #[allow(dead_code)] // It's here for symmetry
+    #[allow(dead_code)]
     pub fn into_definition(self) -> Option<(Token, Block)> {
         #[allow(clippy::single_match_else)] // too complicated for a `let`
         match self {
@@ -147,5 +147,16 @@ impl Field {
             }
         }
         None
+    }
+
+    #[allow(dead_code)]
+    pub fn into_assignment(self) -> Option<(Token, Token)> {
+        #[allow(clippy::single_match_else)] // too complicated for a `let`
+        match self {
+            Field(key, Comparator::Equals(Single | Question), BV::Value(value)) => {
+                Some((key, value))
+            }
+            _ => None,
+        }
     }
 }

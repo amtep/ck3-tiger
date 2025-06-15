@@ -111,12 +111,14 @@ impl DbKind for NationalFocus {
         vd.field_item("text_icon", Item::NationalFocusStyle);
 
         vd.field_trigger_rooted("allow_branch", Tooltipped::Yes, Scopes::Country);
-        for field in &["mutually_exclusive", "prerequisite"] {
-            vd.field_validated_block(field, |block, data| {
-                let mut vd = Validator::new(block, data);
-                vd.multi_field_item("focus", Item::NationalFocus);
-            });
-        }
+        vd.field_validated_block("mutually_exclusive", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.multi_field_item("focus", Item::NationalFocus);
+        });
+        vd.multi_field_validated_block("prerequisite", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.multi_field_item("focus", Item::NationalFocus);
+        });
         vd.field_integer("x");
         vd.field_integer("y");
         vd.field_item("relative_position_id", Item::NationalFocus);

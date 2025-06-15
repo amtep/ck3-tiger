@@ -1388,7 +1388,9 @@ impl<'a> Validator<'a> {
     {
         let mut found = false;
         for Field(key, cmp, bv) in self.block.iter_fields() {
-            if key.is(name) {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
                 self.known_fields.push(key.as_str());
                 self.expect_eq_qeq(key, *cmp);
                 if let Some(block) = bv.expect_block() {
@@ -1424,7 +1426,9 @@ impl<'a> Validator<'a> {
     {
         let mut found = None;
         for Field(key, cmp, bv) in self.block.iter_fields() {
-            if key.is(name) {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
                 self.known_fields.push(key.as_str());
                 if let Some(other) = found {
                     dup_assign_error(key, other);
@@ -1446,7 +1450,9 @@ impl<'a> Validator<'a> {
     {
         let mut found = None;
         for Field(key, cmp, bv) in self.block.iter_fields() {
-            if key.is(name) {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
                 self.known_fields.push(key.as_str());
                 if let Some(other) = found {
                     dup_assign_error(key, other);
@@ -1469,7 +1475,9 @@ impl<'a> Validator<'a> {
     {
         let mut found = None;
         for Field(key, cmp, bv) in self.block.iter_fields() {
-            if key.is(name) {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
                 self.known_fields.push(key.as_str());
                 if let Some(other) = found {
                     dup_assign_error(key, other);
@@ -1492,7 +1500,9 @@ impl<'a> Validator<'a> {
     {
         let mut found = false;
         for Field(key, cmp, bv) in self.block.iter_fields() {
-            if key.is(name) {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
                 self.known_fields.push(key.as_str());
                 self.expect_eq_qeq(key, *cmp);
                 if let Some(block) = bv.expect_block() {
@@ -1536,7 +1546,9 @@ impl<'a> Validator<'a> {
         F: FnMut(&Block, &Everything, &mut ScopeContext),
     {
         for Field(key, cmp, bv) in self.block.iter_fields() {
-            if key.is(name) {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
                 self.known_fields.push(key.as_str());
                 self.expect_eq_qeq(key, *cmp);
                 if let Some(block) = bv.expect_block() {
@@ -1564,7 +1576,9 @@ impl<'a> Validator<'a> {
     {
         let mut found = None;
         for Field(key, cmp, bv) in self.block.iter_fields() {
-            if key.is(name) {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
                 self.known_fields.push(key.as_str());
                 if let Some(other) = found {
                     dup_assign_error(key, other);
@@ -1586,7 +1600,9 @@ impl<'a> Validator<'a> {
     pub fn multi_field_block(&mut self, name: &str) -> bool {
         let mut found = false;
         for Field(key, cmp, bv) in self.block.iter_fields() {
-            if key.is(name) {
+            if (self.case_sensitive && key.is(name))
+                || (!self.case_sensitive && key.lowercase_is(name))
+            {
                 self.known_fields.push(key.as_str());
                 self.expect_eq_qeq(key, *cmp);
                 bv.expect_block();

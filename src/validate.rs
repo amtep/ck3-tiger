@@ -429,6 +429,22 @@ pub fn validate_iterator_fields(
     if list_type != ListType::None {
         vd.field_item("tooltip", Item::Localization);
     }
+
+    #[cfg(feature = "hoi4")]
+    if list_type == ListType::Every {
+        vd.field_bool("display_individual_scopes");
+    } else {
+        vd.ban_field("display_individual_scopes", || "`every_` lists");
+    }
+
+    #[cfg(feature = "hoi4")]
+    if (list_type == ListType::Every || list_type == ListType::Random)
+        && sc.scopes().contains(Scopes::Character | Scopes::IndustrialOrg)
+    {
+        vd.field_bool("include_invisible");
+    } else {
+        vd.ban_field("include_invisible", || "`every_` and `random_` character and mio lists");
+    }
 }
 
 /// This checks the special fields for certain iterators, like `type =` in `every_relation`.

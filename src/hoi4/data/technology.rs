@@ -105,8 +105,13 @@ impl DbKind for Technology {
 
         vd.field_bool("doctrine");
         vd.field_bool("show_effect_as_desc");
+        vd.field_bool("force_use_small_tech_layout");
+        vd.field_bool("is_special_project_tech");
         vd.field_numeric("research_cost");
         vd.field_integer("start_year");
+
+        vd.field_trigger_rooted("allow", Tooltipped::No, Scopes::Country);
+        vd.field_trigger_rooted("allow_branch", Tooltipped::No, Scopes::Country);
 
         vd.field_list_items("special_project_specialization", Item::Specialization);
 

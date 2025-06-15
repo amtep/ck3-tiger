@@ -26,6 +26,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "capital_scope", Scopes::State), // undocumented
     (Scopes::State, "controller", Scopes::Country),
     (Scopes::Country, "faction_leader", Scopes::Country),
+    (Scopes::None, "no", Scopes::Bool),
     (Scopes::Country, "overlord", Scopes::Country),
     (
         Scopes::State
@@ -36,6 +37,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
         "owner",
         Scopes::Country,
     ),
+    (Scopes::None, "yes", Scopes::Bool),
 ];
 
 #[inline]

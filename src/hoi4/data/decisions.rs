@@ -81,7 +81,14 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
         data.verify_exists(Item::Localization, key);
     }
 
-    vd.field_integer("priority");
+    vd.field_validated("priority", |bv, data| match bv {
+        BV::Value(value) => {
+            value.expect_integer();
+        }
+        BV::Block(block) => {
+            validate_modifiers_with_base(block, data, &mut sc);
+        }
+    });
     vd.multi_field_validated("icon", |bv, data| match bv {
         BV::Value(value) => {
             let vd = ValueValidator::new(value, data);
@@ -110,30 +117,30 @@ fn validate_decision(key: &Token, block: &Block, data: &Everything, is_category:
     };
     vd.field_trigger_builder("visible", Tooltipped::No, sc_builder);
     vd.field_trigger_builder("available", Tooltipped::Yes, sc_builder);
-    vd.field_validated_block("targets", |block, data| {
-        let mut vd = Validator::new(block, data);
-        if has_state_target {
-            vd.multi_field_item("state", Item::State);
-            for value in vd.values() {
-                data.verify_exists(Item::State, value);
-            }
-        } else {
-            for value in vd.values() {
-                if !value.is("host") {
-                    validate_target(value, data, &mut sc, Scopes::Country);
-                }
-            }
-        }
-    });
     vd.field_item("scripted_gui", Item::ScriptedGui);
 
     if !is_category {
+        vd.field_validated_block("targets", |block, data| {
+            let mut vd = Validator::new(block, data);
+            if has_state_target {
+                vd.multi_field_item("state", Item::State);
+                for value in vd.values() {
+                    data.verify_exists(Item::State, value);
+                }
+            } else {
+                for value in vd.values() {
+                    if !value.is("host") {
+                        validate_target(value, data, &mut sc, Scopes::Country);
+                    }
+                }
+            }
+        });
         vd.field_bool("is_good");
         vd.field_bool("fire_only_once");
         vd.field_bool("selectable_mission");
         vd.field_variable_or_integer("days_mission_timeout", &mut sc);
         vd.field_trigger_rooted("activation", Tooltipped::No, Scopes::Country);
-        vd.field_effect_rooted("complete_effect", Tooltipped::Yes, Scopes::Country);
+        vd.field_effect_builder("complete_effect", Tooltipped::Yes, sc_builder);
         vd.field_trigger_rooted("custom_cost_trigger", Tooltipped::No, Scopes::Country);
         vd.field_localization("custom_cost_text", &mut sc);
         vd.field_numeric("ai_hint_pp_cost");

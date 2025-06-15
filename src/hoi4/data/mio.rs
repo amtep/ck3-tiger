@@ -124,7 +124,8 @@ impl DbKind for IndustrialOrg {
         });
 
         vd.field_validated_block("initial_trait", |block, data| {
-            validate_mio_trait(key, block, data);
+            let mut vd = Validator::new(block, data);
+            validate_mio_initial_trait(key, block, data, &mut vd);
         });
 
         if has_include {
@@ -158,7 +159,10 @@ impl DbKind for IndustrialOrg {
             });
             // TODO: check that the trait is from the included mio
             vd.field_list_items("remove_trait", Item::IndustrialOrgTrait);
-            vd.ban_field("trait", || "mios that do not use `include =`");
+            // TODO: check that the trait overrides one from the included mio
+            vd.multi_field_validated_block("trait", |block, data| {
+                validate_mio_trait(key, block, data);
+            });
         } else {
             vd.multi_field_validated_block("trait", |block, data| {
                 validate_mio_trait(key, block, data);
@@ -266,15 +270,11 @@ impl DbKind for IndustrialOrgBonusWeight {
 
 fn validate_mio_trait(mio: &Token, block: &Block, data: &Everything) {
     let mut vd = Validator::new(block, data);
+
+    validate_mio_initial_trait(mio, block, data, &mut vd);
+
     vd.req_field("token");
     vd.field_identifier("token", "token");
-
-    if !vd.field_item("name", Item::Localization) {
-        if let Some(token) = block.get_field_value("token") {
-            let loca = format!("{mio}_{token}");
-            data.verify_exists_implied(Item::Localization, &loca, token);
-        }
-    }
 
     vd.field_item("icon", Item::Sprite);
     vd.field_bool("special_trait_background");
@@ -292,6 +292,25 @@ fn validate_mio_trait(mio: &Token, block: &Block, data: &Everything) {
     vd.field_trigger_rooted("visible", Tooltipped::No, Scopes::IndustrialOrg);
     vd.field_trigger_rooted("available", Tooltipped::Yes, Scopes::IndustrialOrg);
     vd.field_effect_rooted("on_complete", Tooltipped::Yes, Scopes::IndustrialOrg);
+
+    vd.field_validated_block("position", |block, data| {
+        let mut vd = Validator::new(block, data);
+        vd.field_integer("x");
+        vd.field_integer("y");
+    });
+    vd.field_item("relative_position_id", Item::IndustrialOrgTrait);
+
+    let mut sc = ScopeContext::new(Scopes::IndustrialOrg, mio);
+    vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
+}
+
+fn validate_mio_initial_trait(mio: &Token, block: &Block, data: &Everything, vd: &mut Validator) {
+    if !vd.field_item("name", Item::Localization) {
+        if let Some(token) = block.get_field_value("token") {
+            let loca = format!("{mio}_{token}");
+            data.verify_exists_implied(Item::Localization, &loca, token);
+        }
+    }
 
     vd.field_validated_list("limit_to_equipment_type", |value, data| {
         if !data.item_exists(Item::Equipment, value.as_str())
@@ -320,14 +339,4 @@ fn validate_mio_trait(mio: &Token, block: &Block, data: &Everything) {
         let vd = Validator::new(block, data);
         validate_modifs(block, data, ModifKinds::WarProduction, vd);
     });
-
-    vd.field_validated_block("position", |block, data| {
-        let mut vd = Validator::new(block, data);
-        vd.field_integer("x");
-        vd.field_integer("y");
-    });
-    vd.field_item("relative_position_id", Item::IndustrialOrgTrait);
-
-    let mut sc = ScopeContext::new(Scopes::IndustrialOrg, mio);
-    vd.field_validated_block_sc("ai_will_do", &mut sc, validate_modifiers_with_base);
 }

@@ -1176,7 +1176,10 @@ const SPECIAL_MODIF_LOC_TABLE: &[(&str, &str)] = &[
         "generate_wargoal_tension_against_country",
         "MODIFIER_GENERATE_WARGOAL_TENSION_LIMIT_AGAINST_COUNTRY",
     ),
+    ("guarantee_tension", "MODIFIER_GUARANTEE_TENSION_LIMIT"),
+    ("industrial_capacity_factory", "MODIFIER_INDUSTRIAL_CAPACITY_FACTOR"), // sic
     ("min_export", "MODIFIER_MIN_EXPORT_FACTOR"),
+    ("non_core_manpower", "MODIFIER_GLOBAL_NON_CORE_MANPOWER"),
     ("supply_combat_penalties_on_core_factor", "supply_combat_penalties_on_core_factor"),
 ];
 

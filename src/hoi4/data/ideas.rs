@@ -28,12 +28,35 @@ inventory::submit! {
     ItemLoader::Normal(GameFlags::Hoi4, Item::IdeaCategory, IdeaCategory::add)
 }
 
+const CATEGORY_BOOLEANS: &[&str] = &["designer", "use_list_view", "law"];
+
 impl Idea {
     pub fn add(db: &mut Db, key: Token, mut block: Block) {
         if key.is("ideas") {
             for (category, mut block) in block.drain_definitions_warn() {
-                for (key, block) in block.drain_definitions_warn() {
-                    db.add(Item::Idea, key, block, Box::new(Self { category: category.clone() }));
+                // Categories are not unique. Each file may add some ideas to the same categories.
+                // Categories may contain some boolean settings, and a series of idea definitions.
+                for item in block.drain() {
+                    if let Some(field) = item.expect_into_field() {
+                        if let Some((key, value)) = field.get_assignment() {
+                            if CATEGORY_BOOLEANS.contains(&key.as_str()) {
+                                if !(value.is("yes") || value.is("no")) {
+                                    let msg = "expected `yes` or `no`";
+                                    warn(ErrorKey::Validation).msg(msg).loc(value).push();
+                                }
+                            } else {
+                                let msg = format!("unknown key {key}");
+                                warn(ErrorKey::UnknownField).msg(msg).loc(key).push();
+                            }
+                        } else if let Some((key, block)) = field.into_definition() {
+                            db.add(
+                                Item::Idea,
+                                key,
+                                block,
+                                Box::new(Self { category: category.clone() }),
+                            );
+                        }
+                    }
                 }
             }
         } else {

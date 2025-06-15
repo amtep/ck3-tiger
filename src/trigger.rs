@@ -1184,16 +1184,32 @@ pub fn validate_target_ok_this(
     outscopes: Scopes,
 ) -> Scopes {
     if token.is_number() {
-        if !outscopes.intersects(Scopes::Value | Scopes::None) {
+        #[allow(unused_mut)] // only needs mut for hoi4
+        let mut number_scope = Scopes::Value;
+        #[cfg(feature = "hoi4")]
+        if Game::is_hoi4() && data.item_exists(Item::State, token.as_str()) {
+            number_scope |= Scopes::State;
+        }
+        if !outscopes.intersects(number_scope | Scopes::None) {
             let msg = format!("expected {outscopes}");
             warn(ErrorKey::Scopes).msg(msg).loc(token).push();
         }
-        return Scopes::Value;
+        return number_scope;
     }
     #[cfg(feature = "hoi4")]
-    if Game::is_hoi4() && token.starts_with("var:") {
-        validate_variable(token, data, sc, Severity::Error);
-        return Scopes::all_but_none();
+    if Game::is_hoi4() {
+        if token.starts_with("var:")
+            || token.starts_with("global.")
+            || token.as_str().contains('^')
+            || token.as_str().contains('@')
+            || token.as_str().contains('?')
+        {
+            validate_variable(token, data, sc, Severity::Error);
+            return Scopes::all_but_none();
+        }
+        if data.variables.variable_exists(token.as_str()) {
+            return Scopes::all_but_none();
+        }
     }
     let part_vec = partition(token);
     sc.open_builder();
