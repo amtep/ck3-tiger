@@ -1,4 +1,5 @@
 use crate::block::Block;
+use crate::context::ScopeContext;
 use crate::db::{Db, DbKind};
 use crate::everything::Everything;
 use crate::game::GameFlags;
@@ -7,18 +8,41 @@ use crate::modif::{validate_modifs, ModifKinds};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
+use crate::validate::validate_duration;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
 pub struct CompanyType {}
+#[derive(Clone, Debug)]
+pub struct DynamicCompanyName {}
+#[derive(Clone, Debug)]
+pub struct CompanyCharterType {}
 
 inventory::submit! {
     ItemLoader::Normal(GameFlags::Vic3, Item::CompanyType, CompanyType::add)
+}
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::DynamicCompanyName, DynamicCompanyName::add)
+}
+inventory::submit! {
+    ItemLoader::Normal(GameFlags::Vic3, Item::CompanyCharterType, CompanyCharterType::add)
 }
 
 impl CompanyType {
     pub fn add(db: &mut Db, key: Token, block: Block) {
         db.add(Item::CompanyType, key, block, Box::new(Self {}));
+    }
+}
+
+impl DynamicCompanyName {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::DynamicCompanyName, key, block, Box::new(Self {}));
+    }
+}
+
+impl CompanyCharterType {
+    pub fn add(db: &mut Db, key: Token, block: Block) {
+        db.add(Item::CompanyCharterType, key, block, Box::new(Self {}));
     }
 }
 
@@ -74,19 +98,6 @@ impl DbKind for CompanyType {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct DynamicCompanyName {}
-
-inventory::submit! {
-    ItemLoader::Normal(GameFlags::Vic3, Item::DynamicCompanyName, DynamicCompanyName::add)
-}
-
-impl DynamicCompanyName {
-    pub fn add(db: &mut Db, key: Token, block: Block) {
-        db.add(Item::DynamicCompanyName, key, block, Box::new(Self {}));
-    }
-}
-
 impl DbKind for DynamicCompanyName {
     fn validate(&self, key: &Token, block: &Block, data: &Everything) {
         let mut vd = Validator::new(block, data);
@@ -96,5 +107,36 @@ impl DbKind for DynamicCompanyName {
         vd.field_bool("uses_plural_naming");
         vd.field_bool("use_for_flavored_companies");
         vd.field_script_value_rooted("weight", Scopes::Country);
+    }
+}
+
+impl DbKind for CompanyCharterType {
+    fn validate(&self, key: &Token, block: &Block, data: &Everything) {
+        let mut vd = Validator::new(block, data);
+
+        data.verify_exists(Item::Localization, key);
+        let loca = format!("{key}_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+        let loca = format!("{key}_type_desc");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+        let loca = format!("{key}_effects");
+        data.verify_exists_implied(Item::Localization, &loca, key);
+
+        // "industry" is undocumented
+        vd.field_choice(
+            "type",
+            &["industry", "investment", "monopoly", "new_industry", "trade", "colonization"],
+        );
+        vd.field_item("icon", Item::File);
+        // TODO: which scope is it?
+        let mut sc = ScopeContext::new(Scopes::Company | Scopes::Country, key);
+        vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
+
+        vd.field_trigger_rooted("ai_possible", Tooltipped::No, Scopes::Company);
+        vd.field_script_value_no_breakdown_rooted("ai_weight", Scopes::Company);
+
+        // undocumented
+
+        vd.field_bool("additional_input");
     }
 }

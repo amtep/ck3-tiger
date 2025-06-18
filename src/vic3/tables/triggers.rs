@@ -703,7 +703,7 @@ const TRIGGER: &[(Scopes, &str, Trigger)] = &[
     (Scopes::Character, "is_character_alive", Boolean),
     (Scopes::CivilWar, "is_civil_war_type", Choice(&["revolution", "secession"])),
     (Scopes::State, "is_coastal", Boolean),
-    (Scopes::Company, "is_company_type", Scope(Scopes::CompanyType)),
+    (Scopes::Company, "is_company_type", ScopeOrItem(Scopes::CompanyType, Item::CompanyType)),
     (Scopes::Country, "is_considered_adjacent_due_to_wargoals", Scope(Scopes::Country)),
     (Scopes::Country, "is_construction_paused", Boolean),
     (Scopes::MarketGoods, "is_consumed_by_government_buildings", Boolean),

@@ -424,6 +424,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] CommanderOrder,
     #[cfg(feature = "vic3")] CommanderRank,
     #[cfg(feature = "vic3")] CompanyType,
+    #[cfg(feature = "vic3")] CompanyCharterType,
     #[cfg(feature = "vic3")] CohesionLevel,
     #[cfg(feature = "vic3")] CountryCreation,
     #[cfg(feature = "vic3")] CountryFormation,
@@ -1380,6 +1381,8 @@ impl Item {
             Item::CommanderRank => "common/commander_ranks/",
             #[cfg(feature = "vic3")]
             Item::CompanyType => "common/company_types/",
+            #[cfg(feature = "vic3")]
+            Item::CompanyCharterType => "common/company_charter_types/",
             #[cfg(feature = "vic3")]
             Item::CohesionLevel => "common/cohesion_levels/",
             #[cfg(feature = "vic3")]
