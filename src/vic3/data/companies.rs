@@ -33,8 +33,11 @@ impl DbKind for CompanyType {
 
         vd.field_bool("flavored_company");
         vd.field_bool("uses_dynamic_naming");
+        vd.field_list_items("preferred_headquarters", Item::StateRegion);
 
         vd.field_item("replaces_company", Item::CompanyType);
+        vd.field_list_items("possible_prestige_goods", Item::PrestigeGoods);
+        vd.field_trigger_rooted("prestige_goods_trigger", Tooltipped::No, Scopes::Company);
 
         if block.field_value_is("uses_dynamic_naming", "yes") {
             vd.field_list_items("dynamic_company_type_names", Item::Localization);
@@ -43,6 +46,7 @@ impl DbKind for CompanyType {
         }
 
         vd.field_list_items("building_types", Item::BuildingType);
+        vd.field_list_items("extension_building_types", Item::BuildingType);
 
         vd.field_trigger_rooted("potential", Tooltipped::No, Scopes::Country);
         vd.field_trigger_rooted("attainable", Tooltipped::Yes, Scopes::Country);
@@ -53,6 +57,15 @@ impl DbKind for CompanyType {
             validate_modifs(block, data, ModifKinds::all(), vd);
         });
 
+        vd.field_trigger_rooted("ai_will_do", Tooltipped::No, Scopes::Country);
+        vd.field_validated_block("ai_construction_targets", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.validate_item_key_blocks(Item::BuildingType, |_, block, data| {
+                let mut vd = Validator::new(block, data);
+                vd.field_integer("level");
+                vd.field_trigger_rooted("state_trigger", Tooltipped::No, Scopes::State);
+            });
+        });
         vd.field_script_value_rooted("ai_weight", Scopes::Country);
 
         // undocumented

@@ -7,7 +7,6 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::validate::validate_modifiers_with_base;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -36,6 +35,6 @@ impl DbKind for Decision {
         vd.field_trigger("possible", Tooltipped::Yes, &mut sc);
         vd.field_effect("when_taken", Tooltipped::Yes, &mut sc);
 
-        vd.field_validated_block_sc("ai_chance", &mut sc, validate_modifiers_with_base);
+        vd.field_script_value_no_breakdown("ai_chance", &mut sc);
     }
 }

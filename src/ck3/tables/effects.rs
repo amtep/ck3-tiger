@@ -198,10 +198,10 @@ const SCOPE_EFFECT: &[(Scopes, &str, Effect)] = &[
     (Scopes::None, "add_to_global_variable_list", Vb(validate_add_to_variable_list)),
     // TODO: figure out the parameters for this
     (Scopes::Activity, "add_to_guest_subset", Vb(validate_guest_subset)),
-    (Scopes::all(), "add_to_list", Vbv(validate_add_to_list_ck3)),
+    (Scopes::all(), "add_to_list", Vbv(validate_add_to_list)),
     (Scopes::None, "add_to_local_variable_list", Vb(validate_add_to_variable_list)),
     (Scopes::all(), "add_to_scheme", Removed("1.13", "replaced with add_to_agent_slot")),
-    (Scopes::all(), "add_to_temporary_list", Vbv(validate_add_to_list_ck3)),
+    (Scopes::all(), "add_to_temporary_list", Vbv(validate_add_to_list)),
     (Scopes::None, "add_to_variable_list", Vb(validate_add_to_variable_list)),
     (Scopes::Character, "add_trait", ScopeOrItem(Scopes::Trait, Item::Trait)),
     (Scopes::Character, "add_trait_force_tooltip", ScopeOrItem(Scopes::Trait, Item::Trait)),

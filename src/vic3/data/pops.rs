@@ -33,6 +33,8 @@ impl DbKind for PopType {
         data.verify_exists_implied(Item::Localization, &loca, key);
         let loca = format!("{key}_only_icon");
         data.verify_exists_implied(Item::Localization, &loca, key);
+        let loca = format!("{key}_QUALIFICATIONS_DESC").to_uppercase();
+        data.verify_exists_implied(Item::Localization, &loca, key);
 
         vd.field_item("texture", Item::File);
         vd.field_validated("color", validate_possibly_named_color);
@@ -52,7 +54,7 @@ impl DbKind for PopType {
         vd.field_numeric("political_engagement_literacy_factor");
         vd.field_script_value_rooted("political_engagement_mult", Scopes::Pop);
 
-        vd.field_item("qualifications_growth_desc", Item::Localization);
+        vd.advice_field("qualifications_growth_desc", "removed in 1.9");
         vd.field_script_value_rooted("qualifications", Scopes::Pop);
 
         vd.field_script_value_rooted("portrait_age", Scopes::Pop);

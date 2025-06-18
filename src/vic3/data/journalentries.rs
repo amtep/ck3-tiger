@@ -60,6 +60,14 @@ impl DbKind for JournalEntry {
             data.mark_used(Item::Localization, &format!("{key}_status"));
         }
 
+        vd.field_validated_sc("event_outcome_completed_desc", &mut sc, validate_desc);
+        vd.field_validated_sc("event_outcome_failed_desc", &mut sc, validate_desc);
+        vd.field_validated_sc("event_outcome_timeout_desc", &mut sc, validate_desc);
+        vd.field_localization("custom_completion_header", &mut sc);
+        vd.field_localization("custom_failure_header", &mut sc);
+        vd.field_localization("custom_on_completion_header", &mut sc);
+        vd.field_localization("custom_on_failure_header", &mut sc);
+
         vd.field_integer("timeout");
         vd.field_effect("on_timeout", Tooltipped::Yes, &mut sc);
 

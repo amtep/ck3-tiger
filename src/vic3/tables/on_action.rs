@@ -371,4 +371,36 @@ pub const ON_ACTION_SCOPES: &str = "
 		num_states = value
 		intensity = value
 	}
+
+	on_game_started = {
+		root = none
+	}
+	on_game_started_after_lobby = on_game_started
+
+	on_treaty_entered_into_force = {
+		root = treaty
+	}
+	on_treaty_enforced = {
+		root = treaty
+	}
+	on_treaty_proposed = {
+		root = treaty
+	}
+	on_treaty_proposal_declined = {
+		root = country
+	}
+	on_country_released_as_company_subject = {
+		root = country
+		target = country
+	}
+	on_country_withdrawn_from_treaty = {
+		root = treaty
+		withdrawing_country = country
+		non_withdrawing_country = country
+	}
+	on_country_broke_treaty = on_country_withdrawn_from_treaty
+	on_treaty_dissolved = {
+		root = country
+		second_country = country
+	}
 ";

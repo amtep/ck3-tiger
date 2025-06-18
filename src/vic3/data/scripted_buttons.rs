@@ -8,7 +8,7 @@ use crate::item::{Item, ItemLoader};
 use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
-use crate::validate::validate_modifiers_with_base;
+use crate::validate::validate_duration;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -39,11 +39,13 @@ impl DbKind for ScriptedButton {
         vd.req_field("desc");
         vd.field_validated_sc("desc", &mut sc, validate_desc);
 
+        vd.field_validated_block_sc("cooldown", &mut sc, validate_duration);
+
         vd.field_trigger("visible", Tooltipped::No, &mut sc);
         vd.field_trigger("possible", Tooltipped::Yes, &mut sc);
         vd.field_effect("effect", Tooltipped::Yes, &mut sc);
 
-        vd.field_validated_block_sc("ai_chance", &mut sc, validate_modifiers_with_base);
+        vd.field_script_value_no_breakdown("ai_chance", &mut sc);
 
         // undocumented
 

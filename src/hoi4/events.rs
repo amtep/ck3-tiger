@@ -89,6 +89,8 @@ pub fn validate_event(event: &Event, data: &Everything, sc: &mut ScopeContext) {
     });
     vd.field_integer("timeout_days");
 
+    // TODO HOI4: events now have an "after" section in hoi4 too
+
     if !hidden {
         vd.req_field("option");
     }

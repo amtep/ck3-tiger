@@ -10,6 +10,7 @@ use crate::script_value::validate_script_value;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::validator::Validator;
+use crate::vic3::tables::misc::TREATY_ARTICLE_CATEGORIES;
 
 #[derive(Clone, Debug)]
 pub struct AiStrategy {}
@@ -162,6 +163,7 @@ impl DbKind for AiStrategy {
         vd.field_validated_key_block("strategic_region_scores", validate_strategic_region_scores);
         vd.field_validated_key_block("secret_goal_scores", validate_secret_goal_scores);
         vd.field_validated_key_block("secret_goal_weights", validate_secret_goal_weights);
+        vd.field_validated_key_block("treaty_category_scores", validate_treaty_category_scores);
         vd.field_validated_key_block("wargoal_scores", validate_wargoal_scores);
         vd.field_validated_key_block("wargoal_weights", validate_wargoal_weights);
 
@@ -246,6 +248,14 @@ fn validate_secret_goal_weights(_key: &Token, block: &Block, data: &Everything) 
         data.verify_exists(Item::SecretGoal, key);
         token.expect_number();
     });
+}
+
+fn validate_treaty_category_scores(_key: &Token, block: &Block, data: &Everything) {
+    let mut vd = Validator::new(block, data);
+    for category in TREATY_ARTICLE_CATEGORIES {
+        vd.field_script_value_rooted(category, Scopes::Country);
+    }
+    vd.field_script_value_rooted("none", Scopes::Country);
 }
 
 fn validate_wargoal_scores(key: &Token, block: &Block, data: &Everything) {

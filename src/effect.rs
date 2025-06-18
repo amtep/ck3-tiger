@@ -26,8 +26,6 @@ use crate::validate::validate_compare_duration;
 use crate::validate::validate_modifiers;
 #[cfg(feature = "jomini")]
 use crate::validate::validate_scripted_modifier_call;
-#[cfg(feature = "vic3")]
-use crate::validate::validate_vic3_modifiers;
 use crate::validate::{
     precheck_iterator_fields, validate_identifier, validate_ifelse_sequence,
     validate_inside_iterator, validate_iterator_fields, validate_scope_chain, ListType,
@@ -560,7 +558,8 @@ pub fn validate_effect_control(
     if caller == "random" || caller == "random_list" || caller == "duel" {
         #[cfg(feature = "vic3")]
         if Game::is_vic3() {
-            validate_vic3_modifiers(&mut vd, sc);
+            // docs warn there should not be multiple modifier blocks
+            vd.field_script_value("modifier", sc);
         }
         #[cfg(any(feature = "imperator", feature = "ck3", feature = "hoi4"))]
         if Game::is_imperator() || Game::is_ck3() || Game::is_hoi4() {

@@ -42,6 +42,8 @@ const SIMPLE_GAME_RULE_FLAGS: &[&str] = &[
     "loyalties_grace_period_long",
     "loyalties_grace_period_extra_long",
     "no_fantastical_content",
+    "use_custom_rng_seed",
+    "no_dynamic_naming",
 ];
 
 impl DbKind for GameRule {

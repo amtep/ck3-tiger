@@ -175,20 +175,9 @@ impl DbKind for BuildingType {
         vd.field_item("terrain_manipulator", Item::TerrainManipulator);
         vd.field_integer("levels_per_mesh");
         vd.field_integer("residence_points_per_level");
-        vd.field_bool("override_centerpiece_mesh");
+        vd.advice_field("override_centerpiece_mesh", "removed in 1.9");
+        vd.advice_field("centerpiece_mesh_weight", "removed in 1.9");
         vd.field_bool("statue");
-        if block.field_value_is("override_centerpiece_mesh", "yes")
-            || block.field_value_is("statue", "yes")
-        {
-            vd.req_field("centerpiece_mesh_weight");
-        }
-        if block.field_value_is("override_centerpiece_mesh", "yes")
-            && block.field_value_is("statue", "yes")
-        {
-            let msg = "override_centerpiece_mesh and statue are mutually exclusive";
-            err(ErrorKey::Validation).msg(msg).loc(block).push();
-        }
-        vd.field_integer("centerpiece_mesh_weight");
 
         vd.field_list("meshes"); // TODO
         vd.field_list("entity_not_constructed"); // TODO
@@ -255,10 +244,13 @@ impl DbKind for BuildingGroup {
         vd.field_bool("can_use_slaves");
         vd.field_bool("inheritable_construction");
         vd.field_bool("stateregion_max_level");
+        vd.field_bool("subsidized");
         vd.field_bool("pays_taxes"); // undocumented
-        vd.field_bool("created_by_trade_routes"); // undocumented
-        vd.field_bool("subsidized"); // undocumented
+        vd.advice_field("created_by_trade_routes", "removed in 1.9"); // undocumented
         vd.field_bool("always_self_owning"); // undocumented
+        vd.field_bool("has_trade_revenue"); // undocumented
+        vd.field_bool("company_headquarter"); // undocumented
+        vd.field_bool("regional_company_headquarter"); // undocumented
 
         // TODO: are category and land_usage really both valid?
         vd.field_choice("category", &["urban", "rural", "development"]);

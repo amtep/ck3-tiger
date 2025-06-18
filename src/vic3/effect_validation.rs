@@ -9,10 +9,14 @@ use crate::scopes::Scopes;
 use crate::token::Token;
 use crate::tooltipped::Tooltipped;
 use crate::trigger::validate_target;
-use crate::validate::{validate_color, validate_optional_duration, validate_possibly_named_color};
+use crate::validate::{
+    validate_color, validate_optional_duration, validate_optional_duration_int,
+    validate_possibly_named_color,
+};
 use crate::validator::{Validator, ValueValidator};
 use crate::vic3::data::buildings::BuildingType;
-use crate::vic3::tables::misc::{LOBBY_FORMATION_REASON, STATE_TYPES, STRATA};
+use crate::vic3::tables::misc::{LOBBY_FORMATION_REASON, STATE_TYPES, STRATA, TARIFF_LEVELS};
+use crate::vic3::validate::validate_treaty_article;
 
 pub fn validate_activate_production_method(
     _key: &Token,
@@ -140,7 +144,7 @@ pub fn validate_add_technology_progress(
 
 pub fn validate_add_war_goal(
     _key: &Token,
-    _block: &Block,
+    block: &Block,
     _data: &Everything,
     sc: &mut ScopeContext,
     mut vd: Validator,
@@ -157,6 +161,11 @@ pub fn validate_add_war_goal(
     vd.field_target("target_state", sc, Scopes::State);
     vd.field_target("region", sc, Scopes::StateRegion);
     vd.field_bool("primary_demand");
+    if let Some(goal_type) = block.get_field_value("type") {
+        if goal_type.is("enforce_treaty_article") {
+            vd.multi_field_validated_block_sc("article", sc, validate_treaty_article);
+        }
+    }
 }
 
 pub fn validate_remove_war_goal(
@@ -494,6 +503,11 @@ fn validate_war_goal(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.advice_field("region", "docs say `region` but it's `target_region`");
     vd.field_target("target_region", sc, Scopes::StrategicRegion);
     vd.field_bool("primary_demand");
+    if let Some(goal_type) = block.get_field_value("type") {
+        if goal_type.is("enforce_treaty_article") {
+            vd.multi_field_validated_block_sc("article", sc, validate_treaty_article);
+        }
+    }
 }
 
 pub fn validate_create_mass_migration(
@@ -669,24 +683,6 @@ pub fn validate_create_state(
     vd.field_target("country", sc, Scopes::Country);
     vd.field_list_items("owned_provinces", Item::Province);
     vd.field_choice("state_type", STATE_TYPES);
-}
-
-pub fn validate_create_trade_route(
-    _key: &Token,
-    _block: &Block,
-    _data: &Everything,
-    sc: &mut ScopeContext,
-    mut vd: Validator,
-    _tooltipped: Tooltipped,
-) {
-    vd.field_item("goods", Item::Goods);
-    vd.field_integer("level");
-
-    vd.advice_field("import", "docs say `import = yes` but it's `direction = import`");
-    vd.field_choice("direction", &["export", "import"]);
-    vd.field_target("origin", sc, Scopes::StateRegion);
-    // docs say state_region but it's market
-    vd.field_target("target", sc, Scopes::Market);
 }
 
 pub fn validate_form_government(
@@ -1046,4 +1042,86 @@ pub fn validate_start_tutorial(
     vd.req_field("tutorial_lesson");
     vd.field_item("tutorial_lesson", Item::TutorialLesson);
     vd.field_target("journal_entry", sc, Scopes::JournalEntry);
+}
+
+pub fn validate_audio_event(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    _sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_value("persistent_object"); // TODO
+    vd.field_value("event"); // TODO
+}
+
+pub fn validate_withdraw(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_target("country", sc, Scopes::Country);
+}
+
+pub fn validate_create_treaty(
+    _key: &Token,
+    block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_localization("name", sc);
+    vd.req_field_one_of(&["first_country", "amends"]);
+    vd.req_field_one_of(&["second_country", "amends"]);
+    vd.field_target("first_country", sc, Scopes::Country);
+    vd.field_target("second_country", sc, Scopes::Country);
+    vd.field_target("amends", sc, Scopes::Treaty);
+
+    vd.field_bool("is_draft");
+    if block.has_key("amends") && !block.get_field_bool("is_draft").unwrap_or(true) {
+        let msg = "treaties that are amendments must be drafts";
+        // SAFETY: we can only get here if the block has `is_draft = no`
+        let loc = block.get_key("draft").unwrap();
+        err(ErrorKey::Validation).msg(msg).loc(loc).push();
+    }
+
+    vd.field_date("entered_into_force_on");
+    vd.field_validated_block("binding_period", |block, data| {
+        let mut vd = Validator::new(block, data);
+        validate_optional_duration_int(&mut vd);
+    });
+
+    if !block.has_key("amends") && !block.has_key("articles_to_create") {
+        let msg = "treaties that are not amendments must create at least one article";
+        err(ErrorKey::Validation).msg(msg).loc(block).push();
+    }
+    vd.field_validated_block("articles_to_create", |block, data| {
+        let mut vd = Validator::new(block, data);
+        let mut count = 0;
+        for block in vd.blocks() {
+            count += 1;
+            validate_treaty_article(block, data, sc);
+        }
+        if count == 0 {
+            let msg = "treaties that are not amendments must create at least one article";
+            err(ErrorKey::Validation).msg(msg).loc(block).push();
+        }
+    });
+}
+
+pub fn validate_tariff_level(
+    _key: &Token,
+    _block: &Block,
+    _data: &Everything,
+    sc: &mut ScopeContext,
+    mut vd: Validator,
+    _tooltipped: Tooltipped,
+) {
+    vd.field_target("goods", sc, Scopes::Goods);
+    vd.field_choice("level", TARIFF_LEVELS);
 }

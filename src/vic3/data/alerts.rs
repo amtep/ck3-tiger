@@ -47,6 +47,11 @@ impl DbKind for Alert {
                 if script_context.is(context) {
                     sc = ScopeContext::new(s, key);
                     sc.define_name("actor", Scopes::Country, key);
+                    if context == "player_invasion" {
+                        sc.define_name("is_naval_invasion", Scopes::Bool, key);
+                        sc.define_name("attacker", Scopes::Country, key);
+                        sc.define_name("defender", Scopes::Country, key);
+                    }
                     found = true;
                     break;
                 }
@@ -106,15 +111,15 @@ const SCRIPT_CONTEXTS: &[(&str, Scopes)] = &[
     ("player_interest_group", Scopes::InterestGroup),
     ("player_invaded_state", Scopes::State),
     ("player_market", Scopes::Market),
-    ("player_naval_invasion", Scopes::NavalInvasion),
-    ("player_involved_market", Scopes::Market),
+    ("player_invasion", Scopes::Invasion),
     ("player_state", Scopes::State),
     ("player_building", Scopes::Building),
     ("player_market_goods", Scopes::MarketGoods),
     ("player_commander", Scopes::Character),
     ("player_military_formation", Scopes::MilitaryFormation),
     ("player_subject", Scopes::Country),
-    ("player_trade_route", Scopes::TradeRoute),
+    ("player_treaty", Scopes::Treaty),
+    ("player_article", Scopes::TreatyArticle),
     // undocumented from here
     ("player_front", Scopes::Front),
     ("player_war", Scopes::War),

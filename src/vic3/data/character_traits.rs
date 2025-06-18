@@ -54,6 +54,10 @@ impl DbKind for CharacterTrait {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::all(), vd);
         });
+        vd.field_validated_block("executive_modifier", |block, data| {
+            let vd = Validator::new(block, data);
+            validate_modifs(block, data, ModifKinds::all(), vd);
+        });
 
         vd.field_trigger("possible", Tooltipped::No, &mut sc);
         vd.field_script_value("weight", &mut sc);

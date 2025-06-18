@@ -234,6 +234,7 @@ fn validate_pact(block: &Block, data: &Everything, sc: &mut ScopeContext) {
     vd.field_item("break_string", Item::Localization);
     vd.field_item("ask_to_end_string", Item::Localization);
 
+    vd.field_bool("military_access");
     vd.field_bool("actor_requires_approval_to_break");
     vd.field_bool("target_requires_approval_to_break");
     vd.field_bool("is_breaking_hostile");

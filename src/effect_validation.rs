@@ -19,9 +19,9 @@ use crate::trigger::{validate_target_ok_this, validate_trigger_key_bv};
 use crate::validate::{validate_identifier, validate_optional_duration};
 use crate::validator::{Validator, ValueValidator};
 
-#[allow(dead_code)] // No longer used by CK3
-#[cfg(feature = "jomini")]
-pub fn validate_add_to_list(
+#[allow(dead_code)]
+#[cfg(feature = "imperator")]
+pub fn validate_add_to_list_imperator(
     _key: &Token,
     mut vd: ValueValidator,
     sc: &mut ScopeContext,
@@ -30,6 +30,38 @@ pub fn validate_add_to_list(
     vd.identifier("list name");
     sc.define_or_expect_list(vd.value());
     vd.accept();
+}
+
+#[allow(dead_code)]
+#[cfg(any(feature = "ck3", feature = "vic3"))]
+pub fn validate_add_to_list(
+    _key: &Token,
+    bv: &BV,
+    data: &Everything,
+    sc: &mut ScopeContext,
+    _tooltipped: Tooltipped,
+) {
+    match bv {
+        BV::Value(name) => {
+            validate_identifier(name, "list name", Severity::Error);
+            sc.define_or_expect_list(name);
+        }
+        BV::Block(block) => {
+            let mut vd = Validator::new(block, data);
+            vd.req_field("name");
+            vd.req_field("value");
+            if let Some(target) = vd.field_value("value").cloned() {
+                if let Some(name) = vd.field_value("name") {
+                    validate_identifier(name, "list name", Severity::Error);
+                    let outscopes =
+                        validate_target_ok_this(&target, data, sc, Scopes::all_but_none());
+                    sc.open_scope(outscopes, target);
+                    sc.define_or_expect_list(name);
+                    sc.close();
+                }
+            }
+        }
+    }
 }
 
 /// A specific validator for the three `add_to_variable_list` effects (`global`, `local`, and default).
@@ -46,8 +78,9 @@ pub fn validate_add_to_variable_list(
     vd.req_field("target");
     vd.field_identifier("name", "list name");
     vd.field_target_ok_this("target", sc, Scopes::all_but_none());
-    #[cfg(feature = "ck3")]
-    validate_optional_duration(&mut vd, sc);
+    if Game::is_ck3() || Game::is_vic3() {
+        validate_optional_duration(&mut vd, sc);
+    }
 }
 
 /// A specific validator for the three `change_variable` effects (`global`, `local`, and default).

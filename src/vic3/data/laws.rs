@@ -47,6 +47,8 @@ impl DbKind for LawType {
         data.verify_exists_implied(Item::Localization, &loca, key);
 
         vd.field_item("group", Item::LawGroup);
+        // TODO: scan for cycles in parent chain
+        vd.field_item("parent", Item::LawType);
         vd.field_item("icon", Item::File);
 
         vd.field_numeric("progressiveness");
@@ -60,6 +62,8 @@ impl DbKind for LawType {
             let vd = Validator::new(block, data);
             validate_modifs(block, data, ModifKinds::all(), vd);
         });
+
+        vd.field_list_items("requires_law_or", Item::LawType);
 
         vd.field_trigger_rooted("is_visible", Tooltipped::Yes, Scopes::Country);
         vd.field_trigger_rooted("can_enact", Tooltipped::Yes, Scopes::Country);

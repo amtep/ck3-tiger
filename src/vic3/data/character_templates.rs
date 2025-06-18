@@ -122,5 +122,14 @@ impl DbKind for CharacterTemplate {
                 vd.field_numeric_range("chance", 0.0..=100.0);
             });
         }
+
+        vd.field_validated_block("executive_usage", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_trigger_rooted("country_trigger", Tooltipped::No, Scopes::Country);
+            vd.field_trigger_rooted("company_trigger", Tooltipped::No, Scopes::Company);
+            vd.field_date("earliest_usage_date");
+            vd.field_date("latest_usage_date");
+            vd.field_numeric_range("chance", 0.0..=100.0);
+        });
     }
 }

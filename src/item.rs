@@ -477,6 +477,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] PowerBlocIdentity,
     #[cfg(feature = "vic3")] PowerBlocMapTexture,
     #[cfg(feature = "vic3")] PowerBlocName,
+    #[cfg(feature = "vic3")] PrestigeGoods,
     #[cfg(feature = "vic3")] Principle,
     #[cfg(feature = "vic3")] PrincipleGroup,
     #[cfg(feature = "vic3")] ProductionMethod,
@@ -501,6 +502,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] TerrainMaterial,
     #[cfg(feature = "vic3")] Theme,
     #[cfg(feature = "vic3")] TransferOfPower,
+    #[cfg(feature = "vic3")] TreatyArticle,
 
     // Items specific to imperator
     #[cfg(feature = "imperator")] Ambition,
@@ -1486,6 +1488,8 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::PowerBlocName => "common/power_bloc_names/",
             #[cfg(feature = "vic3")]
+            Item::PrestigeGoods => "common/prestige_goods/",
+            #[cfg(feature = "vic3")]
             Item::Principle => "common/power_bloc_principles/",
             #[cfg(feature = "vic3")]
             Item::PrincipleGroup => "common/power_bloc_principle_groups/",
@@ -1502,7 +1506,7 @@ impl Item {
             #[cfg(feature = "vic3")]
             Item::ScriptedProgressBar => "common/scripted_progress_bars/",
             #[cfg(feature = "vic3")]
-            Item::ScriptedTest => "common/scripted_tests/",
+            Item::ScriptedTest => "tools/scripted_tests/",
             #[cfg(feature = "vic3")]
             Item::SecretGoal => "",
             #[cfg(feature = "vic3")]
@@ -1533,6 +1537,8 @@ impl Item {
             Item::Theme => "common/themes/",
             #[cfg(feature = "vic3")]
             Item::TransferOfPower => "",
+            #[cfg(feature = "vic3")]
+            Item::TreatyArticle => "common/treaty_articles/",
 
             #[cfg(feature = "imperator")]
             Item::AiPlanGoals => "common/ai_plan_goals/",

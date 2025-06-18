@@ -749,13 +749,6 @@ pub fn validate_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
     // TODO HOI4
 }
 
-#[cfg(feature = "vic3")]
-pub fn validate_vic3_modifiers(vd: &mut Validator, sc: &mut ScopeContext) {
-    vd.multi_field_validated("modifier", |bv, data| {
-        validate_script_value(bv, data, sc);
-    });
-}
-
 #[cfg(feature = "jomini")]
 pub fn validate_scripted_modifier_call(
     key: &Token,

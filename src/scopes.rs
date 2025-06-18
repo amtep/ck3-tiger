@@ -158,14 +158,14 @@ bitflags! {
         #[cfg(feature = "vic3")] const Objective = 0x0001_0000_0000_0000;
         #[cfg(feature = "vic3")] const PoliticalMovement = 0x0002_0000_0000_0000;
         #[cfg(feature = "vic3")] const PopType = 0x0004_0000_0000_0000;
-        #[cfg(feature = "vic3")] const ShippingLane = 0x0008_0000_0000_0000;
+        #[cfg(feature = "vic3")] const ShippingLanes = 0x0008_0000_0000_0000;
         #[cfg(feature = "vic3")] const StateRegion = 0x0010_0000_0000_0000;
         #[cfg(feature = "vic3")] const StateTrait = 0x0020_0000_0000_0000;
         #[cfg(feature = "vic3")] const StrategicRegion = 0x0040_0000_0000_0000;
         #[cfg(feature = "vic3")] const Technology = 0x0080_0000_0000_0000;
         #[cfg(feature = "vic3")] const TechnologyStatus = 0x0100_0000_0000_0000;
         #[cfg(feature = "vic3")] const Theater = 0x0200_0000_0000_0000;
-        #[cfg(feature = "vic3")] const TradeRoute = 0x0400_0000_0000_0000;
+        // #[cfg(feature = "vic3")] const TradeRoute = 0x0400_0000_0000_0000;
         #[cfg(feature = "vic3")] const CombatUnitType = 0x1000_0000_0000_0000;
         #[cfg(feature = "vic3")] const MilitaryFormation = 0x2000_0000_0000_0000;
         #[cfg(feature = "vic3")] const Sway = 0x4000_0000_0000_0000;
@@ -177,7 +177,7 @@ bitflags! {
         #[cfg(feature = "vic3")] const TravelNodeDefinition = 0x0000_0000_0000_0010_0000_0000_0000_0000;
         #[cfg(feature = "vic3")] const TravelConnection = 0x0000_0000_0000_0020_0000_0000_0000_0000;
         #[cfg(feature = "vic3")] const TravelConnectionDefinition = 0x0000_0000_0000_0040_0000_0000_0000_0000;
-        #[cfg(feature = "vic3")] const NavalInvasion = 0x0000_0000_0000_0080_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const Invasion = 0x0000_0000_0000_0080_0000_0000_0000_0000;
         #[cfg(feature = "vic3")] const MobilizationOption = 0x0000_0000_0000_0100_0000_0000_0000_0000;
         #[cfg(feature = "vic3")] const PowerBlocPrincipleGroup = 0x0000_0000_0000_0200_0000_0000_0000_0000;
         #[cfg(feature = "vic3")] const DiplomaticPlayType = 0x0000_0000_0000_0400_0000_0000_0000_0000;
@@ -193,6 +193,10 @@ bitflags! {
         #[cfg(feature = "vic3")] const HarvestCondition = 0x0000_0000_0010_0000_0000_0000_0000_0000;
         #[cfg(feature = "vic3")] const PoliticalMovementType = 0x0000_0000_0020_0000_0000_0000_0000_0000;
         #[cfg(feature = "vic3")] const HarvestConditionType = 0x0000_0000_0040_0000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const TreatyArticle = 0x0000_0000_0080_0000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const TreatyOptions = 0x0000_0000_0100_0000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const TreatyArticleOptions = 0x0000_0000_0200_0000_0000_0000_0000_0000;
+        #[cfg(feature = "vic3")] const Treaty = 0x0000_0000_0400_0000_0000_0000_0000_0000;
 
         #[cfg(feature = "imperator")] const Area = 0x0001_0000;
         #[cfg(feature = "imperator")] const CountryCulture = 0x0002_0000;

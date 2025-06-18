@@ -76,6 +76,7 @@ const MAP_PAINTING_MODES: &[&str] = &[
     "literacy",
     "loyalists",
     "market_access",
+    "market_areas",
     "mass_migration_pull",
     "migration",
     "migration_pull",
@@ -107,6 +108,7 @@ const MAP_PAINTING_MODES: &[&str] = &[
 const MAP_NAMES: &[&str] = &[
     "countries",
     "cultures",
+    "market_areas",
     "markets",
     "power_blocs",
     "religions",
@@ -128,6 +130,8 @@ impl DbKind for MapMode {
 
         data.verify_exists(Item::Localization, key);
 
+        vd.field_item("icon", Item::File);
+
         vd.field_choice("map_painting_mode", MAP_PAINTING_MODES);
         vd.field_choice("map_painting_mode_secondary", MAP_PAINTING_MODES);
         vd.field_choice("map_painting_mode_alternate", MAP_PAINTING_MODES);
@@ -147,8 +151,9 @@ impl DbKind for MapMode {
         vd.field_bool("is_visible_to_countryless_observer");
         vd.field_item("gradient_border_settings", Item::GradientBorderSettings);
         vd.field_bool("use_alternate_country_borders");
+        vd.field_bool("debug");
 
-        vd.field_item("soundeffect", Item::Sound);
+        vd.multi_field_item("soundeffect", Item::Sound);
 
         vd.field_bool("use_mapmode_textures");
         vd.field_bool("primary_red_as_gradient_border");

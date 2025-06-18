@@ -42,6 +42,10 @@ impl DbKind for Country {
         vd.field_bool("is_named_from_capital");
         vd.field_bool("dynamic_country_definition");
 
+        vd.field_validated("primary_unit_color", validate_possibly_named_color);
+        vd.field_validated("secondary_unit_color", validate_possibly_named_color);
+        vd.field_validated("tertiary_unit_color", validate_possibly_named_color);
+
         // TODO: what is the scope type here?
         vd.field_trigger_rooted(
             "valid_as_home_country_for_separatists",

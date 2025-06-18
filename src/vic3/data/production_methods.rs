@@ -30,6 +30,13 @@ impl DbKind for ProductionMethod {
         vd.field_bool("is_default");
         vd.field_bool("low_pop_method");
 
+        vd.field_validated_block("profession_ratio", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.validate_item_key_values(Item::PopType, |_, mut vvd| {
+                vvd.numeric();
+            });
+        });
+
         vd.field_validated_block("country_modifiers", |block, data| {
             validate_modifier_block(block, data, ModifKinds::all());
         });

@@ -42,9 +42,11 @@ impl DbKind for CommanderOrder {
         vd.field_choice("military_type", &["army", "navy"]);
         // undocumented
         vd.field_choice(
-            "ai_usage",
-            &["advance", "defend", "intercept", "raid_convoys", "escort_convoys"],
+            "behavior",
+            &["advance", "defend", "intercept", "blockade", "raid_convoys", "escort_convoys"],
         );
+        // undocumented
+        vd.advice_field("ai_usage", "renamed to `behavior` in 1.9");
         vd.field_bool("is_basic_order_type");
 
         vd.field_validated_key_block("possible", |key, block, data| {
@@ -78,6 +80,7 @@ impl DbKind for CommanderOrder {
         vd.field_numeric_range("indicator_position_angle", 0.0..360.0);
         vd.field_numeric_range("indicator_position_angle_for_enemy", 0.0..360.0);
         vd.field_item("clicksound", Item::Sound);
+        vd.field_numeric("escape_power_ratio");
         vd.field_numeric("experience");
 
         // TODO: verify scope type

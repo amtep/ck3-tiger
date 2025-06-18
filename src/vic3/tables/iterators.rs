@@ -40,6 +40,7 @@ const ITERATOR: &[(Scopes, &str, Scopes)] = &[
     ),
     (Scopes::Country, "company", Scopes::Company),
     (Scopes::None, "country", Scopes::Country),
+    (Scopes::None, "decentralized_country", Scopes::Country),
     (Scopes::Country, "diplomatic_catalyst", Scopes::DiplomaticCatalyst),
     (Scopes::None, "diplomatic_play", Scopes::DiplomaticPlay),
     (Scopes::Country, "diplomatically_relevant_country", Scopes::Country),
@@ -101,6 +102,12 @@ const ITERATOR: &[(Scopes, &str, Scopes)] = &[
         Scopes::Character,
     ),
     (Scopes::Country, "scope_ally", Scopes::Country),
+    (Scopes::Treaty, "scope_article", Scopes::TreatyArticle),
+    (
+        Scopes::TreatyOptions.union(Scopes::Treaty),
+        "scope_article_option",
+        Scopes::TreatyArticleOptions,
+    ),
     (Scopes::Country.union(Scopes::State), "scope_building", Scopes::Building),
     (
         Scopes::Country
@@ -143,6 +150,7 @@ const ITERATOR: &[(Scopes, &str, Scopes)] = &[
         "scope_pop",
         Scopes::Pop,
     ),
+    (Scopes::Company, "scope_regional_hqs", Scopes::Building),
     (
         Scopes::Country
             .union(Scopes::Front)
@@ -154,6 +162,7 @@ const ITERATOR: &[(Scopes, &str, Scopes)] = &[
     ),
     (Scopes::DiplomaticPlay, "scope_target_ally", Scopes::Country),
     (Scopes::Country, "scope_theater", Scopes::Theater),
+    (Scopes::Country, "scope_treaty", Scopes::Treaty),
     (Scopes::Country, "scope_violate_sovereignty_interested_parties", Scopes::Country),
     (Scopes::Country, "scope_violate_sovereignty_wars", Scopes::War),
     (Scopes::Country, "scope_war", Scopes::War),
@@ -165,11 +174,7 @@ const ITERATOR: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "subject_of_subject", Scopes::Country),
     (Scopes::Country, "subject_or_below", Scopes::Country),
     (Scopes::PoliticalMovement, "supporting_character", Scopes::Character),
-    (
-        Scopes::Country.union(Scopes::Market).union(Scopes::MarketGoods),
-        "trade_route",
-        Scopes::TradeRoute,
-    ),
+    (Scopes::None, "treaty", Scopes::Treaty),
     (Scopes::Country, "valid_mass_migration_culture", Scopes::Culture),
     (Scopes::War, "war_participant", Scopes::Country),
 ];
@@ -190,4 +195,5 @@ const ITERATOR_REMOVED: &[(&str, &str, &str)] = &[
         "replaced with _cobelligerent_in_diplo_play, _cobelligerent_in_war",
     ),
     ("supporting_interest_group", "1.8", "replaced with `_influenced_interest_group`"),
+    ("trade_route", "1.9", "replaced by world market system"),
 ];

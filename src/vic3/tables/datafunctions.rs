@@ -121,7 +121,7 @@ const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
     (Vic3(PopType), Scopes::PopType),
     (Vic3(Province), Scopes::Province),
     (Vic3(Religion), Scopes::Religion),
-    (Vic3(ShippingLane), Scopes::ShippingLane),
+    (Vic3(ShippingLane), Scopes::ShippingLanes),
     (Vic3(State), Scopes::State),
     (Vic3(StateRegion), Scopes::StateRegion),
     (Vic3(StateTrait), Scopes::StateTrait),
@@ -129,7 +129,6 @@ const DATATYPE_AND_SCOPE: &[(Datatype, Scopes)] = &[
     (Vic3(Technology), Scopes::Technology),
     // (Vic3(TechnologyStatus),Scopes::TechnologyStatus),
     (Vic3(Theater), Scopes::Theater),
-    (Vic3(TradeRoute), Scopes::TradeRoute),
     (Vic3(War), Scopes::War),
 ];
 

@@ -21,14 +21,16 @@ static SCOPE_TO_SCOPE_MAP: LazyLock<TigerHashMap<&'static str, (Scopes, Scopes)>
 /// See `event_targets.log` from the game data dumps
 /// These are scope transitions that can be chained like `root.joined_faction.faction_leader`
 const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
-    (Scopes::TradeRoute, "actor_market", Scopes::Market),
+    (Scopes::Treaty.union(Scopes::TreatyOptions), "amended_treaty", Scopes::Treaty),
     (Scopes::Country, "army_size", Scopes::Value),
     (Scopes::Country, "army_size_including_conscripts", Scopes::Value),
     (Scopes::Battle, "attacker_side", Scopes::BattleSide),
     (Scopes::War, "attacker_warleader", Scopes::Country),
     (Scopes::Country.union(Scopes::State), "average_expected_sol", Scopes::Value),
     (Scopes::Country.union(Scopes::State), "average_sol", Scopes::Value),
+    (Scopes::Goods, "base_price", Scopes::Value),
     (Scopes::BattleSide, "battle", Scopes::Battle),
+    (Scopes::Treaty.union(Scopes::TreatyOptions), "binding_period", Scopes::Value),
     (Scopes::NewCombatUnit, "building", Scopes::Building),
     (Scopes::Country, "building_levels", Scopes::Value),
     (Scopes::Country, "cached_ai_coastal_population", Scopes::Value),
@@ -45,7 +47,6 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "colonial_growth_per_colony", Scopes::Value),
     (Scopes::Province, "combat_width", Scopes::Value),
     (Scopes::Character, "command_limit_num_units", Scopes::Value),
-    (Scopes::NewCombatUnit, "commander", Scopes::Character),
     (Scopes::Character, "commander_military_formation", Scopes::MilitaryFormation),
     (Scopes::Province.union(Scopes::State), "controller", Scopes::Country),
     (Scopes::MilitaryFormation, "country", Scopes::Country),
@@ -68,14 +69,25 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::NewCombatUnit, "demoralized", Scopes::Value),
     (Scopes::DiplomaticPact, "diplomatic_pact_other_country(", Scopes::Country),
     (Scopes::War, "diplomatic_play", Scopes::DiplomaticPlay),
+    (Scopes::Treaty, "enforced_on_country", Scopes::Country),
+    (Scopes::Treaty, "enforcer_country", Scopes::Country),
+    (Scopes::Company, "executive", Scopes::Character),
     (Scopes::Country, "expenses", Scopes::Value),
-    (Scopes::TradeRoute, "exporter", Scopes::Market),
-    (Scopes::DiplomaticPact, "first_country", Scopes::Country),
+    (
+        Scopes::DiplomaticPact
+            .union(Scopes::TreatyArticle)
+            .union(Scopes::TreatyOptions)
+            .union(Scopes::TreatyArticleOptions)
+            .union(Scopes::Treaty),
+        "first_country",
+        Scopes::Country,
+    ),
     (Scopes::Country, "fixed_expenses", Scopes::Value),
     (
         Scopes::Battle
             .union(Scopes::Character)
             .union(Scopes::Province)
+            .union(Scopes::Invasion)
             .union(Scopes::MilitaryFormation),
         "front",
         Scopes::Front,
@@ -84,26 +96,47 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country.union(Scopes::State), "gdp", Scopes::Value),
     (Scopes::None, "global_gdp", Scopes::Value),
     (Scopes::JournalEntry, "goal_value", Scopes::Value),
-    (
-        Scopes::MarketGoods.union(Scopes::StateGoods).union(Scopes::TradeRoute),
-        "goods",
-        Scopes::Goods,
-    ),
-    (Scopes::Country, "government_size", Scopes::Value),
+    (Scopes::MarketGoods.union(Scopes::StateGoods), "goods", Scopes::Goods),
+    (Scopes::Country.union(Scopes::PoliticalMovement), "government_size", Scopes::Value),
     (Scopes::Country, "heir", Scopes::Character),
     (Scopes::MilitaryFormation, "highest_ranked_commander", Scopes::Character),
     (Scopes::Character.union(Scopes::Pop), "home_country", Scopes::Country),
     (Scopes::MilitaryFormation, "home_hq", Scopes::Hq),
     (Scopes::PowerBloc, "identity", Scopes::PowerBlocIdentity),
     (Scopes::Character, "ideology", Scopes::Ideology),
-    (Scopes::TradeRoute, "importer", Scopes::Market),
     (Scopes::Country, "imposed_law", Scopes::Law),
     (Scopes::Country.union(Scopes::Law), "imposer_of_law", Scopes::Country),
     (Scopes::Country, "income", Scopes::Value),
+    (Scopes::Country, "income_transfer_expenses", Scopes::Value),
+    (Scopes::Country, "income_transfer_relative_expenses", Scopes::Value),
     (Scopes::Country, "infamy", Scopes::Value),
     (Scopes::DiplomaticPlay, "initiator", Scopes::Country),
+    (
+        Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions),
+        "input_building_type",
+        Scopes::BuildingType,
+    ),
+    (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "input_company", Scopes::Company),
+    (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "input_country", Scopes::Country),
+    (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "input_goods", Scopes::Goods),
+    (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "input_law", Scopes::LawType),
+    (
+        Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions),
+        "input_market_goods",
+        Scopes::MarketGoods,
+    ),
+    (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "input_quantity", Scopes::Value),
+    (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "input_state", Scopes::State),
+    (
+        Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions),
+        "input_strategic_region",
+        Scopes::StrategicRegion,
+    ),
     (Scopes::Character, "interest_group", Scopes::InterestGroup),
     (Scopes::Character, "interest_group_type", Scopes::InterestGroupType),
+    (Scopes::Front, "invasion", Scopes::Invasion),
+    (Scopes::Invasion, "invasion_attacker", Scopes::Country),
+    (Scopes::Invasion, "invasion_defender", Scopes::Country),
     (Scopes::Institution, "investment", Scopes::Value),
     (Scopes::Institution, "investment_max", Scopes::Value),
     (Scopes::Country, "investment_pool_income", Scopes::Value),
@@ -113,7 +146,8 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Province.union(Scopes::State), "land_hq", Scopes::Hq),
     (Scopes::InterestGroup, "leader", Scopes::Character),
     (Scopes::Country, "legitimacy", Scopes::Value),
-    (Scopes::Building.union(Scopes::TradeRoute), "level", Scopes::Value),
+    (Scopes::Building, "level", Scopes::Value),
+    (Scopes::Building, "level_after_queued_constructions", Scopes::Value),
     (Scopes::NewCombatUnit, "manpower", Scopes::Value),
     (
         Scopes::Country
@@ -138,8 +172,6 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::PoliticalMovement, "most_desired_law", Scopes::LawType),
     (Scopes::Province, "naval_controller_hq", Scopes::Hq),
     (Scopes::Province, "naval_hq", Scopes::Hq),
-    (Scopes::NavalInvasion, "naval_invasion_attacker", Scopes::Country),
-    (Scopes::NavalInvasion, "naval_invasion_defender", Scopes::Country),
     (Scopes::Country, "navy_size", Scopes::Value),
     (Scopes::None, "no", Scopes::Bool),
     (Scopes::None, "NO", Scopes::Bool),
@@ -158,11 +190,11 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "num_convoys_required", Scopes::Value),
     (Scopes::Country, "num_declared_interests", Scopes::Value),
     (Scopes::Country, "num_defensive_pacts", Scopes::Value),
-    (Scopes::MarketGoods, "num_export_trade_routes", Scopes::Value),
     (Scopes::Hq, "num_garrison_units", Scopes::Value),
     (Scopes::Country, "num_generals", Scopes::Value),
-    (Scopes::MarketGoods, "num_import_trade_routes", Scopes::Value),
     (Scopes::Country, "num_income_transfer_pacts", Scopes::Value),
+    (Scopes::Country, "num_income_transfer_treaty_articles", Scopes::Value),
+    (Scopes::Country, "num_income_transfers", Scopes::Value),
     (Scopes::Country, "num_incorporated_states", Scopes::Value),
     (Scopes::Country, "num_interests", Scopes::Value),
     (Scopes::PowerBloc, "num_mandates", Scopes::Value),
@@ -179,11 +211,12 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::Country, "num_rivals", Scopes::Value),
     (Scopes::Country, "num_ruling_igs", Scopes::Value),
     (Scopes::Country, "num_states", Scopes::Value),
-    (Scopes::Country, "num_trade_routes", Scopes::Value),
-    (Scopes::Country, "num_treaty_ports", Scopes::Value),
     (Scopes::Country, "num_unincorporated_states", Scopes::Value),
     (Scopes::Character.union(Scopes::MilitaryFormation), "num_units", Scopes::Value),
+    (Scopes::Character.union(Scopes::MilitaryFormation), "num_units_in_battle", Scopes::Value),
+    (Scopes::Character.union(Scopes::MilitaryFormation), "num_units_not_in_battle", Scopes::Value),
     (Scopes::Character, "num_units_share", Scopes::Value),
+    (Scopes::Country, "num_world_market_hub_trade_center_levels", Scopes::Value),
     (Scopes::NewCombatUnit, "offense", Scopes::Value),
     (Scopes::Character, "opposing_commander", Scopes::Character),
     (Scopes::BattleSide, "opposite_battle_side", Scopes::BattleSide),
@@ -193,6 +226,7 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
             .union(Scopes::Building)
             .union(Scopes::Character)
             .union(Scopes::NewCombatUnit)
+            .union(Scopes::Company)
             .union(Scopes::Decree)
             .union(Scopes::Institution)
             .union(Scopes::InterestMarker)
@@ -204,12 +238,12 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
             .union(Scopes::Pop)
             .union(Scopes::Province)
             .union(Scopes::State)
-            .union(Scopes::TradeRoute)
             .union(Scopes::MilitaryFormation)
             .union(Scopes::PoliticalMovement),
         "owner",
         Scopes::Country,
     ),
+    (Scopes::Country, "owning_company", Scopes::Company),
     (Scopes::Market, "participants", Scopes::Value),
     (Scopes::InterestGroup, "party", Scopes::Party),
     (Scopes::None, "player", Scopes::Country), // TODO "do not use this outside tutorial"
@@ -243,11 +277,26 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
         "religion",
         Scopes::Religion,
     ),
+    (Scopes::TreatyOptions.union(Scopes::Treaty), "remaining_binding_period", Scopes::Value),
     (Scopes::Country, "ruler", Scopes::Character),
     (Scopes::DiplomaticRelations, "scope_relations", Scopes::Value),
     (Scopes::DiplomaticRelations, "scope_tension", Scopes::Value),
-    (Scopes::DiplomaticPact, "second_country", Scopes::Country),
+    (
+        Scopes::DiplomaticPact
+            .union(Scopes::TreatyArticle)
+            .union(Scopes::TreatyOptions)
+            .union(Scopes::TreatyArticleOptions)
+            .union(Scopes::Treaty),
+        "second_country",
+        Scopes::Country,
+    ),
+    (
+        Scopes::MilitaryFormation.union(Scopes::TreatyArticle),
+        "shipping_lane",
+        Scopes::ShippingLanes,
+    ),
     (Scopes::BuildingType, "slaves_role", Scopes::PopType),
+    (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "source_country", Scopes::Country),
     (
         Scopes::Building.union(Scopes::Market).union(Scopes::Pop).union(Scopes::Province),
         "state",
@@ -262,13 +311,14 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
         "target",
         Scopes::all(),
     ), // TODO: scope type?
-    (Scopes::TradeRoute, "target_market", Scopes::Market),
+    (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "target_country", Scopes::Country),
     (Scopes::Country, "technology_being_researched", Scopes::Technology),
     (Scopes::Country, "techs_researched", Scopes::Value),
     (Scopes::BattleSide.union(Scopes::State), "theater", Scopes::Theater),
     (Scopes::Country, "top_overlord", Scopes::Country),
     (Scopes::Market, "trade_center", Scopes::State),
     (Scopes::Building, "training_rate", Scopes::Value),
+    (Scopes::TreatyArticle, "treaty", Scopes::Treaty),
     // The input and output scopes for this are special cased
     (
         Scopes::Building
@@ -329,7 +379,13 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::Country, "ai_navy_comparison", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::State, "ai_state_value", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::Country, "ai_subject_value", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "ai_transit_rights_value", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::MarketGoods, "ai_treaty_export_value", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "ai_treaty_fairness", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::MarketGoods, "ai_treaty_import_value", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::State, "ai_treaty_port_value", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::MarketGoods, "ai_treaty_trade_value", Scopes::Value, Scope(Scopes::Country)),
+        (Scopes::Country, "ai_treaty_value", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::None, "array_define", Scopes::Value, UncheckedValue),
         (Scopes::Front, "average_defense", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::Front, "average_offense", Scopes::Value, Scope(Scopes::Country)),
@@ -351,6 +407,8 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "flag", Scopes::Flag, UncheckedValue),
         (Scopes::None, "g", Scopes::Goods, Item(Item::Goods)),
         (Scopes::Country, "get_ruler_for", Scopes::Character, Item(Item::TransferOfPower)),
+        // TODO: figure out how this one works
+        (Scopes::None, "global_productivity", Scopes::Value, Scope(Scopes::Value)),
         (Scopes::None, "global_var", Scopes::all(), UncheckedValue),
         (
             Scopes::None,
@@ -414,6 +472,7 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
             Scopes::PoliticalMovementType,
             Item(Item::PoliticalMovement),
         ),
+        (Scopes::Country, "mutual_trade_value_with_country", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::State, "nf", Scopes::Decree, Item(Item::Decree)),
         (
             Scopes::Country,
@@ -428,12 +487,6 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
             Scope(Scopes::Country),
         ),
         (Scopes::Front, "num_defending_battalions", Scopes::Value, Scope(Scopes::Country)),
-        (
-            Scopes::Country,
-            "num_mutual_trade_route_levels_with_country",
-            Scopes::Value,
-            Scope(Scopes::Country),
-        ),
         (Scopes::Country, "num_pending_events", Scopes::Value, Item(Item::EventCategory)),
         (Scopes::Country, "num_shared_rivals", Scopes::Value, Scope(Scopes::Country)),
         (Scopes::Front, "num_total_battalions", Scopes::Value, Scope(Scopes::Country)),
@@ -477,7 +530,18 @@ pub fn scope_to_scope_removed(name: &str) -> Option<(&'static str, &'static str)
 const SCOPE_TO_SCOPE_REMOVED: &[(&str, &str, &str)] = &[
     ("num_commanded_units", "1.6", ""),
     ("num_enemy_units", "1.6", ""),
-    ("num_units_not_in_battle", "1.6", ""),
     ("supply", "1.6", ""),
     ("active_diplomatic_play", "1.7", ""),
+    ("actor_market", "1.9", "replaced by world market system"),
+    ("commander", "1.9", ""),
+    ("exporter", "1.9", "replaced by world market system"),
+    ("importer", "1.9", "replaced by world market system"),
+    ("naval_invasion_attacker", "1.9", "replaced with `invasion_attacker`"),
+    ("naval_invasion_defender", "1.9", "replaced with `invasion_defender`"),
+    ("num_export_trade_routes", "1.9", "replaced by world market system"),
+    ("num_import_trade_routes", "1.9", "replaced by world market system"),
+    ("num_mutual_trade_route_levels_with_country", "1.9", "replaced by world market system"),
+    ("num_trade_routes", "1.9", "replaced by world market system"),
+    ("num_treaty_ports", "1.9", "replaced by world market system"),
+    ("target_market", "1.9", "replaced by world market system"),
 ];

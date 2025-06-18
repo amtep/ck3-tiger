@@ -7,7 +7,9 @@ use crate::game::GameFlags;
 use crate::item::{Item, ItemLoader, LoadAsFile, Recursive};
 use crate::pdxfile::PdxEncoding;
 use crate::report::{warn, ErrorKey};
+use crate::scopes::Scopes;
 use crate::token::Token;
+use crate::tooltipped::Tooltipped;
 use crate::validator::Validator;
 
 #[derive(Clone, Debug)]
@@ -48,6 +50,8 @@ impl DbKind for Theme {
                 vd.ban_field("papermap_textures_file", || "category papermap_theme");
             }
         }
+
+        vd.field_trigger_rooted("selectable", Tooltipped::No, Scopes::None);
 
         vd.advice_field("skin", "docs say skin, but it's ui_skin");
         vd.field_validated_value("ui_skin", |_, mut vd| {

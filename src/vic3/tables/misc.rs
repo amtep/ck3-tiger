@@ -1,4 +1,4 @@
-// LAST UPDATED VIC3 VERSION 1.8.1
+// LAST UPDATED VIC3 VERSION 1.9.0
 pub const DLC_FEATURES_VIC3: &[&str] = &[
     "voice_of_the_people_content",
     "voice_of_the_people_preorder",
@@ -12,6 +12,7 @@ pub const DLC_FEATURES_VIC3: &[&str] = &[
     "ep1_cosmetics",
     "ip2_content",
     "ip2_cosmetics",
+    "mp1_content",
 ];
 
 /// A list of music provided by DLCs, for people who don't have them
@@ -99,6 +100,31 @@ pub const TRANSFER_OF_POWER: &[&str] =
 // LAST UPDATED VIC3 VERSION 1.8.1
 pub const STRATA: &[&str] = &["lower", "middle", "upper"];
 
+// LAST UPDATED VIC3 VERSION 1.9.0
+// Gathered from usage in vanilla
+pub const TARIFF_LEVELS: &[&str] = &[
+    "max_subventions",
+    "high_subventions",
+    "low_subventions",
+    "no_tariffs_or_subventions",
+    "low_tariffs",
+    "high_tariffs",
+    "max_tariffs",
+];
+
+// LAST UPDATED VIC3 VERSION 1.9.0
+// From common/treaty_articles/treaty_articles.md
+pub const TREATY_ARTICLE_CATEGORIES: &[&str] = &[
+    "economy",
+    "trade",
+    "military",
+    "military_defense",
+    "ideology",
+    "expansion",
+    "power_bloc",
+    "other",
+];
+
 // LAST UPDATED VIC3 VERSION 1.8.1
 // Taken from `localization/english/diplomatic_plays_l_english.yml` entries
 // that start with `war_goal_`.
@@ -138,7 +164,7 @@ pub const WARGOALS: &[&str] = &[
 
 // LAST UPDATED VIC3 VERSION 1.3.6
 // TODO: maybe ruler and heir too?
-pub const CHARACTER_ROLES: &[&str] = &["admiral", "agitator", "general", "politician"];
+pub const CHARACTER_ROLES: &[&str] = &["admiral", "agitator", "general", "politician", "executive"];
 
 // LAST UPDATED VIC3 VERSION 1.7.1
 // Taken from common/labels/00_terrain_labels.txt and the unit_offense_ and unit_defense_ modifs.
@@ -176,6 +202,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/combat_unit_types",
     "common/commander_orders",
     "common/commander_ranks",
+    "common/company_charter_types",
     "common/company_types",
     "common/country_creation",
     "common/country_definitions",
@@ -197,6 +224,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/dynamic_company_names",
     "common/dynamic_country_map_colors",
     "common/dynamic_country_names",
+    "common/dynamic_treaty_names",
     "common/effect_localization",
     "common/ethnicities",
     "common/flag_definitions",
@@ -229,7 +257,6 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/objective_subgoal_categories",
     "common/objective_subgoals",
     "common/objectives",
-    "common/old_combat_unit_types",
     "common/on_actions",
     "common/opinion_modifiers",
     "common/parties",
@@ -246,6 +273,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/power_bloc_names",
     "common/power_bloc_principle_groups",
     "common/power_bloc_principles",
+    "common/prestige_goods",
     "common/production_method_groups",
     "common/production_methods",
     "common/proposal_types",
@@ -258,7 +286,6 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/scripted_modifiers",
     "common/scripted_progress_bars",
     "common/scripted_rules",
-    "common/scripted_tests",
     "common/scripted_triggers",
     "common/social_classes",
     "common/social_hierarchies",
@@ -272,6 +299,7 @@ pub const COMMON_DIRS: &[&str] = &[
     "common/terrain_manipulators",
     "common/terrain_manipulators/provinces",
     "common/themes",
+    "common/treaty_articles",
     "common/trigger_localization",
     "common/tutorial_lesson_chains",
     "common/tutorial_lessons",

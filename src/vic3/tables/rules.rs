@@ -57,13 +57,13 @@ pub const SCRIPTED_RULES: &str = "
 	}
 	unlock_power_bloc_principle_slot_2 = {
 		root = power_bloc
-        }
+	}
 	unlock_power_bloc_principle_slot_3 = {
 		root = power_bloc
-        }
+	}
 	unlock_power_bloc_principle_slot_4 = {
 		root = power_bloc
-        }
+	}
 
 	# TODO: find out what the scopes are here.
 	unlock_power_bloc_formation_principle_slot_1 = {
@@ -77,5 +77,10 @@ pub const SCRIPTED_RULES: &str = "
 	}
 	unlock_power_bloc_formation_principle_slot_4 = {
 		root = ALL
+	}
+
+	can_sign_treaty_with = {
+		root = country
+		other_country = country
 	}
 	";

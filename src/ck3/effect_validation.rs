@@ -1858,36 +1858,6 @@ pub fn validate_change_maa_regiment_size(
     }
 }
 
-pub fn validate_add_to_list_ck3(
-    _key: &Token,
-    bv: &BV,
-    data: &Everything,
-    sc: &mut ScopeContext,
-    _tooltipped: Tooltipped,
-) {
-    match bv {
-        BV::Value(name) => {
-            validate_identifier(name, "list name", Severity::Error);
-            sc.define_or_expect_list(name);
-        }
-        BV::Block(block) => {
-            let mut vd = Validator::new(block, data);
-            vd.req_field("name");
-            vd.req_field("value");
-            if let Some(target) = vd.field_value("value").cloned() {
-                if let Some(name) = vd.field_value("name") {
-                    validate_identifier(name, "list name", Severity::Error);
-                    let outscopes =
-                        validate_target_ok_this(&target, data, sc, Scopes::all_but_none());
-                    sc.open_scope(outscopes, target);
-                    sc.define_or_expect_list(name);
-                    sc.close();
-                }
-            }
-        }
-    }
-}
-
 pub fn validate_create_adventurer_title(
     _key: &Token,
     _block: &Block,
