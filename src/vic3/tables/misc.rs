@@ -13,6 +13,8 @@ pub const DLC_FEATURES_VIC3: &[&str] = &[
     "ip2_content",
     "ip2_cosmetics",
     "mp1_content",
+    "mp1_treaties",
+    "mp1_charter_companies",
 ];
 
 /// A list of music provided by DLCs, for people who don't have them
@@ -134,6 +136,7 @@ pub const WARGOALS: &[&str] = &[
     "colonization_rights",
     "conquer_state",
     "contain_threat",
+    "enforce_treaty_article",
     "force_nationalization",
     "force_recognition",
     "foreign_investment_rights",
