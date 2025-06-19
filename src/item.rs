@@ -441,6 +441,7 @@ pub enum Item {
     #[cfg(feature = "vic3")] DynamicCompanyName,
     #[cfg(feature = "vic3")] DynamicCountryMapColor,
     #[cfg(feature = "vic3")] DynamicCountryName,
+    #[cfg(feature = "vic3")] DynamicTreatyName,
     #[cfg(feature = "vic3")] EventCategory,
     #[cfg(feature = "vic3")] FlagDefinition,
     #[cfg(feature = "vic3")] Goods,
@@ -1415,6 +1416,8 @@ impl Item {
             Item::DynamicCountryMapColor => "common/dynamic_country_map_colors/",
             #[cfg(feature = "vic3")]
             Item::DynamicCountryName => "common/dynamic_country_names/",
+            #[cfg(feature = "vic3")]
+            Item::DynamicTreatyName => "common/dynamic_treaty_names/",
             #[cfg(feature = "vic3")]
             Item::EventCategory => "",
             #[cfg(feature = "vic3")]
