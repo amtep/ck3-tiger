@@ -1078,9 +1078,9 @@ pub fn validate_create_treaty(
     vd.field_localization("name", sc);
     vd.req_field_one_of(&["first_country", "amends"]);
     vd.req_field_one_of(&["second_country", "amends"]);
-    vd.field_target("first_country", sc, Scopes::Country);
-    vd.field_target("second_country", sc, Scopes::Country);
-    vd.field_target("amends", sc, Scopes::Treaty);
+    vd.field_target_ok_this("first_country", sc, Scopes::Country);
+    vd.field_target_ok_this("second_country", sc, Scopes::Country);
+    vd.field_target_ok_this("amends", sc, Scopes::Treaty);
 
     vd.field_bool("is_draft");
     if block.has_key("amends") && !block.get_field_bool("is_draft").unwrap_or(true) {

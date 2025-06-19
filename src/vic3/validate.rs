@@ -12,9 +12,9 @@ pub fn validate_treaty_article(block: &Block, data: &Everything, sc: &mut ScopeC
     let mut vd = Validator::new(block, data);
     vd.field_item("article", Item::TreatyArticle);
     // TODO: directed articles _must_ specify this value, mutual articles _must not_ specify this value
-    vd.field_target("source_country", sc, Scopes::Country);
+    vd.field_target_ok_this("source_country", sc, Scopes::Country);
     // TODO: directed articles _must_ specify this value, mutual articles _must not_ specify this value
-    vd.field_target("target_country", sc, Scopes::Country);
+    vd.field_target_ok_this("target_country", sc, Scopes::Country);
     // TODO: check which inputs the article requires
     vd.field_validated_block("inputs", |block, data| {
         let mut vd = Validator::new(block, data);

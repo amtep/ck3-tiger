@@ -1537,7 +1537,7 @@ pub fn validate_create_alliance(
             vd.set_case_sensitive(false);
             vd.req_field("target");
             vd.field_target("target", sc, Scopes::Character);
-            vd.field_target("allied_through_owner", sc, Scopes::Character);
+            vd.field_target_ok_this("allied_through_owner", sc, Scopes::Character);
             vd.field_target("allied_through_target", sc, Scopes::Character);
         }
     }
