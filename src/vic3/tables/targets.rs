@@ -120,11 +120,6 @@ const SCOPE_TO_SCOPE: &[(Scopes, &str, Scopes)] = &[
     (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "input_country", Scopes::Country),
     (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "input_goods", Scopes::Goods),
     (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "input_law", Scopes::LawType),
-    (
-        Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions),
-        "input_market_goods",
-        Scopes::MarketGoods,
-    ),
     (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "input_quantity", Scopes::Value),
     (Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions), "input_state", Scopes::State),
     (
@@ -423,6 +418,12 @@ const SCOPE_PREFIX: &[(Scopes, &str, Scopes, ArgumentValue)] = {
         (Scopes::None, "ig_trait", Scopes::InterestGroupTrait, Item(Item::InterestGroupTrait)),
         (Scopes::None, "ig_type", Scopes::InterestGroupType, Item(Item::InterestGroup)),
         (Scopes::None, "infamy_threshold", Scopes::Value, Item(Item::InfamyThreshold)),
+        (
+            Scopes::TreatyArticle.union(Scopes::TreatyArticleOptions),
+            "input_market_goods",
+            Scopes::MarketGoods,
+            Scope(Scopes::Country),
+        ),
         (Scopes::Country, "institution", Scopes::Institution, Item(Item::Institution)),
         (Scopes::Country, "je", Scopes::JournalEntry, Item(Item::JournalEntry)),
         (Scopes::None, "law_type", Scopes::LawType, Item(Item::LawType)),
