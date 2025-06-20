@@ -161,7 +161,7 @@ impl DbKind for TreatyArticle {
             });
         }
 
-        vd.field_trigger_rooted("visible", Tooltipped::Yes, Scopes::Country);
+        vd.field_trigger_rooted("visible", Tooltipped::No, Scopes::Country);
         vd.field_trigger_builder("possible", Tooltipped::Yes, |key| {
             let mut sc = ScopeContext::new(Scopes::Country, key);
             sc.define_name("other_country", Scopes::Country, key);
@@ -169,6 +169,14 @@ impl DbKind for TreatyArticle {
         });
         vd.field_trigger_builder("can_ratify", Tooltipped::Yes, |key| {
             build_article_treaty_sc(key, is_directed)
+        });
+
+        // undocumented
+        vd.multi_field_validated_block("requirement_to_maintain", |block, data| {
+            let mut vd = Validator::new(block, data);
+            vd.field_trigger_builder("trigger", Tooltipped::No, |key| {
+                build_article_treaty_sc(key, is_directed)
+            });
         });
 
         for active in &["on_entry_into_force", "on_enforced"] {
