@@ -45,7 +45,7 @@ encoding_rs = "0.8.32"
 image = { version = "0.25", features = ["dds"], default-features = false, optional = true }
 inventory = "0.3.11"
 lalrpop-util = { version = "0.22.0", features = ["unicode", "lexer"] }
-phf = { version = "0.11", features = ["macros"] }
+phf = { version = "0.12", features = ["macros"] }
 png = { version = "0.17.6", optional = true }
 rayon = "1.7.0"
 serde = { version = "1", features = ["derive"] }

@@ -26,7 +26,7 @@ strum = "0.27"
 [dev-dependencies]
 serde = { version = "1", features = ["derive"] }
 toml = "0.8.8"
-criterion = "0.5"
+criterion = "0.6"
 
 [[bench]]
 name = "criterion"

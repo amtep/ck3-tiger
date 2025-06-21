@@ -17,13 +17,13 @@ cfg-if = "1"
 clap = { version = "4.5", features = ["derive"] }
 console = "0.15"
 # held back because of msrv
-home = "=0.5.9"
+home = "0.5"
 regex = "1.10"
 steamlocate = "2.0"
 thiserror = "2.0"
 
-litemap = "=0.7.4"
-zerofrom = "=0.1.5"
+litemap = "0.8"
+zerofrom = "0.1"
 
 [target.'cfg(windows)'.dependencies]
 ansiterm = "0.12.2"
