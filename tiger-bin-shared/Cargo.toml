@@ -26,7 +26,7 @@ litemap = "0.8"
 zerofrom = "0.1"
 
 # indirect dependency of self_update, held back for msrv
-base64ct = "1.7.3"
+base64ct = "=1.7.3"
 
 [target.'cfg(windows)'.dependencies]
 ansiterm = "0.12.2"
