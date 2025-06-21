@@ -2603,6 +2603,7 @@ version = "1.9.0"
 dependencies = [
  "ansiterm",
  "anyhow",
+ "base64ct",
  "cfg-if",
  "clap",
  "console",
